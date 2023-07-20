@@ -1,7 +1,7 @@
 {
-  "name": "nanospaceplus",
+  "name": "pepperbot",
   "version": "3.1.0",
-  "description": "✈",
+  "description": "Pepper Music Bot (Custom NanoSpacePlus - Adivise)",
   "main": "index.js",
   "dependencies": {
     "@hammerhq/localization": "^0.1.5",
@@ -30,16 +30,16 @@
   "scripts": {
     "start": "node --no-warnings index.js"
   },
-  "author": "Adivise",
+  "author": "Murali Anand",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Adivise/NanoSpacePlus.git"
+    "url": "git@github.com:muralianand12345/Pepper-Bot.git"
   },
   "bugs": {
-    "url": "https://github.com/Adivise/NanoSpacePlus/issues"
+    "url": "https://github.com/muralianand12345/Pepper-Bot/issues"
   },
-  "homepage": "https://github.com/Adivise/NanoSpacePlus/#readme",
+  "homepage": "https://github.com/muralianand12345/Pepper-Bot#readme",
   "devDependencies": {
     "node": "^17.0.1"
   }
