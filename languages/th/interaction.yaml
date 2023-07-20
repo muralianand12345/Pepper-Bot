@@ -1,0 +1,11 @@
+##### InteractionCreate Event #####
+#On settings/config.js in DEV_ID
+dev_only: บอททำการปิดปรับปรุงอยู่ (โปรดกลับมาในภายหลัง)
+#No permission to use command (this for bot!)
+bot_perms: ฉันไม่มีความสามารถ เพื่อส่งข้อความ
+# No permission to use command (this for user!)
+user_perms: "You don't have permissions `%{perms}`"
+#Bot getting error something!
+error: มีบ้างอย่างผิดปกติ
+#You are not the client owner of this bot!
+owner_only: คุณไม่ใช้เจ้าของบอท

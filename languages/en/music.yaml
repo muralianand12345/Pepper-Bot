@@ -1,0 +1,228 @@
+### 247 command
+247_off: "`🌙` | *Mode 24/7 has been:* `Deactivated`"
+247_on: "`🌕` | *Mode 24/7 has been:* `Activated`"
+
+### Autoplay command!
+autoplay_off: "`📻` | *Autoplay has been:* `Deactivated`"
+autoplay_on: "`📻` | *Autoplay has been:* `Activated`"
+
+### Clearqueue command!
+clearqueue_msg: "`📛` | *Queue has been:* `Cleared`"
+
+### Forward command!
+forward_msg: "`⏭` | *Forward to:* `%{duration}`"
+forward_beyond: "Cannot forward beyond the song's duration."
+forward_invalid: "Invalid argument, must be a number.\nCorrect Usage: `%{prefix}forward <seconds>`"
+
+### Join command!
+join_voice: "You need to be in a voice channel to use the join command."
+join_msg: "`🔊` | *Joined:* `%{channel}`"
+
+### Leave command!
+leave_msg: "`🚫` | *Left:* | `%{channel}`"
+
+### Loop command!
+loop_current: "`🔁` | *Song has been:* `Looped`"
+unloop_current: "`🔁` | *Song has been:* `UnLooped`"
+loop_all: "`🔁` | *Queue has been:* `Looped`"
+unloop_all: "`🔁` | *Queue has been:* `UnLooped`"
+
+### Loopall command!
+loopall: "`🔁` | *Queue has been:* `Looped`"
+unloopall: "`🔁` | *Queue has been:* `UnLooped`"
+
+### Lyrics command!
+lyrics_notfound: "Couldn't find any lyrics for provided song!"
+lyrics_title: "Lyrics for %{song}"
+lyrics_toolong: "Lyrics too long to display!"
+
+### Nowplaying command!
+np_loading: "Loading please wait..."
+np_title: "Now Playing..."
+np_title_pause: "Song Paused..."
+np_icon: "https://cdn.discordapp.com/emojis/741605543046807626.gif"
+
+# Embed Field
+np_author: "Author:"
+np_request: "Requester:"
+np_volume: "Volume:"
+np_view: "Views:"
+np_upload: "Uploaded At:"
+np_download: "Download:"
+np_current_duration: "Current Duration: `[%{current_duration} / %{total_duration}]`"
+
+# Need in voice to use button
+np_invoice: "You need to be in a same/voice channel."
+
+# Message Button
+np_switch_pause: "Paused"
+np_switch_resume: "Resumed"
+np_pause_msg: "`⏯` | *Song has been:* `%{pause}`"
+
+np_replay_msg: "`⏮` | *Song has been:* `Replayed`"
+
+np_stop_msg: "`🚫` | *Song has been:* `Stopped`"
+
+np_skip_msg: "`⏭` | *Song has been:* `Skipped`"
+
+np_switch_enable: "Enabled"
+np_switch_disable: "Disabled"
+np_repeat_msg: "`🔁` | *Loop has been:* `%{loop}`"
+
+### Pause command!
+pause_loading: "Loading please wait..."
+pause_switch_pause: "Paused"
+pause_switch_resume: "Resumed"
+pause_msg: "`⏯` | *Song has been:* `%{pause}`"
+
+### Play command!
+play_loading: "Loading please wait..."
+play_invoice: "You need to be in a voice channel to use command."
+play_join: "I don't have permission to join your voice channel."
+play_speak: "I don't have permission to speak in your voice channel."
+play_arg: "Please provide a song name or link to search."
+play_startwith: "Please use link to play music."
+
+play_track: "**Queued • [%{title}](%{url})** `%{duration}` • %{request}"
+play_playlist: "**Queued • [%{title}](%{url})** `%{duration}` (%{songs} tracks) • %{request}"
+play_result: "**Queued • [%{title}](%{url})** `%{duration}` • %{request}"
+
+play_fail: "Error loading track failed"
+play_match: "Error song not matches"
+
+### Previous command!
+previous_loading: "Loading please wait..."
+previous_notfound: "No previous song/s found."
+previous_msg: "`⏮` | *Song has been:* `Previous`"
+
+### Queue command!
+queue_author: "Queue - %{guild}"
+queue_description: "*Currently Playing*\n*[%{title}](%{url})* `[%{duration}]` • %{request}\n\n*Rest of queue*:%{rest}"
+queue_footer: "Page • %{page}/%{pages} | %{queue_lang} • Song | %{duration} • Total duration"
+queue_notnumber: "Page must be a number."
+queue_page_notfound: "There are only %{page} pages available."
+
+### Replay command!
+replay_loading: "Loading please wait..."
+replay_msg: "`⏮` | *Song has been:* `Replayed`"
+
+### Resume command!
+resume_loading: "Loading please wait..."
+resume_switch_pause: "Paused"
+resume_switch_resume: "Resumed"
+resume_msg: "`⏯` | *Song has been:* `%{resume}`"
+
+### Rewind command!
+rewind_loading: "Loading please wait..."
+rewind_msg: "`⏮` | *Rewind to:* `%{duration}`"
+rewind_beyond: "Cannot rewind beyond the song's duration."
+rewind_invalid: "Invalid argument, must be a number.\nCorrect Usage: `%{prefix}rewind <seconds>`"
+
+### Search command!
+search_loading: "Loading please wait..."
+search_invoice: "You need to be in a voice channel to use command."
+search_join: "I don't have permission to join your voice channel."
+search_speak: "I don't have permission to speak in your voice channel."
+search_arg: "Please provide a song name or link to search."
+
+search_title: "Song Selection..."
+search_select: "**(%{num}.) [%{title}](%{url})** `%{duration}` Author: `%{author}`"
+search_footer: "Please select a song in 30 seconds."
+search_no_response: "No response."
+
+search_result: "**Queued • [%{title}](%{url})** `%{duration}` • %{request}"
+search_playlist: "**Queued • [%{title}](%{url})** `%{duration}` (%{songs} tracks) • %{request}"
+
+search_fail: "Error loading track failed"
+search_match: "Error song not matches"
+
+### Seek command!
+seek_loading: "Loading please wait..."
+seek_invalid: "Invalid number. Please provide a number in seconds.\nCorrect Usage: `%{prefix}seek <seconds>`"
+seek_beyond: "Cannot seek beyond length of song."
+seek_msg: "`⏭` | *Seeked to:* `%{duration}`"
+
+### Shuffle command!
+shuffle_loading: "Loading please wait..."
+shuffle_msg: "`🔀` | *Queue has been:* `Shuffled`"
+
+### Skip command!
+skip_loading: "Loading please wait..."
+skip_msg: "`⏭` | *Song has been:* `Skipped`"
+
+### Skipto command!
+skipto_loading: "Loading please wait..."
+skipto_invalid_position: "Invalid number"
+skipto_arg: "Cannot skip to a song that is already playing. To skip the current playing song type: `%{prefix}skip`"
+skipto_invalid: "The song number is invalid."
+skipto_msg: "`⏭` | *Song has been:* `Skipto %{position}`"
+
+### Volume command!
+volume_loading: "Loading please wait..."
+volume_usage: "*Current volume:* `%{volume}%`"
+volume_invalid: "You may only set the volume to 1% - 100%"
+volume_msg: "`🔊` | *Change volume to:* `%{volume}%`"
+
+### PlaySkip command!
+playskip_loading: "Loading please wait..."
+
+playskip_track: "**Skipped • [%{title}](%{url})** `%{duration}` • %{request}"
+playskip_playlist: "**Skipped • [%{title}](%{url})** `%{duration}` (%{songs} tracks) • %{request}"
+playskip_result: "**Skipped • [%{title}](%{url})** `%{duration}` • %{request}"
+
+playskip_fail: "Error loading track failed"
+playskip_match: "Error song not matches"
+
+### PlayTop command!
+playtop_loading: "Loading please wait..."
+
+playtop_track: "**Shifted • [%{title}](%{url})** `%{duration}` • %{request}"
+playtop_playlist: "**Shifted • [%{title}](%{url})** `%{duration}` (%{songs} tracks) • %{request}"
+playtop_result: "**Shifted • [%{title}](%{url})** `%{duration}` • %{request}"
+
+playtop_fail: "Error loading track failed"
+playtop_match: "Error song not matches"
+
+### RemoveTrack command!
+removetrack_loading: "Loading please wait..."
+
+removetrack_already: "Cannot remove a song that is already playing."
+removetrack_notfound: "Song not found."
+
+removetrack_desc: "**Removed • [%{name}](%{url})** `%{duration}` • %{request}"
+
+### Move command!
+move_loading: "Loading please wait..."
+
+move_already: "Cannot remove a song that is already playing."
+move_notfound: "Song not found."
+
+move_desc: "**Moved • [%{name}](%{url})** to %{pos}"
+
+### SearchSkip command!
+searchskip_loading: "Loading please wait..."
+
+searchskip_title: "Song Selection..."
+searchskip_select: "**(%{num}.) [%{title}](%{url})** `%{duration}` Author: `%{author}`"
+searchskip_footer: "Please select a song in 30 seconds."
+searchskip_no_response: "No response."
+
+searchskip_result: "**Skipped • [%{title}](%{url})** `%{duration}` • %{request}"
+searchskip_playlist: "**Skipped • [%{title}](%{url})** `%{duration}` (%{songs} tracks) • %{request}"
+
+searchskip_fail: "Error loading track failed"
+searchskip_match: "Error song not matches"
+
+### SearchTop command!
+searchtop_loading: "Loading please wait..."
+
+searchtop_title: "Song Selection..."
+searchtop_select: "**(%{num}.) [%{title}](%{url})** `%{duration}` Author: `%{author}`"
+searchtop_footer: "Please select a song in 30 seconds."
+searchtop_no_response: "No response."
+
+searchtop_result: "**Shifted • [%{title}](%{url})** `%{duration}` • %{request}"
+searchtop_playlist: "**Shifted • [%{title}](%{url})** `%{duration}` (%{songs} tracks) • %{request}"
+
+searchtop_fail: "Error loading track failed"
+searchtop_match: "Error song not matches"
