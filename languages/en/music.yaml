@@ -83,7 +83,7 @@ play_speak: "I don't have permission to speak in your voice channel."
 play_arg: "Please provide a song name or link to search."
 play_startwith: "Please use link to play music."
 
-play_track: "**Queued • [%{title}](%{url})** `%{duration}` • %{request}"
+play_track: "**Song • [%{title}](%{url})** `%{duration}` • %{request}"
 play_playlist: "**Queued • [%{title}](%{url})** `%{duration}` (%{songs} tracks) • %{request}"
 play_result: "**Queued • [%{title}](%{url})** `%{duration}` • %{request}"
 

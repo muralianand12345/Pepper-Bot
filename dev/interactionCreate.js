@@ -3,20 +3,10 @@ const GLang = require("../../settings/models/Language.js");
 const Playlist = require("../../settings/models/Playlist.js");
 const chalk = require('chalk');
 const { SEARCH_DEFAULT } = require("../../settings/config.js")
-const SpotifyWebApi = require("spotify-web-api-node");
+const yt = require("youtube-sr").default;
 const { REGEX } = require("../../settings/regex.js");
-require("dotenv").config();
 
 module.exports = async (client, interaction) => {
-
-    const spotifyApi = new SpotifyWebApi();
-    spotifyApi.setCredentials({
-        clientId: process.env.SPOTIFYCLIENTID,
-        clientSecret: process.env.SPOTIFYSECRET,
-    });
-    const data = await spotifyApi.clientCredentialsGrant();
-    spotifyApi.setAccessToken(data.body.access_token);
-
     if (interaction.isCommand || interaction.isContextMenuCommand || interaction.isModalSubmit || interaction.isChatInputCommand) {
         if (!interaction.guild || interaction.user.bot) return;
 
@@ -37,50 +27,45 @@ module.exports = async (client, interaction) => {
 
         if (interaction.type == InteractionType.ApplicationCommandAutocomplete) {
             const url = interaction.options.getString("song")
-
-            // Check The song playlist (Support: apple music/spotify/soundcloud/deezer)
+            if (url.startsWith("https://www.youtube.com")) return;
+      
+            // Check The song playlist (Support: apple music/youtube/spotify/soundcloud/deezer)
             const match = REGEX.some(function (match) {
-                return match.test(url) == true;
+              return match.test(url) == true;
             });
-
+      
             async function checkRegex() {
-                if (match == true) {
-                    let choice = []
-                    choice.push({ name: url, value: url })
-                    await interaction.respond(choice).catch(() => { });
-                }
+              if (match == true) {
+                let choice = []
+                choice.push({ name: url, value: url })
+                await interaction.respond(choice).catch(() => { });
+              }
             }
-
+      
             const Random = SEARCH_DEFAULT[Math.floor(Math.random() * SEARCH_DEFAULT.length)];
-
-            if (interaction.commandName == "play") {
-                checkRegex()
-                choice = []
-                await spotifyApi.searchTracks(url || Random, { limit: 10 }).then((response)=>{
-                    const tracks = response.body.tracks.items;
-                    const result = tracks.map((track) => ({ name: track.name, value: track.external_urls.spotify }));
-                    result.forEach(x=>{choice.push({ name: x.name, value: x.value }) });
+      
+            if(interaction.commandName == "play") {
+              checkRegex()
+                let choice = []
+                await yt.search(url || Random, { safeSearch: true, limit: 10 }).then(result => {
+                  result.forEach(x => { choice.push({ name: x.title, value: x.url }) })
                 });
                 return await interaction.respond(choice).catch(() => { });
             } else if (interaction.options.getSubcommand() == "playskip") {
-                checkRegex()
-                choice = []
-                await spotifyApi.searchTracks(url || Random, { limit: 10 }).then((response)=>{
-                    const tracks = response.body.tracks.items;
-                    const result = tracks.map((track) => ({ name: track.name, value: track.external_urls.spotify }));
-                    result.forEach(x=>{choice.push({ name: x.name, value: x.value }) });
+              checkRegex()
+                let choice = []
+                await yt.search(url || Random, { safeSearch: true, limit: 10 }).then(result => {
+                    result.forEach(x => { choice.push({ name: x.title, value: x.url }) })
                 });
                 return await interaction.respond(choice).catch(() => { });
             } else if (interaction.options.getSubcommand() == "playtop") {
-                checkRegex()
-                choice = []
-                await spotifyApi.searchTracks(url || Random, { limit: 10 }).then((response)=>{
-                    const tracks = response.body.tracks.items;
-                    const result = tracks.map((track) => ({ name: track.name, value: track.external_urls.spotify }));
-                    result.forEach(x=>{choice.push({ name: x.name, value: x.value }) });
+              checkRegex()
+                let choice = []
+                await yt.search(url || Random, { safeSearch: true, limit: 10 }).then(result => {
+                    result.forEach(x => { choice.push({ name: x.title, value: x.url }) })
                 });
                 return await interaction.respond(choice).catch(() => { });
-            } else if (interaction.options.getSubcommand() == "add") {
+            } else if (interaction.options.getSubcommand() == "add") { 
                 const playlists = await Playlist.find({ owner: interaction.user.id });
                 let choice = []
                 playlists.forEach(x => { choice.push({ name: x.name, value: x.name }) })
