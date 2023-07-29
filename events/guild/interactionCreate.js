@@ -37,6 +37,12 @@ module.exports = async (client, interaction) => {
 
         if (interaction.type == InteractionType.ApplicationCommandAutocomplete) {
             const url = interaction.options.getString("song")
+            if (url.includes("youtube.com")) {
+                let choice = []
+                //add any other options here
+                choice.push({ name: 'We do not support Youtube source based music.', value: 'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8?si=1e094643279f4a17' });
+                await interaction.respond(choice).catch(() => { });
+            }
 
             // Check The song playlist (Support: apple music/spotify/soundcloud/deezer)
             const match = REGEX.some(function (match) {
