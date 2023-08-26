@@ -3,3 +3,4 @@ node_modules
 logs
 package-lock.json
 Start.bat
+settings/config.js

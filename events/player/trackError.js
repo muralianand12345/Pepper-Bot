@@ -9,12 +9,12 @@ module.exports = async (client, player, track, payload) => {
     const channel = client.channels.cache.get(player.textChannel);
     if (!channel) return;
 
-		const guildModel = await GLang.findOne({ guild: channel.guild.id });
-		const { language } = guildModel;
+    const guildModel = await GLang.findOne({ guild: channel.guild.id });
+    const { language } = guildModel;
 
     /////////// Update Music Setup ///////////
 
-	  await client.UpdateMusic(player);
+    await client.UpdateMusic(player);
     await client.clearInterval(client.interval);
 
     /////////// Update Music Setup ///////////
@@ -26,6 +26,6 @@ module.exports = async (client, player, track, payload) => {
     channel.send({ embeds: [embed] });
 
     console.log(white('[') + red('DEBUG') + white('] ') + red('Track Error in ') + white(player.guild) + red(' Auto-Leaved!'));
-    if (!player.voiceChannel) player.destroy();
 
+    if (!player.voiceChannel) player.destroy();
 }

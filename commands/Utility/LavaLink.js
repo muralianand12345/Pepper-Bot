@@ -20,27 +20,30 @@ module.exports = {
         sameVoice: false,
     },
     run: async (interaction, client, user, language) => {
-        await interaction.deferReply({ ephemeral: false});
+        await interaction.deferReply({ ephemeral: false });
         // owner only
-        if(interaction.user.id != client.owner) return interaction.editReply({ content: `${client.i18n.get(language, "interaction", "owner_only")}` });
+        if (interaction.user.id != client.owner) return interaction.editReply({ content: `${client.i18n.get(language, "interaction", "owner_only")}` });
 
         const embed = new EmbedBuilder()
             .setColor(client.color)
-            .setAuthor({ name: `LavaLink`, iconURL: interaction.guild.iconURL({ dynamic: true })})
+            .setAuthor({ name: `LavaLink`, iconURL: interaction.guild.iconURL({ dynamic: true }) })
             .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 2048 }))
             .setTimestamp()
 
         client.manager.nodes.forEach((node) => {
             try {
-                embed.addFields({ name: "Name", value: `${node.options.identifier}` })
-                embed.addFields({ name: "Connected", value: `${node.connected ? "Connected [🟢]" : "Disconnected [🔴]"}` })
-                embed.addFields({ name: "Player", value: `${node.stats.players}` })
-                embed.addFields({ name: "Used Players", value: `${node.stats.playingPlayers}` })
-                embed.addFields({ name: "Uptime", value: `${moment.duration(node.stats.uptime).format("d [days], h [hours], m [minutes], s [seconds]")}` })
-                embed.addFields({ name: "Cores", value: `${node.stats.cpu.cores + " Core(s)"}` })
-                embed.addFields({ name: "Memory Usage", value: `${prettyBytes(node.stats.memory.used)}/${prettyBytes(node.stats.memory.reservable)}` })
-                embed.addFields({ name: "System Load", value: `${(Math.round(node.stats.cpu.systemLoad * 100) / 100).toFixed(2)}%` })
-                embed.addFields({ name: "Lavalink Load", value: `${(Math.round(node.stats.cpu.lavalinkLoad * 100) / 100).toFixed(2)}%` })
+                embed.addFields({
+                    name: "Node Info",
+                    value: `Name: ${node.options.identifier}\n` +
+                        `Connected: ${node.connected ? "Connected [🟢]" : "Disconnected [🔴]"}\n` +
+                        `Player: ${node.stats.players}\n` +
+                        `Used Players: ${node.stats.playingPlayers}\n` +
+                        `Uptime: ${moment.duration(node.stats.uptime).format("d [days], h [hours], m [minutes], s [seconds]")}\n` +
+                        `Cores: ${node.stats.cpu.cores} Core(s)\n` +
+                        `Memory Usage: ${prettyBytes(node.stats.memory.used)}/${prettyBytes(node.stats.memory.reservable)}\n` +
+                        `System Load: ${(Math.round(node.stats.cpu.systemLoad * 100) / 100).toFixed(2)}%\n` +
+                        `Lavalink Load: ${(Math.round(node.stats.cpu.lavalinkLoad * 100) / 100).toFixed(2)}%`
+                });
             } catch (e) {
                 console.log(e);
             }
