@@ -9,7 +9,6 @@ class MainClient extends Client {
             allowedMentions: { parse: ["users", "roles"] },
             intents: [
                 GatewayIntentBits.Guilds,
-                GatewayIntentBits.GuildMembers,
                 GatewayIntentBits.GuildMessages,
                 GatewayIntentBits.GuildVoiceStates,
                 GatewayIntentBits.MessageContent,

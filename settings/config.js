@@ -5,7 +5,7 @@ module.exports = {
   TOKEN: process.env.TOKEN || "YOUR_TOKEN",  // your bot token
   EMBED_COLOR: process.env.EMBED_COLOR || "#000001", //<= default is "#000001"
 
-  SEARCH_DEFAULT: ["jvke", "I love you 3000", "justin bieber", "post malone", "anime song"],
+  SEARCH_DEFAULT: ["Naa Ready", "Kaavaalaa", "Arabic Kuthu", "Ranjithame", "Once Upon a time"],
 
   OWNER_ID: process.env.OWNER_ID || "YOUR_CLIENT_ID", //your owner discord id example: "515490955801919488"
 
@@ -17,7 +17,7 @@ module.exports = {
     directory: resolve("languages"), // <= location of language
   },
 
-  DEV_ID: [], // if you want to use command bot only, you can put your id here example: ["123456789", "123456789"]
+  DEV_ID: ['758579147009163304', '678402714765361182'], // if you want to use command bot only, you can put your id here example: ["123456789", "123456789"]
 
   MONGO_URI: process.env.MONGO_URI || "YOUR_MONGO_URI", // your mongo uri
   LIMIT_TRACK: parseInt(process.env.LIMIT_TRACK || "50"),  //<= dafault is "50" // limit track in playlist
@@ -25,14 +25,77 @@ module.exports = {
 
   DEFAULT_SEARCH: "spsearch", // default search engine & "ytmsearch" / "ytsearch" / "scsearch" / "spsearch"
   NODES: [
-    {
-      identifier: "NanoSpace",
-      host: process.env.NODE_HOST || "localhost",
-      port: parseInt(process.env.NODE_PORT || "5555"),
-      password: process.env.NODE_PASSWORD || "123456",
+    /*{
+      identifier: "Pepper Official",
+      host: process.env.NODE_HOST,
+      port: parseInt(process.env.NODE_PORT),
+      password: process.env.NODE_PASSWORD,
       retryAmount: 10,
       retryDelay: 7500,
       secure: false
+    },*/
+    {
+      identifier: "LavaLink 1",
+      host: "54.38.198.24",
+      port: parseInt("88"),
+      password: "stonemusicgay",
+      retryAmount: 1000,
+      retryDelay: 60000 * 30,
+      secure: false
+    },
+    {
+      identifier: "LavaLink 2",
+      host: "54.38.198.23",
+      port: parseInt("88"),
+      password: "stonemusicgay",
+      retryAmount: 1000,
+      retryDelay: 60000 * 30,
+      secure: false
+    },
+    {
+      identifier: "LavaLink 3",
+      host: "lavalink.lexnet.cc",
+      port: parseInt("443"),
+      password: "lexn3tl@val!nk",
+      retryAmount: 1000,
+      retryDelay: 60000 * 30,
+      secure: true
+    },
+    {
+      identifier: "LavaLink 4",
+      host: "suki.nathan.to",
+      port: parseInt("443"),
+      password: "adowbongmanacc",
+      retryAmount: 1000,
+      retryDelay: 60000 * 30,
+      secure: true
+    },
+    {
+      identifier: "LavaLink 5",
+      host: "eu-lavalink.lexnet.cc",
+      port: parseInt("443"),
+      password: "lexn3tl@val!nk",
+      retryAmount: 1000,
+      retryDelay: 60000 * 30,
+      secure: true
+    },
+    {
+      identifier: "LavaLink 6",
+      host: "oce-lavalink.lexnet.cc",
+      port: parseInt("443"),
+      password: "lexn3tl@val!nk",
+      retryAmount: 1000,
+      retryDelay: 60000 * 30,
+      secure: true
+    },
+    {
+      identifier: "LavaLink 7",
+      host: "lavalink.ordinaryender.my.eu.org",
+      port: parseInt("443"),
+      password: "ordinarylavalink",
+      retryAmount: 1000,
+      retryDelay: 60000 * 30,
+      secure: true
     }
   ],
 }
