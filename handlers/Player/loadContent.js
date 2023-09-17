@@ -23,6 +23,20 @@ module.exports = async (client) => {
                 if (database.enable === false) return;
 
                 switch (customId) {
+                    case "ssong":
+                        {
+                            if (!channel) {
+                                return interaction.reply(`${client.i18n.get(language, "noplayer", "no_voice")}`);
+                            } else if (interaction.guild.members.me.voice.channel && !interaction.guild.members.me.voice.channel.equals(channel)) {
+                                return interaction.reply(`${client.i18n.get(language, "noplayer", "no_voice")}`);
+                            } else if (!player || !player.queue.previous) {
+                                return interaction.reply(`${client.i18n.get(language, "music", "previous_notfound")}`);
+                            } else {
+                                interaction.reply('Hello Song');
+                            }
+                        }
+                        break;
+
                     case "sprevious":
                         {
                             if (!channel) {
@@ -114,29 +128,6 @@ module.exports = async (client) => {
                                     .setColor(client.color);
 
                                 client.UpdateQueueMsg(player);
-                                interaction.reply({ embeds: [embed] });
-                            }
-                        }
-                        break;
-
-                    case "sloop":
-                        {
-                            if (!channel) {
-                                return interaction.reply(`${client.i18n.get(language, "noplayer", "no_voice")}`);
-                            } else if (interaction.guild.members.me.voice.channel && !interaction.guild.members.me.voice.channel.equals(channel)) {
-                                return interaction.reply(`${client.i18n.get(language, "noplayer", "no_voice")}`);
-                            } else if (!player) {
-                                return interaction.reply(`${client.i18n.get(language, "noplayer", "no_player")}`);
-                            } else {
-                                await player.setQueueRepeat(!player.queueRepeat);
-                                const uni = player.queueRepeat ? `${client.i18n.get(language, "player", "switch_enable")}` : `${client.i18n.get(language, "player", "switch_disable")}`;
-
-                                const embed = new EmbedBuilder()
-                                    .setDescription(`${client.i18n.get(language, "player", "repeat_msg", {
-                                        loop: uni,
-                                    })}`)
-                                    .setColor(client.color);
-
                                 interaction.reply({ embeds: [embed] });
                             }
                         }
@@ -240,7 +231,7 @@ module.exports = async (client) => {
                 }
             }
         } catch (e) {
-            console.log("LoadContent.js: "+e);
+            console.log("LoadContent.js: " + e);
         }
     });
 };

@@ -1,5 +1,5 @@
 module.exports = {
-    trackStart: { 
+    trackStart: {
         // Section 1
         pause: {
             label: "Pause", // Set Button Name // Not use set to here " "
@@ -138,6 +138,11 @@ module.exports = {
     },
 
     song_request_on: {
+        song: {
+            label: "Play",
+            emoji: "🔍",
+            style: "Secondary"
+        },
         pause: {
             label: "Pause", // Set Button Name // Not use set to here " "
             emoji: "⏯", // Set Button Emoji
@@ -166,6 +171,11 @@ module.exports = {
     },
 
     song_request_off: {
+        song: {
+            label: "Play",
+            emoji: "🔍",
+            style: "Secondary"
+        },
         pause: {
             label: "Pause", // Set Button Name // Not use set to here " "
             emoji: "⏯", // Set Button Emoji
@@ -184,11 +194,6 @@ module.exports = {
         skip: {
             label: "Skip",
             emoji: "➡",
-            style: "Secondary"
-        },
-        loop: {
-            label: "Loop",
-            emoji: "🔁",
             style: "Secondary"
         }
     }

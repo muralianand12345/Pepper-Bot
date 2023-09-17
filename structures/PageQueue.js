@@ -1,7 +1,8 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
 
 const SlashPage = async (client, message, pages, timeout, queueLength, queueDuration, language) => {
-    if (!message && !message.channel) throw new Error('Channel is inaccessible.');
+    if (!message) throw new Error('Message not Found!');
+    if (!message.channel) throw new Error('Channel is inaccessible.');
     if (!pages) throw new Error('Pages are not given.');
 
     const button = client.button.queue_page;
