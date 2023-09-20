@@ -1,4 +1,4 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require("discord.js");
 const formatduration = require('../../structures/FormatDuration.js');
 const GLang = require("../../settings/models/Language.js");
 const Setup = require("../../settings/models/Setup.js");
@@ -16,6 +16,11 @@ module.exports = async (client, player, track, payload) => {
 
     const channel = client.channels.cache.get(player.textChannel);
     if (!channel) return;
+
+    const missingPermissions = channel.checkPermissions([PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks]);
+    if (missingPermissions.length > 0) {
+        return missingPermissions.join(", ");
+    }
 
     const db = await Setup.findOne({ guild: channel.guild.id });
     if (db.enable) return;

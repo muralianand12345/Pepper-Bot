@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, PermissionFlagsBits } = require("discord.js");
 const Setup = require("../../settings/models/Setup.js");
 const GLang = require("../../settings/models/Language.js");
 
@@ -15,6 +15,14 @@ module.exports = async (client) => {
 
                 const playChannel = client.channels.cache.get(player.textChannel);
                 if (!playChannel) return;
+
+                const missingPermissions = channel.checkPermissions([PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks]);
+                if (missingPermissions.length > 0) {
+                    return await interaction.reply({
+                        conten: `The bot does not have the following permissions in this channel: ${missingPermissions.join(", ")}. Please give the bot the necessary permissions and try again.`,
+                        ephemeral: true
+                    });
+                }
 
                 const guildModel = await GLang.findOne({ guild: playChannel.guild.id });
                 const { language } = guildModel;
