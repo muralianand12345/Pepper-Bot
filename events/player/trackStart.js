@@ -17,10 +17,10 @@ module.exports = async (client, player, track, payload) => {
     const channel = client.channels.cache.get(player.textChannel);
     if (!channel) return;
 
-    const missingPermissions = channel.checkPermissions([PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks]);
+    /*const missingPermissions = channel.checkPermissions([PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks]);
     if (missingPermissions.length > 0) {
         return missingPermissions.join(", ");
-    }
+    }*/
 
     const db = await Setup.findOne({ guild: channel.guild.id });
     if (db.enable) return;

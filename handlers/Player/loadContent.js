@@ -16,13 +16,13 @@ module.exports = async (client) => {
                 const playChannel = client.channels.cache.get(player.textChannel);
                 if (!playChannel) return;
 
-                const missingPermissions = channel.checkPermissions([PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks]);
+                /*const missingPermissions = channel.checkPermissions([PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks]);
                 if (missingPermissions.length > 0) {
                     return await interaction.reply({
                         conten: `The bot does not have the following permissions in this channel: ${missingPermissions.join(", ")}. Please give the bot the necessary permissions and try again.`,
                         ephemeral: true
                     });
-                }
+                }*/
 
                 const guildModel = await GLang.findOne({ guild: playChannel.guild.id });
                 const { language } = guildModel;
