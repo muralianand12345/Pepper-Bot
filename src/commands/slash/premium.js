@@ -66,7 +66,7 @@ module.exports = {
                 await member.save();
             }
 
-            if (member && member.isPremium) {
+            if (member.isPremium) {
                 return interaction.reply({
                     embeds: [new EmbedBuilder().setColor('Red').setDescription("You are already premium user!")],
                     ephemeral: true,

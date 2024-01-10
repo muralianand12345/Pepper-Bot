@@ -52,12 +52,12 @@ module.exports = {
                 client.logger.error(`Lavalink connection to "${node.options.identifier}" has been errored\nError: ${error}`);
             })
             .on("playerCreate", (player) => {
-                const guild = client.guilds.cache.get(player.guild).name;
-                client.logger.debug(`Player Created from (${guild.id} | ${guild})`);   
+                const guild = client.guilds.cache.get(player.guild);
+                client.logger.debug(`Player Created from (${guild.id} | ${guild.name})`);   
             })
             .on("playerDestroy", (player) => {
-                const guild = client.guilds.cache.get(player.guild).name;
-                client.logger.debug(`Player Destroyed from (${guild.id} | ${guild})`);   
+                const guild = client.guilds.cache.get(player.guild);
+                client.logger.debug(`Player Destroyed from (${guild.id} | ${guild.name})`);   
             })
             .on("trackStart", (player, track) => {
                 const bindChannel = client.channels.cache.get(player.textChannel);
