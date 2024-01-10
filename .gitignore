@@ -1,6 +1,7 @@
-.env
 node_modules
-logs
-package-lock.json
-Start.bat
-settings/config.js
+.env
+yarn.lock
+logs/*
+.git
+/src/events/website/ticket-logs/*
+/src/config/config.json

@@ -1,0 +1,87 @@
+{
+  "name": "magmastream",
+  "version": "2.2.4",
+  "description": "A user-friendly Lavalink client designed for NodeJS.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "types": "rtb --dist dist",
+    "lint": "eslint --ext .ts ./src",
+    "ci": "run-s lint build types"
+  },
+  "devDependencies": {
+    "@favware/rollup-type-bundler": "^3.2.1",
+    "@types/lodash": "^4.14.202",
+    "@types/node": "^20.10.4",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "eslint": "^8.55.0",
+    "npm-run-all": "^1.7.0",
+    "typedoc": "^0.25.4",
+    "typedoc-plugin-no-inherit": "^1.4.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@discordjs/collection": "^2.0.0",
+    "axios": "^1.6.2",
+    "events": "^3.3.0",
+    "lodash": "^4.17.21",
+    "tslib": "^2.6.2",
+    "ws": "^8.15.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "rules": {
+      "object-curly-spacing": [
+        "error",
+        "always"
+      ]
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ]
+  },
+  "keywords": [
+    "lavalink client",
+    "wrapper",
+    "typescript",
+    "discord.js",
+    "node.js",
+    "java",
+    "javascript",
+    "audio streaming",
+    "music bot",
+    "voice chat",
+    "discord integration",
+    "high performance",
+    "scalable",
+    "easy-to-use",
+    "feature-rich",
+    "cross-platform",
+    "seamless integration",
+    "community support",
+    "documentation",
+    "open-source",
+    "lavalink",
+    "magmastream"
+  ],
+  "repository": {
+    "url": "https://github.com/Blackfort-Hosting/magmastream/tree/main"
+  },
+  "homepage": "https://docs.blackforthosting.com",
+  "author": "Abel Purnwasy",
+  "license": "Apache-2.0"
+}
