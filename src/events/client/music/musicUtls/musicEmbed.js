@@ -92,7 +92,7 @@ function musicEmbedOff(client) {
         .setColor(client.config.music.embedcolor)
         .setImage(client.config.music.image)
         .setAuthor({ name: 'No song playing currently', iconURL: client.user.displayAvatarURL() })
-        .setDescription(`> **${hyperlink(`${client.user.username}`, 'https://discord.gg/iconic-roleplay-1096848188935241878')}** | **Music Search Channel**`)
+        .setDescription(`> **${hyperlink(`${client.user.username}`, 'https://discord.gg/XzE9hSbsNb')}** | **Music Search Channel**`)
         .setFooter({ text: 'Prefix is: /' });
 }
 
@@ -108,7 +108,7 @@ function musicEmbed(client, track) {
         .setAuthor({ name: `${trackTitle} By - ${trackAuthor}`, iconURL: client.user.displayAvatarURL() })
         .setImage(trackImg)
         .setFooter({ text: `Requested by ${track.requester.tag}` })
-        .setDescription(`> **Song Link: ${hyperlink('Click Me', `${track.uri}`)}** | **${hyperlink(`${client.user.username}`, 'https://discord.gg/iconic-roleplay-1096848188935241878')}**`);
+        .setDescription(`> **Song Link: ${hyperlink('Click Me', `${track.uri}`)}** | **${hyperlink(`${client.user.username}`, 'https://discord.gg/XzE9hSbsNb')}**`);
 }
 
 module.exports = { musicContent, musicrow, musicrowdis, musicEmbedOff, musicEmbed };

@@ -2,42 +2,25 @@ const {
     Events,
     EmbedBuilder,
     Collection,
-    PermissionsBitField
+    PermissionsBitField,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle
 } = require('discord.js');
+
 const cooldown = new Collection();
 const ms = require('ms');
 
 const botAnalysis = require('../../database/modals/botDataAnalysis.js');
 const checkPremium = require('../../database/modals/userPremium.js');
+const blockedUser = require('../../database/modals/blockUser.js');
 
 module.exports = {
     name: Events.MessageCreate,
     execute: async (message, client) => {
 
+        if (client.config.bot.disableMessage) return;
         if (message.author.bot) return;
-
-        const botReply = [
-            "Hello! How can I help you?",
-            "Yes, how can I help you?",
-            "Raise a ticket, we are happy to help you!",
-            "At your service ❤️",
-            "Yes Sir!",
-            "How may I assist you?",
-            "I'm here to help. What can I do for you?",
-            "Good day! How can I be of service?",
-            "I'm all ears. What do you need help with?",
-            "Hello! What can I do for you today?"
-        ];
-
-        const randomIndex = Math.floor(Math.random() * (botReply.length - 1) + 1);
-        const newActivity = botReply[randomIndex];
-
-        //mention reply
-        const mention = new RegExp(`^<@!?${client.user.id}>( |)$`);
-        if (message.content.match(mention)) {
-            return message.reply({ content: newActivity });
-        }
-
         const prefix = client.config.bot.prefix;
         if (!message.content.startsWith(prefix)) return;
 
@@ -66,8 +49,39 @@ module.exports = {
 
             if (!command) command = client.messageCommands.get(client.aliases.get(cmd));
             if (command) {
-                if (command.cooldown) {
 
+                const blockedUserData = await blockedUser.findOne({
+                    userId: message.author.id,
+                    status: true
+                });
+
+                if (blockedUserData) {
+                    const blockedUserEmbed = new EmbedBuilder()
+                        .setDescription(`🚫 <@${message.author.id}>, **You are banned from using the bot!**`)
+                        .setFooter({ text: `If you have any clarification, kindly join our support server.` })
+                        .setColor('Red')
+                        .setTimestamp();
+
+                    const blockerUserButton = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder()
+                                .setLabel('Join Support Server')
+                                .setStyle(ButtonStyle.Link)
+                                .setURL('https://discord.gg/XzE9hSbsNb')
+                        );
+
+                    await client.users.cache.get(message.author.id).send({
+                        embeds: [blockedUserEmbed],
+                        components: [blockerUserButton]
+                    });
+
+                    return message.channel.send({
+                        embeds: [blockedUserEmbed],
+                        components: [blockerUserButton]
+                    }).then(m => setTimeout(async () => await m.delete(), 5000));
+                }
+
+                if (command.cooldown) {
                     if (cooldown.has(`${command.name}${message.author.id}`)) {
                         var coolMsg = client.config.bot["cooldownMsg"].replace('<duration>', ms(cooldown.get(`${command.name}${message.author.id}`) - Date.now(), { long: true }));
                         const coolEmbed = new EmbedBuilder()

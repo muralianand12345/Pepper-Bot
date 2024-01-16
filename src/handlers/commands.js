@@ -12,12 +12,16 @@ module.exports = {
     name: Events.ClientReady,
     execute(client) {
 
-        const messageCommandsDir = path.join(__dirname, '../commands/message');
-        const messageCommandFiles = fs.readdirSync(messageCommandsDir).filter(file => file.endsWith('.js'));
+        if (!client.config.bot.disableMessage) {
+            const messageCommandsDir = path.join(__dirname, '../commands/message');
+            const messageCommandFiles = fs.readdirSync(messageCommandsDir).filter(file => file.endsWith('.js'));
 
-        for (const file of messageCommandFiles) {
-            const command = require(`../commands/message/${file}`);
-            messageCommands.set(command.name, command);
+            for (const file of messageCommandFiles) {
+                const command = require(`../commands/message/${file}`);
+                messageCommands.set(command.name, command);
+            }
+
+            client.messageCommands = messageCommands;
         }
 
         const slashCommandsDir = path.join(__dirname, '../commands/slash');
@@ -27,8 +31,7 @@ module.exports = {
             const command = require(`../commands/slash/${file}`);
             slashCommands.set(command.data.name, command);
         }
-
-        client.messageCommands = messageCommands;
+        
         client.slashCommands = slashCommands;
     }
 }

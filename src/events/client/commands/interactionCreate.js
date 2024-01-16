@@ -3,13 +3,17 @@ const {
     EmbedBuilder,
     Collection,
     PermissionsBitField,
-    InteractionType
+    InteractionType,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle 
 } = require('discord.js');
 const cooldown = new Collection();
 const ms = require('ms');
 
 const botAnalysis = require('../../database/modals/botDataAnalysis.js');
 const checkPremium = require('../../database/modals/userPremium.js');
+const blockedUser = require('../../database/modals/blockUser.js');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -44,6 +48,38 @@ module.exports = {
                 client.logger.error(e);
             }
             return;
+        }
+
+        const blockedUserData = await blockedUser.findOne({
+            userId: interaction.user.id,
+            status: true
+        });
+
+        if (blockedUserData) {
+            const blockedUserEmbed = new EmbedBuilder()
+                .setDescription(`🚫 <@${interaction.user.id}>, **You are blocked from using the bot!**`)
+                .setFooter({ text: `If you have any clarification, kindly join our support server.` })
+                .setColor('Red')
+                .setTimestamp();
+
+            const blockerUserButton = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setLabel('Join Support Server')
+                        .setStyle(ButtonStyle.Link)
+                        .setURL('https://discord.gg/XzE9hSbsNb')
+                );
+
+            await client.users.cache.get(interaction.user.id).send({
+                embeds: [blockedUserEmbed],
+                components: [blockerUserButton]
+            });
+
+            return interaction.reply({
+                embeds: [blockedUserEmbed],
+                components: [blockerUserButton],
+                ephemeral: true
+            });
         }
 
         try {

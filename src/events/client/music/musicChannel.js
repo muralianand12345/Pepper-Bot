@@ -11,6 +11,7 @@ module.exports = {
     name: Events.MessageCreate,
     async execute(message, client) {
 
+        if (client.config.bot.disableMessage) return;
         if (!client.config.music.enabled) return;
         if (message.author.bot) return;
         if (message.channel.type !== ChannelType.GuildText) return;
