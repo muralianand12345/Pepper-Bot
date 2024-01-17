@@ -10,6 +10,14 @@ module.exports = {
         if (!client.config.music.enabled) return;
 
         const checkInactivity = async () => {
+
+            var musicData = await musicModel.findOne({
+                guildID: newState.guild.id
+            });
+
+            if (!musicData) return;
+            if (musicData.status247) return;
+
             await wait(() => {
                 if (player.paused && stateChange.members.size === 0) {
                     player.destroy();
@@ -50,7 +58,7 @@ module.exports = {
         if (oldState.channel === null && newState.channel !== null) stateChange.type = "JOIN";
         if (oldState.channel !== null && newState.channel === null) stateChange.type = "LEAVE";
         if (oldState.channel !== null && newState.channel !== null) stateChange.type = "MOVE";
-        if (oldState.channel === null && newState.channel === null) return; // you never know, right
+        if (oldState.channel === null && newState.channel === null) return;
         if (newState.serverMute == true && oldState.serverMute == false) return player.pause(true);
         if (newState.serverMute == false && oldState.serverMute == true) return player.pause(false);
 

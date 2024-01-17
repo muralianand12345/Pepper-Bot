@@ -135,7 +135,7 @@ module.exports = {
                                     inline: true,
                                 },
                                 {
-                                    name: "Channel",
+                                    name: "Author",
                                     value: `┕** \`${track.author}\`**`,
                                     inline: true,
                                 }

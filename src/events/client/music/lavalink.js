@@ -53,11 +53,11 @@ module.exports = {
             })
             .on("playerCreate", (player) => {
                 const guild = client.guilds.cache.get(player.guild);
-                client.logger.debug(`Player Created from (${guild.id} | ${guild.name})`);   
+                client.logger.debug(`Player Created from (${guild.id} | ${guild.name})`);
             })
             .on("playerDestroy", (player) => {
                 const guild = client.guilds.cache.get(player.guild);
-                client.logger.debug(`Player Destroyed from (${guild.id} | ${guild.name})`);   
+                client.logger.debug(`Player Destroyed from (${guild.id} | ${guild.name})`);
             })
             .on("trackStart", (player, track) => {
                 const bindChannel = client.channels.cache.get(player.textChannel);
@@ -105,11 +105,14 @@ module.exports = {
                             pannelMsg.edit({ content: musicContent, embeds: [embed], components: [musicrowdis] });
                         }
                         setTimeout(() => m.delete(), 5000);
+
+                        await wait(async () => {
+                            if (musicData.status247) return;
+                            player.destroy();
+                        }, 600000 / 2);
+
                     }
                 });
-
-                wait(2000);
-                player.destroy();
             });
     }
 }
