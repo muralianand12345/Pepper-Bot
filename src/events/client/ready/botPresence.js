@@ -37,7 +37,8 @@ module.exports = {
             var activityName = activity.name
                 .replace(/<clientname>/g, client.user.username)
                 .replace(/<usersize>/g, client.users.cache.size)
-                .replace(/<guildsize>/g, client.guilds.cache.size);
+                .replace(/<guildsize>/g, client.guilds.cache.size)
+                .replace(/<prefix>/g, client.config.bot.prefix);
 
             activityList.push({
                 name: activityName,

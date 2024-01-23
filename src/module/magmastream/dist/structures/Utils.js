@@ -96,6 +96,14 @@ class TrackUtils {
                         : null;
                 },
                 requester,
+                pluginInfo: {
+                    albumName: data.pluginInfo?.albumName,
+                    albumUrl: data.pluginInfo?.albumUrl,
+                    artistArtworkUrl: data.pluginInfo?.artistArtworkUrl,
+                    artistUrl: data.pluginInfo?.artistUrl,
+                    isPreview: data.pluginInfo?.isPreview,
+                    previewUrl: data.pluginInfo?.previewUrl,
+                },
             };
             track.displayThumbnail = track.displayThumbnail.bind(track);
             if (this.trackPartial) {

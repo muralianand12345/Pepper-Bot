@@ -225,10 +225,14 @@ module.exports = {
             const botErrorEmbed = new EmbedBuilder()
                 .setColor('#ED4245')
                 .setDescription('An Internal **Error** Occurred, Kindly Contact The Bot Developers!');
-            return message.reply({
-                embeds: [botErrorEmbed],
-                ephemeral: true
-            }).then((msg) => {
+            const botErrorButton = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setLabel('Join Support Server')
+                        .setStyle(ButtonStyle.Link)
+                        .setURL('https://discord.gg/XzE9hSbsNb')
+                );
+            return message.reply({ embeds: [botErrorEmbed], components: [botErrorButton], ephemeral: true }).then((msg) => {
                 setTimeout(function () {
                     msg.delete();
                 }, 4000);

@@ -32,7 +32,7 @@ const client = new Client({
     fetchAllMembers: true
 });
 
-client.setMaxListeners(20);
+client.setMaxListeners(22);
 
 client.logger = logger;
 client.cmdLogger = cmdLogger;

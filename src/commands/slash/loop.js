@@ -7,6 +7,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('loop')
         .setDescription("Loop the music")
+        .setDMPermission(false)
         .addSubcommand((subcommand) => subcommand
             .setName("disable")
             .setDescription("Disable loop"))

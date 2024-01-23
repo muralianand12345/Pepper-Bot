@@ -11,7 +11,13 @@ module.exports = {
     name: Events.ClientReady,
     execute(client) {
         const dburl = process.env.DBURL;
+
         set('strictQuery', false);
-        connect(dburl).then(client.logger.success('MongoDB Connected'));
+
+        try {
+            connect(dburl).then(client.logger.success('MongoDB Connected'));
+        } catch (error) {
+            client.logger.error(`Error connecting to MongoDB: ${error.message}`);
+        }
     }
-}
+};

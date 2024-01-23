@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Node = void 0;
 const tslib_1 = require("tslib");
-/* eslint-disable no-case-declarations */
 const Utils_1 = require("./Utils");
 const Rest_1 = require("./Rest");
 const nodeCheck_1 = tslib_1.__importDefault(require("../utils/nodeCheck"));
@@ -11,8 +10,6 @@ class Node {
     options;
     /** The socket for the node. */
     socket = null;
-    /** The amount of rest calls the node has made. */
-    calls = 0;
     /** The stats for the node. */
     stats;
     manager;

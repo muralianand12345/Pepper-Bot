@@ -6,7 +6,7 @@ const {
     InteractionType,
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonStyle 
+    ButtonStyle
 } = require('discord.js');
 const cooldown = new Collection();
 const ms = require('ms');
@@ -192,7 +192,14 @@ module.exports = {
             const botErrorEmbed = new EmbedBuilder()
                 .setColor('#ED4245')
                 .setDescription('An internal error occurred. Please contact the bot developers.');
-            return interaction.reply({ embeds: [botErrorEmbed], ephemeral: true });
+            const botErrorButton = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setLabel('Join Support Server')
+                        .setStyle(ButtonStyle.Link)
+                        .setURL('https://discord.gg/XzE9hSbsNb')
+                );
+            return interaction.reply({ embeds: [botErrorEmbed], components: [botErrorButton], ephemeral: true });
         }
     }
 }

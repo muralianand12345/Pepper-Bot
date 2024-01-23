@@ -47,25 +47,11 @@ class Manager extends events_1.EventEmitter {
     /** The options that were set. */
     options;
     initiated = false;
-    /** Returns the least used Nodes. */
-    get leastUsedNodes() {
+    /** Returns the nodes that has the least amount of players. */
+    get leastPlayersNodes() {
         return this.nodes
             .filter((node) => node.connected)
-            .sort((a, b) => b.calls - a.calls);
-    }
-    /** Returns the least system load Nodes. */
-    get leastLoadNodes() {
-        return this.nodes
-            .filter((node) => node.connected)
-            .sort((a, b) => {
-                const aload = a.stats.cpu
-                    ? (a.stats.cpu.systemLoad / a.stats.cpu.cores) * 100
-                    : 0;
-                const bload = b.stats.cpu
-                    ? (b.stats.cpu.systemLoad / b.stats.cpu.cores) * 100
-                    : 0;
-                return aload - bload;
-            });
+            .sort((a, b) => a.stats.players - b.stats.players);
     }
     /**
      * Initiates the Manager class.
@@ -140,7 +126,7 @@ class Manager extends events_1.EventEmitter {
      * @returns The search result.
      */
     async search(query, requester) {
-        const node = this.leastUsedNodes.first();
+        const node = this.leastPlayersNodes.first();
         if (!node) {
             throw new Error("No available nodes.");
         }

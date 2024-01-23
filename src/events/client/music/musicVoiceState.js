@@ -1,7 +1,7 @@
 const { Events, EmbedBuilder } = require("discord.js");
 const wait = require("timers/promises").setTimeout;
 const musicModel = require('../../database/modals/musicGuild.js');
-const { musicContent, musicrowdis, musicEmbedOff } = require('./musicUtls/musicEmbed.js');
+const { updateMusicChannel } = require("./musicUtls/musicFunctions.js");
 
 module.exports = {
     name: Events.VoiceStateUpdate,
@@ -27,7 +27,7 @@ module.exports = {
                             setTimeout(() => m.delete(), 10000);
                         });
                 }
-            }, 600000); // 10 minutes (600,000 ms)
+            }, 600000);
         };
 
         let guildId = newState.guild.id;
@@ -37,23 +37,15 @@ module.exports = {
             guildID: guildId
         });
 
-        // Check if connected to a channel
         if (!player || player.state !== "CONNECTED") return;
 
-        // Bot kicked from the channel
         if (oldState.channelId && !newState.channelId && newState.id === client.user.id) {
             if (musicData) {
-                const pannelId = musicData.musicPannelId;
-                if (pannelId) {
-                    const pannelMsg = await client.channels.cache.get(musicData.musicChannel).messages.fetch(pannelId);
-                    if (!pannelMsg) return;
-                    pannelMsg.edit({ content: musicContent, embeds: [musicEmbedOff(client)], components: [musicrowdis] });
-                }
+                await updateMusicChannel(client, musicData, player, null, true);
             }
             return player.destroy();
         }
 
-        // Prepare data for comparison
         const stateChange = {};
         if (oldState.channel === null && newState.channel !== null) stateChange.type = "JOIN";
         if (oldState.channel !== null && newState.channel === null) stateChange.type = "LEAVE";
@@ -62,7 +54,6 @@ module.exports = {
         if (newState.serverMute == true && oldState.serverMute == false) return player.pause(true);
         if (newState.serverMute == false && oldState.serverMute == true) return player.pause(false);
 
-        // Check for channel move
         if (stateChange.type === "MOVE") {
             if (oldState.channel.id === player.voiceChannel) stateChange.type = "LEAVE";
             if (newState.channel.id === player.voiceChannel) stateChange.type = "JOIN";
@@ -72,7 +63,6 @@ module.exports = {
 
         if (!stateChange.channel || stateChange.channel.id !== player.voiceChannel) return;
 
-        // Filtering current users based on the bot
         stateChange.members = stateChange.channel.members.filter((member) => !member.user.bot);
 
         if (newState.mute !== oldState.mute) return;

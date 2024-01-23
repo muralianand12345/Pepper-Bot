@@ -88,12 +88,19 @@ var musicrow = new ActionRowBuilder()
     );
 
 function musicEmbedOff(client) {
+
+    var prefixText = client.config.bot.prefix;
+
+    if (client.config.bot.disableMessage) {
+        prefixText = '/';
+    }
+
     return new EmbedBuilder()
         .setColor(client.config.music.embedcolor)
         .setImage(client.config.music.image)
         .setAuthor({ name: 'No song playing currently', iconURL: client.user.displayAvatarURL() })
         .setDescription(`> **${hyperlink(`${client.user.username}`, 'https://discord.gg/XzE9hSbsNb')}** | **Music Search Channel**`)
-        .setFooter({ text: 'Prefix is: /' });
+        .setFooter({ text: `Prefix is: ${prefixText}` });
 }
 
 function musicEmbed(client, track) {

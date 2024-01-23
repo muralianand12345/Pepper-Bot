@@ -338,6 +338,16 @@ interface Track {
     readonly requester: unknown | null;
     /** Displays the track thumbnail with optional size or null if it's a unsupported source. */
     displayThumbnail(size?: Sizes): string;
+    /** Additional track info provided by plugins. */
+    pluginInfo: TrackPluginInfo;
+}
+interface TrackPluginInfo {
+    albumName?: string;
+    albumUrl?: string;
+    artistArtworkUrl?: string;
+    artistUrl?: string;
+    isPreview?: string;
+    previewUrl?: string;
 }
 /** Unresolved tracks can't be played normally, they will resolve before playing into a Track. */
 interface UnresolvedTrack extends Partial<Track> {
@@ -433,8 +443,6 @@ declare class Node {
     options: NodeOptions;
     /** The socket for the node. */
     socket: WebSocket | null;
-    /** The amount of rest calls the node has made. */
-    calls: number;
     /** The stats for the node. */
     stats: NodeStats;
     manager: Manager;
@@ -609,8 +617,8 @@ interface TrackData {
     encoded: string;
     /** The detailed information of the track. */
     info: TrackDataInfo;
-    /** Addition track info provided by plugins. */
-    pluginInfo: object;
+    /** Additional track info provided by plugins. */
+    pluginInfo: Record<string, string>;
 }
 interface TrackDataInfo {
     identifier: string;
@@ -812,10 +820,8 @@ declare class Manager extends EventEmitter {
     /** The options that were set. */
     readonly options: ManagerOptions;
     private initiated;
-    /** Returns the least used Nodes. */
-    get leastUsedNodes(): Collection<string, Node>;
-    /** Returns the least system load Nodes. */
-    get leastLoadNodes(): Collection<string, Node>;
+    /** Returns the nodes that has the least amount of players. */
+    get leastPlayersNodes(): Collection<string, Node>;
     /**
      * Initiates the Manager class.
      * @param options
@@ -946,4 +952,4 @@ interface PlaylistData {
     tracks: Track[];
 }
 
-export { type CPUStats, type EqualizerBand, type Exception, type Extendable, type FrameStats, type LavalinkResponse, type LoadType, Manager, type ManagerOptions, type MemoryStats, Node, type NodeMessage, type NodeOptions, type NodeStats, type NowPlayingMessage, type Payload, type PlayOptions, Player, type PlayerEvent, type PlayerEventType, type PlayerEvents, type PlayerOptions, type PlayerUpdate, type PlaylistData, type PlaylistRawData, Plugin, Queue, type SearchPlatform, type SearchQuery, type SearchResult, type Severity, type Sizes, type State, Structure, type Track, type TrackData, type TrackDataInfo, type TrackEndEvent, type TrackEndReason, type TrackExceptionEvent, type TrackStartEvent, type TrackStuckEvent, TrackUtils, type UnresolvedQuery, type UnresolvedTrack, type VoicePacket, type VoiceServer, type VoiceState, type WebSocketClosedEvent };
+export { type CPUStats, type EqualizerBand, type Exception, type Extendable, type FrameStats, type LavalinkResponse, type LoadType, Manager, type ManagerOptions, type MemoryStats, Node, type NodeMessage, type NodeOptions, type NodeStats, type NowPlayingMessage, type Payload, type PlayOptions, Player, type PlayerEvent, type PlayerEventType, type PlayerEvents, type PlayerOptions, type PlayerUpdate, type PlaylistData, type PlaylistRawData, Plugin, Queue, type SearchPlatform, type SearchQuery, type SearchResult, type Severity, type Sizes, type State, Structure, type Track, type TrackData, type TrackDataInfo, type TrackEndEvent, type TrackEndReason, type TrackExceptionEvent, type TrackPluginInfo, type TrackStartEvent, type TrackStuckEvent, TrackUtils, type UnresolvedQuery, type UnresolvedTrack, type VoicePacket, type VoiceServer, type VoiceState, type WebSocketClosedEvent };

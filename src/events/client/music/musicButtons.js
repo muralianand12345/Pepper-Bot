@@ -4,7 +4,7 @@ const {
 } = require('discord.js');
 
 const musicModel = require('../../database/modals/musicGuild.js');
-const { musicContent, musicrowdis, musicEmbedOff } = require('./musicUtls/musicEmbed.js');
+const { updateMusicChannel } = require("./musicUtls/musicFunctions.js");
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -134,14 +134,7 @@ module.exports = {
                 });
 
                 if (musicData) {
-                    const pannelId = musicData.musicPannelId;
-                    if (pannelId) {
-                        const pannelChan = client.channels.cache.get(musicData.musicChannel);
-                        const pannelMsg = await pannelChan.messages.fetch(pannelId);
-                        if (!pannelMsg) return client.logger.error(`Music Pannel not found, setup again! | ${pannelId} `);
-                        const embed = musicEmbedOff(client);
-                        pannelMsg.edit({ content: musicContent, embeds: [embed], components: [musicrowdis] });
-                    }
+                    await updateMusicChannel(client, musicData, player, null, true);
                 }
 
                 player.destroy();
@@ -183,14 +176,7 @@ module.exports = {
             });
 
             if (musicData) {
-                const pannelId = musicData.musicPannelId;
-                if (pannelId) {
-                    const pannelChan = client.channels.cache.get(musicData.musicChannel);
-                    const pannelMsg = await pannelChan.messages.fetch(pannelId);
-                    if (!pannelMsg) return client.logger.error(`Music Pannel not found, setup again! | ${pannelId} `);
-                    const embed = musicEmbedOff(client);
-                    pannelMsg.edit({ content: musicContent, embeds: [embed], components: [musicrowdis] });
-                }
+                await updateMusicChannel(client, musicData, player, null, true);
             }
 
             player.destroy();

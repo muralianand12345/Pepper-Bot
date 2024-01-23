@@ -3,7 +3,7 @@ const {
 } = require('discord.js');
 
 const musicModel = require("../../events/database/modals/musicGuild.js");
-const { musicContent, musicrowdis, musicEmbedOff } = require("../../events/client/music/musicUtls/musicEmbed.js");
+const { updateMusicChannel } = require("../../events/client/music/musicUtls/musicFunctions.js");
 
 module.exports = {
     name: "stop",
@@ -46,14 +46,7 @@ module.exports = {
         });
 
         if (musicData) {
-            const pannelId = musicData.musicPannelId;
-            if (pannelId) {
-                const pannelChan = client.channels.cache.get(musicData.musicChannel);
-                const pannelMsg = await pannelChan.messages.fetch(pannelId);
-                if (!pannelMsg) return client.logger.error(`Music Pannel not found, setup again! | ${pannelId} `);
-                const embed = musicEmbedOff(client);
-                pannelMsg.edit({ content: musicContent, embeds: [embed], components: [musicrowdis] });
-            }
+            await updateMusicChannel(client, musicData, player, null, true);
         }
 
         player.destroy();
