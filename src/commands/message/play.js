@@ -27,7 +27,7 @@ module.exports = {
             }).then(m => setTimeout(async () => await m.delete(), 5000));
         }
 
-        if (query.includes("youtube.com")) {
+        if (query.includes("youtu.be") || query.includes("youtube") || query.includes("youtu")) {
             return await message.reply({
                 embeds: [new EmbedBuilder().setColor('Red').setDescription("We do not support YouTube links or music at this time")],
             }).then(m => setTimeout(async () => await m.delete(), 5000));
