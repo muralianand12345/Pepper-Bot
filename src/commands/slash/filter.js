@@ -16,11 +16,17 @@ module.exports = {
                 .setRequired(true)
                 .addChoices(
                     { name: 'BassBoost', value: 'filter_bassboost' },
-                    { name: '3D', value: 'filter_3d' },
-                    { name: 'Pop', value: 'filter_pop' },
-                    { name: 'Slowmotion', value: 'filter_slowmo' },
+                    { name: 'Distort', value: 'filter_distort' },
+                    { name: '8D', value: 'filter_8d' },
+                    { name: 'Karaoke', value: 'filter_karaoke' },
+                    { name: 'Nightcore', value: 'filter_nightcore' },
+                    { name: 'Slowmo', value: 'filter_slowmo' },
                     { name: 'Soft', value: 'filter_soft' },
+                    { name: 'Treble Bass', value: 'filter_trebleBass' },
+                    { name: 'TV', value: 'filter_tv' },
+                    { name: 'Vaporwave', value: 'filter_vaporwave' },
                     { name: 'Reset', value: 'filter_reset' },
+                    { name: 'Status', value: 'filter_status' }
                 )
         ),
     async execute(interaction, client) {
@@ -49,118 +55,83 @@ module.exports = {
 
         await interaction.deferReply({ ephemeral: false });
 
-        var data = {};
-
         switch (interaction.options.getString('effects')) {
+
             case 'filter_bassboost':
-                data = {
-                    op: 'filters',
-                    guildId: interaction.guild.id,
-                    equalizer: [
-                        { band: 0, gain: 0.10 },
-                        { band: 1, gain: 0.10 },
-                        { band: 2, gain: 0.05 },
-                        { band: 3, gain: 0.05 },
-                        { band: 4, gain: -0.05 },
-                        { band: 5, gain: -0.05 },
-                        { band: 6, gain: 0 },
-                        { band: 7, gain: -0.05 },
-                        { band: 8, gain: -0.05 },
-                        { band: 9, gain: 0 },
-                        { band: 10, gain: 0.05 },
-                        { band: 11, gain: 0.05 },
-                        { band: 12, gain: 0.10 },
-                        { band: 13, gain: 0.10 },
-                    ]
-                };
+                player.filters.bassBoost();
                 break;
 
-            case 'filter_3d':
-                data = {
-                    op: 'filters',
-                    guildId: interaction.guild.id,
-                    rotation: { rotationHz: 0.2 }
-                };
+            case 'filter_distort':
+                player.filters.distort();
                 break;
 
-            case 'filter_pop':
-                data = {
-                    op: 'filters',
-                    guildId: interaction.guild.id,
-                    equalizer: [
-                        { band: 0, gain: 0.65 },
-                        { band: 1, gain: 0.45 },
-                        { band: 2, gain: -0.45 },
-                        { band: 3, gain: -0.65 },
-                        { band: 4, gain: -0.35 },
-                        { band: 5, gain: 0.45 },
-                        { band: 6, gain: 0.55 },
-                        { band: 7, gain: 0.6 },
-                        { band: 8, gain: 0.6 },
-                        { band: 9, gain: 0.6 },
-                        { band: 10, gain: 0 },
-                        { band: 11, gain: 0 },
-                        { band: 12, gain: 0 },
-                        { band: 13, gain: 0 },
-                    ]
-                };
+            case 'filter_8d':
+                player.filters.eightD();
+                break;
+
+            case 'filter_karaoke':
+                player.filters.karaoke();
+                break;
+
+            case 'filter_nightcore':
+                player.filters.nightcore();
                 break;
 
             case 'filter_slowmo':
-                data = {
-                    op: 'filters',
-                    guildId: interaction.guild.id,
-                    timescale: {
-                        speed: 0.5,
-                        pitch: 1.0,
-                        rate: 0.8
-                    }
-                };
+                player.filters.slowMo();
                 break;
 
             case 'filter_soft':
-                data = {
-                    op: 'filters',
-                    guildId: interaction.guild.id,
-                    equalizer: [
-                        { band: 0, gain: 0 },
-                        { band: 1, gain: 0 },
-                        { band: 2, gain: 0 },
-                        { band: 3, gain: 0 },
-                        { band: 4, gain: 0 },
-                        { band: 5, gain: 0 },
-                        { band: 6, gain: 0 },
-                        { band: 7, gain: 0 },
-                        { band: 8, gain: -0.25 },
-                        { band: 9, gain: -0.25 },
-                        { band: 10, gain: -0.25 },
-                        { band: 11, gain: -0.25 },
-                        { band: 12, gain: -0.25 },
-                        { band: 13, gain: -0.25 },
-                    ]
-                };
+                player.filters.soft();
+                break;
+
+            case 'filter_trebleBass':
+                player.filters.trebleBass();
+                break;
+
+            case 'filter_tv':
+                player.filters.tv();
+                break;
+
+            case 'filter_vaporwave':
+                player.filters.vaporwave();
                 break;
 
             case 'filter_reset':
-                data = {
-                    op: 'filters',
-                    guildId: interaction.guild.id,
-                    equalizer: []
-                };
+                player.filters.clearFilters();
                 break;
 
+            case 'filter_status':
+                var filterStat = player.filters.filterStatus;
+                var trueFilters = [];
+                for (const [key, value] of Object.entries(filterStat)) {
+                    if (value) {
+                        trueFilters.push(key);
+                    }
+                }
+
+                if (trueFilters.length === 0) {
+                    return interaction.editReply({
+                        embeds: [new EmbedBuilder().setColor('Blue').setDescription(`No Filters Applied`)],
+                        ephemeral: true,
+                    });
+                }
+
+                var embed = new EmbedBuilder()
+                    .setColor('Blue')
+                    .setDescription(`Current Filters: \`${trueFilters.join(', ')}\``);
+                return interaction.editReply({
+                    embeds: [embed],
+                    ephemeral: true,
+                });
+
             default:
-                data = {
-                    op: 'filters',
-                    guildId: interaction.guild.id,
-                };
                 break;
         }
 
-        await player.node.send(data);
-
         return interaction.editReply({
-            embeds: [new EmbedBuilder().setColor('Green').setDescription(`Applied filter \`${interaction.options.getString('effects')}\``).setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL({ dynamic: true })})]
+            embeds: [new EmbedBuilder().setColor('Blue').setDescription(`Applied the effect \`${interaction.options.getString('effects')}\``)],
+            ephemeral: true,
         });
     }
 }

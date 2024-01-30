@@ -49,6 +49,8 @@ module.exports = {
             });
         }
 
+        client.logger.debug(`User ${interaction.user.tag} (${interaction.user.id}) requested to play [${query}] in ${interaction.guild.name} (${interaction.guild.id})`);
+
         if (query.includes("youtu.be") || query.includes("youtube") || query.includes("youtu")) {
             return interaction.reply({
                 embeds: [new EmbedBuilder().setColor('Red').setDescription("We do not support YouTube links or music at this time")],

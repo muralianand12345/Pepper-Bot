@@ -78,6 +78,7 @@ module.exports = {
                 });
                 let guildName = client.guilds.cache.get(player.guild).name;
                 client.logger.debug(`Track ${track.title} started playing in ${guildName} (${player.guild}) By ${track.requester.tag} (${track.requester.id})`);
+                client.logger.debug(`User: ${track.requester.tag} (${track.requester.id}) requested song uri ${track.uri} in ${guildName} (${player.guild})`);
             })
             .on("queueEnd", async (player) => {
                 client.channels.cache.get(player.textChannel).send({ embeds: [new EmbedBuilder().setDescription("🎵 Played all music in queue").setColor(client.config.music.embedcolor)] }).then(async (m) => {

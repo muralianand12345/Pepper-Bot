@@ -49,7 +49,7 @@ module.exports = {
                 setTimeout(() => m.delete(), 5000);
                 await message.delete();
             });
-        }youtu.be
+        }
 
         var query = message.content;
         if (!query) return;

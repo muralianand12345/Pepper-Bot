@@ -199,7 +199,13 @@ module.exports = {
                         .setStyle(ButtonStyle.Link)
                         .setURL('https://discord.gg/XzE9hSbsNb')
                 );
-            return interaction.reply({ embeds: [botErrorEmbed], components: [botErrorButton], ephemeral: true });
+
+            //check deffer message
+            if (interaction.deferred) {
+                return interaction.editReply({ embeds: [botErrorEmbed], components: [botErrorButton], ephemeral: true });
+            } else {
+                return interaction.reply({ embeds: [botErrorEmbed], components: [botErrorButton], ephemeral: true });
+            }
         }
     }
 }
