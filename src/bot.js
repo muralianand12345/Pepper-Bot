@@ -51,7 +51,6 @@ try {
 client.config = config;
 
 //Lavalink
-
 const nodes = client.config.music.lavalink.nodes;
 client.manager = new Manager({
     nodes: nodes,
