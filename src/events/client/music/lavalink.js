@@ -33,11 +33,11 @@ module.exports = {
             })
             .on("playerCreate", (player) => {
                 const guild = client.guilds.cache.get(player.guild);
-                client.logger.debug(`Player Created from (${guild.id} | ${guild.name})`);
+                client.logger.debug(`Player Created from (${guild.id || "Unknown Guild"} | ${guild.name})`);
             })
             .on("playerDestroy", (player) => {
                 const guild = client.guilds.cache.get(player.guild);
-                client.logger.debug(`Player Destroyed from (${guild.id} | ${guild.name})`);
+                client.logger.debug(`Player Destroyed from (${guild.id || "Unknown Guild"} | ${guild.name})`);
             })
             .on("trackStart", (player, track) => {
                 const bindChannel = client.channels.cache.get(player.textChannel);
@@ -72,7 +72,7 @@ module.exports = {
                             songs: []
                         });
                     }
-            
+
                     await updateMusicDB(musicServerData, track);
                     await updateMusicDB(musicUserData, track);
                 });
