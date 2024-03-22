@@ -5,3 +5,4 @@ logs/*
 .git
 /src/events/website/ticket-logs/*
 /src/config/config.json
+build

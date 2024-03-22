@@ -13,27 +13,26 @@ const REQUIRED_KEYS = ["event", "guild_id", "op", "sessionId"];
  */
 class Manager extends events_1.EventEmitter {
     static DEFAULT_SOURCES = {
-        // youtubemusic
         "youtube music": "ytmsearch",
+        youtube: "ytsearch",
+        youtube: "ytsearch",
+        soundcloud: "scsearch",
+        deezer: "dzsearch",
+        spotify: "spsearch",
         "ytmsearch": "ytmsearch",
         "ytm": "ytmsearch",
-        // youtube
         "youtube": "ytsearch",
         "yt": "ytsearch",
         "ytsearch": "ytsearch",
-        // soundcloud
         "soundcloud": "scsearch",
         "scsearch": "scsearch",
         "sc": "scsearch",
-        // apple music
         "amsearch": "amsearch",
         "am": "amsearch",
-        // spotify 
         "spsearch": "spsearch",
         "sp": "spsearch",
         "sprec": "sprec",
         "spsuggestion": "sprec",
-        // deezer
         "dz": "dzsearch",
         "deezer": "dzsearch",
         "ds": "dzsearch",
