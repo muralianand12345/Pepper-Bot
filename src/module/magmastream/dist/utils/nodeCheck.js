@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 function nodeCheck(options) {
     if (!options)
         throw new TypeError("NodeOptions must not be empty.");
-    const { host, identifier, password, port, requestTimeout, resumeStatus, resumeTimeout, retryAmount, retryDelay, secure, } = options;
+    const { host, identifier, password, port, requestTimeout, resumeStatus, resumeTimeout, retryAmount, retryDelay, secure, priority, } = options;
     if (typeof host !== "string" || !/.+/.test(host)) {
         throw new TypeError('Node option "host" must be present and be a non-empty string.');
     }
@@ -37,6 +37,9 @@ function nodeCheck(options) {
     }
     if (typeof secure !== "undefined" && typeof secure !== "boolean") {
         throw new TypeError('Node option "secure" must be a boolean.');
+    }
+    if (typeof priority !== "undefined" && typeof priority !== "number") {
+        throw new TypeError('Node option "priority" must be a number.');
     }
 }
 exports.default = nodeCheck;

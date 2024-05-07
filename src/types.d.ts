@@ -1,6 +1,6 @@
 import { Client, SlashCommandBuilder, CommandInteraction, Collection, PermissionResolvable, Message, AutocompleteInteraction, ChatInputCommandInteraction, ActivityType, Channel } from "discord.js"
 import mongoose from "mongoose"
-import { Manager } from 'magmastream';
+import { Manager } from './module/magmastream';
 import discord from "discord.js"
 
 import logger from "./module/logger";
@@ -133,4 +133,19 @@ export interface IPremiumData {
     redeemedAt: date,
     expiresAt: date,
     plan: string
+}
+
+export interface ICustomPlaylist extends mongoose.Document {
+    userId: string,
+    playlist: Array<ICustomPlaylistData>
+}
+
+export interface ICustomPlaylistData {
+    name: string,
+    songs: Array<ICustomPlaylistDataSong>
+}
+
+export interface ICustomPlaylistDataSong {
+    title: string,
+    url: string
 }

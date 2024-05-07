@@ -44,6 +44,8 @@ class Player {
     voiceState;
     /** The Manager. */
     manager;
+    /** The autoplay state of the player. */
+    isAutoplay = false;
     static _manager;
     data = {};
     dynamicLoopInterval;
@@ -90,7 +92,7 @@ class Player {
         if (options.textChannel)
             this.textChannel = options.textChannel;
         const node = this.manager.nodes.get(options.node);
-        this.node = node || this.manager.leastPlayersNodes.first();
+        this.node = node || this.manager.useableNodes;
         if (!this.node)
             throw new RangeError("No available nodes.");
         this.manager.players.set(options.guild, this);
@@ -213,6 +215,22 @@ class Player {
             },
         });
         Object.assign(this, { position: 0, playing: true });
+    }
+    /**
+     * Sets the autoplay-state of the player.
+     * @param autoplayState
+     * @param botUser
+     */
+    setAutoplay(autoplayState, botUser) {
+        if (typeof autoplayState !== "boolean") {
+            throw new TypeError("autoplayState must be a boolean.");
+        }
+        if (typeof botUser !== "object") {
+            throw new TypeError("botUser must be a user-object.");
+        }
+        this.isAutoplay = autoplayState;
+        this.set("Internal_BotUser", botUser);
+        return this;
     }
     /**
      * Sets the player volume.

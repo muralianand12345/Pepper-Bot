@@ -1,6 +1,6 @@
 import { Events, EmbedBuilder, Message, VoiceChannel, StageChannel } from 'discord.js';
 import * as timers from "timers/promises";
-import { Player } from 'magmastream';
+import { Player } from '../../../module/magmastream';
 
 const wait = async (ms: number) => {
     await timers.setTimeout(ms);

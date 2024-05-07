@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 function managerCheck(options) {
     if (!options)
         throw new TypeError("ManagerOptions must not be empty.");
-    const { autoPlay, clientId, clientName, defaultSearchPlatform, nodes, plugins, send, shards, trackPartial, } = options;
+    const { autoPlay, clientId, clientName, defaultSearchPlatform, nodes, plugins, send, shards, trackPartial, usePriority, } = options;
     if (typeof autoPlay !== "undefined" && typeof autoPlay !== "boolean") {
         throw new TypeError('Manager option "autoPlay" must be a boolean.');
     }
@@ -31,6 +31,16 @@ function managerCheck(options) {
     }
     if (typeof trackPartial !== "undefined" && !Array.isArray(trackPartial)) {
         throw new TypeError('Manager option "trackPartial" must be a string array.');
+    }
+    if (typeof usePriority !== "undefined" && typeof usePriority !== "boolean") {
+        throw new TypeError('Manager option "usePriority" must be a boolean.');
+    }
+    if (usePriority) {
+        for (let index = 0; index < nodes.length; index++) {
+            if (!nodes[index].priority) {
+                throw new TypeError(`Missing node option "priority" at position ${index}`);
+            }
+        }
     }
 }
 exports.default = managerCheck;

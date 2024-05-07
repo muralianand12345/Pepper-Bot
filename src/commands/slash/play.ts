@@ -4,7 +4,7 @@ import { SlashCommand } from "../../types";
 import { msToTime, textLengthOverCut, hyperlink } from "../../utils/format";
 import { musicrow } from "../../utils/musicEmbed";
 import { getAutoComplete } from "../../utils/autoComplete";
-import { Track } from "magmastream";
+import { Track } from "../../module/magmastream";
 
 const playcommand: SlashCommand = {
     cooldown: 5000,
@@ -144,7 +144,11 @@ const playcommand: SlashCommand = {
             case "search": {
                 let track: Track = res.tracks[0];
                 player.queue.add(track);
-                if (!player.playing && !player.paused && !player.queue.size) player.play();
+
+                if (!player.playing && !player.paused && !player.queue.size) {
+                    console.log(player)
+                    player.play();
+                }
 
                 await interaction.followUp({
                     embeds: [

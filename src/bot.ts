@@ -5,7 +5,7 @@ import * as Discord from 'discord.js';
 import * as dotenv from 'dotenv';
 import * as chokidar from 'chokidar';
 
-import { Manager } from 'magmastream';
+import { Manager } from './module/magmastream';
 import logger from './module/logger';
 import * as cmdLogger from './module/commandLog';
 import { Command, SlashCommand } from "./types";
@@ -15,11 +15,11 @@ dotenv.config();
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMembers,
+        //GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildWebhooks,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.MessageContent,
+        //GatewayIntentBits.DirectMessages,
+        //GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildVoiceStates,
     ],
     shards: 'auto'

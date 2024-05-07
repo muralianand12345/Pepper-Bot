@@ -43,8 +43,7 @@ const event: BotEvent = {
         let i = 0;
         setInterval(() => {
             if (i >= activityList.length) i = 0;
-            let botStatus = client.config.bot.presence.status;
-            client.user.setPresence({ activities: [activityList[i]], status: botStatus });
+            client.user.setActivity({ name: activityList[i].name, type: activityList[i].type });
             i++;
         }, client.config.bot.presence.interval);
     }

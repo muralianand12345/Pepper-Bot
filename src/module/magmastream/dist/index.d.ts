@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { Message } from 'discord.js';
 import WebSocket from 'ws';
 import { Collection } from '@discordjs/collection';
 import { EventEmitter } from 'events';
@@ -12,13 +13,13 @@ interface Band {
 }
 
 declare class Filters {
-    distortion: distortionOptions;
+    distortion: distortionOptions | null;
     equalizer: Band[];
-    karaoke: karaokeOptions;
+    karaoke: karaokeOptions | null;
     player: Player;
-    rotation: rotationOptions;
-    timescale: timescaleOptions;
-    vibrato: vibratoOptions;
+    rotation: rotationOptions | null;
+    timescale: timescaleOptions | null;
+    vibrato: vibratoOptions | null;
     volume: number;
     private filterStatus;
     constructor(player: Player);
@@ -193,6 +194,8 @@ declare class Player {
     voiceState: VoiceState;
     /** The Manager. */
     manager: Manager;
+    /** The autoplay state of the player. */
+    isAutoplay: boolean;
     private static _manager;
     private readonly data;
     private dynamicLoopInterval;
@@ -256,6 +259,12 @@ declare class Player {
      * @param options
      */
     play(track: Track | UnresolvedTrack, options: PlayOptions): Promise<void>;
+    /**
+     * Sets the autoplay-state of the player.
+     * @param autoplayState
+     * @param botUser
+     */
+    setAutoplay(autoplayState: boolean, botUser: object): this;
     /**
      * Sets the player volume.
      * @param volume
@@ -380,7 +389,7 @@ interface NowPlayingMessage {
     /** The boolean indicating if the message has been deleted or not. */
     deleted?: boolean;
     /** The delete function. */
-    delete: () => Promise<any>;
+    delete: () => Promise<Message>;
 }
 
 /** Handles the requests sent to the Lavalink REST API. */
@@ -475,8 +484,12 @@ declare class Node {
     protected message(d: Buffer | string): void;
     protected handleEvent(payload: PlayerEvent & PlayerEvents): void;
     protected trackStart(player: Player, track: Track, payload: TrackStartEvent): void;
-    protected trackEnd(player: Player, track: Track, payload: TrackEndEvent): void;
-    protected queueEnd(player: Player, track: Track, payload: TrackEndEvent): void;
+    protected trackEnd(player: Player, track: Track, payload: TrackEndEvent): Promise<void>;
+    private handleAutoplay;
+    private handleFailedTrack;
+    private handleRepeatedTrack;
+    private playNextTrack;
+    protected queueEnd(player: Player, track: Track, payload: TrackEndEvent): Promise<void>;
     protected trackStuck(player: Player, track: Track, payload: TrackStuckEvent): void;
     protected trackError(player: Player, track: Track | UnresolvedTrack, payload: TrackExceptionEvent): void;
     protected socketClosed(player: Player, payload: WebSocketClosedEvent): void;
@@ -500,8 +513,10 @@ interface NodeOptions {
     resumeStatus?: boolean;
     /** The time the manager will wait before trying to resume the previous session. */
     resumeTimeout?: number;
-    /** The timeout used for api calls */
+    /** The timeout used for api calls. */
     requestTimeout?: number;
+    /** Priority of the node. */
+    priority?: number;
 }
 interface NodeStats {
     /** The amount of players on the node. */
@@ -712,7 +727,10 @@ interface PlayerUpdate {
     };
 }
 
-interface Manager {
+/**
+ * The main hub for interacting with Lavalink and using Magmastream,
+ */
+declare class Manager extends EventEmitter {
     /**
      * Emitted when a Node is created.
      * @event Manager#nodeCreate
@@ -807,11 +825,6 @@ interface Manager {
      * @event Manager#trackError
      */
     on(event: "trackError", listener: (player: Player, track: Track | UnresolvedTrack, payload: TrackExceptionEvent) => void): this;
-}
-/**
- * The main hub for interacting with Lavalink and using Magmastream,
- */
-declare class Manager extends EventEmitter {
     static readonly DEFAULT_SOURCES: Record<SearchPlatform, string>;
     /** The map of players. */
     readonly players: Collection<string, Player>;
@@ -821,7 +834,11 @@ declare class Manager extends EventEmitter {
     readonly options: ManagerOptions;
     private initiated;
     /** Returns the nodes that has the least amount of players. */
-    get leastPlayersNodes(): Collection<string, Node>;
+    private get leastPlayersNode();
+    /** Returns a node based on priority. */
+    private get priorityNode();
+    /** Returns the node to use. */
+    get useableNodes(): Node;
     /**
      * Initiates the Manager class.
      * @param options
@@ -891,6 +908,8 @@ interface Payload {
     };
 }
 interface ManagerOptions {
+    /** Use priority mode over least amount of player? */
+    usePriority?: boolean;
     /** The array of nodes to connect to. */
     nodes?: NodeOptions[];
     /** The client ID to use. */

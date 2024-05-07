@@ -170,7 +170,7 @@ const event: BotEvent = {
             }
 
             musicData = await musicModel.findOne({
-                guildId: interaction.guild.id
+                guildID: interaction.guild.id
             });
 
             if (musicData) {

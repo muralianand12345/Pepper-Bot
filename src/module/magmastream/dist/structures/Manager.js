@@ -12,6 +12,9 @@ const REQUIRED_KEYS = ["event", "guild_id", "op", "sessionId"];
  * The main hub for interacting with Lavalink and using Magmastream,
  */
 class Manager extends events_1.EventEmitter {
+    on(event, listener) {
+        return super.on(event, listener);
+    }
     static DEFAULT_SOURCES = {
         "youtube music": "ytmsearch",
         youtube: "ytsearch",
@@ -47,10 +50,34 @@ class Manager extends events_1.EventEmitter {
     options;
     initiated = false;
     /** Returns the nodes that has the least amount of players. */
-    get leastPlayersNodes() {
+    get leastPlayersNode() {
         return this.nodes
             .filter((node) => node.connected)
             .sort((a, b) => a.stats.players - b.stats.players);
+    }
+    /** Returns a node based on priority. */
+    get priorityNode() {
+        const filteredNodes = this.nodes.filter((node) => node.connected && node.options.priority > 0);
+        const totalWeight = filteredNodes.reduce((total, node) => total + node.options.priority, 0);
+        const weightedNodes = filteredNodes.map((node) => ({
+            node,
+            weight: node.options.priority / totalWeight,
+        }));
+        const randomNumber = Math.random();
+        let cumulativeWeight = 0;
+        for (const { node, weight } of weightedNodes) {
+            cumulativeWeight += weight;
+            if (randomNumber <= cumulativeWeight) {
+                return node;
+            }
+        }
+        return this.leastPlayersNode.first();
+    }
+    /** Returns the node to use. */
+    get useableNodes() {
+        return this.options.usePriority
+            ? this.priorityNode
+            : this.leastPlayersNode.first();
     }
     /**
      * Initiates the Manager class.
@@ -78,6 +105,7 @@ class Manager extends events_1.EventEmitter {
             ],
             shards: 1,
             autoPlay: true,
+            usePriority: false,
             clientName: "Magmastream",
             defaultSearchPlatform: "youtube",
             ...options,
@@ -125,7 +153,7 @@ class Manager extends events_1.EventEmitter {
      * @returns The search result.
      */
     async search(query, requester) {
-        const node = this.leastPlayersNodes.first();
+        const node = this.useableNodes;
         if (!node) {
             throw new Error("No available nodes.");
         }

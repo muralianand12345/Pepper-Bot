@@ -1,5 +1,7 @@
 import { Client, TextChannel } from "discord.js";
 import { musicContent, musicrowdis, musicrow, musicEmbed, musicEmbedOff } from "./musicEmbed";
+import { Readable } from 'stream';
+import https from 'https';
 
 const updateMusicDB = async (musicData: any, track: any) => {
     musicData.songsNo += 1;
@@ -43,4 +45,18 @@ const updateMusicChannel = async (client: Client, musicData: any, player: any, t
     }
 }
 
-export { updateMusicDB, updateMusicChannel };
+const fetchAudioStream = (url: string): Promise<Readable> => {
+    return new Promise<Readable>((resolve, reject) => {
+        https.get(url, { rejectUnauthorized: false }, response => {
+            if (response.statusCode !== 200) {
+                reject(new Error(`Failed to fetch audio stream: ${response.statusCode}`));
+                return;
+            }
+            resolve(response);
+        }).on('error', error => {
+            reject(error);
+        });
+    });
+}
+
+export { updateMusicDB, updateMusicChannel, fetchAudioStream };
