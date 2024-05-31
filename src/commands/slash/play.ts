@@ -146,7 +146,6 @@ const playcommand: SlashCommand = {
                 player.queue.add(track);
 
                 if (!player.playing && !player.paused && !player.queue.size) {
-                    console.log(player)
                     player.play();
                 }
 
