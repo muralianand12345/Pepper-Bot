@@ -1,6 +1,6 @@
 {
   "name": "pepper-bot",
-  "version": "3.0.0",
+  "version": "3.3.0",
   "description": "Pepper Bot's official music bot source code",
   "main": "./build/index.js",
   "type": "commonjs",

@@ -77,7 +77,7 @@ const event: BotEvent = {
 
         if (guildMember.voice.channel?.id !== player.voiceChannel) {
             return await message.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription(`It seems you are not connected to the same voice channel as me`)],
+                embeds: [new EmbedBuilder().setColor('Red').setDescription(`It seems you are not connected to the same voice channel as me`).setFooter({text: 'If you think there is an issue, kindly contact the server admin to use \`/dcbot\` command.'})],
             }).then(async (m: Message) => {
                 setTimeout(() => m.delete(), 5000);
                 await message.delete();

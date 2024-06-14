@@ -333,7 +333,7 @@ const playlist: SlashCommand = {
 
             if (guildMember.voice.channel?.id !== player.voiceChannel) {
                 return await interaction.editReply({
-                    embeds: [new EmbedBuilder().setColor('Red').setDescription(`It seems you are not connected to the same voice channel as me`)]
+                    embeds: [new EmbedBuilder().setColor('Red').setDescription(`It seems you are not connected to the same voice channel as me`).setFooter({text: 'If you think there is an issue, kindly contact the server admin to use \`/dcbot\` command.'})]
                 });
             }
 

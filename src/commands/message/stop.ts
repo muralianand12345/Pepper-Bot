@@ -45,7 +45,7 @@ const stopcommand: Command = {
 
         if (guildMember.voice.channel?.id !== player.voiceChannel) {
             return await message.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("It seems like you are not in the same voice channel as me")]
+                embeds: [new EmbedBuilder().setColor('Red').setDescription("It seems like you are not in the same voice channel as me").setFooter({text: 'If you think there is an issue, kindly contact the server admin to use \`/dcbot\` command.'})]
             }).then(m => setTimeout(async () => await m.delete(), 5000));
         }
 

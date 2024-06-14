@@ -85,7 +85,7 @@ const event: BotEvent = {
                 client.logger.debug(`User: ${(track.requester as User).tag} (${(track.requester as User).id}) requested song uri ${track.uri} in ${guildName} (${player.guild})`);
             })
             .on("queueEnd", async (player: Player) => {
-                client.channels.cache.get(player.textChannel).send({ embeds: [new EmbedBuilder().setDescription("🎵 Played all music in queue").setColor(client.config.music.embedcolor)] }).then(async (m: Message) => {
+                await client.channels.cache.get(player.textChannel).send({ embeds: [new EmbedBuilder().setDescription("🎵 Played all music in queue").setColor(client.config.music.embedcolor)] }).then(async (m: Message) => {
                     var musicData = await musicModel.findOne({
                         guildId: player.guild
                     });
@@ -98,7 +98,6 @@ const event: BotEvent = {
                     }
                 });
             });
-
     }
 };
 

@@ -61,7 +61,7 @@ const skipcommand: SlashCommand = {
 
         if (guildMember.voice.channel?.id !== player.voiceChannel) {
             return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("It seems like you are not in the same voice channel as me")],
+                embeds: [new EmbedBuilder().setColor('Red').setDescription("It seems like you are not in the same voice channel as me").setFooter({text: 'If you think there is an issue, kindly contact the server admin to use \`/dcbot\` command.'})],
                 ephemeral: true,
             });
         }
