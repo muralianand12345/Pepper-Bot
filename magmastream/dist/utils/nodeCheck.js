@@ -3,30 +3,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 function nodeCheck(options) {
     if (!options)
         throw new TypeError("NodeOptions must not be empty.");
-    const { host, identifier, password, port, requestTimeout, resumeStatus, resumeTimeout, retryAmount, retryDelay, secure, priority, } = options;
+    const { host, identifier, password, port, requestTimeout, resumeStatus, resumeTimeout, retryAmount, retryDelay, secure, priority } = options;
     if (typeof host !== "string" || !/.+/.test(host)) {
         throw new TypeError('Node option "host" must be present and be a non-empty string.');
     }
     if (typeof identifier !== "undefined" && typeof identifier !== "string") {
         throw new TypeError('Node option "identifier" must be a non-empty string.');
     }
-    if (typeof password !== "undefined" &&
-        (typeof password !== "string" || !/.+/.test(password))) {
+    if (typeof password !== "undefined" && (typeof password !== "string" || !/.+/.test(password))) {
         throw new TypeError('Node option "password" must be a non-empty string.');
     }
     if (typeof port !== "undefined" && typeof port !== "number") {
         throw new TypeError('Node option "port" must be a number.');
     }
-    if (typeof requestTimeout !== "undefined" &&
-        typeof requestTimeout !== "number") {
+    if (typeof requestTimeout !== "undefined" && typeof requestTimeout !== "number") {
         throw new TypeError('Node option "requestTimeout" must be a number.');
     }
-    if (typeof resumeStatus !== "undefined" &&
-        typeof resumeStatus !== "boolean") {
+    if (typeof resumeStatus !== "undefined" && typeof resumeStatus !== "boolean") {
         throw new TypeError('Node option "resumeStatus" must be a boolean.');
     }
-    if (typeof resumeTimeout !== "undefined" &&
-        typeof resumeTimeout !== "number") {
+    if (typeof resumeTimeout !== "undefined" && typeof resumeTimeout !== "number") {
         throw new TypeError('Node option "resumeTimeout" must be a number.');
     }
     if (typeof retryAmount !== "undefined" && typeof retryAmount !== "number") {

@@ -1,9 +1,8 @@
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-import { SlashCommand } from "../../types";
+import { SlashCommand, IMusicServerStats, IMusicUser, ISongData } from "../../types";
 
 import musicUserModal from "../../events/database/schema/musicUser";
 import musicServerModal from "../../events/database/schema/musicServerStats";
-import { IMusicServerStats, IMusicUser } from "../../types";
 import { hyperlink } from "../../utils/format";
 
 const chartcommand: SlashCommand = {
@@ -117,7 +116,7 @@ const chartcommand: SlashCommand = {
                 });
             }
 
-            const songs: string[] = [];
+            const songs: ISongData[] = [];
             musicData.map((server: IMusicServerStats) => {
                 if (!server.songs) return;
                 server.songs.forEach((song) => {
@@ -133,13 +132,13 @@ const chartcommand: SlashCommand = {
 
             const songsNo = songs.length;
 
-            songs.sort((a: any, b: any) => {
+            songs.sort((a, b) => {
                 return b.times - a.times;
             });
 
             songs.splice(5);
 
-            const songsList = songs.map((song: any) => {
+            const songsList = songs.map((song) => {
                 return `**${hyperlink(song.name, song.url)}** - ${song.times} times`;
             });
 

@@ -1,13 +1,12 @@
-import { Events, EmbedBuilder } from 'discord.js';
-
+import { Events, EmbedBuilder, Guild, Client } from 'discord.js';
 import { BotEvent } from '../../../types';
 import botAnalysisModal from '../../database/schema/botDataAnalysis';
 
 const event: BotEvent = {
     name: Events.GuildCreate,
-    execute: async (guild, client) => {
+    execute: async (guild: Guild, client: Client) => {
         var botAnalysisData = await botAnalysisModal.findOne({
-            clientId: client.user.id
+            clientId: client.user?.id
         });
         if (botAnalysisData) {
             botAnalysisData.server.push({
@@ -24,19 +23,22 @@ const event: BotEvent = {
         const embed = new EmbedBuilder()
             .setTitle('New Guild')
             .setDescription(`I have joined **${guild.name}** (${guild.id})`)
-            .setFields(
-                { name: 'Members', value: guild.memberCount.toString(), inline: true },
-                { name: 'Owner', value: guild.owner?.user.tag, inline: true },
-                { name: 'Region', value: guild.region, inline: true },
-                { name: 'Created', value: guild.createdAt.toDateString(), inline: true },
+            .addFields(
+                { name: 'Members', value: guild.memberCount?.toString() || 'Unknown', inline: true },
+                { name: 'Owner', value: guild.ownerId ? `<@${guild.ownerId}>` : 'Unknown Owner', inline: true },
+                { name: 'Created', value: guild.createdAt?.toDateString() || 'Unknown Date', inline: true },
             )
-            .setThumbnail(guild.iconURL() || '')
+            .setThumbnail(guild.iconURL() || null)
             .setFooter({ text: `Guild ID: ${guild.id}` })
             .setColor('Green')
             .setTimestamp();
 
-
-        await client.channels.cache.get("1251103097632194620").send({ embeds: [embed] });
+        const logChannel = client.channels.cache.get("1272460335030468712");
+        if (logChannel?.isTextBased()) {
+            await logChannel.send({ embeds: [embed] });
+        } else {
+            client.logger.error(`Log channel not found or not a text channel`);
+        }
 
         client.logger.debug(`[GUILD] Joined guild ${guild.name} (${guild.id})`);
     }

@@ -1,11 +1,11 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { Client, GatewayIntentBits, Collection } from "discord.js";
-import * as Discord from 'discord.js';
-import * as dotenv from 'dotenv';
-import * as chokidar from 'chokidar';
+import fs from 'fs';
+import path from 'path';
+import { Client, GatewayIntentBits, Collection, Partials } from "discord.js";
+import discord from 'discord.js';
+import dotenv from 'dotenv';
+import chokidar from 'chokidar';
 
-import { Manager } from './module/magmastream';
+import { Manager } from '../magmastream/dist';
 import logger from './module/logger';
 import * as cmdLogger from './module/commandLog';
 import { Command, SlashCommand } from "./types";
@@ -15,11 +15,8 @@ dotenv.config();
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        //GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildWebhooks,
         GatewayIntentBits.GuildMessages,
-        //GatewayIntentBits.DirectMessages,
-        //GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildVoiceStates,
     ],
     shards: 'auto'
@@ -32,12 +29,12 @@ client.slashCommands = new Collection<string, SlashCommand>()
 client.commands = new Collection<string, Command>()
 client.cooldowns = new Collection<string, number>()
 
-const configPath = path.join(__dirname, 'config/config.json');
-let config: any;
+const configPath = path.join(__dirname, '..', 'config', 'config.json');
+let config: JSON | any;
 
 try {
     config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-} catch (err: any) {
+} catch (err: Error | any) {
     client.logger.error('Error reading initial configuration file');
     process.exit(1);
 }
@@ -61,14 +58,14 @@ watcher.on('change', (changedPath) => {
         try {
             config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
             client.config = config;
-        } catch (error: any) {
+        } catch (error: Error | any) {
             client.logger.error('Error reloading configuration file:');
             client.logger.error(error);
         }
     }
 });
 
-client.discord = Discord;
+client.discord = discord;
 
 const handlersPath = path.join(__dirname, 'handlers');
 fs.readdirSync(handlersPath)
@@ -102,23 +99,23 @@ fs.readdirSync(eventsPath).forEach((mainDir) => {
     }
 });
 
-client.login(process.env.TOKEN).catch((err: any) => {
+client.login(process.env.TOKEN).catch((err: Error | any) => {
     client.logger.error(`[TOKEN-CRASH] Unable to connect to the BOT's Token`);
     client.logger.error(err);
     return process.exit();
 });
 
-export = client;
+export { client };
 
 process.on('SIGINT', async () => {
     client.logger.warn(`${client.user?.username} is shutting down...\n-------------------------------------`);
     process.exit();
 });
 
-process.on('unhandledRejection', async (err: any, promise) => {
+process.on('unhandledRejection', async (err: Error | any, promise) => {
     client.logger.error(err);
 });
-process.on('uncaughtException', async (err: any, origin) => {
+process.on('uncaughtException', async (err: Error | any, origin) => {
     client.logger.error(err);
 });
 client.on('invalidated', () => {

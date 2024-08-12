@@ -4,7 +4,7 @@ import { SlashCommand } from "../../types";
 import { msToTime, textLengthOverCut, hyperlink } from "../../utils/format";
 import { musicrow } from "../../utils/musicEmbed";
 import { getAutoComplete } from "../../utils/autoComplete";
-import { Track } from "../../module/magmastream";
+import { Track } from "../../../magmastream/dist";
 
 const playcommand: SlashCommand = {
     cooldown: 5000,
@@ -28,8 +28,8 @@ const playcommand: SlashCommand = {
             } else {
                 choices = await getAutoComplete(focusedValue);
             }
-            await interaction.respond(choices.map((choice: any) => ({ name: choice, value: choice })));
-        } catch (e: any) {
+            await interaction.respond(choices.map((choice: string[]) => ({ name: choice, value: choice })));
+        } catch (e: Error | any) {
             client.logger.error(`An error occurred while fetching autocomplete suggestions.\nError: ${e.message}`);
         }
     },

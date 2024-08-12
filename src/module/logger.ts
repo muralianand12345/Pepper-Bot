@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
 import chalk from 'chalk';
 
 interface Logger {
@@ -48,6 +48,11 @@ const generateLogFilePath = (logsBasePath: string) => {
 }
 
 const logsBasePath: string = path.join(__dirname, '../../logs');
+
+if (!fs.existsSync(logsBasePath)) {
+    fs.mkdirSync(logsBasePath, { recursive: true });
+}
+
 const logFilePath: string = generateLogFilePath(logsBasePath);
 
 const logger: Logger = {

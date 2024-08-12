@@ -54,7 +54,8 @@ const blockcommand: Command = {
 
                 find.status = true;
                 find.data.push({
-                    reason: reason
+                    reason: reason,
+                    date: new Date()
                 });
                 await find.save();
 

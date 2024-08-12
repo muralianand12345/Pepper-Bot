@@ -4,16 +4,7 @@ exports.Plugin = exports.Structure = exports.TrackUtils = void 0;
 /** @hidden */
 const TRACK_SYMBOL = Symbol("track"), 
 /** @hidden */
-UNRESOLVED_TRACK_SYMBOL = Symbol("unresolved"), SIZES = [
-    "0",
-    "1",
-    "2",
-    "3",
-    "default",
-    "mqdefault",
-    "hqdefault",
-    "maxresdefault",
-];
+UNRESOLVED_TRACK_SYMBOL = Symbol("unresolved"), SIZES = ["0", "1", "2", "3", "default", "mqdefault", "hqdefault", "maxresdefault"];
 /** @hidden */
 const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 class TrackUtils {
@@ -24,8 +15,7 @@ class TrackUtils {
         this.manager = manager;
     }
     static setTrackPartial(partial) {
-        if (!Array.isArray(partial) ||
-            !partial.every((str) => typeof str === "string"))
+        if (!Array.isArray(partial) || !partial.every((str) => typeof str === "string"))
             throw new Error("Provided partial is not an array or not a string array.");
         if (!partial.includes("track"))
             partial.unshift("track");
@@ -45,8 +35,7 @@ class TrackUtils {
             }
             return true;
         }
-        return ((trackOrTracks[TRACK_SYMBOL] ||
-            trackOrTracks[UNRESOLVED_TRACK_SYMBOL]) === true);
+        return (trackOrTracks[TRACK_SYMBOL] || trackOrTracks[UNRESOLVED_TRACK_SYMBOL]) === true;
     }
     /**
      * Checks if the provided argument is a valid UnresolvedTrack.
@@ -86,14 +75,10 @@ class TrackUtils {
                 uri: data.info.uri,
                 artworkUrl: data.info?.artworkUrl,
                 sourceName: data.info?.sourceName,
-                thumbnail: data.info.uri.includes("youtube")
-                    ? `https://img.youtube.com/vi/${data.info.identifier}/default.jpg`
-                    : null,
+                thumbnail: data.info.uri.includes("youtube") ? `https://img.youtube.com/vi/${data.info.identifier}/default.jpg` : null,
                 displayThumbnail(size = "default") {
                     const finalSize = SIZES.find((s) => s === size) ?? "default";
-                    return this.uri.includes("youtube")
-                        ? `https://img.youtube.com/vi/${data.info.identifier}/${finalSize}.jpg`
-                        : null;
+                    return this.uri.includes("youtube") ? `https://img.youtube.com/vi/${data.info.identifier}/${finalSize}.jpg` : null;
                 },
                 requester,
                 pluginInfo: {
@@ -104,6 +89,7 @@ class TrackUtils {
                     isPreview: data.pluginInfo?.isPreview,
                     previewUrl: data.pluginInfo?.previewUrl,
                 },
+                customData: {},
             };
             track.displayThumbnail = track.displayThumbnail.bind(track);
             if (this.trackPartial) {
@@ -154,17 +140,10 @@ class TrackUtils {
             throw new RangeError("Manager has not been initiated.");
         if (!TrackUtils.isUnresolvedTrack(unresolvedTrack))
             throw new RangeError("Provided track is not a UnresolvedTrack.");
-        const query = unresolvedTrack.uri
-            ? unresolvedTrack.uri
-            : [unresolvedTrack.author, unresolvedTrack.title]
-                .filter(Boolean)
-                .join(" - ");
+        const query = unresolvedTrack.uri ? unresolvedTrack.uri : [unresolvedTrack.author, unresolvedTrack.title].filter(Boolean).join(" - ");
         const res = await TrackUtils.manager.search(query, unresolvedTrack.requester);
         if (unresolvedTrack.author) {
-            const channelNames = [
-                unresolvedTrack.author,
-                `${unresolvedTrack.author} - Topic`,
-            ];
+            const channelNames = [unresolvedTrack.author, `${unresolvedTrack.author} - Topic`];
             const originalAudio = res.tracks.find((track) => {
                 return (channelNames.some((name) => new RegExp(`^${escapeRegExp(name)}$`, "i").test(track.author)) ||
                     new RegExp(`^${escapeRegExp(unresolvedTrack.title)}$`, "i").test(track.title));
@@ -173,8 +152,7 @@ class TrackUtils {
                 return originalAudio;
         }
         if (unresolvedTrack.duration) {
-            const sameDuration = res.tracks.find((track) => track.duration >= unresolvedTrack.duration - 1500 &&
-                track.duration <= unresolvedTrack.duration + 1500);
+            const sameDuration = res.tracks.find((track) => track.duration >= unresolvedTrack.duration - 1500 && track.duration <= unresolvedTrack.duration + 1500);
             if (sameDuration)
                 return sameDuration;
         }

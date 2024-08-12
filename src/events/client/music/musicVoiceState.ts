@@ -1,6 +1,6 @@
 import { Events, EmbedBuilder, Message, VoiceChannel, StageChannel } from 'discord.js';
-import * as timers from "timers/promises";
-import { Player } from '../../../module/magmastream';
+import timers from "timers/promises";
+import { Player } from '../../../../magmastream/dist';
 
 const wait = async (ms: number) => {
     await timers.setTimeout(ms);
@@ -77,7 +77,7 @@ const event: BotEvent = {
 
         switch (stateChange.type) {
             case "JOIN":
-                if (stateChange.members.size === 1 && player.paused) {
+                if (stateChange.members?.size === 1 && player.paused) {
                     client.channels.cache.get(String(player.textChannel)).send({ embeds: [new EmbedBuilder().setTitle("▶️ Resumed playback").setColor(client.config.music.embedcolor)] }).then(async (m: Message) => {
                         setTimeout(() => m.delete(), 10000);
                     });
@@ -85,7 +85,7 @@ const event: BotEvent = {
                 }
                 break;
             case "LEAVE":
-                if (stateChange.members.size === 0 && !player.paused && player.playing) {
+                if (stateChange.members?.size === 0 && !player.paused && player.playing) {
                     client.channels.cache
                         .get(String(player.textChannel))
                         .send({ embeds: [new EmbedBuilder().setTitle("⏸️ Paused playback because the voice channel is empty").setColor(client.config.music.embedcolor)] }).then(async (m: Message) => {

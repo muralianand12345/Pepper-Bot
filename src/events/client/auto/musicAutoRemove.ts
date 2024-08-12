@@ -1,6 +1,6 @@
 import { Events } from "discord.js";
 
-import { BotEvent } from "../../../types";
+import { BotEvent, IUserPremium, IPremiumData, IRedeemCode } from "../../../types";
 
 import premiumUserModal from "../../database/schema/userPremium";
 import premiumRedeemModal from "../../database/schema/redeemCode";
@@ -12,15 +12,16 @@ const event: BotEvent = {
     execute: async (client) => {
 
         schedule('*/60 * * * * *', async () => {
-            await premiumUserModal.find({ isPremium: true }, async (err: any, users: any) => {
+            await premiumUserModal.find({ isPremium: true }, async (err: Error | any, users: IUserPremium[]) => {
                 if (users && users.length) {
                     for (let user of users) {
                         if (Date.now() >= user.premium.expiresAt) {
                             user.isPremium = false;
-                            user.premium.redeemedBy = null;
-                            user.premium.redeemedAt = null;
-                            user.premium.expiresAt = null;
-                            user.premium.plan = null;
+                            const user_premium = user.premium as IPremiumData;
+                            user_premium.redeemedBy = null;
+                            user_premium.redeemedAt = null;
+                            user_premium.expiresAt = null;
+                            user_premium.plan = null;
                             await user.save();
                             client.logger.info(`Premium for ${user.userId} has expired`);
                         }
@@ -30,11 +31,11 @@ const event: BotEvent = {
         });
 
         schedule('*/60 * * * * *', async () => {
-            await premiumRedeemModal.find({}, async (err: any, codes: any) => {
+            await premiumRedeemModal.find({}, async (err: Error | any, codes: IRedeemCode[]) => {
                 if (codes && codes.length) {
                     for (let code of codes) {
                         if (Date.now() >= code.expiresAt) {
-                            await code.delete();
+                            await code.deleteOne();
                             client.logger.info(`Redeem code ${code.code} has expired`);
                         }
                     }

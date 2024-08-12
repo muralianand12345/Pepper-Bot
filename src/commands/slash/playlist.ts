@@ -1,11 +1,11 @@
 import { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } from "discord.js";
-import { SlashCommand } from "../../types";
+import { ICustomPlaylistData, SlashCommand } from "../../types";
 
 import playlistModel from "../../events/database/schema/customPlaylist";
 import { musicrow } from "../../utils/musicEmbed";
 import { msToTime, textLengthOverCut, hyperlink } from "../../utils/format";
 import { getAutoComplete } from "../../utils/autoComplete";
-import { Track } from "../../module/magmastream";
+import { Track } from "../../../magmastream/dist";
 
 const playlist: SlashCommand = {
     cooldown: 5000,
@@ -80,7 +80,7 @@ const playlist: SlashCommand = {
                 } else {
                     choices = await getAutoComplete(focusedValue);
                 }
-                await interaction.respond(choices.map((choice: any) => ({ name: choice, value: choice })));
+                await interaction.respond(choices.map((choice: string[]) => ({ name: choice, value: choice })));
             } catch (e: Error | any) {
                 client.logger.error(`An error occurred while fetching autocomplete suggestions.\nError: ${e.message}`);
             }
@@ -93,12 +93,12 @@ const playlist: SlashCommand = {
                 } else {
                     const playlistData = await playlistModel.findOne({ userId: interaction.user.id });
                     if (playlistData) {
-                        choices = playlistData.playlist.map((playlist: any) => playlist.name);
+                        choices = playlistData.playlist.map((playlist: ICustomPlaylistData) => playlist.name);
                     } else {
                         choices = ["Create a new playlist"];
                     }
                 }
-                await interaction.respond(choices.map((choice: any) => ({ name: choice, value: choice })));
+                await interaction.respond(choices.map((choice) => ({ name: choice, value: choice })));
             } catch (e: Error | any) {
                 client.logger.error(`An error occurred while fetching autocomplete suggestions.\nError: ${e.message}`);
             }
@@ -144,7 +144,7 @@ const playlist: SlashCommand = {
             const song = interaction.options.getString('song');
             if (!song) return await interaction.editReply({ embeds: [new EmbedBuilder().setColor('Red').setDescription("Please enter a song name or URL")] });
 
-            client.manager.search(song, interaction.user).then(async (res: any) => {
+            client.manager.search(song, interaction.user).then(async (res) => {
 
                 if (!res) return await interaction.editReply({ embeds: [new EmbedBuilder().setColor('Red').setDescription("Error occured try again! | 1")] });
                 if (!playlistData) return await interaction.editReply({ embeds: [new EmbedBuilder().setColor('Red').setDescription("Error occured try again! | 2")] });

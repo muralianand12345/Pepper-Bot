@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { Message } from 'discord.js';
+import { Message, User, ClientUser } from 'discord.js';
 import WebSocket from 'ws';
 import { Collection } from '@discordjs/collection';
 import { EventEmitter } from 'events';
@@ -185,7 +185,7 @@ declare class Player {
     /** The text channel for the player. */
     textChannel: string | null;
     /**The now playing message. */
-    nowPlayingMessage?: NowPlayingMessage;
+    nowPlayingMessage?: Message;
     /** The current state of the player. */
     state: State;
     /** The equalizer bands array. */
@@ -222,7 +222,7 @@ declare class Player {
      * @param query
      * @param requester
      */
-    search(query: string | SearchQuery, requester?: unknown): Promise<SearchResult>;
+    search(query: string | SearchQuery, requester?: User | ClientUser): Promise<SearchResult>;
     /** Connect to the voice channel. */
     connect(): this;
     /** Disconnect from the voice channel. */
@@ -240,7 +240,7 @@ declare class Player {
      */
     setTextChannel(channel: string): this;
     /** Sets the now playing message. */
-    setNowPlayingMessage(message: NowPlayingMessage): NowPlayingMessage;
+    setNowPlayingMessage(message: Message): Message;
     /** Plays the next track. */
     play(): Promise<void>;
     /**
@@ -326,13 +326,13 @@ interface Track {
     /** The artwork url of the track. */
     readonly artworkUrl: string;
     /** The track source name. */
-    readonly sourceName: string;
+    readonly sourceName: TrackSourceName;
     /** The title of the track. */
-    readonly title: string;
+    title: string;
     /** The identifier of the track. */
     readonly identifier: string;
     /** The author of the track. */
-    readonly author: string;
+    author: string;
     /** The duration of the track. */
     readonly duration: number;
     /** If the track is seekable. */
@@ -344,11 +344,13 @@ interface Track {
     /** The thumbnail of the track or null if it's a unsupported source. */
     readonly thumbnail: string | null;
     /** The user that requested the track. */
-    readonly requester: unknown | null;
+    readonly requester: User | ClientUser | null;
     /** Displays the track thumbnail with optional size or null if it's a unsupported source. */
     displayThumbnail(size?: Sizes): string;
     /** Additional track info provided by plugins. */
     pluginInfo: TrackPluginInfo;
+    /** Add your own data to the track. */
+    customData: Record<string, unknown>;
 }
 interface TrackPluginInfo {
     albumName?: string;
@@ -382,14 +384,6 @@ interface EqualizerBand {
     band: number;
     /** The gain amount being -0.25 to 1.00, 0.25 being double. */
     gain: number;
-}
-interface NowPlayingMessage {
-    /** The ID of the channel. */
-    channelId: string;
-    /** The boolean indicating if the message has been deleted or not. */
-    deleted?: boolean;
-    /** The delete function. */
-    delete: () => Promise<Message>;
 }
 
 /** Handles the requests sent to the Lavalink REST API. */
@@ -482,7 +476,7 @@ declare class Node {
     protected close(code: number, reason: string): void;
     protected error(error: Error): void;
     protected message(d: Buffer | string): void;
-    protected handleEvent(payload: PlayerEvent & PlayerEvents): void;
+    protected handleEvent(payload: PlayerEvent & PlayerEvents): Promise<void>;
     protected trackStart(player: Player, track: Track, payload: TrackStartEvent): void;
     protected trackEnd(player: Player, track: Track, payload: TrackEndEvent): Promise<void>;
     private handleAutoplay;
@@ -585,13 +579,13 @@ declare abstract class TrackUtils {
      * @param data
      * @param requester
      */
-    static build(data: TrackData, requester?: unknown): Track;
+    static build(data: TrackData, requester?: User | ClientUser): Track;
     /**
      * Builds a UnresolvedTrack to be resolved before being played  .
      * @param query
      * @param requester
      */
-    static buildUnresolved(query: string | UnresolvedQuery, requester?: unknown): UnresolvedTrack;
+    static buildUnresolved(query: string | UnresolvedQuery, requester?: User | ClientUser): UnresolvedTrack;
     static getClosestTrack(unresolvedTrack: UnresolvedTrack): Promise<Track>;
 }
 /** Gets or extends structures to extend the built in, or already extended, classes to add more functionality. */
@@ -644,8 +638,9 @@ interface TrackDataInfo {
     title: string;
     uri?: string;
     artworkUrl?: string;
-    sourceName?: string;
+    sourceName?: TrackSourceName;
 }
+type TrackSourceName = "deezer" | "spotify" | "soundcloud" | "youtube";
 interface Extendable {
     Player: typeof Player;
     Queue: typeof Queue;
@@ -731,100 +726,7 @@ interface PlayerUpdate {
  * The main hub for interacting with Lavalink and using Magmastream,
  */
 declare class Manager extends EventEmitter {
-    /**
-     * Emitted when a Node is created.
-     * @event Manager#nodeCreate
-     */
-    on(event: "nodeCreate", listener: (node: Node) => void): this;
-    /**
-     * Emitted when a Node is destroyed.
-     * @event Manager#nodeDestroy
-     */
-    on(event: "nodeDestroy", listener: (node: Node) => void): this;
-    /**
-     * Emitted when a Node connects.
-     * @event Manager#nodeConnect
-     */
-    on(event: "nodeConnect", listener: (node: Node) => void): this;
-    /**
-     * Emitted when a Node reconnects.
-     * @event Manager#nodeReconnect
-     */
-    on(event: "nodeReconnect", listener: (node: Node) => void): this;
-    /**
-     * Emitted when a Node disconnects.
-     * @event Manager#nodeDisconnect
-     */
-    on(event: "nodeDisconnect", listener: (node: Node, reason: {
-        code?: number;
-        reason?: string;
-    }) => void): this;
-    /**
-     * Emitted when a Node has an error.
-     * @event Manager#nodeError
-     */
-    on(event: "nodeError", listener: (node: Node, error: Error) => void): this;
-    /**
-     * Emitted whenever any Lavalink event is received.
-     * @event Manager#nodeRaw
-     */
-    on(event: "nodeRaw", listener: (payload: unknown) => void): this;
-    /**
-     * Emitted when a player is created.
-     * @event Manager#playerCreate
-     */
-    on(event: "playerCreate", listener: (player: Player) => void): this;
-    /**
-     * Emitted when a player is destroyed.
-     * @event Manager#playerDestroy
-     */
-    on(event: "playerDestroy", listener: (player: Player) => void): this;
-    /**
-     * Emitted when the state of the player has been changed.
-     * https://github.com/Blackfort-Hosting/magmastream/issues/16
-     * @event Manager#playerStateUpdate
-     */
-    on(event: "playerStateUpdate", listener: (oldPlayer: Player, newPlayer: Player) => void): this;
-    /**
-     * Emitted when a player is moved to a new voice channel.
-     * @event Manager#playerMove
-     */
-    on(event: "playerMove", listener: (player: Player, initChannel: string, newChannel: string) => void): this;
-    /**
-     * Emitted when a player is disconnected from it's current voice channel.
-     * @event Manager#playerDisconnect
-     */
-    on(event: "playerDisconnect", listener: (player: Player, oldChannel: string) => void): this;
-    /**
-     * Emitted when a player queue ends.
-     * @event Manager#queueEnd
-     */
-    on(event: "queueEnd", listener: (player: Player, track: Track | UnresolvedTrack, payload: TrackEndEvent) => void): this;
-    /**
-     * Emitted when a voice connection is closed.
-     * @event Manager#socketClosed
-     */
-    on(event: "socketClosed", listener: (player: Player, payload: WebSocketClosedEvent) => void): this;
-    /**
-     * Emitted when a track starts.
-     * @event Manager#trackStart
-     */
-    on(event: "trackStart", listener: (player: Player, track: Track, payload: TrackStartEvent) => void): this;
-    /**
-     * Emitted when a track ends.
-     * @event Manager#trackEnd
-     */
-    on(event: "trackEnd", listener: (player: Player, track: Track, payload: TrackEndEvent) => void): this;
-    /**
-     * Emitted when a track gets stuck during playback.
-     * @event Manager#trackStuck
-     */
-    on(event: "trackStuck", listener: (player: Player, track: Track, payload: TrackStuckEvent) => void): this;
-    /**
-     * Emitted when a track has an error during playback.
-     * @event Manager#trackError
-     */
-    on(event: "trackError", listener: (player: Player, track: Track | UnresolvedTrack, payload: TrackExceptionEvent) => void): this;
+    on<T extends keyof ManagerEvents>(event: T, listener: (...args: ManagerEvents[T]) => void): this;
     static readonly DEFAULT_SOURCES: Record<SearchPlatform, string>;
     /** The map of players. */
     readonly players: Collection<string, Player>;
@@ -833,6 +735,8 @@ declare class Manager extends EventEmitter {
     /** The options that were set. */
     readonly options: ManagerOptions;
     private initiated;
+    /** Returns the nodes that has the least load. */
+    private get leastLoadNode();
     /** Returns the nodes that has the least amount of players. */
     private get leastPlayersNode();
     /** Returns a node based on priority. */
@@ -855,7 +759,7 @@ declare class Manager extends EventEmitter {
      * @param requester
      * @returns The search result.
      */
-    search(query: string | SearchQuery, requester?: unknown): Promise<SearchResult>;
+    search(query: string | SearchQuery, requester?: User | ClientUser): Promise<SearchResult>;
     /**
      * Decodes the base64 encoded tracks and returns a TrackData array.
      * @param tracks
@@ -908,8 +812,10 @@ interface Payload {
     };
 }
 interface ManagerOptions {
-    /** Use priority mode over least amount of player? */
+    /** Use priority mode over least amount of player or load? */
     usePriority?: boolean;
+    /** Use the least amount of players or least load? */
+    useNode?: "leastLoad" | "leastPlayers";
     /** The array of nodes to connect to. */
     nodes?: NodeOptions[];
     /** The client ID to use. */
@@ -926,6 +832,8 @@ interface ManagerOptions {
     trackPartial?: string[];
     /** The default search platform to use, can be "youtube", "youtube music", "soundcloud" or deezer. */
     defaultSearchPlatform?: SearchPlatform;
+    /** Whether the YouTube video titles should be replaced if the Author does not exactly match. */
+    replaceYouTubeCredentials?: boolean;
     /**
      * Function to send data to the websocket.
      * @param id
@@ -970,5 +878,28 @@ interface PlaylistData {
     /** The songs of the playlist. */
     tracks: Track[];
 }
+interface ManagerEvents {
+    nodeCreate: [node: Node];
+    nodeDestroy: [node: Node];
+    nodeConnect: [node: Node];
+    nodeReconnect: [node: Node];
+    nodeDisconnect: [node: Node, reason: {
+        code?: number;
+        reason?: string;
+    }];
+    nodeError: [node: Node, error: Error];
+    nodeRaw: [payload: unknown];
+    playerCreate: [player: Player];
+    playerDestroy: [player: Player];
+    playerStateUpdate: [oldPlayer: Player, newPlayer: Player];
+    playerMove: [player: Player, initChannel: string, newChannel: string];
+    playerDisconnect: [player: Player, oldChannel: string];
+    queueEnd: [player: Player, track: Track | UnresolvedTrack, payload: TrackEndEvent];
+    socketClosed: [player: Player, payload: WebSocketClosedEvent];
+    trackStart: [player: Player, track: Track, payload: TrackStartEvent];
+    trackEnd: [player: Player, track: Track, payload: TrackEndEvent];
+    trackStuck: [player: Player, track: Track, payload: TrackStuckEvent];
+    trackError: [player: Player, track: Track | UnresolvedTrack, payload: TrackExceptionEvent];
+}
 
-export { type CPUStats, type EqualizerBand, type Exception, type Extendable, type FrameStats, type LavalinkResponse, type LoadType, Manager, type ManagerOptions, type MemoryStats, Node, type NodeMessage, type NodeOptions, type NodeStats, type NowPlayingMessage, type Payload, type PlayOptions, Player, type PlayerEvent, type PlayerEventType, type PlayerEvents, type PlayerOptions, type PlayerUpdate, type PlaylistData, type PlaylistRawData, Plugin, Queue, type SearchPlatform, type SearchQuery, type SearchResult, type Severity, type Sizes, type State, Structure, type Track, type TrackData, type TrackDataInfo, type TrackEndEvent, type TrackEndReason, type TrackExceptionEvent, type TrackPluginInfo, type TrackStartEvent, type TrackStuckEvent, TrackUtils, type UnresolvedQuery, type UnresolvedTrack, type VoicePacket, type VoiceServer, type VoiceState, type WebSocketClosedEvent };
+export { type CPUStats, type EqualizerBand, type Exception, type Extendable, type FrameStats, type LavalinkResponse, type LoadType, Manager, type ManagerEvents, type ManagerOptions, type MemoryStats, Node, type NodeMessage, type NodeOptions, type NodeStats, type Payload, type PlayOptions, Player, type PlayerEvent, type PlayerEventType, type PlayerEvents, type PlayerOptions, type PlayerUpdate, type PlaylistData, type PlaylistRawData, Plugin, Queue, type SearchPlatform, type SearchQuery, type SearchResult, type Severity, type Sizes, type State, Structure, type Track, type TrackData, type TrackDataInfo, type TrackEndEvent, type TrackEndReason, type TrackExceptionEvent, type TrackPluginInfo, type TrackSourceName, type TrackStartEvent, type TrackStuckEvent, TrackUtils, type UnresolvedQuery, type UnresolvedTrack, type VoicePacket, type VoiceServer, type VoiceState, type WebSocketClosedEvent };

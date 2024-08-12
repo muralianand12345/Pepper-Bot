@@ -1,6 +1,6 @@
 import { EmbedBuilder, Client, Guild, User, TextChannel } from 'discord.js';
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
 
 const logFilePath: string = path.join(__dirname, '../../logs', 'bot-user-log.log');
 

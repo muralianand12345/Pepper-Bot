@@ -183,8 +183,7 @@ class Player {
         return (this.nowPlayingMessage = message);
     }
     async play(optionsOrTrack, playOptions) {
-        if (typeof optionsOrTrack !== "undefined" &&
-            Utils_1.TrackUtils.validate(optionsOrTrack)) {
+        if (typeof optionsOrTrack !== "undefined" && Utils_1.TrackUtils.validate(optionsOrTrack)) {
             if (this.queue.current)
                 this.queue.previous = this.queue.current;
             this.queue.current = optionsOrTrack;

@@ -1,5 +1,5 @@
 import { EmbedBuilder, PermissionsBitField } from "discord.js";
-import { Track } from "../../module/magmastream";
+import { Track } from "../../../magmastream/dist";
 
 import { Command } from "../../types";
 import { msToTime, textLengthOverCut, hyperlink } from "../../utils/format";

@@ -1,6 +1,6 @@
-import { Client, SlashCommandBuilder, CommandInteraction, Collection, PermissionResolvable, Message, AutocompleteInteraction, ChatInputCommandInteraction, ActivityType, Channel } from "discord.js"
+import { Client, SlashCommandBuilder, CommandInteraction, Collection, PermissionResolvable, Message, AutocompleteInteraction, ChatInputCommandInteraction, ActivityType, Channel, GuildMember, User } from "discord.js"
 import mongoose from "mongoose"
-import { Manager } from './module/magmastream';
+import { Manager } from '../magmastream/dist';
 import discord from "discord.js"
 
 import logger from "./module/logger";
@@ -37,7 +37,7 @@ export interface Command {
 export interface StateChange {
     type?: string;
     channel?: Channel;
-    members?: any;
+    members?: Collection<string, GuildMember>;
 }
 
 //discord Presence
@@ -75,7 +75,7 @@ declare module "discord.js" {
         cooldowns: Collection<string, number>,
         logger: typeof logger,
         cmdLogger: typeof cmdLogger,
-        config: any,
+        config: JSON | any,
         manager: Manager,
         discord: typeof discord
     }
@@ -91,10 +91,24 @@ export interface IBotDataAnalysis extends mongoose.Document {
     server: Array<IServer>
 }
 
+export interface IServer {
+    serverId: string,
+    serverName: string,
+    serverOwner: string,
+    serverMemberCount: number,
+    timeOfJoin: Date,
+    active: boolean
+}
+
 export interface IBlockUser extends mongoose.Document {
     userId: string,
     status: boolean,
     data: Array<IBlockUserData>
+}
+
+export interface IBlockUserData {
+    reason: string,
+    date: Date
 }
 
 export interface IMusicGuild extends mongoose.Document {
@@ -107,13 +121,25 @@ export interface IMusicGuild extends mongoose.Document {
 export interface IMusicServerStats extends mongoose.Document {
     guildId: string,
     songsNo: number,
-    songs: Array<IMusicServerStatsData>
+    songs: Array<ISongData>
 }
 
 export interface IMusicUser extends mongoose.Document {
     userId: string,
     songsNo: number,
-    songs: Array<IMusicUserStatsData>
+    songs: Array<ISongData>
+}
+
+export interface ISongData {
+    name: string,
+    url: string,
+    times: number
+}
+
+export interface IMusicServerStatsData {
+    name: string,
+    url: string,
+    times: number
 }
 
 export interface IRedeemCode extends mongoose.Document {
@@ -129,10 +155,10 @@ export interface IUserPremium extends mongoose.Document {
 }
 
 export interface IPremiumData {
-    redeemedBy: string,
-    redeemedAt: date,
-    expiresAt: date,
-    plan: string
+    redeemedBy: string | null,
+    redeemedAt: date | null,
+    expiresAt: date | null,
+    plan: string | null
 }
 
 export interface ICustomPlaylist extends mongoose.Document {

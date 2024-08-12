@@ -2,7 +2,7 @@ import { ShardingManager } from "discord.js";
 import { config } from "dotenv";
 import logger from "./module/logger";
 
-import * as path from 'path';
+import path from 'path';
 
 config();
 

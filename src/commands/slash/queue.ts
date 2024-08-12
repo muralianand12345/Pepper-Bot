@@ -1,7 +1,8 @@
-import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionCollector, ButtonInteraction } from "discord.js";
 import { msToTime, textLengthOverCut, hyperlink } from "../../utils/format";
 
 import { SlashCommand } from "../../types";
+import { Player, Queue } from "../../../magmastream/dist";
 
 const queuecommand: SlashCommand = {
     cooldown: 5000,
@@ -49,7 +50,7 @@ const queuecommand: SlashCommand = {
             return queueList.slice(startIdx, endIdx);
         };
 
-        const getQueueEmbed = (queueListForPage: any[]) => {
+        const getQueueEmbed = (queueListForPage: Array<any>) => {
             const leftQueue = Math.max(queueList.length - (currentPage + 1) * itemsPerPage, 0);
 
             return new EmbedBuilder()
@@ -70,7 +71,7 @@ const queuecommand: SlashCommand = {
             new ButtonBuilder().setCustomId("next-music-queue").setLabel("Next").setStyle(ButtonStyle.Secondary).setEmoji("⏭️")
         );
 
-        const paginationBtnDisable = (row: any) => {
+        const paginationBtnDisable = (row: ActionRowBuilder<ButtonBuilder>) => {
             row.components[0].setDisabled(currentPage === 0);
             row.components[1].setDisabled(currentPage === maxPage - 1);
         };

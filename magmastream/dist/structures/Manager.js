@@ -7,7 +7,6 @@ const Utils_1 = require("./Utils");
 const collection_1 = require("@discordjs/collection");
 const events_1 = require("events");
 const managerCheck_1 = tslib_1.__importDefault(require("../utils/managerCheck"));
-const REQUIRED_KEYS = ["event", "guild_id", "op", "sessionId"];
 /**
  * The main hub for interacting with Lavalink and using Magmastream,
  */
@@ -49,11 +48,19 @@ class Manager extends events_1.EventEmitter {
     /** The options that were set. */
     options;
     initiated = false;
-    /** Returns the nodes that has the least amount of players. */
-    get leastPlayersNode() {
+    /** Returns the nodes that has the least load. */
+    get leastLoadNode() {
         return this.nodes
             .filter((node) => node.connected)
-            .sort((a, b) => a.stats.players - b.stats.players);
+            .sort((a, b) => {
+            const aload = a.stats.cpu ? (a.stats.cpu.lavalinkLoad / a.stats.cpu.cores) * 100 : 0;
+            const bload = b.stats.cpu ? (b.stats.cpu.lavalinkLoad / b.stats.cpu.cores) * 100 : 0;
+            return aload - bload;
+        });
+    }
+    /** Returns the nodes that has the least amount of players. */
+    get leastPlayersNode() {
+        return this.nodes.filter((node) => node.connected).sort((a, b) => a.stats.players - b.stats.players);
     }
     /** Returns a node based on priority. */
     get priorityNode() {
@@ -71,13 +78,11 @@ class Manager extends events_1.EventEmitter {
                 return node;
             }
         }
-        return this.leastPlayersNode.first();
+        return this.options.useNode === "leastLoad" ? this.leastLoadNode.first() : this.leastPlayersNode.first();
     }
     /** Returns the node to use. */
     get useableNodes() {
-        return this.options.usePriority
-            ? this.priorityNode
-            : this.leastPlayersNode.first();
+        return this.options.usePriority ? this.priorityNode : this.options.useNode === "leastLoad" ? this.leastLoadNode.first() : this.leastPlayersNode.first();
     }
     /**
      * Initiates the Manager class.
@@ -108,6 +113,7 @@ class Manager extends events_1.EventEmitter {
             usePriority: false,
             clientName: "Magmastream",
             defaultSearchPlatform: "youtube",
+            useNode: "leastPlayers",
             ...options,
         };
         if (this.options.plugins) {
@@ -182,22 +188,46 @@ class Manager extends events_1.EventEmitter {
                     break;
             }
             const tracks = searchData.map((track) => Utils_1.TrackUtils.build(track, requester));
-            const playlist = res.loadType === "playlist"
-                ? {
+            let playlist = null;
+            if (res.loadType === "playlist") {
+                playlist = {
                     name: playlistData.info.name,
                     tracks: playlistData.tracks.map((track) => Utils_1.TrackUtils.build(track, requester)),
                     duration: playlistData.tracks.reduce((acc, cur) => acc + (cur.info.length || 0), 0),
-                }
-                : null;
+                };
+            }
             const result = {
                 loadType: res.loadType,
                 tracks,
                 playlist,
             };
+            if (this.options.replaceYouTubeCredentials) {
+                let tracksToReplace = [];
+                if (result.loadType === "playlist") {
+                    tracksToReplace = result.playlist.tracks;
+                }
+                else {
+                    tracksToReplace = result.tracks;
+                }
+                for (const track of tracksToReplace) {
+                    if (isYouTubeURL(track.uri)) {
+                        track.author = track.author.replace("- Topic", "");
+                        track.title = track.title.replace("Topic -", "");
+                    }
+                    if (track.title.includes("-")) {
+                        const [author, title] = track.title.split("-").map((str) => str.trim());
+                        track.author = author;
+                        track.title = title;
+                    }
+                }
+            }
             return result;
         }
         catch (err) {
             throw new Error(err);
+        }
+        function isYouTubeURL(uri) {
+            return uri.includes("youtube.com") || uri.includes("youtu.be");
         }
     }
     /**
@@ -209,9 +239,7 @@ class Manager extends events_1.EventEmitter {
             const node = this.nodes.first();
             if (!node)
                 throw new Error("No available nodes.");
-            const res = (await node.rest
-                .post("/v4/decodetracks", JSON.stringify(tracks))
-                .catch((err) => reject(err)));
+            const res = (await node.rest.post("/v4/decodetracks", JSON.stringify(tracks)).catch((err) => reject(err)));
             if (!res) {
                 return reject(new Error("No data returned from query."));
             }
@@ -276,50 +304,38 @@ class Manager extends events_1.EventEmitter {
      * @param data
      */
     async updateVoiceState(data) {
-        if ("t" in data &&
-            !["VOICE_STATE_UPDATE", "VOICE_SERVER_UPDATE"].includes(data.t)) {
+        if ("t" in data && !["VOICE_STATE_UPDATE", "VOICE_SERVER_UPDATE"].includes(data.t))
             return;
-        }
         const update = "d" in data ? data.d : data;
-        if (!update || (!("token" in update) && !("session_id" in update))) {
+        if (!update || (!("token" in update) && !("session_id" in update)))
             return;
-        }
         const player = this.players.get(update.guild_id);
-        if (!player) {
+        if (!player)
             return;
-        }
         if ("token" in update) {
-            /* voice server update */
             player.voiceState.event = update;
-        }
-        else {
-            /* voice state update */
-            if (update.user_id !== this.options.clientId) {
-                return;
-            }
-            if (update.channel_id) {
-                if (player.voiceChannel !== update.channel_id) {
-                    /* we moved voice channels. */
-                    this.emit("playerMove", player, player.voiceChannel, update.channel_id);
-                }
-                player.voiceState.sessionId = update.session_id;
-                player.voiceChannel = update.channel_id;
-            }
-            else {
-                /* player got disconnected. */
-                this.emit("playerDisconnect", player, player.voiceChannel);
-                player.voiceChannel = null;
-                player.voiceState = Object.assign({});
-                player.pause(true);
-            }
-        }
-        if (REQUIRED_KEYS.every((key) => key in player.voiceState)) {
             const { sessionId, event: { token, endpoint }, } = player.voiceState;
             await player.node.rest.updatePlayer({
                 guildId: player.guild,
                 data: { voice: { token, endpoint, sessionId } },
             });
+            return;
         }
+        if (update.user_id !== this.options.clientId)
+            return;
+        if (update.channel_id) {
+            if (player.voiceChannel !== update.channel_id) {
+                this.emit("playerMove", player, player.voiceChannel, update.channel_id);
+            }
+            player.voiceState.sessionId = update.session_id;
+            player.voiceChannel = update.channel_id;
+            return;
+        }
+        this.emit("playerDisconnect", player, player.voiceChannel);
+        player.voiceChannel = null;
+        player.voiceState = Object.assign({});
+        player.destroy();
+        return;
     }
 }
 exports.Manager = Manager;

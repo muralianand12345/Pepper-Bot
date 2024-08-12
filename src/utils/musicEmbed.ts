@@ -1,5 +1,6 @@
 import { Client, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { hyperlink } from "./format";
+import { Track } from "magmastream";
 
 const musicContent: string = 'No Music Playing Right Now 😔';
 
@@ -103,7 +104,7 @@ const musicEmbedOff = async (client: Client) => {
         .setFooter({ text: `Prefix is: ${prefixText}` });
 }
 
-const musicEmbed = async (client: Client, track: any) => {
+const musicEmbed = async (client: Client, track: Track) => {
     let trackImg = track.displayThumbnail('maxresdefault') || track.artworkUrl || client.config.music.image;
     let trackAuthor = track.author || 'Unknown';
     let trackTitle = track.title;
@@ -114,7 +115,7 @@ const musicEmbed = async (client: Client, track: any) => {
         .setColor(client.config.music.embedcolor)
         .setAuthor({ name: `${trackTitle} By - ${trackAuthor}`, iconURL: client.user?.displayAvatarURL() })
         .setImage(trackImg)
-        .setFooter({ text: `Requested by ${track.requester.tag}` })
+        .setFooter({ text: `Requested by ${track.requester?.tag}` })
         .setDescription(`> **Song Link: ${hyperlink('Click Me', `${track.uri}`)}** | **${hyperlink(`${client.user?.username}`, 'https://discord.gg/XzE9hSbsNb')}**`);
 }
 

@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 function playerCheck(options) {
     if (!options)
         throw new TypeError("PlayerOptions must not be empty.");
-    const { guild, node, selfDeafen, selfMute, textChannel, voiceChannel, volume, } = options;
+    const { guild, node, selfDeafen, selfMute, textChannel, voiceChannel, volume } = options;
     if (!/^\d+$/.test(guild)) {
         throw new TypeError('Player option "guild" must be present and be a non-empty string.');
     }

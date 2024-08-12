@@ -36,7 +36,7 @@ class Filters {
         };
     }
     async updateFilters() {
-        const { distortion, equalizer, karaoke, rotation, timescale, vibrato, volume, } = this;
+        const { distortion, equalizer, karaoke, rotation, timescale, vibrato, volume } = this;
         await this.player.node.rest.updatePlayer({
             data: {
                 filters: {
@@ -109,9 +109,7 @@ class Filters {
     }
     /** Applies the vaporwave effect. */
     vaporwave() {
-        return this.setEqualizer(filtersEqualizers_1.vaporwaveEqualizer)
-            .setTimescale({ pitch: 0.55 })
-            .setFilterStatus("vaporwave", true);
+        return this.setEqualizer(filtersEqualizers_1.vaporwaveEqualizer).setTimescale({ pitch: 0.55 }).setFilterStatus("vaporwave", true);
     }
     /** Applies the distortion audio effect. */
     distort() {

@@ -52,8 +52,8 @@ class Node {
             port: 2333,
             password: "youshallnotpass",
             secure: false,
-            retryAmount: 5,
-            retryDelay: 30e3,
+            retryAmount: 30,
+            retryDelay: 60000,
             priority: 0,
             ...options,
         };
@@ -184,7 +184,7 @@ class Node {
                 return;
         }
     }
-    handleEvent(payload) {
+    async handleEvent(payload) {
         if (!payload.guildId)
             return;
         const player = this.manager.players.get(payload.guildId);
@@ -198,8 +198,8 @@ class Node {
                 this.trackStart(player, track, payload);
                 break;
             case "TrackEndEvent":
-                if (player?.nowPlayingMessage && !player?.nowPlayingMessage?.deleted) {
-                    player?.nowPlayingMessage?.delete().catch(() => { });
+                if (player?.nowPlayingMessage && player?.nowPlayingMessage.deletable) {
+                    await player?.nowPlayingMessage?.delete().catch(() => { });
                 }
                 this.trackEnd(player, track, payload);
                 break;
@@ -271,9 +271,7 @@ class Node {
         if (res.loadType === "playlist") {
             tracks = res.playlist.tracks;
         }
-        const foundTrack = tracks
-            .sort(() => Math.random() - 0.5)
-            .find((shuffledTrack) => shuffledTrack.uri !== track.uri);
+        const foundTrack = tracks.sort(() => Math.random() - 0.5).find((shuffledTrack) => shuffledTrack.uri !== track.uri);
         if (foundTrack) {
             player.queue.add(foundTrack);
             player.play();
@@ -293,20 +291,22 @@ class Node {
     }
     // Handle the case when a track ended and it's set to repeat (track or queue)
     handleRepeatedTrack(player, track, payload) {
-        player.queue.previous = player.queue.current;
-        if (payload.reason === "stopped") {
-            player.queue.current = player.queue.shift();
-            if (!player.queue.current) {
-                this.queueEnd(player, track, payload);
-                return;
-            }
+        const { queue, trackRepeat, queueRepeat } = player;
+        const { autoPlay } = this.manager.options;
+        if (trackRepeat) {
+            queue.unshift(queue.current);
         }
-        else {
-            player.queue.add(player.queue.current);
-            player.queue.current = player.queue.shift();
+        else if (queueRepeat) {
+            queue.add(queue.current);
         }
+        queue.previous = queue.current;
+        queue.current = queue.shift();
         this.manager.emit("trackEnd", player, track, payload);
-        if (this.manager.options.autoPlay)
+        if (payload.reason === "stopped" && !(queue.current = queue.shift())) {
+            this.queueEnd(player, track, payload);
+            return;
+        }
+        if (autoPlay)
             player.play();
     }
     // Handle the case when there's another track in the queue
