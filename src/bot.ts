@@ -1,11 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import { Client, GatewayIntentBits, Collection, Partials } from "discord.js";
+import { Client, GatewayIntentBits, Collection, Events } from "discord.js";
 import discord from 'discord.js';
 import dotenv from 'dotenv';
 import chokidar from 'chokidar';
 
-import { Manager } from '../magmastream/dist';
+import { Manager } from '../magmastream';
 import logger from './module/logger';
 import * as cmdLogger from './module/commandLog';
 import { Command, SlashCommand } from "./types";
@@ -29,7 +29,7 @@ client.slashCommands = new Collection<string, SlashCommand>()
 client.commands = new Collection<string, Command>()
 client.cooldowns = new Collection<string, number>()
 
-const configPath = path.join(__dirname, '..', 'config', 'config.json');
+const configPath = path.join(__dirname, '..', 'config', 'config.prod.json');
 let config: JSON | any;
 
 try {
@@ -50,7 +50,7 @@ client.manager = new Manager({
         if (guild) guild.shard.send(payload);
     },
 });
-client.on('raw', (d) => client.manager.updateVoiceState(d));
+client.on(Events.Raw, (d) => client.manager.updateVoiceState(d));
 
 const watcher = chokidar.watch(configPath);
 watcher.on('change', (changedPath) => {

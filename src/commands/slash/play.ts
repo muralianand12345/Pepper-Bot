@@ -4,7 +4,7 @@ import { SlashCommand } from "../../types";
 import { msToTime, textLengthOverCut, hyperlink } from "../../utils/format";
 import { musicrow } from "../../utils/musicEmbed";
 import { getAutoComplete } from "../../utils/autoComplete";
-import { Track } from "../../../magmastream/dist";
+import { Track } from "../../../magmastream";
 
 const playcommand: SlashCommand = {
     cooldown: 5000,

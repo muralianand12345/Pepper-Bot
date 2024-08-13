@@ -3,7 +3,7 @@ import { musicContent, musicrowdis, musicrow, musicEmbed, musicEmbedOff } from "
 import { Readable } from 'stream';
 import https from 'https';
 import { IMusicGuild, IMusicUser, IMusicServerStats } from "../types";
-import { Player, Track } from "../../magmastream/dist";
+import { Player, Track } from "../../magmastream";
 
 const updateMusicDB = async (musicData: IMusicUser | IMusicServerStats, track: Track) => {
     musicData.songsNo += 1;

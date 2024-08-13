@@ -1,5 +1,5 @@
 import { Events, EmbedBuilder, ChannelType, Message } from 'discord.js';
-import { Track } from '../../../../magmastream/dist';
+import { Track } from '../../../../magmastream';
 
 import musicModel from '../../database/schema/musicGuild';
 import { hyperlink, textLengthOverCut } from '../../../utils/format';

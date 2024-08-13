@@ -5,7 +5,7 @@ import playlistModel from "../../events/database/schema/customPlaylist";
 import { musicrow } from "../../utils/musicEmbed";
 import { msToTime, textLengthOverCut, hyperlink } from "../../utils/format";
 import { getAutoComplete } from "../../utils/autoComplete";
-import { Track } from "../../../magmastream/dist";
+import { Track } from "../../../magmastream";
 
 const playlist: SlashCommand = {
     cooldown: 5000,

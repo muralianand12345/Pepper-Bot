@@ -1,6 +1,6 @@
 import { Client, SlashCommandBuilder, CommandInteraction, Collection, PermissionResolvable, Message, AutocompleteInteraction, ChatInputCommandInteraction, ActivityType, Channel, GuildMember, User } from "discord.js"
 import mongoose from "mongoose"
-import { Manager } from '../magmastream/dist';
+import { Manager } from '../magmastream';
 import discord from "discord.js"
 
 import logger from "./module/logger";

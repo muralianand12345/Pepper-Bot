@@ -2,7 +2,6 @@ import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, But
 import { msToTime, textLengthOverCut, hyperlink } from "../../utils/format";
 
 import { SlashCommand } from "../../types";
-import { Player, Queue } from "../../../magmastream/dist";
 
 const queuecommand: SlashCommand = {
     cooldown: 5000,
