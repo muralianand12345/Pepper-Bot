@@ -5,18 +5,18 @@ if [[ -d .git ]]; then
     git pull
 fi
 
-if [ -f package.json ]; then
-    echo "Installing dependencies..."
-    npm install
+if ! command -v yarn &> /dev/null; then
+    echo "Yarn is not installed. Installing Yarn..."
+    npm install -g yarn
 fi
 
-if [[ ! -z ${NODE_PACKAGES} ]]; then
-    echo "Installing additional packages: ${NODE_PACKAGES}"
-    npm install ${NODE_PACKAGES}
+if [ -f package.json ]; then
+    echo "Installing dependencies..."
+    yarn install
 fi
 
 echo "Building the TypeScript application..."
-npm run build
+yarn build
 
 echo "Running the application..."
 node build/index.js

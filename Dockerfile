@@ -1,13 +1,23 @@
-FROM node:20-alpine
+FROM node:20-bullseye-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g yarn
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
+COPY package.json yarn.lock ./
 
-RUN npm install --production
+RUN yarn install --frozen-lockfile
 
 COPY . .
 
-RUN npx --package typescript tsc
+EXPOSE 3000
 
-CMD ["npm", "start"]
+COPY start.sh /usr/src/app/start.sh
+RUN chmod +x /usr/src/app/start.sh
+
+CMD ["/bin/bash", "/usr/src/app/start.sh"]
