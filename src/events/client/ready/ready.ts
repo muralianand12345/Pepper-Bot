@@ -51,6 +51,8 @@ const event: BotEvent = {
 
         const logchan = client.channels.cache.get(client.config.bot.stdchan);
         client.channels.cache.get(logchan)?.send({ embeds: [embed] });
+
+        client.logger.info(`Code by murlee#0 ❤️`);
     }
 }
 
