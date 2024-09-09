@@ -8,13 +8,11 @@ const command: Command = {
     owner: false,
     execute: async (client, message, args) => {
 
-        await message.reply("**🏓 Pong!**");
-
         let embed = new EmbedBuilder()
             .addFields({ name: "Ping:", value: Math.round(client.ws.ping) + "ms" })
             .setColor("Random")
             .setTimestamp()
-        await message.channel.send({ embeds: [embed] });
+        await message.reply({ content: "**🏓 Pong!**", embeds: [embed] });
     }
 }
 

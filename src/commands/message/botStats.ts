@@ -16,6 +16,9 @@ const botstatscommand: Command = {
     botPerms: ['Administrator'],
     execute: async (client, message, args) => {
 
+        const chan = message.channel as any;
+        if (!chan) return;
+
         var embed = new EmbedBuilder()
             .setColor('Green')
             .setAuthor({ name: `${client.user?.tag}`, iconURL: client.user?.displayAvatarURL() })
@@ -71,7 +74,7 @@ const botstatscommand: Command = {
                 console.log(e);
             }
         });
-        await message.channel.send({ embeds: [embed] });
+        await chan.send({ embeds: [embed] });
     }
 }
 

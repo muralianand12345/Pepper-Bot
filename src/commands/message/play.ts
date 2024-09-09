@@ -1,4 +1,4 @@
-import { EmbedBuilder, PermissionsBitField } from "discord.js";
+import { EmbedBuilder, Message, PermissionsBitField } from "discord.js";
 import { Track } from "../../../magmastream";
 
 import { Command } from "../../types";
@@ -15,7 +15,10 @@ const playcommand: Command = {
     botPerms: [],
     execute: async (client, message, args) => {
 
-        if (!client.config.music.enabled) return message.channel.send({ embeds: [new EmbedBuilder().setColor('Red').setDescription("Music is currently disabled")] });
+        const chan = message.channel as any;
+        if (!chan) return;
+
+        if (!client.config.music.enabled) return chan.send({ embeds: [new EmbedBuilder().setColor('Red').setDescription("Music is currently disabled")] });
 
         const query = args.join(" ");
 
@@ -93,14 +96,14 @@ const playcommand: Command = {
             if (res.loadType === "error") throw new Error("An error occurred while searching for music");
         } catch (e) {
             client.logger.error(`An unknown error occurred while searching for music\nError: ${e}`);
-            return await message.channel.send({
+            return await chan.send({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('Red')
                         .setTitle("🐛 Uh-oh... Error")
                         .setDescription(`Oops! An unknown error occurred while searching for music.\nCould it be a private video or an incorrect link?`),
                 ]
-            }).then(async (msg) => {
+            }).then(async (msg: Message) => {
                 setTimeout(async () => { await msg.delete(); }, 5000);
             });
         }
@@ -108,9 +111,9 @@ const playcommand: Command = {
         switch (res.loadType) {
             case "empty": {
                 if (!player.queue.current) await player.destroy();
-                return message.channel.send({
+                return chan.send({
                     embeds: [new EmbedBuilder().setColor('Red').setTitle("🤔 Hm...").setDescription("I've looked thoroughly, but it seems like there's no such music")],
-                }).then(async (msg) => {
+                }).then(async (msg: Message) => {
                     setTimeout(async () => { await msg.delete(); }, 5000);
                 });
             }
@@ -121,7 +124,7 @@ const playcommand: Command = {
                 player.queue.add(track);
                 if (!player.playing && !player.paused && !player.queue.size) await player.play();
 
-                await message.channel.send({
+                await chan.send({
                     embeds: [
                         new EmbedBuilder()
                             .setTitle(`💿 Added the music to the queue`)
@@ -157,7 +160,7 @@ const playcommand: Command = {
                 });
                 if (!player.playing && !player.paused && player.queue.totalSize === res.playlist?.tracks.length) await player.play();
 
-                await message.channel.send({
+                await chan.send({
                     embeds: [
                         new EmbedBuilder()
                             .setTitle(`📜 Added the playlist to the queue`)

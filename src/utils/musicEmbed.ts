@@ -1,6 +1,6 @@
 import { Client, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { hyperlink } from "./format";
-import { Track } from "magmastream";
+import { Track } from "../../magmastream";
 
 const musicContent: string = 'No Music Playing Right Now 😔';
 

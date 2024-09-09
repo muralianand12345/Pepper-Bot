@@ -14,7 +14,10 @@ const stopcommand: Command = {
     botPerms: [],
     execute: async (client, message, args) => {
 
-        if (!client.config.music.enabled) return message.channel.send({ embeds: [new EmbedBuilder().setColor('Red').setDescription("Music is currently disabled")] });
+        const chan = message.channel as any;
+        if (!chan) return;
+
+        if (!client.config.music.enabled) return chan.send({ embeds: [new EmbedBuilder().setColor('Red').setDescription("Music is currently disabled")] });
 
         if (!message.guild) {
             return message.reply({

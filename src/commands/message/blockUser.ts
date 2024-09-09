@@ -1,5 +1,4 @@
-import { EmbedBuilder } from "discord.js";
-
+import { EmbedBuilder, TextChannel } from "discord.js";
 import { Command } from "../../types";
 import blockUserModal from "../../events/database/schema/blockUser";
 
@@ -16,11 +15,14 @@ const blockcommand: Command = {
         const remove = args[1];
         const reason = args.slice(2).join(" ") || "No reason provided";
 
-        if (!userID) return message.channel.send("Please provide a user ID!");
-        if (!remove) return message.channel.send("Please provide a valid option! (true/false)");
+        const chan = message.channel as any;
+        if (!chan) return;
 
-        if (userID === message.author.id) return message.channel.send("You cannot block yourself!");
-        if (userID === client.user?.id) return message.channel.send("You cannot block me!");
+        if (!userID) return chan.send("Please provide a user ID!");
+        if (!remove) return chan.send("Please provide a valid option! (true/false)");
+
+        if (userID === message.author.id) return chan.send("You cannot block yourself!");
+        if (userID === client.user?.id) return chan.send("You cannot block me!");
 
         var find = await blockUserModal.findOne({
             userId: userID
@@ -31,11 +33,11 @@ const blockcommand: Command = {
 
         if (remove === 'true') {
             if (!find) return message.reply({ embeds: [embed.setDescription("This user is not blocked!")] })
-            if (find.status === false) return message.channel.send({ embeds: [embed.setDescription("This user is not blocked!")] });
+            if (find.status === false) return chan.send({ embeds: [embed.setDescription("This user is not blocked!")] });
 
             find.status = false;
             await find.save();
-            return message.channel.send({ embeds: [embed.setDescription("User unblocked!")] });
+            return chan.send({ embeds: [embed.setDescription("User unblocked!")] });
 
         } else if (remove === 'false') {
 
@@ -50,7 +52,7 @@ const blockcommand: Command = {
                 await find.save();
             } else {
 
-                if (find.status === true) return message.channel.send({ embeds: [embed.setDescription("This user is already blocked!")] });
+                if (find.status === true) return chan.send({ embeds: [embed.setDescription("This user is already blocked!")] });
 
                 find.status = true;
                 find.data.push({
@@ -59,7 +61,7 @@ const blockcommand: Command = {
                 });
                 await find.save();
 
-                return message.channel.send({ embeds: [embed.setDescription("User blocked!")] });
+                return chan.send({ embeds: [embed.setDescription("User blocked!")] });
             }
         }
     }

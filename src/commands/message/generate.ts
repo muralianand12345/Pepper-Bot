@@ -13,15 +13,18 @@ const generatecommand: Command = {
     botPerms: ['Administrator'],
     execute: async (client, message, args) => {
 
+        const chan = message.channel as any;
+        if (!chan) return;
+
         var plan = args[0];
         var amount = parseInt(args[1]);
         let codes = [];
         const plans = ['daily', 'weekly', 'monthly', 'yearly', 'lifetime'];
 
-        if (!plans.includes(plan)) return message.channel.send("Please provide a valid plan!");
+        if (!plans.includes(plan)) return chan.send("Please provide a valid plan!");
 
         if (!amount) amount = 1;
-        if (amount > 10) return message.channel.send("You can only generate 10 codes at a time!");
+        if (amount > 10) return chan.send("You can only generate 10 codes at a time!");
 
         for (let i = 0; i < amount; i++) {
             // Move the expiration time calculation inside the loop
@@ -60,7 +63,7 @@ const generatecommand: Command = {
             .setFooter({ text: message.author.tag, iconURL: message.author.avatarURL() || "" })
             .setTimestamp();
 
-        message.channel.send({ embeds: [embed] });
+            chan.send({ embeds: [embed] });
 
         await message.delete();
     }

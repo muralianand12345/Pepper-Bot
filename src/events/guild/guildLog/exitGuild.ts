@@ -1,4 +1,4 @@
-import { Events, EmbedBuilder, Guild, Client } from 'discord.js';
+import { Events, EmbedBuilder, Guild, Client, TextChannel } from 'discord.js';
 import { BotEvent } from '../../../types';
 import botAnalysisModal from '../../database/schema/botDataAnalysis';
 
@@ -29,7 +29,7 @@ const event: BotEvent = {
             .setColor('Red')
             .setTimestamp();
 
-        const logChannel = client.channels.cache.get("1272460335030468712");
+        const logChannel = client.channels.cache.get("1272460335030468712") as TextChannel;
         if (logChannel?.isTextBased()) {
             await logChannel.send({ embeds: [embed] });
         } else {
