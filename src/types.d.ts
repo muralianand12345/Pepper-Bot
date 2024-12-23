@@ -59,7 +59,8 @@ export interface IConfig {
 // ------
 
 export interface IBotConfig {
-    command: ICommandConfig
+    owners: Array<string>,
+    command: ICommandConfig,
     log: ILogConfig
 }
 
@@ -79,6 +80,7 @@ export interface IContentConfig {
 export interface ICommandConfig {
     prefix: string,
     disable_message: boolean,
+    cooldown_message: string,
     register_specific_commands: IRegisterSpecificCommandsConfig
 }
 

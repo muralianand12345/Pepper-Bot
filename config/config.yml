@@ -1,7 +1,9 @@
 bot:
+    owners: ["8129381273891273981273"]
     command:
         prefix: "!"
         disable_message: false
+        cooldown_message: You are on `<duration>` cooldown!
         register_specific_commands:
             enabled: true
             commands: ["help", "ping", "info"]

@@ -120,7 +120,7 @@ const handleCommandPrerequisites = async (command: any, message: discord.Message
             const remainingCooldown = cooldownTime ?
                 ms(cooldownTime - Date.now(), { long: true }) : "N/A";
 
-            const coolMsg = client.config.bot.cooldownMsg.replace('<duration>', remainingCooldown);
+            const coolMsg = client.config.bot.command.cooldown_message.replace('<duration>', remainingCooldown);
             await sendErrorEmbed(message, coolMsg);
             return false;
         }
