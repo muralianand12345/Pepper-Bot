@@ -2,9 +2,8 @@ node_modules
 build
 logs
 
-**/.DS_Store
 .DS_Store
-
+**/.DS_Store
 
 .env
 .env.*
