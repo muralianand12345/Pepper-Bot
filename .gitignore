@@ -1,8 +1,11 @@
 node_modules
-.env
-.env.prod
-yarn.lock
-logs/*
-.git
-/config/config.prod.json
 build
+logs
+
+**/.DS_Store
+.DS_Store
+
+
+.env
+.env.*
+yarn.lock

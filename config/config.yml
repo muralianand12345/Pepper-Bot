@@ -1,0 +1,47 @@
+bot:
+    command:
+        prefix: "!"
+        disable_message: false
+        register_specific_commands:
+            enabled: true
+            commands: ["help", "ping", "info"]
+    log:
+        command: 12p49130417489123
+        server: 23423498o32923491
+
+music:
+    enabled: true
+    image: "https://localhost:8080/assets/music.gif"
+    lavalink:
+        default_search: spsearch
+        nodes:
+            [
+                {
+                    "identifier": "Pepper 2",
+                    "host": "lavalink.jirayu.net",
+                    "port": 13592,
+                    "password": "youshallnotpass",
+                    "secure": false,
+                    "retryAmount": 1000,
+                    "retrydelay": 10000,
+                    "resumeStatus": false,
+                    "resumeTimeout": 1000,
+                },
+            ]
+
+content:
+    text:
+        no_music_playing: No Music Playing Right Now 😔
+    embed:
+        music_playing:
+            color: Green
+        no_music_playing:
+            color: Red
+            author:
+                name: "No song playing currently"
+                icon_url: "https://localhost:8080/assets/no_music_playing.gif"
+            image: "https://localhost:8080/assets/no_music_playing.gif"
+
+
+        
+        

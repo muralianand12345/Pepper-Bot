@@ -1,1 +1,0 @@
-[![DeepScan grade](https://deepscan.io/api/teams/21991/projects/25393/branches/794523/badge/grade.svg?token=a1fa0980263b30233c0ddf1e9c3ed778290db2ee)](https://deepscan.io/dashboard#view=project&tid=21991&pid=25393&bid=794523)
