@@ -1,6 +1,6 @@
-import { config } from 'dotenv';
 import path from 'path';
 import { z } from 'zod';
+import { config } from 'dotenv';
 
 /**
  * Schema for validating environment variables
@@ -33,12 +33,18 @@ export class ConfigManager {
      * @throws {Error} If environment variables cannot be loaded or validated
      */
     private constructor() {
-        const environment = process.env.NODE_ENV || 'dev';
+        const environment = process.env.NODE_ENV || 'prod';
         const envPath = path.resolve(process.cwd(), `.env.${environment}`);
-        
+
+        let result;
+
         // Load environment variables
-        const result = config({ path: envPath });
-        
+        if (require('fs').existsSync(envPath)) {
+            result = config({ path: envPath });
+        } else {
+            result = config();
+        }
+
         if (result.error) {
             throw new Error(`Failed to load environment variables: ${result.error.message}`);
         }

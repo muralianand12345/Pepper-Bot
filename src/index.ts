@@ -1,10 +1,7 @@
 import path from 'path';
-import { config } from "dotenv";
 import discord from "discord.js";
 import Logger from "./utils/logger";
 import { ConfigManager } from './utils/config';
-
-config();
 
 const botPath = path.join(__dirname, "main.js");
 const configManager = ConfigManager.getInstance();

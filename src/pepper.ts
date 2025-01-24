@@ -1,14 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
-import { config } from 'dotenv';
 import discord from 'discord.js';
 import { Manager } from 'magmastream';
 import Logger from './utils/logger';
 import CommandLogger from './utils/command_logger';
 import { Command, SlashCommand } from './types';
-
-config();
 
 /**
  * Loads configuration from YAML file

@@ -31,7 +31,7 @@ const loadLavalinkEvents = async (client: discord.Client, eventsPath: string): P
                 client.manager.on(event.name as keyof ManagerEvents, (...args) =>
                     event.execute(...args, client)
                 );
-                client.logger.info(`[LAVALINK_EVENT] Loaded event: ${event.name}`);
+                client.logger.debug(`[LAVALINK_EVENT] Loaded event: ${event.name}`);
             } catch (error) {
                 client.logger.error(`[LAVALINK_EVENT] Failed to load event ${file}: ${error instanceof Error ? error.message : String(error)}`);
                 throw error;
@@ -65,7 +65,7 @@ const event: BotEvent = {
 
             await loadLavalinkEvents(
                 client,
-                path.join(__dirname, "lavalink")
+                path.join(__dirname, "lavalink_events")
             );
 
             client.logger.info("[LAVALINK] Successfully initialized and loaded all events");
