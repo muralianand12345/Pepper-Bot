@@ -69,6 +69,7 @@ const createClient = (): discord.Client => {
 
     // Initialize manager with config
     client.manager = initializeManager(client.config, client);
+    client.on(discord.Events.Raw, (d) => client.manager.updateVoiceState(d));
 
     return client;
 };

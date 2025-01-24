@@ -86,12 +86,12 @@ const handleMusicDataUpdates = async (
 const lavalinkEvent: LavalinkEvent = {
     name: "trackStart",
     execute: async (player: Player, track: Track, client: discord.Client) => {
-        if (!player.textChannel) return;
-
-        const channel = client.channels.cache.get(player.textChannel) as discord.TextChannel;
-        if (!channel?.isTextBased() || player.trackRepeat) return;
+        if (!player?.textChannel || !client?.channels) return;
 
         try {
+            const channel = await client.channels.fetch(player.textChannel) as discord.TextChannel;
+            if (!channel?.isTextBased() || player.trackRepeat) return;
+
             const message = await channel.send({
                 embeds: [createTrackStartEmbed(track, client)]
             });
@@ -100,14 +100,18 @@ const lavalinkEvent: LavalinkEvent = {
                 new MusicGuildModel(createMusicGuildData(player, message.id));
 
             await updateMusicGuildChannelDB(client, musicGuildData, player, track, false);
-            await handleMusicDataUpdates(track, musicGuildData, (track.requester as discord.User).id);
+
+            const requesterId = (track.requester as discord.User)?.id;
+            if (requesterId) {
+                await handleMusicDataUpdates(track, musicGuildData, requesterId);
+            }
 
             // Delete track start notification after 5 seconds
             setTimeout(() => message.delete().catch(() => { }), 5000);
 
             logTrackStart(track, player, client);
         } catch (error) {
-            client.logger.error(`Error in trackStart event: ${error}`);
+            client.logger?.error(`Error in trackStart event: ${error}`);
         }
     }
 };

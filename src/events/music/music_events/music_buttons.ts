@@ -9,7 +9,7 @@ import { BotEvent } from '../../../types';
  * @param {any} player - The music player instance
  * @returns {Promise<boolean>} Returns true if validation passes, false otherwise
  */
-async function validateMusicCommand(interaction: discord.ButtonInteraction, player: any): Promise<boolean> {
+const validateMusicCommand = async (interaction: discord.ButtonInteraction, player: any): Promise<boolean> => {
     if (!player?.queue?.current) {
         await interaction.reply({
             embeds: [new discord.EmbedBuilder().setColor('Red').setDescription("There is no music playing")],
@@ -73,7 +73,7 @@ const handlePauseMusic = async (interaction: discord.ButtonInteraction, client: 
  * @param {discord.ButtonInteraction} interaction - The button interaction
  * @param {discord.Client} client - The Discord client instance
  */
-async function handleResumeMusic(interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> {
+const handleResumeMusic = async (interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> => {
     const player = client.manager.get(interaction.guild!.id);
 
     if (!await validateMusicCommand(interaction, player)) return;
@@ -100,7 +100,7 @@ async function handleResumeMusic(interaction: discord.ButtonInteraction, client:
  * @param {discord.ButtonInteraction} interaction - The button interaction
  * @param {discord.Client} client - The Discord client instance
  */
-async function handleSkipMusic(interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> {
+const handleSkipMusic = async (interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> => {
     const player = client.manager.get(interaction.guild!.id);
     const count = 1;
 
@@ -147,7 +147,7 @@ async function handleSkipMusic(interaction: discord.ButtonInteraction, client: d
  * @param {discord.ButtonInteraction} interaction - The button interaction
  * @param {discord.Client} client - The Discord client instance
  */
-async function handleStopMusic(interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> {
+const handleStopMusic = async (interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> => {
     const player = client.manager.get(interaction.guild!.id);
     if (!player) {
         await interaction.reply({
@@ -178,7 +178,7 @@ async function handleStopMusic(interaction: discord.ButtonInteraction, client: d
  * @param {discord.ButtonInteraction} interaction - The button interaction
  * @param {discord.Client} client - The Discord client instance
  */
-async function handleLoopMusic(interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> {
+const handleLoopMusic = async (interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> => {
     const player = client.manager.get(interaction.guild!.id);
     if (!player) {
         await interaction.reply({

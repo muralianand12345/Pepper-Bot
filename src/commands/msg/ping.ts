@@ -1,4 +1,4 @@
-import { EmbedBuilder } from "discord.js";
+import discord from "discord.js";
 import { Command } from "../../types";
 
 const command: Command = {
@@ -8,7 +8,7 @@ const command: Command = {
     owner: false,
     execute: async (client, message, args) => {
 
-        let embed = new EmbedBuilder()
+        let embed = new discord.EmbedBuilder()
             .addFields({ name: "Ping:", value: Math.round(client.ws.ping) + "ms" })
             .setColor("Random")
             .setTimestamp()

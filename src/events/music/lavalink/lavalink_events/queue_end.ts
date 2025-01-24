@@ -4,7 +4,7 @@ import {
     wait,
     updateMusicGuildChannelDB
 } from "../../../../utils/music/music_functions";
-import { LavalinkEvent, IConfig } from '../../../../types';
+import { LavalinkEvent } from '../../../../types';
 import MusicGuildModel from "../../../database/schema/music_guild";
 
 /**
@@ -39,26 +39,24 @@ const handlePlayerCleanup = async (player: Player, status247: boolean): Promise<
 const lavalinkEvent: LavalinkEvent = {
     name: "queueEnd",
     execute: async (player: Player, client: discord.Client): Promise<void> => {
-        if (!player.textChannel) return;
+        if (!player?.textChannel || !client?.channels) return;
 
         try {
-            const channel = client.channels.cache.get(player.textChannel) as discord.TextChannel;
+            const channel = await client.channels.fetch(player.textChannel) as discord.TextChannel;
             if (!channel?.isTextBased()) return;
 
-            const message = await channel.send({
+            await channel.send({
                 embeds: [createQueueEndEmbed(client)]
             });
 
             const musicGuildData = await MusicGuildModel.findOne({ guildId: player.guild });
             if (!musicGuildData) return;
 
-            // Update the music guild channel with empty track and stopped state
             await updateMusicGuildChannelDB(client, musicGuildData, player, null, true);
-
-            // Handle player cleanup based on 24/7 status
             await handlePlayerCleanup(player, musicGuildData.status247);
+
         } catch (error) {
-            console.error('Error in queueEnd event:', error);
+            client.logger.error(`Error in queueEnd event: ${error}`);
         }
     }
 };

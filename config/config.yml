@@ -1,15 +1,15 @@
 bot:
-    owners: ["8129381273891273981273"]
+    owners: ["678402714765361182"]
     command:
         prefix: "!"
         disable_message: false
         cooldown_message: You are on `<duration>` cooldown!
         register_specific_commands:
-            enabled: true
+            enabled: false
             commands: ["help", "ping", "info"]
     log:
-        command: 12p49130417489123
-        server: 23423498o32923491
+        command: 1332426115788308583
+        server: 1332426130703257744
 
 music:
     enabled: true
@@ -41,9 +41,5 @@ content:
             color: Red
             author:
                 name: "No song playing currently"
-                icon_url: "https://localhost:8080/assets/no_music_playing.gif"
-            image: "https://localhost:8080/assets/no_music_playing.gif"
-
-
-        
-        
+                icon_url: https://media.discordapp.net/attachments/1100136924305440829/1118029575755145277/image.png?ex=67950cee&is=6793bb6e&hm=d6a106740f477165d7ffb529920436f29051152b8642c566689ae4eacc52b857&=&format=webp&quality=lossless&width=1232&height=806
+            image: https://media.discordapp.net/attachments/1100136924305440829/1118029575755145277/image.png?ex=67950cee&is=6793bb6e&hm=d6a106740f477165d7ffb529920436f29051152b8642c566689ae4eacc52b857&=&format=webp&quality=lossless&width=1232&height=806

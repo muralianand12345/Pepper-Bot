@@ -198,6 +198,18 @@ const event: BotEvent = {
     name: discord.Events.InteractionCreate,
     execute: async (interaction: discord.Interaction, client: discord.Client) => {
         try {
+            if (interaction.isAutocomplete()) {
+                const command = client.slashCommands.get(interaction.commandName);
+                if (command?.autocomplete) {
+                    try {
+                        await command.autocomplete(interaction, client);
+                    } catch (error) {
+                        client.logger.warn(`[INTERACTION_CREATE] Autocomplete error: ${error}`);
+                    }
+                }
+                return;
+            }
+
             // Early validation checks
             if (!validateInteraction(interaction, client)) return;
 

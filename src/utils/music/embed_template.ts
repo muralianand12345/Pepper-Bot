@@ -77,6 +77,15 @@ const createMusicButtons = (disabled: boolean) => {
     return row;
 };
 
+/**
+ * Creates an error embed with the specified message
+ * @param message Error message
+ * @returns EmbedBuilder
+ */
+
+const createErrorEmbed = (message: string): discord.EmbedBuilder =>
+    new discord.EmbedBuilder().setColor('Red').setDescription(message);
+
 const disabldMusicButton = createMusicButtons(true);
 const musicButton = createMusicButtons(false);
 
@@ -84,5 +93,6 @@ export {
     disabldMusicButton,
     musicButton,
     noMusicEmbed,
-    musicEmbed
+    musicEmbed,
+    createErrorEmbed
 };
