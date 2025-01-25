@@ -31,13 +31,12 @@
     },
     "dependencies": {
         "chalk": "4.1.2",
-        "discord.js": "^14.16.3",
-        "dotenv": "^16.4.5",
-        "magmastream": "^2.6.0-beta.8",
-        "mongoose": "^8.9.2",
+        "discord.js": "^14.17.3",
+        "dotenv": "^16.4.7",
+        "magmastream": "^2.7.5",
+        "mongoose": "^8.9.5",
         "ms": "^2.1.3",
-        "mysql": "^2.18.1",
-        "yaml": "^2.6.1",
+        "yaml": "^2.7.0",
         "zod": "^3.24.1"
     }
 }
