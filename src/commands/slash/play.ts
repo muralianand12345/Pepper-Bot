@@ -59,8 +59,6 @@ const playcommand: SlashCommand = {
                     configManager.getSpotifyClientSecret()
                 ).getSuggestions(focused.value);
 
-            console.log(suggestions);
-
             await interaction.respond(suggestions);
         } catch (error) {
             client.logger.warn(`[SLASH_COMMAND] Autocomplete error: ${error}`);
