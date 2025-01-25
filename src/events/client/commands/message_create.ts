@@ -159,6 +159,14 @@ const executeCommand = async (command: any, message: discord.Message, args: stri
     try {
         await command.execute(client, message, args);
 
+        client.cmdLogger.log({
+            client,
+            commandName: `${client.config.bot.command.prefix}${command.name}`,
+            guild: message.guild,
+            user: message.author,
+            channel: message.channel
+        });
+
         if (command.cooldown) {
             const cooldownKey = `${command.name}${message.author.id}`;
             cooldown.set(cooldownKey, Date.now() + command.cooldown);

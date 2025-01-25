@@ -60,6 +60,7 @@ export interface IConfig {
 
 export interface IBotConfig {
     owners: Array<string>,
+    presence: IPresenceConfig,
     command: ICommandConfig,
     log: ILogConfig
 }
@@ -82,6 +83,13 @@ export interface ICommandConfig {
     disable_message: boolean,
     cooldown_message: string,
     register_specific_commands: IRegisterSpecificCommandsConfig
+}
+
+export interface IPresenceConfig {
+    enabled: boolean,
+    status: string,
+    interval: number,
+    activity: Array<BotPresence>
 }
 
 export interface ILogConfig {
@@ -170,6 +178,11 @@ declare module "discord.js" {
         config: IConfig,
         manager: Manager
     }
+}
+
+export interface BotPresence {
+    name: string,
+    type: discord.ActivityType
 }
 
 export interface BotEvent {

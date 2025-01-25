@@ -1,6 +1,7 @@
 node_modules
 build
 logs
+magmastream
 
 .DS_Store
 **/.DS_Store

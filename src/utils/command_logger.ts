@@ -136,9 +136,21 @@ class CommandLogger {
     public log(options: ICommandLogger): void {
         const { client, user, commandName } = options;
 
+        if (!client?.config?.bot?.log?.command) {
+            client.logger.error('[COMMAND_LOG] Missing log channel configuration');
+            return;
+        }
+
         // Check for undefined user
         if (!user) {
             client.logger.error(`[COMMAND_LOG] User is undefined! ${commandName}`);
+        }
+
+        const logChannel = client.channels.cache.get(client.config.bot.log.command.toString()) as TextChannel | undefined;
+
+        if (!logChannel || !(logChannel instanceof TextChannel)) {
+            client.logger.error(`[COMMAND_LOG] Invalid log channel: ${client.config.bot.log.command}`);
+            return;
         }
 
         // Create and write log message to file
@@ -146,13 +158,9 @@ class CommandLogger {
         this.writeToLogFile(logMessage);
 
         // Send embed to log channel
-        const logChannel = client.channels.cache.get(client.config.bot.log.command) as TextChannel;
-        if (logChannel) {
-            const embed = this.createLogEmbed(options);
-            logChannel.send({ embeds: [embed] }).catch((error: Error) => {
-                client.logger.error(`[COMMAND_LOG] Failed to send log message to channel: ${error}`);
-            });
-        }
+        const embed = this.createLogEmbed(options);
+        logChannel.send({ embeds: [embed] })
+            .catch(error => client.logger.error(`[COMMAND_LOG] Send error: ${error}`));
     }
 }
 

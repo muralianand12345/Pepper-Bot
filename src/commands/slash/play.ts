@@ -72,7 +72,7 @@ const playcommand: SlashCommand = {
         if (!client.config.music.enabled) {
             return await interaction.reply({
                 embeds: [createErrorEmbed('Music is currently disabled')],
-                ephemeral: true
+                flags: discord.MessageFlags.Ephemeral
             });
         }
 
@@ -80,7 +80,7 @@ const playcommand: SlashCommand = {
         if (query === CONFIG.DEFAULT_SEARCH_TEXT) {
             return await interaction.reply({
                 embeds: [createErrorEmbed('Please enter a song name or url')],
-                ephemeral: true
+                flags: discord.MessageFlags.Ephemeral
             });
         }
 
@@ -94,7 +94,7 @@ const playcommand: SlashCommand = {
             validator.validateVoiceConnection()
         ]) {
             const [isValid, embed] = await check;
-            if (!isValid) return await interaction.reply({ embeds: [embed], ephemeral: true });
+            if (!isValid) return await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
         }
 
         const guildMember = interaction.guild?.members.cache.get(interaction.user.id);
@@ -106,7 +106,7 @@ const playcommand: SlashCommand = {
         });
 
         const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
-        if (!playerValid) return await interaction.reply({ embeds: [playerEmbed], ephemeral: true });
+        if (!playerValid) return await interaction.reply({ embeds: [playerEmbed], flags: discord.MessageFlags.Ephemeral });
 
         await interaction.deferReply();
 
@@ -127,7 +127,7 @@ const playcommand: SlashCommand = {
             client.logger.error(`[SLASH_COMMAND] Play error: ${error}`);
             await interaction.followUp({
                 embeds: [createErrorEmbed('An error occurred while processing the song')],
-                ephemeral: true
+                flags: discord.MessageFlags.Ephemeral
             });
         }
     }

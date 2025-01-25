@@ -5,7 +5,11 @@ import discord from 'discord.js';
 import { Manager } from 'magmastream';
 import Logger from './utils/logger';
 import CommandLogger from './utils/command_logger';
+import { ConfigManager } from './utils/config';
 import { Command, SlashCommand } from './types';
+
+// Load environment variables
+const configManager = ConfigManager.getInstance();
 
 /**
  * Loads configuration from YAML file
@@ -31,7 +35,9 @@ const loadConfig = () => {
 const initializeManager = (config: any, client: discord.Client) => {
     return new Manager({
         nodes: config.music.lavalink.nodes,
+        autoPlay: true,
         defaultSearchPlatform: config.music.lavalink.default_search,
+        lastFmApiKey: configManager.getLastFmApiKey(),
         send: (id: string, payload: any) => {
             const guild = client.guilds.cache.get(id);
             if (guild) guild.shard.send(payload);

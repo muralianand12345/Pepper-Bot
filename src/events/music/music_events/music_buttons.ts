@@ -13,7 +13,7 @@ const validateMusicCommand = async (interaction: discord.ButtonInteraction, play
     if (!player?.queue?.current) {
         await interaction.reply({
             embeds: [new discord.EmbedBuilder().setColor('Red').setDescription("There is no music playing")],
-            ephemeral: true,
+            flags: discord.MessageFlags.Ephemeral
         });
         return false;
     }
@@ -22,7 +22,7 @@ const validateMusicCommand = async (interaction: discord.ButtonInteraction, play
     if (!member.voice.channel) {
         await interaction.reply({
             embeds: [new discord.EmbedBuilder().setColor('Red').setDescription("Please connect to a voice channel first")],
-            ephemeral: true,
+            flags: discord.MessageFlags.Ephemeral
         });
         return false;
     }
@@ -33,7 +33,7 @@ const validateMusicCommand = async (interaction: discord.ButtonInteraction, play
                 .setColor('Red')
                 .setDescription("It seems like you are not in the same voice channel as me")
                 .setFooter({ text: 'If you think there is an issue, kindly contact the server admin to use `/dcbot` command.' })],
-            ephemeral: true,
+            flags: discord.MessageFlags.Ephemeral
         });
         return false;
     }
@@ -54,7 +54,7 @@ const handlePauseMusic = async (interaction: discord.ButtonInteraction, client: 
     if (player?.paused) {
         await interaction.reply({
             embeds: [new discord.EmbedBuilder().setColor('Red').setDescription("The music is already paused")],
-            ephemeral: true,
+            flags: discord.MessageFlags.Ephemeral
         });
         return;
     }
@@ -64,7 +64,7 @@ const handlePauseMusic = async (interaction: discord.ButtonInteraction, client: 
         embeds: [new discord.EmbedBuilder()
             .setColor((client.config.content.embed.music_playing.color ?? "#FF0000") as discord.ColorResolvable)
             .setDescription("Paused the music!")],
-        ephemeral: true,
+        flags: discord.MessageFlags.Ephemeral
     });
 }
 
@@ -81,7 +81,7 @@ const handleResumeMusic = async (interaction: discord.ButtonInteraction, client:
     if (!player?.paused) {
         await interaction.reply({
             embeds: [new discord.EmbedBuilder().setColor('Red').setDescription("The music is already playing")],
-            ephemeral: true,
+            flags: discord.MessageFlags.Ephemeral
         });
         return;
     }
@@ -91,7 +91,7 @@ const handleResumeMusic = async (interaction: discord.ButtonInteraction, client:
         embeds: [new discord.EmbedBuilder()
             .setColor((client.config.content.embed.music_playing.color ?? "#FF0000") as discord.ColorResolvable)
             .setDescription("Resumed the music!")],
-        ephemeral: true,
+        flags: discord.MessageFlags.Ephemeral
     });
 }
 
@@ -109,7 +109,7 @@ const handleSkipMusic = async (interaction: discord.ButtonInteraction, client: d
     if (!playerSize) {
         await interaction.reply({
             embeds: [new discord.EmbedBuilder().setColor('Red').setDescription("There are no songs in the queue")],
-            ephemeral: true,
+            flags: discord.MessageFlags.Ephemeral
         });
         return;
     }
@@ -119,7 +119,7 @@ const handleSkipMusic = async (interaction: discord.ButtonInteraction, client: d
             embeds: [new discord.EmbedBuilder()
                 .setColor('Red')
                 .setDescription(`There are only ${playerSize} songs in the queue`)],
-            ephemeral: true,
+            flags: discord.MessageFlags.Ephemeral
         });
         return;
     }
@@ -138,7 +138,7 @@ const handleSkipMusic = async (interaction: discord.ButtonInteraction, client: d
         embeds: [new discord.EmbedBuilder()
             .setColor((client.config.content.embed.music_playing.color ?? "#FF0000") as discord.ColorResolvable)
             .setDescription(`I skipped ${count} song!`)],
-        ephemeral: true,
+        flags: discord.MessageFlags.Ephemeral
     });
 }
 
@@ -152,7 +152,7 @@ const handleStopMusic = async (interaction: discord.ButtonInteraction, client: d
     if (!player) {
         await interaction.reply({
             embeds: [new discord.EmbedBuilder().setColor('Red').setDescription("There is no music playing")],
-            ephemeral: true,
+            flags: discord.MessageFlags.Ephemeral
         });
         return;
     }
@@ -169,7 +169,7 @@ const handleStopMusic = async (interaction: discord.ButtonInteraction, client: d
         embeds: [new discord.EmbedBuilder()
             .setColor((client.config.content.embed.no_music_playing.color ?? "#FF0000") as discord.ColorResolvable)
             .setDescription("I stopped the music!")],
-        ephemeral: true,
+        flags: discord.MessageFlags.Ephemeral
     });
 }
 
@@ -183,7 +183,7 @@ const handleLoopMusic = async (interaction: discord.ButtonInteraction, client: d
     if (!player) {
         await interaction.reply({
             embeds: [new discord.EmbedBuilder().setColor('Red').setDescription("There is no music playing")],
-            ephemeral: true,
+            flags: discord.MessageFlags.Ephemeral
         });
         return;
     }
@@ -194,8 +194,9 @@ const handleLoopMusic = async (interaction: discord.ButtonInteraction, client: d
     await interaction.reply({
         embeds: [new discord.EmbedBuilder()
             .setColor((client.config.content.embed.music_playing.color ?? "#FF0000") as discord.ColorResolvable)
-            .setDescription(`Looping is now ${player.trackRepeat ? 'enabled' : 'disabled'}!`)],
-        ephemeral: true,
+            .setDescription(`Looping is now ${player.trackRepeat ? 'enabled' : 'disabled'}!`)
+        ],
+        flags: discord.MessageFlags.Ephemeral
     });
 }
 

@@ -126,6 +126,7 @@ const initializeBot = async (client: discord.Client): Promise<void> => {
 
         await client.login(configManager.getToken());
         client.logger.success(`[MAIN] [${client.user?.username} #${client.user?.discriminator}] has connected successfully`);
+        client.logger.info(`Code by murlee#0 ❤️`);
     } catch (error) {
         client.logger.error(`[MAIN] Failed to initialize bot: ${error}`);
         process.exit(1);

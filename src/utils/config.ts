@@ -14,7 +14,8 @@ const EnvSchema = z.object({
             return val.toLowerCase() === 'true';
         }
         return val;
-    })
+    }),
+    LASTFM_API_KEY: z.string(),
 });
 
 /**
@@ -54,7 +55,8 @@ export class ConfigManager {
             this.config = EnvSchema.parse({
                 TOKEN: process.env.TOKEN,
                 MONGO_URI: process.env.MONGO_URI,
-                DEBUG_MODE: process.env.DEBUG_MODE || false
+                DEBUG_MODE: process.env.DEBUG_MODE || false,
+                LASTFM_API_KEY: process.env.LASTFM_API_KEY
             });
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -108,5 +110,13 @@ export class ConfigManager {
      */
     public isDebugMode(): boolean {
         return this.config.DEBUG_MODE;
+    }
+
+    /**
+     * Gets the Last.fm API key
+     * @returns {string} The Last.fm API key from environment variables
+     */
+    public getLastFmApiKey(): string {
+        return this.config.LASTFM_API_KEY;
     }
 }

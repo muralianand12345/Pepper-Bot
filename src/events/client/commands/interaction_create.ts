@@ -70,7 +70,7 @@ const sendErrorReply = async (interaction: discord.Interaction, description: str
     if (interaction.isRepliable() && !interaction.replied) {
         await interaction.reply({
             content: description,
-            ephemeral: true
+            flags: discord.MessageFlags.Ephemeral
         });
     }
 }
@@ -165,6 +165,14 @@ const executeCommand = async (command: any, interaction: discord.Interaction, cl
 
     try {
         await command.execute(interaction, client);
+
+        await client.cmdLogger.log({
+            client,
+            commandName: `/${interaction.commandName}`,
+            guild: interaction.guild,
+            user: interaction.user,
+            channel: interaction.channel
+        });
 
         if (command.cooldown) {
             const cooldownKey = `${command.data.name}${interaction.user.id}`;

@@ -170,7 +170,7 @@ const handleSearchResult = async (
                     .setColor('Red')
                     .setTitle('🤔 Hmm...')
                     .setDescription('No results found')],
-                ephemeral: true
+                flags: discord.MessageFlags.Ephemeral
             });
             break;
         }
@@ -183,8 +183,7 @@ const handleSearchResult = async (
 
             await interaction.followUp({
                 embeds: [createTrackEmbed(track, client)],
-                components: [musicButton],
-                ephemeral: false
+                components: [musicButton]
             });
             break;
         }

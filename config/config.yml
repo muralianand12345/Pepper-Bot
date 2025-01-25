@@ -1,5 +1,15 @@
 bot:
     owners: ["678402714765361182"]
+    presence:
+        enabled: true
+        status: dnd
+        interval: 10000
+        activity:
+            [
+                { "name": "your Favorite Songs", "type": "PLAYING" },
+                { "name": "Pepper Radio!", "type": "LISTENING" },
+                { "name": "<usersize> Users!", "type": "LISTENING" },
+            ]
     command:
         prefix: "!"
         disable_message: false
@@ -8,8 +18,8 @@ bot:
             enabled: false
             commands: ["help", "ping", "info"]
     log:
-        command: 1332426115788308583
-        server: 1332426130703257744
+        command: "1332426115788308583"
+        server: "1332426130703257744"
 
 music:
     enabled: true
