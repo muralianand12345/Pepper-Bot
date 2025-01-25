@@ -1,9 +1,8 @@
 import discord from "discord.js";
-import magmastream from "magmastream";
 import { YouTubeAutoComplete } from "../../utils/auto_search";
 import { VoiceChannelValidator } from "../../utils/music/music_validations";
-import { musicButton, createErrorEmbed } from "../../utils/music/embed_template";
-import Formatter from "../../utils/format";
+import { createErrorEmbed } from "../../utils/music/embed_template";
+import { handleSearchResult } from "../../utils/music/music_functions";
 import { SlashCommand } from "../../types";
 
 /** 
@@ -133,105 +132,5 @@ const playcommand: SlashCommand = {
         }
     }
 };
-
-/**
- * Processes search results and manages music playback
- * @param {magmastream.SearchResult} res - Music search results
- * @param {magmastream.Player} player - Music player instance
- * @param {discord.ChatInputCommandInteraction} interaction - Command interaction
- * @param {any} client - Discord client instance
- */
-const handleSearchResult = async (
-    res: magmastream.SearchResult,
-    player: magmastream.Player,
-    interaction: discord.ChatInputCommandInteraction,
-    client: any
-): Promise<void> => {
-    const searchQuery = interaction.options.getString('song', true);
-
-    switch (res.loadType) {
-        case "empty": {
-            if (!player.queue.current) player.destroy();
-            await interaction.followUp({
-                embeds: [new discord.EmbedBuilder()
-                    .setColor('Red')
-                    .setTitle('🤔 Hmm...')
-                    .setDescription('No results found')],
-                ephemeral: true
-            });
-            break;
-        }
-
-        case "track":
-        case "search": {
-            const track = res.tracks[0];
-            player.queue.add(track);
-            if (!player.playing && !player.paused && !player.queue.size) player.play();
-
-            await interaction.followUp({
-                embeds: [createTrackEmbed(track, client)],
-                components: [musicButton],
-                ephemeral: false
-            });
-            break;
-        }
-
-        case "playlist": {
-            if (!res.playlist) break;
-            res.playlist.tracks.forEach(track => player.queue.add(track));
-            if (!player.playing && !player.paused && !player.queue.totalSize) player.play();
-
-            await interaction.followUp({
-                embeds: [createPlaylistEmbed(res.playlist, searchQuery, interaction.user.tag, client)]
-            });
-            break;
-        }
-    }
-}
-
-/**
- * Creates a rich embed for displaying track information
- * @param {magmastream.Track} track - Music track information
- * @param {any} client - Discord client instance
- * @returns {discord.EmbedBuilder} Formatted embed for track
- */
-const createTrackEmbed = (track: magmastream.Track, client: any): discord.EmbedBuilder => {
-    return new discord.EmbedBuilder()
-        .setTitle('📀 Added to queue!')
-        .setDescription(Formatter.hyperlink(Formatter.truncateText(track.title), track.uri))
-        .setThumbnail(track.artworkUrl)
-        .setColor(client.config.content.embed.music_playing.color)
-        .addFields(
-            { name: 'Duration', value: `┕** \`${track.isStream ? 'Live Stream' : Formatter.msToTime(track.duration)}\`**`, inline: true },
-            { name: 'Requested by', value: `┕** ${track.requester}**`, inline: true },
-            { name: 'Author', value: `┕** ${track.author}**`, inline: true }
-        );
-}
-
-/**
- * Creates a rich embed for displaying playlist information
- * @param {magmastream.PlaylistData} playlist - Playlist information
- * @param {string} query - Original search query
- * @param {string} requester - User who requested the playlist
- * @param {any} client - Discord client instance
- * @returns {discord.EmbedBuilder} Formatted embed for playlist
- */
-const createPlaylistEmbed = (
-    playlist: magmastream.PlaylistData,
-    query: string,
-    requester: string,
-    client: any
-): discord.EmbedBuilder => {
-    return new discord.EmbedBuilder()
-        .setTitle('📋 Added playlist to queue!')
-        .setDescription(Formatter.hyperlink(Formatter.truncateText(playlist.name || "", 50), query))
-        .setThumbnail(playlist.tracks[0].artworkUrl || "")
-        .setColor(client.config.content.embed.music_playing.color)
-        .addFields(
-            { name: 'Playlist Duration', value: `┕** \`${Formatter.msToTime(playlist.duration || 0)}\`**`, inline: true },
-            { name: 'Total Tracks', value: `┕** ${playlist.tracks.length}**`, inline: true },
-            { name: 'Requested by', value: `┕** ${requester}**`, inline: true }
-        );
-}
 
 export default playcommand;

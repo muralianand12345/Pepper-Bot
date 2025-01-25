@@ -1,4 +1,5 @@
 import discord from "discord.js";
+import magmastream from "magmastream";
 import https from "https";
 import { Readable } from "stream";
 import timers from "timers/promises";
@@ -9,7 +10,9 @@ import {
     noMusicEmbed,
     musicEmbed
 } from "./embed_template";
+import { createPlaylistEmbed, createTrackEmbed } from "./embed_template";
 import { IMusicGuild, IMusicUser } from "../../types";
+
 
 /**
  * Creates a promise that resolves after the specified milliseconds
@@ -144,9 +147,65 @@ const fetchAudioStream = (url: string): Promise<Readable> => {
     });
 };
 
+/**
+ * Processes search results and manages music playback
+ * @param {magmastream.SearchResult} res - Music search results
+ * @param {magmastream.Player} player - Music player instance
+ * @param {discord.ChatInputCommandInteraction} interaction - Command interaction
+ * @param {any} client - Discord client instance
+ */
+const handleSearchResult = async (
+    res: magmastream.SearchResult,
+    player: magmastream.Player,
+    interaction: discord.ChatInputCommandInteraction,
+    client: any
+): Promise<void> => {
+    const searchQuery = interaction.options.getString('song', true);
+
+    switch (res.loadType) {
+        case "empty": {
+            if (!player.queue.current) player.destroy();
+            await interaction.followUp({
+                embeds: [new discord.EmbedBuilder()
+                    .setColor('Red')
+                    .setTitle('🤔 Hmm...')
+                    .setDescription('No results found')],
+                ephemeral: true
+            });
+            break;
+        }
+
+        case "track":
+        case "search": {
+            const track = res.tracks[0];
+            player.queue.add(track);
+            if (!player.playing && !player.paused && !player.queue.size) player.play();
+
+            await interaction.followUp({
+                embeds: [createTrackEmbed(track, client)],
+                components: [musicButton],
+                ephemeral: false
+            });
+            break;
+        }
+
+        case "playlist": {
+            if (!res.playlist) break;
+            res.playlist.tracks.forEach(track => player.queue.add(track));
+            if (!player.playing && !player.paused && !player.queue.totalSize) player.play();
+
+            await interaction.followUp({
+                embeds: [createPlaylistEmbed(res.playlist, searchQuery, interaction.user.tag, client)]
+            });
+            break;
+        }
+    }
+}
+
 export {
     wait,
     updateMusicDB,
     updateMusicGuildChannelDB,
-    fetchAudioStream
+    fetchAudioStream,
+    handleSearchResult
 };

@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import { Track } from "magmastream";
+import magmastream, { Track } from "magmastream";
 import Formatter from "../format";
 import { IConfig } from '../../types';
 
@@ -78,11 +78,55 @@ const createMusicButtons = (disabled: boolean) => {
 };
 
 /**
+ * Creates a rich embed for displaying track information
+ * @param {magmastream.Track} track - Music track information
+ * @param {any} client - Discord client instance
+ * @returns {discord.EmbedBuilder} Formatted embed for track
+ */
+const createTrackEmbed = (track: magmastream.Track, client: any): discord.EmbedBuilder => {
+    return new discord.EmbedBuilder()
+        .setTitle('📀 Added to queue!')
+        .setDescription(Formatter.hyperlink(Formatter.truncateText(track.title), track.uri))
+        .setThumbnail(track.artworkUrl)
+        .setColor(client.config.content.embed.music_playing.color)
+        .addFields(
+            { name: 'Duration', value: `┕** \`${track.isStream ? 'Live Stream' : Formatter.msToTime(track.duration)}\`**`, inline: true },
+            { name: 'Requested by', value: `┕** ${track.requester}**`, inline: true },
+            { name: 'Author', value: `┕** ${track.author}**`, inline: true }
+        );
+}
+
+/**
+ * Creates a rich embed for displaying playlist information
+ * @param {magmastream.PlaylistData} playlist - Playlist information
+ * @param {string} query - Original search query
+ * @param {string} requester - User who requested the playlist
+ * @param {any} client - Discord client instance
+ * @returns {discord.EmbedBuilder} Formatted embed for playlist
+ */
+const createPlaylistEmbed = (
+    playlist: magmastream.PlaylistData,
+    query: string,
+    requester: string,
+    client: any
+): discord.EmbedBuilder => {
+    return new discord.EmbedBuilder()
+        .setTitle('📋 Added playlist to queue!')
+        .setDescription(Formatter.hyperlink(Formatter.truncateText(playlist.name || "", 50), query))
+        .setThumbnail(playlist.tracks[0].artworkUrl || "")
+        .setColor(client.config.content.embed.music_playing.color)
+        .addFields(
+            { name: 'Playlist Duration', value: `┕** \`${Formatter.msToTime(playlist.duration || 0)}\`**`, inline: true },
+            { name: 'Total Tracks', value: `┕** ${playlist.tracks.length}**`, inline: true },
+            { name: 'Requested by', value: `┕** ${requester}**`, inline: true }
+        );
+}
+
+/**
  * Creates an error embed with the specified message
  * @param message Error message
  * @returns EmbedBuilder
  */
-
 const createErrorEmbed = (message: string): discord.EmbedBuilder =>
     new discord.EmbedBuilder().setColor('Red').setDescription(message);
 
@@ -94,5 +138,7 @@ export {
     musicButton,
     noMusicEmbed,
     musicEmbed,
-    createErrorEmbed
+    createErrorEmbed,
+    createTrackEmbed,
+    createPlaylistEmbed
 };
