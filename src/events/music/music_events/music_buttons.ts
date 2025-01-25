@@ -206,7 +206,7 @@ const handleLoopMusic = async (interaction: discord.ButtonInteraction, client: d
  */
 const event: BotEvent = {
     name: discord.Events.InteractionCreate,
-    async execute(interaction, client) {
+    execute: async (interaction: discord.Interaction, client): Promise<void> => {
         if (!interaction.isButton()) return;
 
         const handlers = {

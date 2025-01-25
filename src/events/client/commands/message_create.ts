@@ -196,7 +196,7 @@ const executeCommand = async (command: any, message: discord.Message, args: stri
  */
 const event: BotEvent = {
     name: discord.Events.MessageCreate,
-    execute: async (message: discord.Message, client: discord.Client) => {
+    execute: async (message: discord.Message, client: discord.Client): Promise<void> => {
         try {
             // Early validation checks
             if (!validateMessage(message, client)) return;

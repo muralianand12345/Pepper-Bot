@@ -16,6 +16,8 @@ const EnvSchema = z.object({
         return val;
     }),
     LASTFM_API_KEY: z.string(),
+    SPOTIFY_CLIENT_ID: z.string(),
+    SPOTIFY_CLIENT_SECRET: z.string()
 });
 
 /**
@@ -56,7 +58,9 @@ export class ConfigManager {
                 TOKEN: process.env.TOKEN,
                 MONGO_URI: process.env.MONGO_URI,
                 DEBUG_MODE: process.env.DEBUG_MODE || false,
-                LASTFM_API_KEY: process.env.LASTFM_API_KEY
+                LASTFM_API_KEY: process.env.LASTFM_API_KEY,
+                SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
+                SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET
             });
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -118,5 +122,21 @@ export class ConfigManager {
      */
     public getLastFmApiKey(): string {
         return this.config.LASTFM_API_KEY;
+    }
+
+    /**
+     * Gets the Spotify client ID
+     * @returns {string} The Spotify client ID from environment variables
+     */
+    public getSpotifyClientId(): string {
+        return this.config.SPOTIFY_CLIENT_ID;
+    }
+
+    /**
+     * Gets the Spotify client secret
+     * @returns {string} The Spotify client secret from environment variables
+     */
+    public getSpotifyClientSecret(): string {
+        return this.config.SPOTIFY_CLIENT_SECRET;
     }
 }

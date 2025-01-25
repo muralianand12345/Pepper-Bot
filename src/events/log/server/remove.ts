@@ -37,7 +37,7 @@ import { BotEvent } from "../../../types";
  */
 const event: BotEvent = {
     name: discord.Events.GuildDelete,
-    execute: async (guild: discord.Guild, client: discord.Client) => {
+    execute: async (guild: discord.Guild, client: discord.Client): Promise<void> => {
         // Create detailed embed for server leave
         const embed = new discord.EmbedBuilder()
             .setTitle("Server Left")

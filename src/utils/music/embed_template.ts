@@ -130,6 +130,17 @@ const createPlaylistEmbed = (
 const createErrorEmbed = (message: string): discord.EmbedBuilder =>
     new discord.EmbedBuilder().setColor('Red').setDescription(message);
 
+/**
+ * Creates an embed message for music state changes
+ * @param title - Title of the embed
+ * @param color - Color of the embed
+ * @returns Discord embed message
+ */
+const createEmbed = (title: string, color: discord.ColorResolvable): discord.EmbedBuilder =>
+    new discord.EmbedBuilder()
+        .setTitle(title)
+        .setColor(color);
+
 const disabldMusicButton = createMusicButtons(true);
 const musicButton = createMusicButtons(false);
 
@@ -138,6 +149,7 @@ export {
     musicButton,
     noMusicEmbed,
     musicEmbed,
+    createEmbed,
     createErrorEmbed,
     createTrackEmbed,
     createPlaylistEmbed

@@ -1,9 +1,13 @@
 import discord from "discord.js";
-import { YouTubeAutoComplete } from "../../utils/auto_search";
+import { SpotifyAutoComplete } from "../../utils/auto_search";
 import { VoiceChannelValidator } from "../../utils/music/music_validations";
 import { createErrorEmbed } from "../../utils/music/embed_template";
 import { handleSearchResult } from "../../utils/music/music_functions";
+import { ConfigManager } from "../../utils/config";
 import { SlashCommand } from "../../types";
+
+// Load environment variables
+const configManager = ConfigManager.getInstance();
 
 /** 
  * Configuration for music playback settings
@@ -48,12 +52,16 @@ const playcommand: SlashCommand = {
         if (focused.name !== 'song') return;
 
         try {
-            const choices = !focused.value
+            const suggestions = !focused.value
                 ? [{ name: CONFIG.DEFAULT_SEARCH_TEXT, value: CONFIG.DEFAULT_SEARCH_TEXT }]
-                : (await new YouTubeAutoComplete().getSuggestions(focused.value))
-                    .map(choice => ({ name: choice, value: choice }));
+                : await new SpotifyAutoComplete(
+                    configManager.getSpotifyClientId(),
+                    configManager.getSpotifyClientSecret()
+                ).getSuggestions(focused.value);
 
-            await interaction.respond(choices);
+            console.log(suggestions);
+
+            await interaction.respond(suggestions);
         } catch (error) {
             client.logger.warn(`[SLASH_COMMAND] Autocomplete error: ${error}`);
             await interaction.respond([{

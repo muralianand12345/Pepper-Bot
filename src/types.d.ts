@@ -196,6 +196,16 @@ export interface LavalinkEvent {
     execute: (...args) => void
 }
 
+export interface SpotifySearchResult {
+    tracks: {
+        items: Array<{
+            name: string;
+            artists: Array<{ name: string }>;
+            external_urls: { spotify: string };
+        }>;
+    };
+}
+
 // Models
 
 export interface IBlockUser extends mongoose.Document {

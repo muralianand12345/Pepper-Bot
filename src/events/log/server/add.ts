@@ -36,7 +36,7 @@ import { BotEvent } from "../../../types";
  */
 const event: BotEvent = {
     name: discord.Events.GuildCreate,
-    execute: async (guild: discord.Guild, client: discord.Client) => {
+    execute: async (guild: discord.Guild, client: discord.Client): Promise<void> => {
         // Create detailed embed for new server join
         const embed = new discord.EmbedBuilder()
             .setTitle("New Server Joined")

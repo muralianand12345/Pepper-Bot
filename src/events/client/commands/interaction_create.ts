@@ -204,7 +204,7 @@ const executeCommand = async (command: any, interaction: discord.Interaction, cl
  */
 const event: BotEvent = {
     name: discord.Events.InteractionCreate,
-    execute: async (interaction: discord.Interaction, client: discord.Client) => {
+    execute: async (interaction: discord.Interaction, client: discord.Client): Promise<void> => {
         try {
             if (interaction.isAutocomplete()) {
                 const command = client.slashCommands.get(interaction.commandName);

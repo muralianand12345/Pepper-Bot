@@ -48,7 +48,7 @@ const loadCommands = async (
  */
 const event: BotEvent = {
     name: discord.Events.ClientReady,
-    execute: async (client: discord.Client) => {
+    execute: async (client: discord.Client): Promise<void> => {
         // Validate client ID
         const clientID = client.user?.id;
         if (!clientID) {
@@ -121,7 +121,7 @@ const event: BotEvent = {
             client.logger.error(`[COMMAND] Failed to register application commands: ${error}`);
         }
 
-        return commands;
+        //return commands;
     }
 };
 

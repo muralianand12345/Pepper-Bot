@@ -1,135 +1,75 @@
-import { IAutoCompleteOptions } from '../types';
+import discord from 'discord.js';
+import { IAutoCompleteOptions, SpotifySearchResult } from '../types';
 
-/**
- * Custom error class for YouTube autocomplete errors
- */
-class AutoCompleteError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'AutoCompleteError';
-    }
-}
-
-/**
- * Service class for handling YouTube search autocomplete functionality
- */
-class YouTubeAutoComplete {
-    private readonly baseUrl: string;
+export class SpotifyAutoComplete {
+    private token: string | null = null;
+    private tokenExpiry: number = 0;
+    private readonly clientId: string;
+    private readonly clientSecret: string;
     private readonly defaultOptions: IAutoCompleteOptions;
 
-    constructor() {
-        this.baseUrl = 'https://clients1.google.com/complete/search';
+    constructor(clientId: string, clientSecret: string) {
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
         this.defaultOptions = {
             maxResults: 7,
-            language: 'en-IN',
-            client: 'youtube'
+            language: 'en'
         };
     }
 
-    /**
-     * Constructs the URL for the autocomplete API request
-     * 
-     * @private
-     * @param query - Search query string
-     * @param options - Configuration options
-     * @returns Constructed URL string
-     */
-    private buildUrl(query: string, options: IAutoCompleteOptions = {}): string {
-        const params = new URLSearchParams({
-            client: options.client || this.defaultOptions.client!,
-            hl: options.language || this.defaultOptions.language!,
-            q: query.trim()
+    private refreshToken = async (): Promise<void> => {
+        const auth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
+        const response = await fetch('https://accounts.spotify.com/api/token', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${auth}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'grant_type=client_credentials'
         });
 
-        return `${this.baseUrl}?${params.toString()}`;
-    }
-
-    /**
-     * Parses the response text to extract suggestion data
-     * 
-     * @private
-     * @param responseText - Raw response text from the API
-     * @param maxResults - Maximum number of results to return
-     * @returns Array of suggestion strings
-     * @throws {AutoCompleteError} If parsing fails or data format is invalid
-     */
-    private parseResponse(responseText: string, maxResults: number): string[] {
-        const match = responseText.match(/\[.*\]/);
-        if (!match) {
-            throw new AutoCompleteError('No JSON data found in response');
+        if (!response.ok) {
+            throw new Error(`Token refresh failed: ${response.statusText}`);
         }
 
-        try {
-            const jsonData = JSON.parse(match[0]);
-            if (!Array.isArray(jsonData) || jsonData.length < 2 || !Array.isArray(jsonData[1])) {
-                throw new AutoCompleteError('Invalid response format');
-            }
+        const data = await response.json();
+        this.token = data.access_token;
+        this.tokenExpiry = Date.now() + (data.expires_in * 1000);
+    }
 
-            return jsonData[1]
-                .slice(0, maxResults)
-                .map((item: any) => String(item[0]));
-
-        } catch (error) {
-            if (error instanceof Error) {
-                throw new AutoCompleteError(`Failed to parse response: ${error.message}`);
-            }
-            throw new AutoCompleteError('Failed to parse response: Unknown error');
+    private checkToken = async (): Promise<void> => {
+        if (!this.token || Date.now() >= this.tokenExpiry) {
+            await this.refreshToken();
         }
     }
 
-    /**
-     * Fetches autocomplete suggestions for a YouTube search query
-     * 
-     * @param query - Search query string
-     * @param options - Configuration options
-     * @returns Promise resolving to an array of suggestion strings
-     * @throws {AutoCompleteError} If the request fails or response is invalid
-     * @example
-     * ```typescript
-     * const autoComplete = new YouTubeAutoComplete();
-     * try {
-     *     const suggestions = await autoComplete.getSuggestions('programming tutorial');
-     *     console.log(suggestions);
-     * } catch (error) {
-     *     if (error instanceof AutoCompleteError) {
-     *         console.error(error.message);
-     *     }
-     * }
-     * ```
-     */
-    public async getSuggestions(
+    public getSuggestions = async (
         query: string,
         options: IAutoCompleteOptions = {}
-    ): Promise<string[]> {
-        if (!query?.trim()) {
-            return [];
-        }
+    ): Promise<discord.ApplicationCommandOptionChoiceData[]> => {
+        if (!query?.trim()) return [];
 
-        const maxResults = options.maxResults || this.defaultOptions.maxResults!;
-        const url = this.buildUrl(query, options);
+        await this.checkToken();
+        const maxResults = options.maxResults || this.defaultOptions.maxResults;
 
         try {
-            const response = await fetch(url);
+            const response = await fetch(
+                `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=${maxResults}`,
+                {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                }
+            );
 
-            if (!response.ok) {
-                throw new AutoCompleteError(
-                    `Request failed with status ${response.status}`
-                );
-            }
+            if (!response.ok) throw new Error(`Search failed: ${response.statusText}`);
 
-            const text = await response.text();
-            return this.parseResponse(text, maxResults);
-
+            const data = await response.json() as SpotifySearchResult;
+            return data.tracks.items.map(track => ({
+                name: `${track.name} - ${track.artists[0].name}`.slice(0, 100),
+                value: track.external_urls.spotify
+            }));
         } catch (error) {
-            if (error instanceof AutoCompleteError) {
-                throw error;
-            }
-            if (error instanceof Error) {
-                throw new AutoCompleteError(`Request failed: ${error.message}`);
-            }
-            throw new AutoCompleteError('Request failed: Unknown error');
+            console.error('Spotify search error:', error);
+            return [];
         }
     }
 }
-
-export { YouTubeAutoComplete, AutoCompleteError };

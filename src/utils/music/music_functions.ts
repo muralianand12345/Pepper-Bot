@@ -201,10 +201,26 @@ const handleSearchResult = async (
     }
 }
 
+/**
+ * Sends temporary message that auto-deletes after specified time
+ * @param channel - Text channel to send message
+ * @param embed - Embed message to send
+ * @param duration - Duration in ms before deletion
+ */
+const sendTempMessage = async (
+    channel: discord.TextChannel,
+    embed: discord.EmbedBuilder,
+    duration: number = 10000
+): Promise<void> => {
+    const message = await channel.send({ embeds: [embed] });
+    setTimeout(() => message.delete().catch(() => { }), duration);
+};
+
 export {
     wait,
     updateMusicDB,
     updateMusicGuildChannelDB,
     fetchAudioStream,
-    handleSearchResult
+    handleSearchResult,
+    sendTempMessage
 };

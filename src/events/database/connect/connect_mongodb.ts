@@ -9,7 +9,7 @@ const configManager = ConfigManager.getInstance();
 const event: BotEvent = {
     name: discord.Events.ClientReady,
     once: true,
-    execute: (client) => {
+    execute: (client: discord.Client): void => {
         const MONGO_URI = configManager.getMongoUri();
         if (!MONGO_URI) {
             throw new Error('[DATABASE] MONGO_URI is not defined');

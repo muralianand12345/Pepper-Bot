@@ -47,7 +47,7 @@ const createActivityList = (client: discord.Client, activities: BotPresence[]): 
 
 const event: BotEvent = {
     name: discord.Events.ClientReady,
-    execute: async (client: discord.Client) => {
+    execute: async (client: discord.Client): Promise<void> => {
         if (!(client as any).config.bot.presence.enabled) return;
 
         const activityList = createActivityList(
