@@ -33,6 +33,7 @@ const playcommand: SlashCommand = {
     data: new discord.SlashCommandBuilder()
         .setName('play')
         .setDescription('Play a song via song name or url')
+        .setContexts(discord.InteractionContextType.Guild)
         .addStringOption(option => option
             .setName('song')
             .setDescription('Song Name/URL')
@@ -72,9 +73,9 @@ const playcommand: SlashCommand = {
     /**
      * Executes the play command, handling music playback setup and validation
      * @param {discord.ChatInputCommandInteraction} interaction - Command interaction
-     * @param {any} client - Discord client instance
+     * @param {discord.Client} client - Discord client instance
      */
-    execute: async (interaction, client) => {
+    execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client) => {
         if (!client.config.music.enabled) {
             return await interaction.reply({
                 embeds: [createErrorEmbed('Music is currently disabled')],

@@ -17,7 +17,8 @@ const EnvSchema = z.object({
     }),
     LASTFM_API_KEY: z.string(),
     SPOTIFY_CLIENT_ID: z.string(),
-    SPOTIFY_CLIENT_SECRET: z.string()
+    SPOTIFY_CLIENT_SECRET: z.string(),
+    FEEDBACK_WEBHOOK: z.string()
 });
 
 /**
@@ -60,7 +61,8 @@ export class ConfigManager {
                 DEBUG_MODE: process.env.DEBUG_MODE || false,
                 LASTFM_API_KEY: process.env.LASTFM_API_KEY,
                 SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
-                SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET
+                SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
+                FEEDBACK_WEBHOOK: process.env.FEEDBACK_WEBHOOK
             });
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -138,5 +140,13 @@ export class ConfigManager {
      */
     public getSpotifyClientSecret(): string {
         return this.config.SPOTIFY_CLIENT_SECRET;
+    }
+
+    /**
+     * Gets the feedback webhook URL
+     * @returns {string} The feedback webhook URL from environment variables
+     */
+    public getFeedbackWebhook(): string {
+        return this.config.FEEDBACK_WEBHOOK;
     }
 }

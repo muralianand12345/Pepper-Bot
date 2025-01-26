@@ -28,6 +28,28 @@ class Formatter {
     }
 
     /**
+     * Formats seconds into a readable duration string
+     * @param seconds - Number of seconds to format
+     * @returns Formatted duration string (e.g., "2d 5h 30m")
+     * @example
+     * ```typescript
+     * Formatter.formatUptime(90061); // Returns "1d 1h 1m"
+     * ```
+     */
+    public static formatUptime(seconds: number): string {
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const minutes = Math.floor(((seconds % 86400) % 3600) / 60);
+        const parts = [];
+
+        if (days > 0) parts.push(`${days}d`);
+        if (hours > 0) parts.push(`${hours}h`);
+        if (minutes > 0) parts.push(`${minutes}m`);
+
+        return parts.join(' ') || '< 1m';
+    }
+
+    /**
      * Truncates text to a specified length and adds an ellipsis
      * 
      * @param text - The text to truncate
@@ -81,7 +103,7 @@ class Formatter {
     public static createProgressBar(player: IPlayer): string {
         const progress = (Math.floor(player.position / 1000) / Math.floor(player.queue.current.duration / 1000)) * 100;
         const progressBlocks = Math.floor((progress * 1.5) / 10);
-        
+
         let bar = "▬".repeat(Math.max(0, progressBlocks));
         bar += "●";
         bar += "▬".repeat(Math.max(0, 15 - progressBlocks));
