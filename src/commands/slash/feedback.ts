@@ -3,7 +3,7 @@ import { SlashCommand } from "../../types";
 
 /**
  * Slash command for collecting user feedback via a modal form
- * @module FeedbackCommand
+ * @type {SlashCommand}
  */
 const feedbackCommand: SlashCommand = {
     cooldown: 120,
@@ -21,7 +21,7 @@ const feedbackCommand: SlashCommand = {
     execute: async (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
-    ): Promise<void> => {
+    ) => {
         const createTextInput = (
             id: string,
             label: string,

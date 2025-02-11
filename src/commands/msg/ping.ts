@@ -22,7 +22,7 @@ const command: Command = {
         client: discord.Client,
         message: discord.Message,
         args: Array<string>
-    ): Promise<void> => {
+    ) => {
         try {
             const chan = message.channel as
                 | discord.GuildTextBasedChannel

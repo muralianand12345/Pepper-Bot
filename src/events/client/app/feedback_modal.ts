@@ -1,4 +1,5 @@
 import discord from "discord.js";
+import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { ConfigManager } from "../../../utils/config";
 import { BotEvent } from "../../../types";
 
@@ -123,9 +124,9 @@ const event: BotEvent = {
             await webhookClient.send({ embeds: [feedbackEmbed] });
             await interaction.reply({
                 embeds: [
-                    new discord.EmbedBuilder()
-                        .setColor("Blue")
-                        .setDescription("Thank you for your feedback!"),
+                    new MusicResponseHandler(client).createSuccessEmbed(
+                        "Thank you for your feedback!"
+                    ),
                 ],
                 ephemeral: true,
             });
@@ -133,11 +134,9 @@ const event: BotEvent = {
             console.error("Error processing feedback:", error);
             await interaction.reply({
                 embeds: [
-                    new discord.EmbedBuilder()
-                        .setColor("Red")
-                        .setDescription(
-                            "Failed to submit feedback. Please try again later."
-                        ),
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Failed to submit feedback. Please try again later."
+                    ),
                 ],
                 ephemeral: true,
             });

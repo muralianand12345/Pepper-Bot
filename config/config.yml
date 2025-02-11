@@ -45,10 +45,13 @@ content:
     text:
         no_music_playing: No Music Playing Right Now 😔
     embed:
-        music_playing:
-            color: Green
+        color:
+            default: Burple
+            success: Green
+            error: Red
+            info: Blue
+            warning: Yellow
         no_music_playing:
-            color: Red
             author:
                 name: "No song playing currently"
                 icon_url: https://media.discordapp.net/attachments/1100136924305440829/1118029575755145277/image.png?ex=67950cee&is=6793bb6e&hm=d6a106740f477165d7ffb529920436f29051152b8642c566689ae4eacc52b857&=&format=webp&quality=lossless&width=1232&height=806

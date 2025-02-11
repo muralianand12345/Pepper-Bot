@@ -1,10 +1,11 @@
-import discord from "discord.js";
 import os from "os";
+import discord from "discord.js";
 import Formatter from "../../utils/format";
 import { SlashCommand } from "../../types";
 
 /**
  * Ping command to check bot latency and system status
+ * @type {SlashCommand}
  */
 const pingCommand: SlashCommand = {
     cooldown: 120,
@@ -21,7 +22,7 @@ const pingCommand: SlashCommand = {
     execute: async (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
-    ): Promise<void> => {
+    ) => {
         try {
             const startTime = Date.now();
             await interaction.deferReply();

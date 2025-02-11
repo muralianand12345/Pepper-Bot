@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { EmbedBuilder, TextChannel } from "discord.js";
+import discord from "discord.js";
 import { ICommandLogger } from "../types";
 
 /**
@@ -79,10 +79,10 @@ class CommandLogger {
      * @returns An EmbedBuilder instance with command execution details
      * @private
      */
-    private createLogEmbed(options: ICommandLogger): EmbedBuilder {
+    private createLogEmbed(options: ICommandLogger): discord.EmbedBuilder {
         const { user, commandName, guild, channel } = options;
 
-        const embed = new EmbedBuilder()
+        const embed = new discord.EmbedBuilder()
             .setColor("Green")
             .setAuthor({ name: "Command Log" })
             .setTimestamp()
@@ -168,9 +168,9 @@ class CommandLogger {
 
         const logChannel = client.channels.cache.get(
             client.config.bot.log.command.toString()
-        ) as TextChannel | undefined;
+        ) as discord.TextChannel | undefined;
 
-        if (!logChannel || !(logChannel instanceof TextChannel)) {
+        if (!logChannel || !(logChannel instanceof discord.TextChannel)) {
             client.logger.error(
                 `[COMMAND_LOG] Invalid log channel: ${client.config.bot.log.command}`
             );

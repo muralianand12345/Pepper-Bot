@@ -16,7 +16,7 @@ const noMusicEmbed = async (client: discord.Client & { config: IConfig }) => {
 
     return new discord.EmbedBuilder()
         .setColor(
-            (client.config.content.embed.no_music_playing.color ??
+            (client.config.content.embed.color.error ??
                 defaultColor) as discord.ColorResolvable
         )
         .setImage(client.config.content.embed.no_music_playing.image)
@@ -51,11 +51,12 @@ const musicEmbed = async (
     const trackAuthor = track.author || "Unknown";
     const trackTitle =
         track.title.length > 250 ? track.title.substring(0, 250) : track.title;
-    const defaultColor: discord.ColorResolvable = "#00FF00"; // Default green color
+    const defaultColor: discord.ColorResolvable =
+        client.config.content.embed.color.default;
 
     return new discord.EmbedBuilder()
         .setColor(
-            (client.config.content.embed.music_playing.color ??
+            (client.config.content.embed.color.default ??
                 defaultColor) as discord.ColorResolvable
         )
         .setAuthor({
@@ -114,7 +115,7 @@ const createMusicButtons = (disabled: boolean) => {
  */
 const createTrackEmbed = (
     track: magmastream.Track,
-    client: any
+    client: discord.Client
 ): discord.EmbedBuilder => {
     return new discord.EmbedBuilder()
         .setTitle("📀 Added to queue!")
@@ -122,7 +123,7 @@ const createTrackEmbed = (
             Formatter.hyperlink(Formatter.truncateText(track.title), track.uri)
         )
         .setThumbnail(track.artworkUrl)
-        .setColor(client.config.content.embed.music_playing.color)
+        .setColor(client.config.content.embed.color.info)
         .addFields(
             {
                 name: "Duration",
@@ -154,7 +155,7 @@ const createPlaylistEmbed = (
     playlist: magmastream.PlaylistData,
     query: string,
     requester: string,
-    client: any
+    client: discord.Client
 ): discord.EmbedBuilder => {
     return new discord.EmbedBuilder()
         .setTitle("📋 Added playlist to queue!")
@@ -165,7 +166,7 @@ const createPlaylistEmbed = (
             )
         )
         .setThumbnail(playlist.tracks[0].artworkUrl || "")
-        .setColor(client.config.content.embed.music_playing.color)
+        .setColor(client.config.content.embed.color.success)
         .addFields(
             {
                 name: "Playlist Duration",
@@ -184,24 +185,66 @@ const createPlaylistEmbed = (
 };
 
 /**
- * Creates an error embed with the specified message
- * @param message Error message
- * @returns EmbedBuilder
+ * Handles music button interaction responses
+ * @class MusicResponseHandler
  */
-const createErrorEmbed = (message: string): discord.EmbedBuilder =>
-    new discord.EmbedBuilder().setColor("Red").setDescription(message);
+class MusicResponseHandler {
+    private readonly client: discord.Client;
 
-/**
- * Creates an embed message for music state changes
- * @param title - Title of the embed
- * @param color - Color of the embed
- * @returns Discord embed message
- */
-const createEmbed = (
-    title: string,
-    color: discord.ColorResolvable
-): discord.EmbedBuilder =>
-    new discord.EmbedBuilder().setTitle(title).setColor(color);
+    constructor(client: discord.Client) {
+        this.client = client;
+    }
+
+    /**
+     * Creates a success embed for music actions
+     * @param {string} message - Success message
+     * @returns {discord.EmbedBuilder} Configured success embed
+     */
+    public createSuccessEmbed(message: string): discord.EmbedBuilder {
+        const color =
+            this.client.config.content.embed.color.success ?? "#FF0000";
+        return new discord.EmbedBuilder()
+            .setColor(color as discord.ColorResolvable)
+            .setDescription(message);
+    }
+
+    /**
+     * Creates an error embed for music actions
+     * @param {string} message - Error message
+     * @returns {discord.EmbedBuilder} Configured error embed
+     */
+    public createErrorEmbed(message: string): discord.EmbedBuilder {
+        const color = this.client.config.content.embed.color.error ?? "#FF0000";
+        return new discord.EmbedBuilder()
+            .setColor(color as discord.ColorResolvable)
+            .setDescription(message);
+    }
+
+    /**
+     * Creates an info embed for music actions
+     * @param {string} message - Info message
+     * @returns {discord.EmbedBuilder} Configured info embed
+     */
+    public createInfoEmbed(message: string): discord.EmbedBuilder {
+        const color = this.client.config.content.embed.color.info ?? "#FF0000";
+        return new discord.EmbedBuilder()
+            .setColor(color as discord.ColorResolvable)
+            .setDescription(message);
+    }
+
+    /**
+     * Creates a warning embed for music actions
+     * @param {string} message - Warning message
+     * @returns {discord.EmbedBuilder} Configured warning embed
+     */
+    public createWarningEmbed(message: string): discord.EmbedBuilder {
+        const color =
+            this.client.config.content.embed.color.warning ?? "#FF0000";
+        return new discord.EmbedBuilder()
+            .setColor(color as discord.ColorResolvable)
+            .setDescription(message);
+    }
+}
 
 const disabldMusicButton = createMusicButtons(true);
 const musicButton = createMusicButtons(false);
@@ -211,8 +254,7 @@ export {
     musicButton,
     noMusicEmbed,
     musicEmbed,
-    createEmbed,
-    createErrorEmbed,
+    MusicResponseHandler,
     createTrackEmbed,
     createPlaylistEmbed,
 };

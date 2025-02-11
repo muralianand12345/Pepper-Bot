@@ -1,6 +1,7 @@
 import ms from "ms";
 import discord from "discord.js";
 import { BotEvent } from "../../../types";
+import { sendTempMessage } from "../../../utils/music/music_functions";
 import block_users from "../../database/schema/block_users";
 import premium_users from "../../database/schema/premium_users";
 
@@ -82,22 +83,15 @@ const validateMessage = (
 const sendErrorEmbed = async (
     message: discord.Message,
     description: string
-): Promise<discord.Message | undefined> => {
+) => {
     const errorEmbed = new discord.EmbedBuilder()
         .setDescription(description)
         .setColor("#ED4245");
 
-    // Check if the channel supports sending messages
-    if (
-        message.channel instanceof discord.TextChannel ||
-        message.channel instanceof discord.DMChannel ||
-        message.channel instanceof discord.NewsChannel
-    ) {
-        const msg = await message.channel.send({ embeds: [errorEmbed] });
-        setTimeout(() => msg.delete().catch(), 4000);
-        return msg;
+    const chan = message.channel;
+    if (chan instanceof discord.TextChannel) {
+        sendTempMessage(chan, errorEmbed);
     }
-    return undefined;
 };
 
 /**

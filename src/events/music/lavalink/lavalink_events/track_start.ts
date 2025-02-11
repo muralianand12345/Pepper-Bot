@@ -1,5 +1,7 @@
 import discord from "discord.js";
 import { Player, Track } from "magmastream";
+import { sendTempMessage } from "../../../../utils/music/music_functions";
+import { MusicResponseHandler } from "../../../../utils/music/embed_template";
 import { LavalinkEvent } from "../../../../types";
 
 /**
@@ -12,12 +14,9 @@ const createTrackStartEmbed = (
     track: Track,
     client: discord.Client
 ): discord.EmbedBuilder => {
-    return new discord.EmbedBuilder()
-        .setDescription(`🎵 ${track.title}`)
-        .setColor(
-            client.config.content.embed.music_playing
-                .color as discord.ColorResolvable
-        );
+    return new MusicResponseHandler(client).createSuccessEmbed(
+        `🎵 ${track.title}`
+    );
 };
 
 /**
@@ -58,12 +57,12 @@ const lavalinkEvent: LavalinkEvent = {
             )) as discord.TextChannel;
             if (!channel?.isTextBased() || player.trackRepeat) return;
 
-            const message = await channel.send({
-                embeds: [createTrackStartEmbed(track, client)],
-            });
-
             // Delete track start notification after 5 seconds
-            setTimeout(() => message.delete().catch(() => {}), 5000);
+            sendTempMessage(
+                channel,
+                createTrackStartEmbed(track, client),
+                5000
+            );
 
             logTrackStart(track, player, client);
         } catch (error) {

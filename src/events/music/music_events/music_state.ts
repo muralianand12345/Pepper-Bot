@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import { createEmbed } from "../../../utils/music/embed_template";
+import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { sendTempMessage } from "../../../utils/music/music_functions";
 import { BotEvent } from "../../../types";
 
@@ -39,22 +39,22 @@ const event: BotEvent = {
         const memberCount = playerChannel.members.filter(
             (member) => !member.user.bot
         ).size;
-        const color =
-            client.config.content.embed.music_playing.color ?? "#000000";
+        const color = client.config.content.embed.color.info ?? "#000000";
 
         // Resume playback when first user joins
         if (memberCount === 1 && player.paused) {
             player.pause(false);
-            const embed = createEmbed("▶️ Resumed playback", color);
+            const embed = new MusicResponseHandler(client).createInfoEmbed(
+                "▶️ Resumed playback"
+            );
             await sendTempMessage(textChannel, embed);
         }
 
         // Pause playback when last user leaves
         if (memberCount === 0 && !player.paused && player.playing) {
             player.pause(true);
-            const embed = createEmbed(
-                "⏸️ Paused playback because the voice channel is empty",
-                color
+            const embed = new MusicResponseHandler(client).createInfoEmbed(
+                "⏸️ Paused playback because the voice channel is empty"
             );
             await sendTempMessage(textChannel, embed);
         }

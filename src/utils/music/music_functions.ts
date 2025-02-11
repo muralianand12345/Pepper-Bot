@@ -1,9 +1,8 @@
-import discord from "discord.js";
-import magmastream from "magmastream";
 import https from "https";
+import discord from "discord.js";
 import { Readable } from "stream";
 import timers from "timers/promises";
-import { Player, Track } from "magmastream";
+import magmastream from "magmastream";
 import { musicButton } from "./embed_template";
 import { createPlaylistEmbed, createTrackEmbed } from "./embed_template";
 
@@ -21,7 +20,7 @@ const wait = async (ms: number): Promise<void> => {
  * @param player - Music player instance
  * @returns Formatted queue message string
  */
-const formatQueueMessage = (player: Player): string => {
+const formatQueueMessage = (player: magmastream.Player): string => {
     const queueList = player.queue
         .map((track, i) => `**${i + 1}** - [${track.title}](${track.uri})`)
         .slice(0, 5)
@@ -74,7 +73,7 @@ const handleSearchResult = async (
     res: magmastream.SearchResult,
     player: magmastream.Player,
     interaction: discord.ChatInputCommandInteraction,
-    client: any
+    client: discord.Client
 ): Promise<void> => {
     const searchQuery = interaction.options.getString("song", true);
 
@@ -143,4 +142,10 @@ const sendTempMessage = async (
     setTimeout(() => message.delete().catch(() => {}), duration);
 };
 
-export { wait, fetchAudioStream, handleSearchResult, sendTempMessage };
+export {
+    wait,
+    fetchAudioStream,
+    handleSearchResult,
+    sendTempMessage,
+    formatQueueMessage,
+};

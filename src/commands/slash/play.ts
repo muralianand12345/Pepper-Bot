@@ -1,7 +1,7 @@
 import discord from "discord.js";
 import { SpotifyAutoComplete } from "../../utils/auto_search";
 import { VoiceChannelValidator } from "../../utils/music/music_validations";
-import { createErrorEmbed } from "../../utils/music/embed_template";
+import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { handleSearchResult } from "../../utils/music/music_functions";
 import { ConfigManager } from "../../utils/config";
 import { SlashCommand } from "../../types";
@@ -92,7 +92,11 @@ const playcommand: SlashCommand = {
     ) => {
         if (!client.config.music.enabled) {
             return await interaction.reply({
-                embeds: [createErrorEmbed("Music is currently disabled")],
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Music is currently disabled"
+                    ),
+                ],
                 flags: discord.MessageFlags.Ephemeral,
             });
         }
@@ -101,7 +105,11 @@ const playcommand: SlashCommand = {
             interaction.options.getString("song") || CONFIG.DEFAULT_SEARCH_TEXT;
         if (query === CONFIG.DEFAULT_SEARCH_TEXT) {
             return await interaction.reply({
-                embeds: [createErrorEmbed("Please enter a song name or url")],
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Please enter a song name or url"
+                    ),
+                ],
                 flags: discord.MessageFlags.Ephemeral,
             });
         }
@@ -149,11 +157,9 @@ const playcommand: SlashCommand = {
             player.connect();
             await interaction.editReply({
                 embeds: [
-                    new discord.EmbedBuilder()
-                        .setColor("Green")
-                        .setDescription(
-                            `Connected to ${guildMember?.voice.channel?.name}`
-                        ),
+                    new MusicResponseHandler(client).createSuccessEmbed(
+                        `Connected to ${guildMember?.voice.channel?.name}`
+                    ),
                 ],
             });
         }
@@ -166,7 +172,7 @@ const playcommand: SlashCommand = {
             client.logger.error(`[SLASH_COMMAND] Play error: ${error}`);
             await interaction.followUp({
                 embeds: [
-                    createErrorEmbed(
+                    new MusicResponseHandler(client).createErrorEmbed(
                         "An error occurred while processing the song"
                     ),
                 ],

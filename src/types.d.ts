@@ -107,7 +107,7 @@ export interface ITextConfig {
 }
 
 export interface IEmbedConfig {
-    music_playing: IMusicPlayingEmbedConfig;
+    color: IDiscordColorConfig;
     no_music_playing: INoMusicPlayingEmbedConfig;
 }
 
@@ -130,8 +130,12 @@ export interface ILavalinkNodeConfig {
     resumeTimeout: number;
 }
 
-export interface IMusicPlayingEmbedConfig {
-    color: discord.ColorResolvable | nul;
+export interface IDiscordColorConfig {
+    default: discord.ColorResolvable;
+    success: discord.ColorResolvable;
+    error: discord.ColorResolvable;
+    info: discord.ColorResolvable;
+    warning: discord.ColorResolvable;
 }
 
 export interface INoMusicPlayingEmbedConfig {
@@ -178,6 +182,11 @@ export interface Command {
         message: discord.Message,
         args: Array<string>
     ) => void;
+}
+
+export interface CommandInfo {
+    name: string;
+    description: string;
 }
 
 declare module "discord.js" {

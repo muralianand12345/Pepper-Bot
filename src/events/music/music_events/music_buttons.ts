@@ -1,277 +1,223 @@
 import discord from "discord.js";
 import { BotEvent } from "../../../types";
+import {
+    MusicPlayerValidator,
+    VoiceChannelValidator,
+} from "../../../utils/music/music_validations";
+import { MusicResponseHandler } from "../../../utils/music/embed_template";
 
 /**
- * Validates common conditions for music commands
- * @param {discord.ButtonInteraction} interaction - The button interaction
- * @param {any} player - The music player instance
- * @returns {Promise<boolean>} Returns true if validation passes, false otherwise
+ * Handles music commands through button interactions
+ * @class MusicButtonHandler
  */
-const validateMusicCommand = async (
-    interaction: discord.ButtonInteraction,
-    player: any
-): Promise<boolean> => {
-    if (!player?.queue?.current) {
-        await interaction.reply({
+class MusicButtonHandler {
+    private readonly interaction: discord.ButtonInteraction;
+    private readonly client: discord.Client;
+    private readonly player: any;
+    private readonly playerValidator: MusicPlayerValidator;
+    private readonly responseHandler: MusicResponseHandler;
+
+    constructor(
+        interaction: discord.ButtonInteraction,
+        client: discord.Client
+    ) {
+        this.interaction = interaction;
+        this.client = client;
+        this.player = client.manager.get(interaction.guild!.id);
+        this.playerValidator = new MusicPlayerValidator(
+            client,
+            interaction,
+            this.player
+        );
+        this.responseHandler = new MusicResponseHandler(client);
+    }
+
+    /**
+     * Validates common conditions for music commands
+     * @returns {Promise<boolean>} Whether all validations passed
+     */
+    private async validateCommand(): Promise<boolean> {
+        // Check if player exists and is playing
+        const [playerValid, playerError] =
+            await this.playerValidator.validatePlayerState();
+        if (!playerValid && playerError) {
+            await this.interaction.reply({
+                embeds: [playerError],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+            return false;
+        }
+
+        // Create voice validator instance
+        const voiceValidator = new VoiceChannelValidator(
+            this.client,
+            this.interaction as unknown as discord.ChatInputCommandInteraction
+        );
+
+        // Validate voice connection
+        const [voiceValid, voiceError] =
+            await voiceValidator.validateVoiceConnection();
+        if (!voiceValid) {
+            await this.interaction.reply({
+                embeds: [voiceError],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+            return false;
+        }
+
+        // Validate same channel
+        const [sameChannelValid, sameChannelError] =
+            await voiceValidator.validateVoiceSameChannel(this.player);
+        if (!sameChannelValid) {
+            await this.interaction.reply({
+                embeds: [sameChannelError],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Handles pause button interaction
+     */
+    public async handlePause(): Promise<void> {
+        if (!(await this.validateCommand())) return;
+
+        const [stateValid, stateError] =
+            await this.playerValidator.validatePauseState();
+        if (!stateValid && stateError) {
+            await this.interaction.reply({
+                embeds: [stateError],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+            return;
+        }
+
+        this.player.pause(true);
+        await this.interaction.reply({
             embeds: [
-                new discord.EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription("There is no music playing"),
+                this.responseHandler.createSuccessEmbed("Paused the music!"),
             ],
             flags: discord.MessageFlags.Ephemeral,
         });
-        return false;
     }
 
-    const member = interaction.member as discord.GuildMember;
-    if (!member.voice.channel) {
-        await interaction.reply({
+    /**
+     * Handles resume button interaction
+     */
+    public async handleResume(): Promise<void> {
+        if (!(await this.validateCommand())) return;
+
+        const [stateValid, stateError] =
+            await this.playerValidator.validateResumeState();
+        if (!stateValid && stateError) {
+            await this.interaction.reply({
+                embeds: [stateError],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+            return;
+        }
+
+        this.player.pause(false);
+        await this.interaction.reply({
             embeds: [
-                new discord.EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription("Please connect to a voice channel first"),
+                this.responseHandler.createSuccessEmbed("Resumed the music!"),
             ],
             flags: discord.MessageFlags.Ephemeral,
         });
-        return false;
     }
 
-    if (member.voice.channel.id !== player.voiceChannel) {
-        await interaction.reply({
+    /**
+     * Handles skip button interaction
+     */
+    public async handleSkip(): Promise<void> {
+        if (!(await this.validateCommand())) return;
+
+        const [queueValid, queueError] =
+            await this.playerValidator.validateQueueSize(1);
+        if (!queueValid && queueError) {
+            await this.interaction.reply({
+                embeds: [queueError],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+            return;
+        }
+
+        this.player.stop(1);
+        if (this.player.queue.size === 0) {
+            this.player.destroy();
+        }
+
+        await this.interaction.reply({
             embeds: [
-                new discord.EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription(
-                        "It seems like you are not in the same voice channel as me"
-                    )
-                    .setFooter({
-                        text: "If you think there is an issue, kindly contact the server admin to use `/dcbot` command.",
-                    }),
+                this.responseHandler.createSuccessEmbed(
+                    "Skipped the current song!"
+                ),
             ],
             flags: discord.MessageFlags.Ephemeral,
         });
-        return false;
     }
 
-    return true;
-};
-
-/**
- * Handles the pause music button interaction
- * @param {discord.ButtonInteraction} interaction - The button interaction
- * @param {discord.Client} client - The Discord client instance
- */
-const handlePauseMusic = async (
-    interaction: discord.ButtonInteraction,
-    client: discord.Client
-): Promise<void> => {
-    const player = client.manager.get(interaction.guild!.id);
-
-    if (!(await validateMusicCommand(interaction, player))) return;
-
-    if (player?.paused) {
-        await interaction.reply({
-            embeds: [
-                new discord.EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription("The music is already paused"),
-            ],
-            flags: discord.MessageFlags.Ephemeral,
-        });
-        return;
-    }
-
-    player?.pause(true);
-    await interaction.reply({
-        embeds: [
-            new discord.EmbedBuilder()
-                .setColor(
-                    (client.config.content.embed.music_playing.color ??
-                        "#FF0000") as discord.ColorResolvable
-                )
-                .setDescription("Paused the music!"),
-        ],
-        flags: discord.MessageFlags.Ephemeral,
-    });
-};
-
-/**
- * Handles the resume music button interaction
- * @param {discord.ButtonInteraction} interaction - The button interaction
- * @param {discord.Client} client - The Discord client instance
- */
-const handleResumeMusic = async (
-    interaction: discord.ButtonInteraction,
-    client: discord.Client
-): Promise<void> => {
-    const player = client.manager.get(interaction.guild!.id);
-
-    if (!(await validateMusicCommand(interaction, player))) return;
-
-    if (!player?.paused) {
-        await interaction.reply({
-            embeds: [
-                new discord.EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription("The music is already playing"),
-            ],
-            flags: discord.MessageFlags.Ephemeral,
-        });
-        return;
-    }
-
-    player?.pause(false);
-    await interaction.reply({
-        embeds: [
-            new discord.EmbedBuilder()
-                .setColor(
-                    (client.config.content.embed.music_playing.color ??
-                        "#FF0000") as discord.ColorResolvable
-                )
-                .setDescription("Resumed the music!"),
-        ],
-        flags: discord.MessageFlags.Ephemeral,
-    });
-};
-
-/**
- * Handles the skip music button interaction
- * @param {discord.ButtonInteraction} interaction - The button interaction
- * @param {discord.Client} client - The Discord client instance
- */
-const handleSkipMusic = async (
-    interaction: discord.ButtonInteraction,
-    client: discord.Client
-): Promise<void> => {
-    const player = client.manager.get(interaction.guild!.id);
-    const count = 1;
-
-    if (!(await validateMusicCommand(interaction, player))) return;
-    const playerSize = player?.queue.size;
-    if (!playerSize) {
-        await interaction.reply({
-            embeds: [
-                new discord.EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription("There are no songs in the queue"),
-            ],
-            flags: discord.MessageFlags.Ephemeral,
-        });
-        return;
-    }
-
-    if (playerSize < count) {
-        await interaction.reply({
-            embeds: [
-                new discord.EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription(
-                        `There are only ${playerSize} songs in the queue`
+    /**
+     * Handles stop button interaction
+     */
+    public async handleStop(): Promise<void> {
+        if (!this.player) {
+            await this.interaction.reply({
+                embeds: [
+                    this.responseHandler.createErrorEmbed(
+                        "There is no music playing"
                     ),
-            ],
-            flags: discord.MessageFlags.Ephemeral,
-        });
-        return;
-    }
+                ],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+            return;
+        }
 
-    player.stop(count);
+        if (!(await this.validateCommand())) return;
 
-    if (player.queue.size === 0) {
-        player.destroy();
-    }
-
-    await interaction.reply({
-        embeds: [
-            new discord.EmbedBuilder()
-                .setColor(
-                    (client.config.content.embed.music_playing.color ??
-                        "#FF0000") as discord.ColorResolvable
-                )
-                .setDescription(`I skipped ${count} song!`),
-        ],
-        flags: discord.MessageFlags.Ephemeral,
-    });
-};
-
-/**
- * Handles the stop music button interaction
- * @param {discord.ButtonInteraction} interaction - The button interaction
- * @param {discord.Client} client - The Discord client instance
- */
-const handleStopMusic = async (
-    interaction: discord.ButtonInteraction,
-    client: discord.Client
-): Promise<void> => {
-    const player = client.manager.get(interaction.guild!.id);
-    if (!player) {
-        await interaction.reply({
+        this.player.destroy();
+        await this.interaction.reply({
             embeds: [
-                new discord.EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription("There is no music playing"),
+                this.responseHandler.createSuccessEmbed("Stopped the music!"),
             ],
             flags: discord.MessageFlags.Ephemeral,
         });
-        return;
     }
 
-    if (!(await validateMusicCommand(interaction, player))) return;
+    /**
+     * Handles loop button interaction
+     */
+    public async handleLoop(): Promise<void> {
+        if (!this.player) {
+            await this.interaction.reply({
+                embeds: [
+                    this.responseHandler.createErrorEmbed(
+                        "There is no music playing"
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+            return;
+        }
 
-    player.destroy();
-    await interaction.reply({
-        embeds: [
-            new discord.EmbedBuilder()
-                .setColor(
-                    (client.config.content.embed.no_music_playing.color ??
-                        "#FF0000") as discord.ColorResolvable
-                )
-                .setDescription("I stopped the music!"),
-        ],
-        flags: discord.MessageFlags.Ephemeral,
-    });
-};
+        if (!(await this.validateCommand())) return;
 
-/**
- * Handles the loop music button interaction
- * @param {discord.ButtonInteraction} interaction - The button interaction
- * @param {discord.Client} client - The Discord client instance
- */
-const handleLoopMusic = async (
-    interaction: discord.ButtonInteraction,
-    client: discord.Client
-): Promise<void> => {
-    const player = client.manager.get(interaction.guild!.id);
-    if (!player) {
-        await interaction.reply({
+        this.player.setTrackRepeat(!this.player.trackRepeat);
+        await this.interaction.reply({
             embeds: [
-                new discord.EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription("There is no music playing"),
-            ],
-            flags: discord.MessageFlags.Ephemeral,
-        });
-        return;
-    }
-
-    if (!(await validateMusicCommand(interaction, player))) return;
-
-    player.setTrackRepeat(!player.trackRepeat);
-    await interaction.reply({
-        embeds: [
-            new discord.EmbedBuilder()
-                .setColor(
-                    (client.config.content.embed.music_playing.color ??
-                        "#FF0000") as discord.ColorResolvable
-                )
-                .setDescription(
-                    `Looping is now ${
-                        player.trackRepeat ? "enabled" : "disabled"
+                this.responseHandler.createSuccessEmbed(
+                    `Loop mode is now ${
+                        this.player.trackRepeat ? "enabled" : "disabled"
                     }!`
                 ),
-        ],
-        flags: discord.MessageFlags.Ephemeral,
-    });
-};
+            ],
+            flags: discord.MessageFlags.Ephemeral,
+        });
+    }
+}
 
 /**
  * Main event handler for button interactions related to music controls
@@ -285,17 +231,19 @@ const event: BotEvent = {
     ): Promise<void> => {
         if (!interaction.isButton()) return;
 
-        const handlers = {
-            "pause-music": handlePauseMusic,
-            "resume-music": handleResumeMusic,
-            "skip-music": handleSkipMusic,
-            "stop-music": handleStopMusic,
-            "loop-music": handleLoopMusic,
+        const handler = new MusicButtonHandler(interaction, client);
+
+        const commands = {
+            "pause-music": () => handler.handlePause(),
+            "resume-music": () => handler.handleResume(),
+            "skip-music": () => handler.handleSkip(),
+            "stop-music": () => handler.handleStop(),
+            "loop-music": () => handler.handleLoop(),
         };
 
-        const handler = handlers[interaction.customId as keyof typeof handlers];
-        if (handler) {
-            await handler(interaction, client);
+        const command = commands[interaction.customId as keyof typeof commands];
+        if (command) {
+            await command();
         }
     },
 };

@@ -1,6 +1,7 @@
 import discord from "discord.js";
 import { Player } from "magmastream";
 import { wait } from "../../../../utils/music/music_functions";
+import { MusicResponseHandler } from "../../../../utils/music/embed_template";
 import { LavalinkEvent } from "../../../../types";
 
 /**
@@ -9,12 +10,9 @@ import { LavalinkEvent } from "../../../../types";
  * @returns EmbedBuilder instance
  */
 const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {
-    return new discord.EmbedBuilder()
-        .setDescription("🎵 Played all music in queue")
-        .setColor(
-            client.config.content.embed.no_music_playing
-                .color as discord.ColorResolvable
-        );
+    return new MusicResponseHandler(client).createInfoEmbed(
+        "🎵 Played all music in queue"
+    );
 };
 
 /**
