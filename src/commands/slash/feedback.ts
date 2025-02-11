@@ -79,7 +79,7 @@ const feedbackCommand: SlashCommand = {
             await interaction.reply({
                 content:
                     "Failed to open feedback form. Please try again later.",
-                ephemeral: true,
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
     },

@@ -80,7 +80,7 @@ const pingCommand: SlashCommand = {
             console.error("Error executing ping command:", error);
             await interaction.reply({
                 content: "Failed to fetch system status. Please try again.",
-                ephemeral: true,
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
     },

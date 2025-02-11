@@ -128,7 +128,7 @@ const event: BotEvent = {
                         "Thank you for your feedback!"
                     ),
                 ],
-                ephemeral: true,
+                flags: discord.MessageFlags.Ephemeral,
             });
         } catch (error) {
             console.error("Error processing feedback:", error);
@@ -138,7 +138,7 @@ const event: BotEvent = {
                         "Failed to submit feedback. Please try again later."
                     ),
                 ],
-                ephemeral: true,
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
     },
