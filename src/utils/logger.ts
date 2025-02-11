@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import chalk from 'chalk';
-import { ILogger } from '../types';
-import { ConfigManager } from './config';
+import fs from "fs";
+import path from "path";
+import chalk from "chalk";
+import { ILogger } from "../types";
+import { ConfigManager } from "./config";
 
 // Load environment variables
 const configManager = ConfigManager.getInstance();
@@ -16,7 +16,7 @@ type LogMessage = string | Error;
  * A comprehensive logging utility class that provides colored console output
  * and file-based logging with automatic date-based directory organization.
  * Debug messages are only logged when DEBUG_MODE is enabled.
- * 
+ *
  * @example
  * ```typescript
  * const logger = new Logger();
@@ -31,11 +31,11 @@ class Logger implements ILogger {
 
     /**
      * Creates a new Logger instance.
-     * 
+     *
      * @param baseDirPath - The base directory path for log files. Defaults to '../../logs'
      * @throws {Error} If unable to create required directories
      */
-    constructor(baseDirPath: string = '../../logs') {
+    constructor(baseDirPath: string = "../../logs") {
         this.logsBasePath = path.join(__dirname, baseDirPath);
         this.initializeLogDirectory();
         this.logFilePath = this.generateLogFilePath();
@@ -43,13 +43,13 @@ class Logger implements ILogger {
 
         // Log debug mode status on initialization
         if (this.isDebugEnabled) {
-            this.info('Debug mode is enabled');
+            this.info("Debug mode is enabled");
         }
     }
 
     /**
      * Generates an ISO timestamp string for the current time.
-     * 
+     *
      * @returns A formatted timestamp string in ISO format, wrapped in square brackets
      * @private
      */
@@ -60,7 +60,7 @@ class Logger implements ILogger {
 
     /**
      * Formats a log message, handling both string and Error objects.
-     * 
+     *
      * @param message - The message to format
      * @returns Formatted string representation of the message
      * @private
@@ -74,20 +74,20 @@ class Logger implements ILogger {
 
     /**
      * Writes a log message to the log file after stripping ANSI color codes.
-     * 
+     *
      * @param logMessage - The message to write to the log file
      * @private
      * @throws {Error} If unable to write to the log file
      */
     private writeToLogFile(logMessage: string): void {
-        const logWithoutColor: string = logMessage.replace(/\u001b\[\d+m/g, '');
-        fs.appendFileSync(this.logFilePath, logWithoutColor + '\n', 'utf8');
+        const logWithoutColor: string = logMessage.replace(/\u001b\[\d+m/g, "");
+        fs.appendFileSync(this.logFilePath, logWithoutColor + "\n", "utf8");
     }
 
     /**
      * Generates the appropriate log file path based on the current date.
      * Creates a directory structure organized by year and month.
-     * 
+     *
      * @returns The complete path to the log file
      * @private
      * @throws {Error} If unable to create required directories
@@ -95,15 +95,22 @@ class Logger implements ILogger {
     private generateLogFilePath(): string {
         const now: Date = new Date();
         const year: number = now.getFullYear();
-        const month: string = now.toLocaleDateString('default', { month: 'long' });
+        const month: string = now.toLocaleDateString("default", {
+            month: "long",
+        });
         const day: number = now.getDate();
-        const formattedDate: string = `${year}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        const formattedDate: string = `${year}-${(now.getMonth() + 1)
+            .toString()
+            .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
 
-        const yearFolderPath: string = path.join(this.logsBasePath, year.toString());
+        const yearFolderPath: string = path.join(
+            this.logsBasePath,
+            year.toString()
+        );
         const monthFolderPath: string = path.join(yearFolderPath, month);
 
         // Create directory structure if it doesn't exist
-        [yearFolderPath, monthFolderPath].forEach(dirPath => {
+        [yearFolderPath, monthFolderPath].forEach((dirPath) => {
             if (!fs.existsSync(dirPath)) {
                 fs.mkdirSync(dirPath);
             }
@@ -114,7 +121,7 @@ class Logger implements ILogger {
 
     /**
      * Initializes the base log directory if it doesn't exist.
-     * 
+     *
      * @private
      * @throws {Error} If unable to create the base directory
      */
@@ -126,7 +133,7 @@ class Logger implements ILogger {
 
     /**
      * Internal method to handle logging with different levels and colors.
-     * 
+     *
      * @param level - The log level (e.g., 'ERROR', 'INFO')
      * @param color - The chalk color function to use
      * @param message - The message to log
@@ -134,9 +141,9 @@ class Logger implements ILogger {
      * @private
      */
     private logWithLevel(
-        level: string, 
-        color: chalk.ChalkFunction, 
-        message: LogMessage, 
+        level: string,
+        color: chalk.ChalkFunction,
+        message: LogMessage,
         forceLog: boolean = true
     ): void {
         // Skip debug messages if debug mode is disabled
@@ -155,53 +162,53 @@ class Logger implements ILogger {
 
     /**
      * Logs a success message with green color.
-     * 
+     *
      * @param message - The success message to log
      */
     public success(message: LogMessage): void {
-        this.logWithLevel('SUCCESS', chalk.green, message);
+        this.logWithLevel("SUCCESS", chalk.green, message);
     }
 
     /**
      * Logs a regular message with blue color.
-     * 
+     *
      * @param message - The message to log
      */
     public log(message: LogMessage): void {
-        this.logWithLevel('LOG', chalk.blue, message);
+        this.logWithLevel("LOG", chalk.blue, message);
     }
 
     /**
      * Logs an error message with red color.
-     * 
+     *
      * @param message - The error message to log
      */
     public error(message: LogMessage): void {
-        this.logWithLevel('ERROR', chalk.red, message);
+        this.logWithLevel("ERROR", chalk.red, message);
     }
 
     /**
      * Logs a warning message with yellow color.
-     * 
+     *
      * @param message - The warning message to log
      */
     public warn(message: LogMessage): void {
-        this.logWithLevel('WARN', chalk.yellow, message);
+        this.logWithLevel("WARN", chalk.yellow, message);
     }
 
     /**
      * Logs an info message with cyan color.
-     * 
+     *
      * @param message - The info message to log
      */
     public info(message: LogMessage): void {
-        this.logWithLevel('INFO', chalk.cyan, message);
+        this.logWithLevel("INFO", chalk.cyan, message);
     }
 
     /**
      * Logs a debug message with magenta color.
      * Only logs if DEBUG_MODE is enabled in the configuration.
-     * 
+     *
      * @param message - The debug message to log
      * @example
      * ```typescript
@@ -210,7 +217,7 @@ class Logger implements ILogger {
      * ```
      */
     public debug(message: LogMessage): void {
-        this.logWithLevel('DEBUG', chalk.magenta, message, false);
+        this.logWithLevel("DEBUG", chalk.magenta, message, false);
     }
 }
 

@@ -4,10 +4,12 @@ import { IBlockUser } from "../../../types";
 const blockUserSchema = new Schema<IBlockUser>({
     userId: { type: String, required: true },
     status: { type: Boolean, required: true },
-    data: [{
-        reason: { type: String, required: true },
-        timestamp: { type: Date, default: Date.now },
-    }],
+    data: [
+        {
+            reason: { type: String, required: true },
+            timestamp: { type: Date, default: Date.now },
+        },
+    ],
 });
 
-export default model('blocked-users', blockUserSchema);
+export default model("blocked-users", blockUserSchema);

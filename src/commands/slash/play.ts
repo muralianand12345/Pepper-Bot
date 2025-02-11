@@ -9,7 +9,7 @@ import { SlashCommand } from "../../types";
 // Load environment variables
 const configManager = ConfigManager.getInstance();
 
-/** 
+/**
  * Configuration for music playback settings
  * @type {const}
  */
@@ -19,8 +19,8 @@ const CONFIG = {
     /** Default player configuration options */
     PLAYER_OPTIONS: {
         volume: 50,
-        selfDeafen: true
-    }
+        selfDeafen: true,
+    },
 } as const;
 
 /**
@@ -28,45 +28,56 @@ const CONFIG = {
  * @type {SlashCommand}
  */
 const playcommand: SlashCommand = {
-    cooldown: 100,
+    cooldown: 5,
     owner: false,
     data: new discord.SlashCommandBuilder()
-        .setName('play')
-        .setDescription('Play a song via song name or url')
+        .setName("play")
+        .setDescription("Play a song via song name or url")
         .setContexts(discord.InteractionContextType.Guild)
-        .addStringOption(option => option
-            .setName('song')
-            .setDescription('Song Name/URL')
-            .setRequired(true)
-            .setAutocomplete(true)
+        .addStringOption((option) =>
+            option
+                .setName("song")
+                .setDescription("Song Name/URL")
+                .setRequired(true)
+                .setAutocomplete(true)
         ),
 
     /**
-    * Handles song name autocomplete suggestions
-    * @param {discord.AutocompleteInteraction} interaction - Autocomplete interaction
-    * @param {discord.Client} client - Discord client instance
-    * @returns {Promise<void>}
-    */
-    autocomplete: async (interaction: discord.AutocompleteInteraction, client: discord.Client): Promise<void> => {
+     * Handles song name autocomplete suggestions
+     * @param {discord.AutocompleteInteraction} interaction - Autocomplete interaction
+     * @param {discord.Client} client - Discord client instance
+     * @returns {Promise<void>}
+     */
+    autocomplete: async (
+        interaction: discord.AutocompleteInteraction,
+        client: discord.Client
+    ): Promise<void> => {
         const focused = interaction.options.getFocused(true);
 
-        if (focused.name !== 'song') return;
+        if (focused.name !== "song") return;
 
         try {
             const suggestions = !focused.value
-                ? [{ name: CONFIG.DEFAULT_SEARCH_TEXT, value: CONFIG.DEFAULT_SEARCH_TEXT }]
+                ? [
+                      {
+                          name: CONFIG.DEFAULT_SEARCH_TEXT,
+                          value: CONFIG.DEFAULT_SEARCH_TEXT,
+                      },
+                  ]
                 : await new SpotifyAutoComplete(
-                    configManager.getSpotifyClientId(),
-                    configManager.getSpotifyClientSecret()
-                ).getSuggestions(focused.value);
+                      configManager.getSpotifyClientId(),
+                      configManager.getSpotifyClientSecret()
+                  ).getSuggestions(focused.value);
 
             await interaction.respond(suggestions);
         } catch (error) {
             client.logger.warn(`[SLASH_COMMAND] Autocomplete error: ${error}`);
-            await interaction.respond([{
-                name: CONFIG.DEFAULT_SEARCH_TEXT,
-                value: CONFIG.DEFAULT_SEARCH_TEXT
-            }]);
+            await interaction.respond([
+                {
+                    name: CONFIG.DEFAULT_SEARCH_TEXT,
+                    value: CONFIG.DEFAULT_SEARCH_TEXT,
+                },
+            ]);
         }
     },
 
@@ -75,69 +86,94 @@ const playcommand: SlashCommand = {
      * @param {discord.ChatInputCommandInteraction} interaction - Command interaction
      * @param {discord.Client} client - Discord client instance
      */
-    execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client) => {
+    execute: async (
+        interaction: discord.ChatInputCommandInteraction,
+        client: discord.Client
+    ) => {
         if (!client.config.music.enabled) {
             return await interaction.reply({
-                embeds: [createErrorEmbed('Music is currently disabled')],
-                flags: discord.MessageFlags.Ephemeral
+                embeds: [createErrorEmbed("Music is currently disabled")],
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
-        const query = interaction.options.getString('song') || CONFIG.DEFAULT_SEARCH_TEXT;
+        const query =
+            interaction.options.getString("song") || CONFIG.DEFAULT_SEARCH_TEXT;
         if (query === CONFIG.DEFAULT_SEARCH_TEXT) {
             return await interaction.reply({
-                embeds: [createErrorEmbed('Please enter a song name or url')],
-                flags: discord.MessageFlags.Ephemeral
+                embeds: [createErrorEmbed("Please enter a song name or url")],
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
-        client.logger.info(`[SLASH_COMMAND] Play | User ${interaction.user.tag} | Query: ${query} | Guild: ${interaction.guildId}`);
+        client.logger.info(
+            `[SLASH_COMMAND] Play | User ${interaction.user.tag} | Query: ${query} | Guild: ${interaction.guildId}`
+        );
 
         // Validate voice and music requirements
         const validator = new VoiceChannelValidator(client, interaction);
         for (const check of [
             validator.validateMusicSource(query),
             validator.validateGuildContext(),
-            validator.validateVoiceConnection()
+            validator.validateVoiceConnection(),
         ]) {
             const [isValid, embed] = await check;
-            if (!isValid) return await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
+            if (!isValid)
+                return await interaction.reply({
+                    embeds: [embed],
+                    flags: discord.MessageFlags.Ephemeral,
+                });
         }
 
-        const guildMember = interaction.guild?.members.cache.get(interaction.user.id);
+        const guildMember = interaction.guild?.members.cache.get(
+            interaction.user.id
+        );
         const player = client.manager.create({
             guild: interaction.guildId || "",
             voiceChannel: guildMember?.voice.channelId || "",
             textChannel: interaction.channelId,
-            ...CONFIG.PLAYER_OPTIONS
+            ...CONFIG.PLAYER_OPTIONS,
         });
 
-        const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
-        if (!playerValid) return await interaction.reply({ embeds: [playerEmbed], flags: discord.MessageFlags.Ephemeral });
+        const [playerValid, playerEmbed] =
+            await validator.validatePlayerConnection(player);
+        if (!playerValid)
+            return await interaction.reply({
+                embeds: [playerEmbed],
+                flags: discord.MessageFlags.Ephemeral,
+            });
 
         await interaction.deferReply();
 
         if (!["CONNECTING", "CONNECTED"].includes(player.state)) {
             player.connect();
             await interaction.editReply({
-                embeds: [new discord.EmbedBuilder()
-                    .setColor('Green')
-                    .setDescription(`Connected to ${guildMember?.voice.channel?.name}`)]
+                embeds: [
+                    new discord.EmbedBuilder()
+                        .setColor("Green")
+                        .setDescription(
+                            `Connected to ${guildMember?.voice.channel?.name}`
+                        ),
+                ],
             });
         }
 
         try {
             const res = await client.manager.search(query, interaction.user);
-            if (res.loadType === "error") throw new Error('Search error');
+            if (res.loadType === "error") throw new Error("Search error");
             await handleSearchResult(res, player, interaction, client);
         } catch (error) {
             client.logger.error(`[SLASH_COMMAND] Play error: ${error}`);
             await interaction.followUp({
-                embeds: [createErrorEmbed('An error occurred while processing the song')],
-                flags: discord.MessageFlags.Ephemeral
+                embeds: [
+                    createErrorEmbed(
+                        "An error occurred while processing the song"
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
-    }
+    },
 };
 
 export default playcommand;

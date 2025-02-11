@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import { Player } from "magmastream";
-import { LavalinkEvent } from '../../../../types';
+import { LavalinkEvent } from "../../../../types";
 
 /**
  * Lavalink player create event handler
@@ -11,8 +11,10 @@ const lavalinkEvent: LavalinkEvent = {
         const guild = client.guilds.cache.get(player.guild);
         if (!guild) return;
 
-        client.logger.info(`[LAVALINK] Player for guild ${guild.name} (${guild.id}) created`);
-    }
+        client.logger.info(
+            `[LAVALINK] Player for guild ${guild.name} (${guild.id}) created`
+        );
+    },
 };
 
 export default lavalinkEvent;

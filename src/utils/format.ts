@@ -6,7 +6,7 @@ import { IPlayer } from "../types";
 class Formatter {
     /**
      * Converts milliseconds to a formatted time string (HH:MM:SS)
-     * 
+     *
      * @param ms - The number of milliseconds to convert
      * @returns Formatted time string in HH:MM:SS format
      * @example
@@ -46,12 +46,12 @@ class Formatter {
         if (hours > 0) parts.push(`${hours}h`);
         if (minutes > 0) parts.push(`${minutes}m`);
 
-        return parts.join(' ') || '< 1m';
+        return parts.join(" ") || "< 1m";
     }
 
     /**
      * Truncates text to a specified length and adds an ellipsis
-     * 
+     *
      * @param text - The text to truncate
      * @param maxLength - Maximum length of the text (default: 20)
      * @param ellipsis - String to append when text is truncated (default: '...')
@@ -61,7 +61,11 @@ class Formatter {
      * Formatter.truncateText("This is a very long text", 10); // Returns "This is a..."
      * ```
      */
-    public static truncateText(text: string, maxLength: number = 20, ellipsis: string = '...'): string {
+    public static truncateText(
+        text: string,
+        maxLength: number = 20,
+        ellipsis: string = "..."
+    ): string {
         if (Array.from(text).length > maxLength) {
             text = text.slice(0, maxLength) + ellipsis;
         }
@@ -70,7 +74,7 @@ class Formatter {
 
     /**
      * Creates a markdown hyperlink with escaped brackets
-     * 
+     *
      * @param text - The text to display for the link
      * @param url - The URL for the link
      * @returns Formatted markdown hyperlink
@@ -87,7 +91,7 @@ class Formatter {
 
     /**
      * Generates a progress bar for music player
-     * 
+     *
      * @param player - The player object containing position and duration information
      * @returns Formatted progress bar string
      * @example
@@ -101,7 +105,10 @@ class Formatter {
      * ```
      */
     public static createProgressBar(player: IPlayer): string {
-        const progress = (Math.floor(player.position / 1000) / Math.floor(player.queue.current.duration / 1000)) * 100;
+        const progress =
+            (Math.floor(player.position / 1000) /
+                Math.floor(player.queue.current.duration / 1000)) *
+            100;
         const progressBlocks = Math.floor((progress * 1.5) / 10);
 
         let bar = "▬".repeat(Math.max(0, progressBlocks));

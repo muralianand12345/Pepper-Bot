@@ -1,5 +1,5 @@
-import { Schema, model } from 'mongoose';
-import { IUserPremium } from '../../../types';
+import { Schema, model } from "mongoose";
+import { IUserPremium } from "../../../types";
 
 const userPremiumSchema = new Schema<IUserPremium>({
     userId: { type: String, required: true, unique: true },
@@ -8,8 +8,8 @@ const userPremiumSchema = new Schema<IUserPremium>({
         redeemedBy: { type: String, default: null },
         redeemedAt: { type: Date, default: null },
         expiresAt: { type: Date, default: null },
-        plan: { type: String, default: null }
-    }
+        plan: { type: String, default: null },
+    },
 });
 
-export default model('premium-users', userPremiumSchema);
+export default model("premium-users", userPremiumSchema);

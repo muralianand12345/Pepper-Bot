@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import { Node } from "magmastream";
-import { LavalinkEvent } from '../../../../types';
+import { LavalinkEvent } from "../../../../types";
 
 /**
  * Lavalink node reconnect event handler
@@ -8,8 +8,10 @@ import { LavalinkEvent } from '../../../../types';
 const lavalinkEvent: LavalinkEvent = {
     name: "nodeReconnect",
     execute: async (node: Node, client: discord.Client) => {
-        client.logger.warn(`[LAVALINK] Node ${node.options.identifier} reconnected`);
-    }
+        client.logger.warn(
+            `[LAVALINK] Node ${node.options.identifier} reconnected`
+        );
+    },
 };
 
 export default lavalinkEvent;

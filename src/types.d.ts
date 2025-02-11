@@ -1,15 +1,15 @@
-import discord from "discord.js"
+import discord from "discord.js";
 import mongoose from "mongoose";
-import { Manager } from 'magmastream';
+import { Manager } from "magmastream";
 import { CommandLogger } from "./utils/command_logger";
 
 //Global
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
-            TOKEN: string,
-            MONGO_URI: string,
-            DEBUG_MODE: boolean | string
+            TOKEN: string;
+            MONGO_URI: string;
+            DEBUG_MODE: boolean | string;
         }
     }
 }
@@ -51,149 +51,161 @@ export interface IAutoCompleteOptions {
 //Config
 
 export interface IConfig {
-    bot: IBotConfig,
-    music: IMusicConfig,
-    content: IContentConfig
+    bot: IBotConfig;
+    music: IMusicConfig;
+    content: IContentConfig;
 }
 
 // ------
 
 export interface IBotConfig {
-    owners: Array<string>,
-    presence: IPresenceConfig,
-    command: ICommandConfig,
-    log: ILogConfig
+    owners: Array<string>;
+    presence: IPresenceConfig;
+    command: ICommandConfig;
+    log: ILogConfig;
 }
 
 export interface IMusicConfig {
-    enabled: boolean,
-    image: string,
-    lavalink: ILavalinkConfig
+    enabled: boolean;
+    image: string;
+    lavalink: ILavalinkConfig;
 }
 
 export interface IContentConfig {
-    text: ITextConfig,
-    embed: IEmbedConfig
+    text: ITextConfig;
+    embed: IEmbedConfig;
 }
 
 // ------
 
 export interface ICommandConfig {
-    prefix: string,
-    disable_message: boolean,
-    cooldown_message: string,
-    register_specific_commands: IRegisterSpecificCommandsConfig
+    prefix: string;
+    disable_message: boolean;
+    cooldown_message: string;
+    register_specific_commands: IRegisterSpecificCommandsConfig;
 }
 
 export interface IPresenceConfig {
-    enabled: boolean,
-    status: string,
-    interval: number,
-    activity: Array<BotPresence>
+    enabled: boolean;
+    status: string;
+    interval: number;
+    activity: Array<BotPresence>;
 }
 
 export interface ILogConfig {
-    command: string,
-    server: string
+    command: string;
+    server: string;
 }
 
 export interface ILavalinkConfig {
-    default_search: string,
-    nodes: Array<ILavalinkNodeConfig>
+    default_search: string;
+    nodes: Array<ILavalinkNodeConfig>;
 }
 
 export interface ITextConfig {
-    no_music_playing: string
+    no_music_playing: string;
 }
 
 export interface IEmbedConfig {
-    music_playing: IMusicPlayingEmbedConfig,
-    no_music_playing: INoMusicPlayingEmbedConfig
+    music_playing: IMusicPlayingEmbedConfig;
+    no_music_playing: INoMusicPlayingEmbedConfig;
 }
 
 // ------
 
 export interface IRegisterSpecificCommandsConfig {
-    enabled: boolean,
-    commands: Array<string>
+    enabled: boolean;
+    commands: Array<string>;
 }
 
 export interface ILavalinkNodeConfig {
-    identifier: string,
-    host: string,
-    port: number,
-    password: string,
-    secure: boolean,
-    retryAmount: number,
-    retrydelay: number,
-    resumeStatus: boolean,
-    resumeTimeout: number
+    identifier: string;
+    host: string;
+    port: number;
+    password: string;
+    secure: boolean;
+    retryAmount: number;
+    retrydelay: number;
+    resumeStatus: boolean;
+    resumeTimeout: number;
 }
 
 export interface IMusicPlayingEmbedConfig {
-    color: discord.ColorResolvable | nul
+    color: discord.ColorResolvable | nul;
 }
 
 export interface INoMusicPlayingEmbedConfig {
-    color: discord.ColorResolvable | nul,
-    image: string,
+    color: discord.ColorResolvable | nul;
+    image: string;
     author: {
-        name: string,
-        icon_url: string
-    }
+        name: string;
+        icon_url: string;
+    };
 }
 
 //Client
 
 export interface SlashCommand {
-    data: typeof data,
-    modal?: (interaction: discord.ModalSubmitInteraction<discord.CacheType>) => void,
-    userPerms?: Array<discord.PermissionResolvable>,
-    botPerms?: Array<discord.PermissionResolvable>,
-    cooldown?: number,
-    owner?: boolean,
-    premium?: boolean,
-    execute: (interaction: discord.ChatInputCommandInteraction, client: discord.Client) => void,
-    autocomplete?: (interaction: discord.AutocompleteInteraction, client: discord.Client) => void,
+    data: typeof data;
+    modal?: (
+        interaction: discord.ModalSubmitInteraction<discord.CacheType>
+    ) => void;
+    userPerms?: Array<discord.PermissionResolvable>;
+    botPerms?: Array<discord.PermissionResolvable>;
+    cooldown?: number;
+    owner?: boolean;
+    premium?: boolean;
+    execute: (
+        interaction: discord.ChatInputCommandInteraction,
+        client: discord.Client
+    ) => void;
+    autocomplete?: (
+        interaction: discord.AutocompleteInteraction,
+        client: discord.Client
+    ) => void;
 }
 
 export interface Command {
-    name: string,
-    description: string,
-    userPerms?: Array<discord.PermissionResolvable>,
-    botPerms?: Array<discord.PermissionResolvable>,
-    cooldown?: number,
-    owner?: boolean,
-    premium?: boolean,
-    execute: (client: discord.Client, message: discord.Message, args: Array<string>) => void
+    name: string;
+    description: string;
+    userPerms?: Array<discord.PermissionResolvable>;
+    botPerms?: Array<discord.PermissionResolvable>;
+    cooldown?: number;
+    owner?: boolean;
+    premium?: boolean;
+    execute: (
+        client: discord.Client,
+        message: discord.Message,
+        args: Array<string>
+    ) => void;
 }
 
 declare module "discord.js" {
     export interface Client {
-        slashCommands: discord.Collection<string, SlashCommand>
-        commands: discord.Collection<string, Command>,
-        cooldowns: discord.Collection<string, number>,
-        logger: ILogger,
-        cmdLogger: typeof CommandLogger,
-        config: IConfig,
-        manager: Manager
+        slashCommands: discord.Collection<string, SlashCommand>;
+        commands: discord.Collection<string, Command>;
+        cooldowns: discord.Collection<string, number>;
+        logger: ILogger;
+        cmdLogger: typeof CommandLogger;
+        config: IConfig;
+        manager: Manager;
     }
 }
 
 export interface BotPresence {
-    name: string,
-    type: discord.ActivityType
+    name: string;
+    type: discord.ActivityType;
 }
 
 export interface BotEvent {
-    name: string,
-    once?: boolean | false,
-    execute: (...args?) => void
+    name: string;
+    once?: boolean | false;
+    execute: (...args) => void;
 }
 
 export interface LavalinkEvent {
-    name: string,
-    execute: (...args) => void
+    name: string;
+    execute: (...args) => void;
 }
 
 export interface SpotifySearchResult {
@@ -209,46 +221,25 @@ export interface SpotifySearchResult {
 // Models
 
 export interface IBlockUser extends mongoose.Document {
-    userId: string,
-    status: boolean,
-    data: Array<IBlockUserData>
+    userId: string;
+    status: boolean;
+    data: Array<IBlockUserData>;
 }
 
 export interface IBlockUserData {
-    reason: string,
-    date: Date
+    reason: string;
+    date: Date;
 }
 
 export interface IUserPremium extends mongoose.Document {
-    userId: string,
-    isPremium: boolean,
-    premium: IPremiumData
+    userId: string;
+    isPremium: boolean;
+    premium: IPremiumData;
 }
 
 export interface IPremiumData {
-    redeemedBy: string | null,
-    redeemedAt: date | null,
-    expiresAt: date | null,
-    plan: string | null
-}
-
-export interface IMusicGuild extends mongoose.Document {
-    guildId: string,
-    musicChannel: string,
-    musicPannelId: string,
-    status247: boolean,
-    songsNo: number,
-    songs: Array<IMusicSongs>
-}
-
-export interface IMusicUser extends mongoose.Document {
-    userId: string,
-    songsNo: number,
-    songs: Array<IMusicSongs>
-}
-
-export interface IMusicSongs {
-    name: string | null,
-    url: string | null,
-    times: number | null
+    redeemedBy: string | null;
+    redeemedAt: date | null;
+    expiresAt: date | null;
+    plan: string | null;
 }

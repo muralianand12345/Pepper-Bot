@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import { Node } from "magmastream";
-import { LavalinkEvent } from '../../../../types';
+import { LavalinkEvent } from "../../../../types";
 
 /**
  * Lavalink node connect event handler
@@ -8,8 +8,10 @@ import { LavalinkEvent } from '../../../../types';
 const lavalinkEvent: LavalinkEvent = {
     name: "nodeConnect",
     execute: async (node: Node, client: discord.Client) => {
-        client.logger.success(`[LAVALINK] Node ${node.options.identifier} connected`);
-    }
+        client.logger.success(
+            `[LAVALINK] Node ${node.options.identifier} connected`
+        );
+    },
 };
 
 export default lavalinkEvent;

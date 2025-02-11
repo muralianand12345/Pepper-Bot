@@ -1,6 +1,6 @@
-import path from 'path';
-import { z } from 'zod';
-import { config } from 'dotenv';
+import path from "path";
+import { z } from "zod";
+import { config } from "dotenv";
 
 /**
  * Schema for validating environment variables
@@ -10,15 +10,15 @@ const EnvSchema = z.object({
     TOKEN: z.string(),
     MONGO_URI: z.string(),
     DEBUG_MODE: z.union([z.boolean(), z.string()]).transform((val) => {
-        if (typeof val === 'string') {
-            return val.toLowerCase() === 'true';
+        if (typeof val === "string") {
+            return val.toLowerCase() === "true";
         }
         return val;
     }),
     LASTFM_API_KEY: z.string(),
     SPOTIFY_CLIENT_ID: z.string(),
     SPOTIFY_CLIENT_SECRET: z.string(),
-    FEEDBACK_WEBHOOK: z.string()
+    FEEDBACK_WEBHOOK: z.string(),
 });
 
 /**
@@ -37,20 +37,22 @@ export class ConfigManager {
      * @throws {Error} If environment variables cannot be loaded or validated
      */
     private constructor() {
-        const environment = process.env.NODE_ENV || 'prod';
+        const environment = process.env.NODE_ENV || "prod";
         const envPath = path.resolve(process.cwd(), `.env.${environment}`);
 
         let result;
 
         // Load environment variables
-        if (require('fs').existsSync(envPath)) {
+        if (require("fs").existsSync(envPath)) {
             result = config({ path: envPath });
         } else {
             result = config();
         }
 
         if (result.error) {
-            throw new Error(`Failed to load environment variables: ${result.error.message}`);
+            throw new Error(
+                `Failed to load environment variables: ${result.error.message}`
+            );
         }
 
         // Validate environment variables
@@ -62,12 +64,18 @@ export class ConfigManager {
                 LASTFM_API_KEY: process.env.LASTFM_API_KEY,
                 SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
                 SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
-                FEEDBACK_WEBHOOK: process.env.FEEDBACK_WEBHOOK
+                FEEDBACK_WEBHOOK: process.env.FEEDBACK_WEBHOOK,
             });
         } catch (error) {
             if (error instanceof z.ZodError) {
-                const missingVars = error.issues.map(issue => issue.path.join('.'));
-                throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+                const missingVars = error.issues.map((issue) =>
+                    issue.path.join(".")
+                );
+                throw new Error(
+                    `Missing required environment variables: ${missingVars.join(
+                        ", "
+                    )}`
+                );
             }
             throw error;
         }

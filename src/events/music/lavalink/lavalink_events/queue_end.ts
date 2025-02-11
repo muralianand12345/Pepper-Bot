@@ -1,11 +1,7 @@
 import discord from "discord.js";
 import { Player } from "magmastream";
-import {
-    wait,
-    updateMusicGuildChannelDB
-} from "../../../../utils/music/music_functions";
-import { LavalinkEvent } from '../../../../types';
-import MusicGuildModel from "../../../database/schema/music_guild";
+import { wait } from "../../../../utils/music/music_functions";
+import { LavalinkEvent } from "../../../../types";
 
 /**
  * Creates a queue end notification embed
@@ -15,7 +11,10 @@ import MusicGuildModel from "../../../database/schema/music_guild";
 const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {
     return new discord.EmbedBuilder()
         .setDescription("🎵 Played all music in queue")
-        .setColor(client.config.content.embed.no_music_playing.color as discord.ColorResolvable);
+        .setColor(
+            client.config.content.embed.no_music_playing
+                .color as discord.ColorResolvable
+        );
 };
 
 /**
@@ -23,9 +22,7 @@ const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {
  * @param player - Music player instance
  * @param status247 - Whether 24/7 mode is enabled
  */
-const handlePlayerCleanup = async (player: Player, status247: boolean): Promise<void> => {
-    if (status247) return;
-
+const handlePlayerCleanup = async (player: Player): Promise<void> => {
     // Wait 5 minutes before destroying the player
     const CLEANUP_DELAY = 300000; // 5 minutes in milliseconds
     await wait(CLEANUP_DELAY);
@@ -42,23 +39,20 @@ const lavalinkEvent: LavalinkEvent = {
         if (!player?.textChannel || !client?.channels) return;
 
         try {
-            const channel = await client.channels.fetch(player.textChannel) as discord.TextChannel;
+            const channel = (await client.channels.fetch(
+                player.textChannel
+            )) as discord.TextChannel;
             if (!channel?.isTextBased()) return;
 
             await channel.send({
-                embeds: [createQueueEndEmbed(client)]
+                embeds: [createQueueEndEmbed(client)],
             });
 
-            const musicGuildData = await MusicGuildModel.findOne({ guildId: player.guild });
-            if (!musicGuildData) return;
-
-            await updateMusicGuildChannelDB(client, musicGuildData, player, null, true);
-            await handlePlayerCleanup(player, musicGuildData.status247);
-
+            await handlePlayerCleanup(player);
         } catch (error) {
             client.logger.error(`Error in queueEnd event: ${error}`);
         }
-    }
+    },
 };
 
 export default lavalinkEvent;

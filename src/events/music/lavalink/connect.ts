@@ -12,33 +12,50 @@ import { ManagerEvents } from "magmastream";
  * @throws {Error} When event loading fails
  * @returns {Promise<void>}
  */
-const loadLavalinkEvents = async (client: discord.Client, eventsPath: string): Promise<void> => {
+const loadLavalinkEvents = async (
+    client: discord.Client,
+    eventsPath: string
+): Promise<void> => {
     try {
-        const eventFiles = (await fs.readdir(eventsPath))
-            .filter(file => file.endsWith('.js'));
+        const eventFiles = (await fs.readdir(eventsPath)).filter((file) =>
+            file.endsWith(".js")
+        );
 
         for (const file of eventFiles) {
             try {
                 const filePath = path.join(eventsPath, file);
                 const event: BotEvent = require(filePath).default;
 
-                if (!event?.name || typeof event?.execute !== 'function') {
-                    client.logger.warn(`[LAVALINK_EVENT] Invalid event file structure: ${file}`);
+                if (!event?.name || typeof event?.execute !== "function") {
+                    client.logger.warn(
+                        `[LAVALINK_EVENT] Invalid event file structure: ${file}`
+                    );
                     continue;
                 }
 
                 // Using keyof ManagerEvents to ensure type safety
-                client.manager.on(event.name as keyof ManagerEvents, (...args) =>
-                    event.execute(...args, client)
+                client.manager.on(
+                    event.name as keyof ManagerEvents,
+                    (...args) => event.execute(...args, client)
                 );
-                client.logger.debug(`[LAVALINK_EVENT] Loaded event: ${event.name}`);
+                client.logger.debug(
+                    `[LAVALINK_EVENT] Loaded event: ${event.name}`
+                );
             } catch (error) {
-                client.logger.error(`[LAVALINK_EVENT] Failed to load event ${file}: ${error instanceof Error ? error.message : String(error)}`);
+                client.logger.error(
+                    `[LAVALINK_EVENT] Failed to load event ${file}: ${
+                        error instanceof Error ? error.message : String(error)
+                    }`
+                );
                 throw error;
             }
         }
     } catch (error) {
-        client.logger.error(`[LAVALINK_EVENT] Failed to read events directory: ${error instanceof Error ? error.message : String(error)}`);
+        client.logger.error(
+            `[LAVALINK_EVENT] Failed to read events directory: ${
+                error instanceof Error ? error.message : String(error)
+            }`
+        );
         throw error;
     }
 };
@@ -57,7 +74,9 @@ const event: BotEvent = {
             }
 
             if (!client.config.music.enabled) {
-                client.logger.info("[LAVALINK] Music functionality is disabled");
+                client.logger.info(
+                    "[LAVALINK] Music functionality is disabled"
+                );
                 return;
             }
 
@@ -68,12 +87,18 @@ const event: BotEvent = {
                 path.join(__dirname, "lavalink_events")
             );
 
-            client.logger.info("[LAVALINK] Successfully initialized and loaded all events");
+            client.logger.info(
+                "[LAVALINK] Successfully initialized and loaded all events"
+            );
         } catch (error) {
-            client.logger.error(`[LAVALINK] Initialization failed: ${error instanceof Error ? error.message : String(error)}`);
+            client.logger.error(
+                `[LAVALINK] Initialization failed: ${
+                    error instanceof Error ? error.message : String(error)
+                }`
+            );
             throw error;
         }
-    }
+    },
 };
 
 export default event;

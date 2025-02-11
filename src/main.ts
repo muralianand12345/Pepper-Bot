@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import discord from "discord.js";
 import client from "./pepper";
-import { ConfigManager } from './utils/config';
+import { ConfigManager } from "./utils/config";
 
 // Load environment variables
 const configManager = ConfigManager.getInstance();
@@ -12,10 +12,14 @@ const configManager = ConfigManager.getInstance();
  * @param client Discord client instance
  * @param handlersPath Path to handlers directory
  */
-const loadHandlers = async (client: discord.Client, handlersPath: string): Promise<void> => {
+const loadHandlers = async (
+    client: discord.Client,
+    handlersPath: string
+): Promise<void> => {
     try {
-        const handlerFiles = fs.readdirSync(handlersPath)
-            .filter(file => file.endsWith('.js'));
+        const handlerFiles = fs
+            .readdirSync(handlersPath)
+            .filter((file) => file.endsWith(".js"));
 
         for (const file of handlerFiles) {
             try {
@@ -23,18 +27,26 @@ const loadHandlers = async (client: discord.Client, handlersPath: string): Promi
                 const handler = require(filePath).default;
 
                 if (!handler?.name || !handler?.execute) {
-                    client.logger.warn(`[MAIN] Invalid handler file structure: ${file}`);
+                    client.logger.warn(
+                        `[MAIN] Invalid handler file structure: ${file}`
+                    );
                     continue;
                 }
 
-                client.on(handler.name, (...args) => handler.execute(...args, client));
+                client.on(handler.name, (...args) =>
+                    handler.execute(...args, client)
+                );
                 client.logger.info(`[MAIN] Loaded handler: ${handler.name}`);
             } catch (error) {
-                client.logger.error(`[MAIN] Failed to load handler ${file}: ${error}`);
+                client.logger.error(
+                    `[MAIN] Failed to load handler ${file}: ${error}`
+                );
             }
         }
     } catch (error) {
-        client.logger.error(`[MAIN] Failed to read handlers directory: ${error}`);
+        client.logger.error(
+            `[MAIN] Failed to read handlers directory: ${error}`
+        );
         throw error;
     }
 };
@@ -44,7 +56,10 @@ const loadHandlers = async (client: discord.Client, handlersPath: string): Promi
  * @param client Discord client instance
  * @param eventsPath Path to events directory
  */
-const loadEvents = async (client: discord.Client, eventsPath: string): Promise<void> => {
+const loadEvents = async (
+    client: discord.Client,
+    eventsPath: string
+): Promise<void> => {
     try {
         const mainDirs = fs.readdirSync(eventsPath);
 
@@ -57,8 +72,9 @@ const loadEvents = async (client: discord.Client, eventsPath: string): Promise<v
                 const subDirPath = path.join(mainDirPath, subDir);
                 if (!fs.statSync(subDirPath).isDirectory()) continue;
 
-                const eventFiles = fs.readdirSync(subDirPath)
-                    .filter(file => file.endsWith('.js'));
+                const eventFiles = fs
+                    .readdirSync(subDirPath)
+                    .filter((file) => file.endsWith(".js"));
 
                 for (const file of eventFiles) {
                     try {
@@ -68,22 +84,34 @@ const loadEvents = async (client: discord.Client, eventsPath: string): Promise<v
                         if (!event?.name || !event?.execute) {
                             //check if the folder name ends with schema
                             if (!subDirPath.endsWith("schema")) {
-                                client.logger.warn(`[MAIN] Invalid event file structure: ${file}`);
+                                client.logger.warn(
+                                    `[MAIN] Invalid event file structure: ${file}`
+                                );
                             } else {
-                                client.logger.debug(`[MAIN] Ignored Schema files: ${file}`);
+                                client.logger.debug(
+                                    `[MAIN] Ignored Schema files: ${file}`
+                                );
                             }
                             continue;
                         }
 
                         if (event.once) {
-                            client.once(event.name, (...args) => event.execute(...args, client));
+                            client.once(event.name, (...args) =>
+                                event.execute(...args, client)
+                            );
                         } else {
-                            client.on(event.name, (...args) => event.execute(...args, client));
+                            client.on(event.name, (...args) =>
+                                event.execute(...args, client)
+                            );
                         }
 
-                        client.logger.debug(`[MAIN] Loaded event: ${event.name} from ${mainDir}/${subDir}/${file}`);
+                        client.logger.debug(
+                            `[MAIN] Loaded event: ${event.name} from ${mainDir}/${subDir}/${file}`
+                        );
                     } catch (error) {
-                        client.logger.error(`[MAIN] Failed to load event ${file}: ${error}`);
+                        client.logger.error(
+                            `[MAIN] Failed to load event ${file}: ${error}`
+                        );
                     }
                 }
             }
@@ -99,13 +127,17 @@ const loadEvents = async (client: discord.Client, eventsPath: string): Promise<v
  * @param client Discord client instance
  */
 const setupErrorHandlers = (client: discord.Client): void => {
-    process.on('unhandledRejection', (error: Error) => {
-        client.logger.error(`[UNHANDLED-REJECTION] ${error.name}: ${error.message}`);
+    process.on("unhandledRejection", (error: Error) => {
+        client.logger.error(
+            `[UNHANDLED-REJECTION] ${error.name}: ${error.message}`
+        );
         client.logger.error(`Stack trace: ${error.stack}`);
     });
 
-    process.on('uncaughtException', (error: Error, origin) => {
-        client.logger.error(`[UNCAUGHT-EXCEPTION] ${error.name}: ${error.message}`);
+    process.on("uncaughtException", (error: Error, origin) => {
+        client.logger.error(
+            `[UNCAUGHT-EXCEPTION] ${error.name}: ${error.message}`
+        );
         client.logger.error(`Origin: ${origin}`);
         client.logger.error(`Stack trace: ${error.stack}`);
     });
@@ -116,8 +148,8 @@ const setupErrorHandlers = (client: discord.Client): void => {
  * @param client Discord client instance
  */
 const initializeBot = async (client: discord.Client): Promise<void> => {
-    const handlersPath = path.join(__dirname, 'handlers');
-    const eventsPath = path.join(__dirname, 'events');
+    const handlersPath = path.join(__dirname, "handlers");
+    const eventsPath = path.join(__dirname, "events");
 
     try {
         await loadHandlers(client, handlersPath);
@@ -125,7 +157,9 @@ const initializeBot = async (client: discord.Client): Promise<void> => {
         setupErrorHandlers(client);
 
         await client.login(configManager.getToken());
-        client.logger.success(`[MAIN] [${client.user?.username} #${client.user?.discriminator}] has connected successfully`);
+        client.logger.success(
+            `[MAIN] [${client.user?.username} #${client.user?.discriminator}] has connected successfully`
+        );
         client.logger.info(`Code by murlee#0 ❤️`);
     } catch (error) {
         client.logger.error(`[MAIN] Failed to initialize bot: ${error}`);
@@ -134,7 +168,7 @@ const initializeBot = async (client: discord.Client): Promise<void> => {
 };
 
 // Initialize the bot
-initializeBot(client).catch(error => {
-    console.error('[MAIN] Fatal error during initialization:', error);
+initializeBot(client).catch((error) => {
+    console.error("[MAIN] Fatal error during initialization:", error);
     process.exit(1);
 });

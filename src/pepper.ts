@@ -1,12 +1,12 @@
-import fs from 'fs';
-import path from 'path';
-import yaml from 'yaml';
-import discord from 'discord.js';
-import { Manager } from 'magmastream';
-import Logger from './utils/logger';
-import CommandLogger from './utils/command_logger';
-import { ConfigManager } from './utils/config';
-import { Command, SlashCommand } from './types';
+import fs from "fs";
+import path from "path";
+import yaml from "yaml";
+import discord from "discord.js";
+import { Manager } from "magmastream";
+import Logger from "./utils/logger";
+import CommandLogger from "./utils/command_logger";
+import { ConfigManager } from "./utils/config";
+import { Command, SlashCommand } from "./types";
 
 // Load environment variables
 const configManager = ConfigManager.getInstance();
@@ -17,11 +17,11 @@ const configManager = ConfigManager.getInstance();
  */
 const loadConfig = () => {
     try {
-        const configPath = path.join(__dirname, '../config/config.yml');
-        const file = fs.readFileSync(configPath, 'utf8');
+        const configPath = path.join(__dirname, "../config/config.yml");
+        const file = fs.readFileSync(configPath, "utf8");
         return yaml.parse(file);
     } catch (error) {
-        console.error('Failed to load configuration:', error);
+        console.error("Failed to load configuration:", error);
         process.exit(1);
     }
 };
@@ -50,7 +50,6 @@ const initializeManager = (config: any, client: discord.Client) => {
  * @returns Configured Discord client
  */
 const createClient = (): discord.Client => {
-
     const client = new discord.Client({
         intents: [
             discord.GatewayIntentBits.Guilds,
@@ -58,7 +57,7 @@ const createClient = (): discord.Client => {
             discord.GatewayIntentBits.GuildMessages,
             discord.GatewayIntentBits.GuildVoiceStates,
         ],
-        shards: 'auto'
+        shards: "auto",
     });
 
     // Initialize client properties
