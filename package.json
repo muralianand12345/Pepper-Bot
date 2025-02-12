@@ -1,12 +1,11 @@
 {
     "name": "pepper-bot",
-    "version": "4.0.0",
+    "version": "4.0.1",
     "description": "A updated version of pepper music bot.",
     "main": "./build/index.js",
     "type": "commonjs",
     "scripts": {
-        "start": "NODE_ENV=prod node build/index.js",
-        "dev": "NODE_ENV=dev node build/index.js",
+        "start": "node build/index.js",
         "build": "tsc"
     },
     "author": "Murali Anand",

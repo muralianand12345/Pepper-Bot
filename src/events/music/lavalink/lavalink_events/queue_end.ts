@@ -34,11 +34,11 @@ const handlePlayerCleanup = async (player: Player): Promise<void> => {
 const lavalinkEvent: LavalinkEvent = {
     name: "queueEnd",
     execute: async (player: Player, client: discord.Client): Promise<void> => {
-        if (!player?.textChannel || !client?.channels) return;
+        if (!player?.textChannelId || !client?.channels) return;
 
         try {
             const channel = (await client.channels.fetch(
-                player.textChannel
+                player.textChannelId
             )) as discord.TextChannel;
             if (!channel?.isTextBased()) return;
 

@@ -8,7 +8,7 @@ import { LavalinkEvent } from "../../../../types";
 const lavalinkEvent: LavalinkEvent = {
     name: "playerDestroy",
     execute: async (player: Player, client: discord.Client) => {
-        const guild = client.guilds.cache.get(player.guild);
+        const guild = client.guilds.cache.get(player.guildId);
         if (!guild) return;
 
         client.logger.info(

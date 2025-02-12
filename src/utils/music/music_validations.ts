@@ -131,7 +131,7 @@ class VoiceChannelValidator {
         player: magmastream.Player
     ): Promise<[boolean, discord.EmbedBuilder]> {
         const member = this.getGuildMember()!;
-        return member.voice.channelId !== player.voiceChannel
+        return member.voice.channelId !== player.voiceChannelId
             ? [
                   false,
                   this.createErrorEmbed(
@@ -173,7 +173,7 @@ class VoiceChannelValidator {
         if (!isValid) return [false, errorEmbed];
 
         const member = this.getGuildMember()!;
-        return member.voice.channelId !== player.voiceChannel
+        return member.voice.channelId !== player.voiceChannelId
             ? [
                   false,
                   this.createErrorEmbed(

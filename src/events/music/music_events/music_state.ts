@@ -25,14 +25,14 @@ const event: BotEvent = {
         }
 
         // Get voice channel info
-        if (!player.voiceChannel) return;
+        if (!player.voiceChannelId) return;
         const playerChannel = client.channels.cache.get(
-            player.voiceChannel
+            player.voiceChannelId
         ) as discord.VoiceBasedChannel;
         if (!playerChannel) return;
 
         const textChannel = client.channels.cache.get(
-            String(player.textChannel)
+            String(player.textChannelId)
         ) as discord.TextChannel;
         if (!textChannel) return;
 

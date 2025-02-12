@@ -30,16 +30,16 @@ const logTrackStart = (
     player: Player,
     client: discord.Client
 ): void => {
-    const guildName = client.guilds.cache.get(player.guild)?.name;
+    const guildName = client.guilds.cache.get(player.guildId)?.name;
     const requester = track.requester as discord.User;
 
     client.logger.debug(
-        `[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guild}) ` +
+        `[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` +
             `By ${requester.tag} (${requester.id})`
     );
     client.logger.debug(
         `[LAVALINK] User: ${requester.tag} (${requester.id}) requested song uri ${track.uri} ` +
-            `in ${guildName} (${player.guild})`
+            `in ${guildName} (${player.guildId})`
     );
 };
 
@@ -49,11 +49,11 @@ const logTrackStart = (
 const lavalinkEvent: LavalinkEvent = {
     name: "trackStart",
     execute: async (player: Player, track: Track, client: discord.Client) => {
-        if (!player?.textChannel || !client?.channels) return;
+        if (!player?.textChannelId || !client?.channels) return;
 
         try {
             const channel = (await client.channels.fetch(
-                player.textChannel
+                player.textChannelId
             )) as discord.TextChannel;
             if (!channel?.isTextBased() || player.trackRepeat) return;
 

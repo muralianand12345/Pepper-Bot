@@ -137,9 +137,9 @@ const playcommand: SlashCommand = {
             interaction.user.id
         );
         const player = client.manager.create({
-            guild: interaction.guildId || "",
-            voiceChannel: guildMember?.voice.channelId || "",
-            textChannel: interaction.channelId,
+            guildId: interaction.guildId || "",
+            voiceChannelId: guildMember?.voice.channelId || "",
+            textChannelId: interaction.channelId,
             ...CONFIG.PLAYER_OPTIONS,
         });
 

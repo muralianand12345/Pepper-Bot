@@ -7,8 +7,11 @@ bot:
         activity:
             [
                 { "name": "your Favorite Songs", "type": "PLAYING" },
-                { "name": "Pepper Radio!", "type": "LISTENING" },
+                { "name": "<clientname> Radio!", "type": "LISTENING" },
                 { "name": "<usersize> Users!", "type": "LISTENING" },
+                { "name": "version 4.0", "type": "PLAYING" },
+                { "name": "with <guildsize> Servers!", "type": "PLAYING" },
+                { "name": "<channelsize> Channels!", "type": "WATCHING" },
             ]
     command:
         prefix: "!"
