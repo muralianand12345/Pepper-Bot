@@ -7,9 +7,12 @@ import { SlashCommand, Command, CommandInfo } from "../../types";
  * @param commands - Array of command information
  * @returns Formatted string of commands
  */
-const formatCommandSection = (commands: CommandInfo[]): string => {
+const formatCommandSection = (
+    commands: CommandInfo[],
+    prefix: string
+): string => {
     return commands
-        .map((cmd) => `> **/${cmd.name}** - ${cmd.description}`)
+        .map((cmd) => `> **${prefix}${cmd.name}** - ${cmd.description}`)
         .join("\n");
 };
 
@@ -82,7 +85,7 @@ const helpCommand: SlashCommand = {
 
         embed.addFields({
             name: "Slash Commands",
-            value: formatCommandSection(slashCommands),
+            value: formatCommandSection(slashCommands, "/"),
         });
 
         // Process message commands if enabled
@@ -96,7 +99,10 @@ const helpCommand: SlashCommand = {
 
             embed.addFields({
                 name: "Legacy Commands",
-                value: formatCommandSection(msgCommands),
+                value: formatCommandSection(
+                    msgCommands,
+                    client.config.bot.command.prefix
+                ),
             });
         }
 

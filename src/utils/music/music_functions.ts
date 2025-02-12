@@ -142,10 +142,60 @@ const sendTempMessage = async (
     setTimeout(() => message.delete().catch(() => {}), duration);
 };
 
+/**
+ * Class to manage queue pagination
+ * @class QueuePagination
+ * @property {number} currentPage - Current page number
+ * @property {any[]} queueList - List of items to paginate
+ * @property {number} itemsPerPage - Number of items per page
+ */
+class QueuePagination {
+    private currentPage: number = 0;
+    private queueList: any[];
+    public readonly itemsPerPage: number = 10;
+
+    constructor(queue: any[]) {
+        this.queueList = queue;
+    }
+
+    getCurrentPageItems = () => {
+        const startIdx = this.currentPage * this.itemsPerPage;
+        const endIdx = startIdx + this.itemsPerPage;
+        return this.queueList.slice(startIdx, endIdx);
+    };
+
+    getMaxPages = () => Math.ceil(this.queueList.length / this.itemsPerPage);
+
+    getRemainingItems = () =>
+        Math.max(
+            this.queueList.length - (this.currentPage + 1) * this.itemsPerPage,
+            0
+        );
+
+    nextPage = () => {
+        if (this.currentPage < this.getMaxPages() - 1) {
+            this.currentPage++;
+            return true;
+        }
+        return false;
+    };
+
+    previousPage = () => {
+        if (this.currentPage > 0) {
+            this.currentPage--;
+            return true;
+        }
+        return false;
+    };
+
+    getCurrentPage = () => this.currentPage;
+}
+
 export {
     wait,
     fetchAudioStream,
     handleSearchResult,
     sendTempMessage,
     formatQueueMessage,
+    QueuePagination,
 };
