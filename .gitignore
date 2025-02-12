@@ -6,3 +6,5 @@ logs/*
 .git
 /config/config.prod.json
 build
+/magmastream
+.env.dev
