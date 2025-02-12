@@ -108,9 +108,17 @@ const handleSearchResult = async (
 
         case "playlist": {
             if (!res.playlist) break;
-            res.playlist.tracks.forEach((track) => player.queue.add(track));
-            if (!player.playing && !player.paused && !player.queue.totalSize)
+            res.playlist.tracks.forEach((track) => {
+                player.queue.add(track);
+            });
+
+            if (
+                !player.playing &&
+                !player.paused &&
+                player.queue.totalSize === res.playlist.tracks.length
+            ) {
                 player.play();
+            }
 
             await interaction.followUp({
                 embeds: [
@@ -121,6 +129,7 @@ const handleSearchResult = async (
                         client
                     ),
                 ],
+                components: [musicButton],
             });
             break;
         }
