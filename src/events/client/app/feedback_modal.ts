@@ -1,0 +1,147 @@
+import discord from "discord.js";
+import { MusicResponseHandler } from "../../../utils/music/embed_template";
+import { ConfigManager } from "../../../utils/config";
+import { BotEvent } from "../../../types";
+
+/**
+ * Handles feedback modal submissions in Discord
+ * @param feedback - The feedback message to process
+ * @param maxLength - Maximum length for each feedback chunk (default: 1000)
+ * @returns Array of processed feedback chunks
+ */
+const processFeedback = (
+    feedback: string,
+    maxLength: number = 1000
+): string[] =>
+    feedback.match(new RegExp(`[\\s\\S]{1,${maxLength}}`, "g")) || [];
+
+/**
+ * Creates a feedback embed with user and server information
+ * @param interaction - Modal submission interaction
+ * @param client - Discord client instance
+ * @param username - Username from feedback
+ * @param feedback - Feedback message chunks
+ * @returns Configured EmbedBuilder
+ */
+const createFeedbackEmbed = (
+    interaction: discord.ModalSubmitInteraction,
+    client: discord.Client,
+    username: string,
+    feedback: string[]
+): discord.EmbedBuilder => {
+    const embed = new discord.EmbedBuilder()
+        .setColor("#2B2D31")
+        .setAuthor({
+            name: username,
+            iconURL: interaction.user.displayAvatarURL({ size: 128 }),
+        })
+        .setTitle("📝 New Feedback Received")
+        .setDescription(
+            `> 🔍 From: ${interaction.user.tag}\n> 📍 Channel: ${
+                interaction.channel?.toString() || "DM"
+            }`
+        )
+        .addFields(
+            {
+                name: "🎭 User Information",
+                value: [
+                    `• **ID:** \`${interaction.user.id}\``,
+                    `• **Name:** ${interaction.user.toString()}`,
+                    `• **Joined:** <t:${Math.floor(
+                        interaction.user.createdTimestamp / 1000
+                    )}:R>`,
+                ].join("\n"),
+                inline: true,
+            },
+            {
+                name: "🌐 Server Details",
+                value: interaction.guild
+                    ? [
+                          `• **ID:** \`${interaction.guild.id}\``,
+                          `• **Name:** ${interaction.guild.name}`,
+                          `• **Members:** ${interaction.guild.memberCount}`,
+                      ].join("\n")
+                    : "• Direct Message",
+                inline: true,
+            }
+        )
+        .setFooter({
+            text: `${client.user?.username} Feedback System`,
+            iconURL: client.user?.displayAvatarURL(),
+        })
+        .setTimestamp();
+
+    feedback.forEach((chunk, index) => {
+        const fieldName =
+            index === 0
+                ? "💭 Feedback Content"
+                : `📝 Continued (Part ${index + 1})`;
+        embed.addFields({
+            name: fieldName,
+            value: `\`\`\`${chunk}\`\`\``,
+            inline: false,
+        });
+    });
+
+    return embed;
+};
+
+const event: BotEvent = {
+    name: discord.Events.InteractionCreate,
+    execute: async (
+        interaction: discord.Interaction,
+        client: discord.Client
+    ): Promise<void> => {
+        if (
+            !interaction.isModalSubmit() ||
+            interaction.customId !== "feedback-modal"
+        )
+            return;
+
+        try {
+            const configManager = ConfigManager.getInstance();
+            const webhookClient = new discord.WebhookClient({
+                url: configManager.getFeedbackWebhook(),
+            });
+
+            const username =
+                interaction.fields.getTextInputValue(
+                    "feedback-modal-username"
+                ) || "Anonymous";
+            const feedback =
+                interaction.fields.getTextInputValue(
+                    "feedback-modal-message"
+                ) || "No message provided";
+
+            const feedbackChunks = processFeedback(feedback);
+            const feedbackEmbed = createFeedbackEmbed(
+                interaction,
+                client,
+                username,
+                feedbackChunks
+            );
+
+            await webhookClient.send({ embeds: [feedbackEmbed] });
+            await interaction.reply({
+                embeds: [
+                    new MusicResponseHandler(client).createSuccessEmbed(
+                        "Thank you for your feedback!"
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+        } catch (error) {
+            console.error("Error processing feedback:", error);
+            await interaction.reply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Failed to submit feedback. Please try again later."
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+        }
+    },
+};
+
+export default event;

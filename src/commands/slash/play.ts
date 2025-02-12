@@ -1,222 +1,185 @@
-import { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } from "discord.js";
+import discord from "discord.js";
+import { SpotifyAutoComplete } from "../../utils/auto_search";
+import { VoiceChannelValidator } from "../../utils/music/music_validations";
+import { MusicResponseHandler } from "../../utils/music/embed_template";
+import { handleSearchResult } from "../../utils/music/music_functions";
+import { ConfigManager } from "../../utils/config";
 import { SlashCommand } from "../../types";
 
-import { msToTime, textLengthOverCut, hyperlink } from "../../utils/format";
-import { musicrow } from "../../utils/musicEmbed";
-import { getAutoComplete } from "../../utils/autoComplete";
-import { Track } from "../../../magmastream";
+// Load environment variables
+const configManager = ConfigManager.getInstance();
 
+/**
+ * Configuration for music playback settings
+ * @type {const}
+ */
+const CONFIG = {
+    /** Default placeholder text for search input */
+    DEFAULT_SEARCH_TEXT: "Please enter a song name or url",
+    /** Default player configuration options */
+    PLAYER_OPTIONS: {
+        volume: 50,
+        selfDeafen: true,
+    },
+} as const;
+
+/**
+ * Slash command for playing music in voice channels
+ * @type {SlashCommand}
+ */
 const playcommand: SlashCommand = {
-    cooldown: 5000,
+    cooldown: 5,
     owner: false,
-    data: new SlashCommandBuilder()
-        .setName('play')
-        .setDescription("Play Song")
-        .setDMPermission(false)
-        .addStringOption(option => option
-            .setName('song')
-            .setDescription('Song Name/URL')
-            .setRequired(true)
-            .setAutocomplete(true)
+    data: new discord.SlashCommandBuilder()
+        .setName("play")
+        .setDescription("Play a song via song name or url")
+        .setContexts(discord.InteractionContextType.Guild)
+        .addStringOption((option) =>
+            option
+                .setName("song")
+                .setDescription("Song Name/URL")
+                .setRequired(true)
+                .setAutocomplete(true)
         ),
-    autocomplete: async (interaction, client) => {
-        const focusedValue = interaction.options.getFocused();
-        let choices = [];
+
+    /**
+     * Handles song name autocomplete suggestions
+     * @param {discord.AutocompleteInteraction} interaction - Autocomplete interaction
+     * @param {discord.Client} client - Discord client instance
+     * @returns {Promise<void>}
+     */
+    autocomplete: async (
+        interaction: discord.AutocompleteInteraction,
+        client: discord.Client
+    ): Promise<void> => {
+        const focused = interaction.options.getFocused(true);
+
+        if (focused.name !== "song") return;
+
         try {
-            if (!focusedValue) {
-                choices = ["Please enter a search term or URL"];
-            } else {
-                choices = await getAutoComplete(focusedValue);
-            }
-            await interaction.respond(choices.map((choice: string[]) => ({ name: choice, value: choice })));
-        } catch (e: Error | any) {
-            client.logger.error(`An error occurred while fetching autocomplete suggestions.\nError: ${e.message}`);
+            const suggestions = !focused.value
+                ? [
+                      {
+                          name: CONFIG.DEFAULT_SEARCH_TEXT,
+                          value: CONFIG.DEFAULT_SEARCH_TEXT,
+                      },
+                  ]
+                : await new SpotifyAutoComplete(
+                      configManager.getSpotifyClientId(),
+                      configManager.getSpotifyClientSecret()
+                  ).getSuggestions(focused.value);
+
+            await interaction.respond(suggestions);
+        } catch (error) {
+            client.logger.warn(`[SLASH_COMMAND] Autocomplete error: ${error}`);
+            await interaction.respond([
+                {
+                    name: CONFIG.DEFAULT_SEARCH_TEXT,
+                    value: CONFIG.DEFAULT_SEARCH_TEXT,
+                },
+            ]);
         }
     },
-    execute: async (interaction, client) => {
 
-        if (!client.config.music.enabled) return interaction.reply({ embeds: [new EmbedBuilder().setColor('Red').setDescription("Music is currently disabled")], ephemeral: true });
-
-        const query = interaction.options.getString('song') || "Please enter a search term or URL";
-
-        if (query == "Please enter a search term or URL") {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("Please enter a search term or URL")],
-                ephemeral: true,
+    /**
+     * Executes the play command, handling music playback setup and validation
+     * @param {discord.ChatInputCommandInteraction} interaction - Command interaction
+     * @param {discord.Client} client - Discord client instance
+     */
+    execute: async (
+        interaction: discord.ChatInputCommandInteraction,
+        client: discord.Client
+    ) => {
+        if (!client.config.music.enabled) {
+            return await interaction.reply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Music is currently disabled"
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
-        client.logger.debug(`User ${interaction.user.tag} (${interaction.user.id}) requested to play [${query}] in ${interaction.guild?.name} (${interaction.guild?.id})`);
-
-        if (query.includes("youtu.be") || query.includes("youtube") || query.includes("youtu")) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("We do not support YouTube links or music at this time")],
-                ephemeral: true,
+        const query =
+            interaction.options.getString("song") || CONFIG.DEFAULT_SEARCH_TEXT;
+        if (query === CONFIG.DEFAULT_SEARCH_TEXT) {
+            return await interaction.reply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Please enter a song name or url"
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
-        if (!interaction.guild) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("This command can only be used in server")],
-                ephemeral: true,
-            });
+        client.logger.info(
+            `[SLASH_COMMAND] Play | User ${interaction.user.tag} | Query: ${query} | Guild: ${interaction.guildId}`
+        );
+
+        // Validate voice and music requirements
+        const validator = new VoiceChannelValidator(client, interaction);
+        for (const check of [
+            validator.validateMusicSource(query),
+            validator.validateGuildContext(),
+            validator.validateVoiceConnection(),
+        ]) {
+            const [isValid, embed] = await check;
+            if (!isValid)
+                return await interaction.reply({
+                    embeds: [embed],
+                    flags: discord.MessageFlags.Ephemeral,
+                });
         }
 
-        const guildMember = interaction.guild.members.cache.get(interaction.user.id);
-        if (!guildMember) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("Member not found")],
-                ephemeral: true,
-            });
-        }
-
-        if (!interaction.guild.members.me?.permissions.has([PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak])) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription(`Permission to connect or speak in <#${guildMember.voice.channel?.id}> channel is required`)],
-            });
-        }
-
-        if (!guildMember.voice.channel) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("Please connect to a voice channel first before using this command")],
-                ephemeral: true,
-            });
-        }
-
-        if (!guildMember.voice.channel.joinable) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription(`I don't have permission to join <#${guildMember.voice.channel.id}> channel`)],
-                ephemeral: true,
-            });
-        }
-
+        const guildMember = interaction.guild?.members.cache.get(
+            interaction.user.id
+        );
         const player = client.manager.create({
-            guild: interaction.guild.id,
-            voiceChannel: guildMember.voice.channel.id,
-            textChannel: interaction.channel?.id || "",
-            volume: 50,
-            selfDeafen: true
+            guildId: interaction.guildId || "",
+            voiceChannelId: guildMember?.voice.channelId || "",
+            textChannelId: interaction.channelId,
+            ...CONFIG.PLAYER_OPTIONS,
         });
 
-        if (guildMember.voice.channel?.id !== player.voiceChannel) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription(`It seems you are not connected to the same voice channel as me`).setFooter({text: 'If you think there is an issue, kindly contact the server admin to use \`/dcbot\` command.'})],
-                ephemeral: true,
+        const [playerValid, playerEmbed] =
+            await validator.validatePlayerConnection(player);
+        if (!playerValid)
+            return await interaction.reply({
+                embeds: [playerEmbed],
+                flags: discord.MessageFlags.Ephemeral,
             });
-        }
 
         await interaction.deferReply();
 
-        if (!["CONNECTED", "CONNECTING"].includes(player.state)) {
+        if (!["CONNECTING", "CONNECTED"].includes(player.state)) {
             player.connect();
             await interaction.editReply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription(`Connected to the <#${guildMember.voice.channel.id}> channel`)],
-            });
-        }
-
-        let res;
-        try {
-            res = await client.manager.search(query, interaction.user);
-            if (res.loadType === "error") throw new Error("An error occurred while searching for music");
-        } catch (e) {
-            client.logger.error(`An unknown error occurred while searching for music\nError: ${e}`);
-            return interaction.followUp({
                 embeds: [
-                    new EmbedBuilder()
-                        .setColor('Red')
-                        .setTitle("🐛 Uh-oh... Error")
-                        .setDescription(`Oops! An unknown error occurred while searching for music.\nCould it be a private video or an incorrect link?`),
+                    new MusicResponseHandler(client).createSuccessEmbed(
+                        `Connected to ${guildMember?.voice.channel?.name}`
+                    ),
                 ],
-                ephemeral: true,
             });
         }
 
-        switch (res.loadType) {
-            case "empty": {
-                if (!player.queue.current) player.destroy();
-                return interaction.followUp({
-                    embeds: [new EmbedBuilder().setColor('Red').setTitle("🤔 Hm...").setDescription("I've looked thoroughly, but it seems like there's no such music")],
-                    ephemeral: true,
-                });
-            }
-
-            case "track":
-            case "search": {
-                let track: Track = res.tracks[0];
-                player.queue.add(track);
-
-                if (!player.playing && !player.paused && !player.queue.size) {
-                    player.play();
-                }
-
-                await interaction.followUp({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`💿 Added the music to the queue`)
-                            .setDescription(hyperlink(textLengthOverCut(track.title, 50), track.uri))
-                            .setThumbnail(track.artworkUrl)
-                            .setColor(client.config.music.embedcolor)
-                            .addFields(
-                                {
-                                    name: "Duration",
-                                    value: `┕** \`${track.isStream ? "LIVE" : msToTime(track.duration)}\`**`,
-                                    inline: true,
-                                },
-                                {
-                                    name: "Requester",
-                                    value: `┕** ${track.requester}**`,
-                                    inline: true,
-                                },
-                                {
-                                    name: "Author",
-                                    value: `┕** \`${track.author}\`**`,
-                                    inline: true,
-                                }
-                            ),
-                    ],
-                    components: [musicrow],
-                    ephemeral: false,
-                });
-                break;
-            }
-
-            case "playlist": {
-                res.playlist?.tracks.forEach((track) => {
-                    player.queue.add(track);
-                });
-                if (!player.playing && !player.paused && player.queue.totalSize === res.playlist?.tracks.length) player.play();
-
-                await interaction.followUp({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`📜 Added the playlist to the queue`)
-                            .setDescription(hyperlink(textLengthOverCut(res.playlist?.name || "", 50), query))
-                            .setThumbnail(res.playlist?.tracks[0].artworkUrl || "")
-                            .setColor(client.config.music.embedcolor)
-                            .addFields(
-                                {
-                                    name: "Playlist Duration",
-                                    value: `┕** \`${msToTime(res.playlist?.duration || 0)}\`**`,
-                                    inline: true,
-                                },
-                                {
-                                    name: "Requester",
-                                    value: `┕** ${res.playlist?.tracks[0].requester}**`,
-                                    inline: true,
-                                }
-                            ),
-                    ],
-                    //components: [musicrow],
-                });
-                break;
-            }
-
-            default: {
-                client.logger.info("default" + res.loadType);
-                break;
-            }
+        try {
+            const res = await client.manager.search(query, interaction.user);
+            if (res.loadType === "error") throw new Error("Search error");
+            await handleSearchResult(res, player, interaction, client);
+        } catch (error) {
+            client.logger.error(`[SLASH_COMMAND] Play error: ${error}`);
+            await interaction.followUp({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "An error occurred while processing the song"
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
+            });
         }
-    }
-}
+    },
+};
 
 export default playcommand;

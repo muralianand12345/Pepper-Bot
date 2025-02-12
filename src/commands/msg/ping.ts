@@ -1,34 +1,36 @@
-import os from "os";
 import discord from "discord.js";
+import os from "os";
 import Formatter from "../../utils/format";
-import { SlashCommand } from "../../types";
+import { Command } from "../../types";
 
 /**
- * Ping command to check bot latency and system status
- * @type {SlashCommand}
+ * Message-based ping command to check bot latency and system status
  */
-const pingCommand: SlashCommand = {
+const command: Command = {
+    name: "ping",
+    description: "Check bot status and response time",
     cooldown: 120,
     owner: false,
-    data: new discord.SlashCommandBuilder()
-        .setName("ping")
-        .setDescription("Check bot status and response time"),
 
     /**
      * Executes the ping command and displays detailed system information
-     * @param {discord.ChatInputCommandInteraction} interaction - The command interaction
      * @param {discord.Client} client - The Discord client instance
+     * @param {discord.Message} message - The message that triggered the command
+     * @param {Array<string>} args - Command arguments
      */
     execute: async (
-        interaction: discord.ChatInputCommandInteraction,
-        client: discord.Client
+        client: discord.Client,
+        message: discord.Message,
+        args: Array<string>
     ) => {
         try {
-            const startTime = Date.now();
-            await interaction.deferReply();
+            const chan = message.channel as
+                | discord.GuildTextBasedChannel
+                | discord.DMChannel;
+            const sent = await chan.send("🏓 Pinging...");
 
-            const endTime = Date.now();
-            const roundTripLatency = endTime - startTime;
+            const roundTripLatency =
+                sent.createdTimestamp - message.createdTimestamp;
             const heapUsed = Math.round(
                 process.memoryUsage().heapUsed / 1024 / 1024
             );
@@ -75,15 +77,16 @@ const pingCommand: SlashCommand = {
                 .setFooter({ text: `${client.user?.username} Status Monitor` })
                 .setTimestamp();
 
-            await interaction.editReply({ embeds: [embed] });
+            await sent
+                .edit({ content: "", embeds: [embed] })
+                .catch(console.error);
         } catch (error) {
             console.error("Error executing ping command:", error);
-            await interaction.reply({
+            await message.reply({
                 content: "Failed to fetch system status. Please try again.",
-                flags: discord.MessageFlags.Ephemeral,
             });
         }
     },
 };
 
-export default pingCommand;
+export default command;

@@ -1,71 +1,69 @@
-import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-
-import musicModel from "../../events/database/schema/musicGuild";
-import { updateMusicChannel } from "../../utils/musicFunction";
+import discord from "discord.js";
+import { MusicResponseHandler } from "../../utils/music/embed_template";
+import { VoiceChannelValidator } from "../../utils/music/music_validations";
 import { SlashCommand } from "../../types";
 
+/**
+ * Slash command for stopping music playback
+ * @type {SlashCommand}
+ */
 const stopcommand: SlashCommand = {
-    cooldown: 5000,
+    cooldown: 5,
     owner: false,
-    data: new SlashCommandBuilder()
-        .setName('stop')
-        .setDescription("Stop Music")
-        .setDMPermission(false),
-    execute: async (interaction, client) => {
-
-        if (!client.config.music.enabled) return interaction.reply({ embeds: [new EmbedBuilder().setColor('Red').setDescription("Music is currently disabled")], ephemeral: true });
-
-        if (!interaction.guild) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("This command can only be used in server")],
-                ephemeral: true,
+    data: new discord.SlashCommandBuilder()
+        .setName("stop")
+        .setDescription("Stop all music playback")
+        .setContexts(discord.InteractionContextType.Guild),
+    execute: async (
+        interaction: discord.ChatInputCommandInteraction,
+        client: discord.Client
+    ) => {
+        if (!client.config.music.enabled) {
+            return await interaction.reply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Music is currently disabled"
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
-        const player = client.manager.get(interaction.guild.id);
-
-        if (!player || !player?.queue?.current) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("There is no music playing")],
-                ephemeral: true,
+        const player = client.manager.get(interaction.guild?.id || "");
+        if (!player)
+            return await interaction.reply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "No music is currently playing"
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
             });
-        }
 
-        const guildMember = interaction.guild.members.cache.get(interaction.user.id);
-        if (!guildMember) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("Member not found")],
-                ephemeral: true,
-            });
-        }
-
-        if (!guildMember.voice.channel) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("Please connect to a voice channel first")],
-                ephemeral: true,
-            });
-        }
-
-        if (guildMember.voice.channel?.id !== player.voiceChannel) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("It seems like you are not in the same voice channel as me").setFooter({text: 'If you think there is an issue, kindly contact the server admin to use \`/dcbot\` command.'})],
-                ephemeral: true,
-            });
-        }
-
-        var musicData = await musicModel.findOne({
-            guildId: interaction.guild.id
-        });
-
-        if (musicData) {
-            await updateMusicChannel(client, musicData, player, null, true);
+        const validator = new VoiceChannelValidator(client, interaction);
+        for (const check of [
+            validator.validateGuildContext(),
+            validator.validateVoiceConnection(),
+            validator.validateMusicPlaying(player),
+            validator.validateVoiceSameChannel(player),
+        ]) {
+            const [isValid, embed] = await check;
+            if (!isValid)
+                return await interaction.reply({
+                    embeds: [embed],
+                    flags: discord.MessageFlags.Ephemeral,
+                });
         }
 
         player.destroy();
         await interaction.reply({
-            embeds: [new EmbedBuilder().setColor(client.config.music.embedcolor).setDescription("I stopped the music!")],
+            embeds: [
+                new MusicResponseHandler(client).createErrorEmbed(
+                    "Music playback has been stopped"
+                ),
+            ],
         });
-    }
-}
+    },
+};
 
 export default stopcommand;

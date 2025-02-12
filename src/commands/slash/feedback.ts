@@ -1,40 +1,88 @@
-import { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from "discord.js";
-
+import discord from "discord.js";
 import { SlashCommand } from "../../types";
 
-const feedbackcommand: SlashCommand = {
-    cooldown: 10000,
+/**
+ * Slash command for collecting user feedback via a modal form
+ * @type {SlashCommand}
+ */
+const feedbackCommand: SlashCommand = {
+    cooldown: 120,
     owner: false,
-    data: new SlashCommandBuilder()
-        .setName('feedback')
-        .setDescription("Your feedback is important to us!")
-        .setDMPermission(true),
-    execute: async (interaction, client) => {
+    data: new discord.SlashCommandBuilder()
+        .setName("feedback")
+        .setDescription("Send feedback to the bot developers")
+        .setContexts(discord.InteractionContextType.Guild),
 
-        const modal = new ModalBuilder()
-            .setCustomId('feedback-modal')
-            .setTitle(`${client.config.bot.name} Feedback`);
+    /**
+     * Executes the feedback command by displaying a modal form
+     * @param {discord.ChatInputCommandInteraction} interaction - The command interaction
+     * @param {discord.Client} client - The Discord client instance
+     */
+    execute: async (
+        interaction: discord.ChatInputCommandInteraction,
+        client: discord.Client
+    ) => {
+        const createTextInput = (
+            id: string,
+            label: string,
+            placeholder: string,
+            style: discord.TextInputStyle,
+            required: boolean
+        ): discord.TextInputBuilder => {
+            return new discord.TextInputBuilder()
+                .setCustomId(id)
+                .setLabel(label)
+                .setPlaceholder(placeholder)
+                .setStyle(style)
+                .setRequired(required)
+                .setMinLength(
+                    style === discord.TextInputStyle.Paragraph ? 10 : 0
+                )
+                .setMaxLength(
+                    style === discord.TextInputStyle.Paragraph ? 4000 : 100
+                );
+        };
 
-        const feedbackName = new TextInputBuilder()
-            .setCustomId('feedback-modal-name')
-            .setLabel("Your Name")
-            .setPlaceholder("Leave blank to be anonymous")
-            .setStyle(TextInputStyle.Short)
-            .setRequired(false);
+        try {
+            const modal = new discord.ModalBuilder()
+                .setCustomId("feedback-modal")
+                .setTitle(`${client.user?.username} Feedback`);
 
-        const feedback = new TextInputBuilder()
-            .setCustomId('feedback-modal-feedback')
-            .setLabel("Your Feedback")
-            .setPlaceholder("Your feedback here...")
-            .setStyle(TextInputStyle.Paragraph)
-            .setRequired(true);
+            const nameInput = createTextInput(
+                "feedback-modal-username",
+                "Your Name",
+                "Leave blank to be anonymous",
+                discord.TextInputStyle.Short,
+                false
+            ); //actually it's not anonymous
 
-        const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(feedbackName);
-        const secondActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(feedback);
+            const feedbackInput = createTextInput(
+                "feedback-modal-message",
+                "Your Feedback",
+                "Please describe your feedback, suggestions, or issues...",
+                discord.TextInputStyle.Paragraph,
+                true
+            );
 
-        modal.addComponents(firstActionRow, secondActionRow);
-        await interaction.showModal(modal);
-    }
-}
+            modal.addComponents(
+                new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(
+                    nameInput
+                ),
+                new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(
+                    feedbackInput
+                )
+            );
 
-export default feedbackcommand;
+            await interaction.showModal(modal);
+        } catch (error) {
+            console.error("Error creating feedback modal:", error);
+            await interaction.reply({
+                content:
+                    "Failed to open feedback form. Please try again later.",
+                flags: discord.MessageFlags.Ephemeral,
+            });
+        }
+    },
+};
+
+export default feedbackCommand;

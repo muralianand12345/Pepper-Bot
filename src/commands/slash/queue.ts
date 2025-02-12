@@ -1,111 +1,162 @@
-import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionCollector, ButtonInteraction } from "discord.js";
-import { msToTime, textLengthOverCut, hyperlink } from "../../utils/format";
-
+import discord from "discord.js";
+import Formatter from "../../utils/format";
+import { QueuePagination } from "../../utils/music/music_functions";
+import { MusicResponseHandler } from "../../utils/music/embed_template";
+import { VoiceChannelValidator } from "../../utils/music/music_validations";
 import { SlashCommand } from "../../types";
 
 const queuecommand: SlashCommand = {
-    cooldown: 5000,
+    cooldown: 5,
     owner: false,
-    data: new SlashCommandBuilder()
-        .setName('queue')
-        .setDescription("Show the queue")
-        .setDMPermission(false),
-
-    execute: async (interaction, client) => {
-
-        if (!client.config.music.enabled) return interaction.reply({ embeds: [new EmbedBuilder().setColor('Red').setDescription("Music is currently disabled")], ephemeral: true });
-
-        if (!interaction.guild) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("This command can only be used in server")],
-                ephemeral: true,
+    data: new discord.SlashCommandBuilder()
+        .setName("queue")
+        .setDescription("Show the current music queue")
+        .setContexts(discord.InteractionContextType.Guild),
+    execute: async (
+        interaction: discord.ChatInputCommandInteraction,
+        client: discord.Client
+    ) => {
+        if (!client.config.music.enabled) {
+            return await interaction.reply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Music is currently disabled"
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
-        const player = client.manager.get(interaction.guild.id);
-
-        if (!player || !player?.queue?.current) {
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('Red').setDescription("There is no music currently playing")],
-                ephemeral: true,
+        const player = client.manager.get(interaction.guild?.id || "");
+        if (!player)
+            return await interaction.reply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "No music is currently playing"
+                    ),
+                ],
+                flags: discord.MessageFlags.Ephemeral,
             });
+
+        const validator = new VoiceChannelValidator(client, interaction);
+        for (const check of [
+            validator.validateGuildContext(),
+            validator.validateVoiceConnection(),
+            validator.validateMusicPlaying(player),
+            validator.validateVoiceSameChannel(player),
+        ]) {
+            const [isValid, embed] = await check;
+            if (!isValid)
+                return await interaction.reply({
+                    embeds: [embed],
+                    flags: discord.MessageFlags.Ephemeral,
+                });
         }
 
         await interaction.deferReply();
 
         const queueList = Array.from(player.queue, (song, index) => ({
             title: `${index + 1}. ${song.title}`,
-            duration: song.isStream ? "LIVE" : msToTime(song.duration || 0),
+            duration: song.isStream
+                ? "LIVE"
+                : Formatter.msToTime(song.duration || 0),
             requester: song.requester,
         }));
 
-        const itemsPerPage = 10;
-        let currentPage = 0;
-        const maxPage = Math.ceil(queueList.length / itemsPerPage);
+        const pagination = new QueuePagination(queueList);
 
-        const getQueueListForPage = (page: number) => {
-            const startIdx = page * itemsPerPage;
-            const endIdx = startIdx + itemsPerPage;
-            return queueList.slice(startIdx, endIdx);
-        };
-
-        const getQueueEmbed = (queueListForPage: Array<any>) => {
-            const leftQueue = Math.max(queueList.length - (currentPage + 1) * itemsPerPage, 0);
-
-            return new EmbedBuilder()
-                .setColor(client.config.music.embedcolor)
+        const createQueueEmbed = () => {
+            const currentPageItems = pagination.getCurrentPageItems();
+            return new discord.EmbedBuilder()
+                .setColor(client.config.content.embed.color.info)
                 .setTitle("📋 Current Queue")
-                .setDescription(`🎶 ${hyperlink(textLengthOverCut(player.queue.current?.title || "", 50), player.queue.current?.uri || "")}`)
-                .setFooter({ text: player.queue.size > itemsPerPage ? `( ${currentPage + 1} / ${maxPage} Pages )\n+${leftQueue} Songs` : " " })
+                .setDescription(
+                    `🎶 ${Formatter.hyperlink(
+                        Formatter.truncateText(
+                            player.queue.current?.title || "",
+                            50
+                        ),
+                        player.queue.current?.uri || ""
+                    )}`
+                )
+                .setFooter({
+                    text:
+                        pagination.getMaxPages() > 1
+                            ? `( ${
+                                  pagination.getCurrentPage() + 1
+                              } / ${pagination.getMaxPages()} Pages )\n+${pagination.getRemainingItems()} Songs`
+                            : " ",
+                })
                 .addFields(
-                    ...queueListForPage.map((song) => ({
-                        name: textLengthOverCut(song.title, 50),
+                    ...currentPageItems.map((song) => ({
+                        name: Formatter.truncateText(song.title, 50),
                         value: `**\`${song.duration}\`** (${song.requester})`,
                     }))
                 );
         };
 
-        const paginationRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder().setCustomId("previous-music-queue").setLabel("Previous").setStyle(ButtonStyle.Secondary).setEmoji("⏮️"),
-            new ButtonBuilder().setCustomId("next-music-queue").setLabel("Next").setStyle(ButtonStyle.Secondary).setEmoji("⏭️")
-        );
+        const paginationRow =
+            new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
+                new discord.ButtonBuilder()
+                    .setCustomId("previous-music-queue")
+                    .setLabel("Previous")
+                    .setStyle(discord.ButtonStyle.Secondary)
+                    .setEmoji("⏮️"),
+                new discord.ButtonBuilder()
+                    .setCustomId("next-music-queue")
+                    .setLabel("Next")
+                    .setStyle(discord.ButtonStyle.Secondary)
+                    .setEmoji("⏭️")
+            );
 
-        const paginationBtnDisable = (row: ActionRowBuilder<ButtonBuilder>) => {
-            row.components[0].setDisabled(currentPage === 0);
-            row.components[1].setDisabled(currentPage === maxPage - 1);
+        const updatePaginationButtons = () => {
+            paginationRow.components[0].setDisabled(
+                pagination.getCurrentPage() === 0
+            );
+            paginationRow.components[1].setDisabled(
+                pagination.getCurrentPage() === pagination.getMaxPages() - 1
+            );
         };
 
-        paginationBtnDisable(paginationRow);
+        updatePaginationButtons();
         const replyMessage = await interaction.editReply({
-            embeds: [getQueueEmbed(getQueueListForPage(currentPage))],
-            components: player.queue.size > itemsPerPage ? [paginationRow] : [],
+            embeds: [createQueueEmbed()],
+            components:
+                player.queue.size > pagination.itemsPerPage
+                    ? [paginationRow]
+                    : [],
         });
 
-        const filter = (i: any) => i.customId === "previous-music-queue" || i.customId === "next-music-queue";
-        const collector = replyMessage.createMessageComponentCollector({ filter, time: 120 * 1000 });
+        const collector = replyMessage.createMessageComponentCollector({
+            filter: (i: any) =>
+                i.customId === "previous-music-queue" ||
+                i.customId === "next-music-queue",
+            time: 120 * 1000,
+        });
 
         collector.on("collect", async (i) => {
-            if (i.customId === "previous-music-queue") {
-                currentPage = Math.max(currentPage - 1, 0);
-            } else if (i.customId === "next-music-queue") {
-                currentPage = Math.min(currentPage + 1, maxPage - 1);
-            }
+            const moved =
+                i.customId === "previous-music-queue"
+                    ? pagination.previousPage()
+                    : pagination.nextPage();
 
-            paginationBtnDisable(paginationRow);
-            await i.update({
-                embeds: [getQueueEmbed(getQueueListForPage(currentPage))],
-                components: [paginationRow],
-            });
+            if (moved) {
+                updatePaginationButtons();
+                await i.update({
+                    embeds: [createQueueEmbed()],
+                    components: [paginationRow],
+                });
+            }
         });
 
         collector.on("end", () => {
             paginationRow.components.forEach((c) => c.setDisabled(true));
             replyMessage.edit({
-                embeds: [getQueueEmbed(getQueueListForPage(currentPage))],
+                embeds: [createQueueEmbed()],
                 components: [paginationRow],
             });
         });
-    }
-}
+    },
+};
 
 export default queuecommand;
