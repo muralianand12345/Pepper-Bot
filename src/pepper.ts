@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import yaml from "yaml";
 import discord from "discord.js";
-import { Manager } from "magmastream";
+import { Manager, UseNodeOptions } from "magmastream";
 import Logger from "./utils/logger";
 import CommandLogger from "./utils/command_logger";
 import { ConfigManager } from "./utils/config";
@@ -34,6 +34,8 @@ const loadConfig = () => {
  */
 const initializeManager = (config: any, client: discord.Client) => {
     return new Manager({
+        usePriority: true,
+        useNode: UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
         nodes: config.music.lavalink.nodes,
         autoPlay: true,
         defaultSearchPlatform: config.music.lavalink.default_search,

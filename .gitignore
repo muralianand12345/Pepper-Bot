@@ -9,3 +9,5 @@ magmastream
 .env
 .env.*
 yarn.lock
+lavalink/application.yml
+/lavalink/plugins

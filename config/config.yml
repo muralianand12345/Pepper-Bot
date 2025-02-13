@@ -32,15 +32,30 @@ music:
         nodes:
             [
                 {
+                    "identifier": "Pepper 1",
+                    "host": "lavalink.muralianand.in",
+                    "port": 25773,
+                    "password": "4Vzm^mZw2CJG@P7pMM5$",
+                    "priority": 1,
+                    "secure": true,
+                    "retryAmount": 1000,
+                    "retrydelay": 10000,
+                    "resumeStatus": false,
+                    "resumeTimeout": 1000,
+                    "requestTimeout": 10000,
+                },
+                {
                     "identifier": "Pepper 2",
                     "host": "lavalink.jirayu.net",
                     "port": 13592,
                     "password": "youshallnotpass",
+                    "priority": 2,
                     "secure": false,
                     "retryAmount": 1000,
                     "retrydelay": 10000,
                     "resumeStatus": false,
                     "resumeTimeout": 1000,
+                    "requestTimeout": 10000,
                 },
             ]
 
