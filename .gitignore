@@ -3,6 +3,7 @@ build
 logs
 magmastream
 /lavalink/plugins
+lavalink/logs
 
 .DS_Store
 **/.DS_Store
@@ -12,6 +13,5 @@ magmastream
 .env.*
 yarn.lock
 lavalink/application.yml
-# lavalink/logs
 config/config.prod.yml
-# config/config.yml
+config/config.yml
