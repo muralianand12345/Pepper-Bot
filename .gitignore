@@ -2,12 +2,16 @@ node_modules
 build
 logs
 magmastream
+/lavalink/plugins
 
 .DS_Store
 **/.DS_Store
 
+**.log
 .env
 .env.*
 yarn.lock
 lavalink/application.yml
-/lavalink/plugins
+# lavalink/logs
+config/config.prod.yml
+# config/config.yml

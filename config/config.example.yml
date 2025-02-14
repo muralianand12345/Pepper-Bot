@@ -1,10 +1,10 @@
 bot:
-    owners: ["678402714765361182"]
+    owners: ["1234567890"]
     presence:
         enabled: true
-        status: dnd
+        status: dnd # online, idle, dnd, invisible
         interval: 10000
-        activity:
+        activity: # PLAYING, LISTENING, WATCHING, STREAMING
             [
                 { "name": "your Favorite Songs", "type": "PLAYING" },
                 { "name": "<clientname> Radio!", "type": "LISTENING" },
@@ -21,14 +21,14 @@ bot:
             enabled: false
             commands: ["help", "ping", "info"]
     log:
-        command: "1332426115788308583"
-        server: "1332426130703257744"
+        command: "1234567890" # Command Log Channel ID
+        server: "1234567890" # New/Left Server Log Channel ID
 
 music:
     enabled: true
     image: "https://localhost:8080/assets/music.gif"
     lavalink:
-        default_search: spsearch
+        default_search: spsearch # amsearch, bcsearch, dzsearch, jssearch, scsearch, spsearch, tdsearch, ytsearch, vksearch, ytmsearch
         nodes:
             [
                 {
