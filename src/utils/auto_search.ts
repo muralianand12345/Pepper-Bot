@@ -45,6 +45,80 @@ export class SpotifyAutoComplete {
         }
     };
 
+    private getSpotifyIdFromUrl = (
+        url: string
+    ): { type: string; id: string } | null => {
+        try {
+            const urlObj = new URL(url);
+            if (!urlObj.hostname.includes("spotify.com")) return null;
+
+            const pathParts = urlObj.pathname.split("/");
+            if (pathParts.length < 3) return null;
+
+            const type = pathParts[1];
+            const id = pathParts[2].split("?")[0];
+
+            if (!["track", "album", "playlist", "artist"].includes(type))
+                return null;
+
+            return { type, id };
+        } catch (error) {
+            return null;
+        }
+    };
+
+    private getMetadataFromUrl = async (
+        url: string
+    ): Promise<discord.ApplicationCommandOptionChoiceData> => {
+        await this.checkToken();
+
+        const urlInfo = this.getSpotifyIdFromUrl(url);
+        if (!urlInfo) {
+            return { name: url, value: url };
+        }
+
+        try {
+            const response = await fetch(
+                `https://api.spotify.com/v1/${urlInfo.type}s/${urlInfo.id}`,
+                {
+                    headers: { Authorization: `Bearer ${this.token}` },
+                }
+            );
+
+            if (!response.ok) {
+                return { name: "Invalid Spotify URL", value: url };
+            }
+
+            const data = await response.json();
+            let name = "";
+
+            switch (urlInfo.type) {
+                case "track":
+                    name = `${data.name} - ${data.artists[0].name}`;
+                    break;
+                case "album":
+                    name = `Album: ${data.name} - ${data.artists[0].name}`;
+                    break;
+                case "playlist":
+                    name = `Playlist: ${data.name} by ${data.owner.display_name}`;
+                    break;
+                case "artist":
+                    name = `Artist: ${data.name}`;
+                    break;
+                default:
+                    name = "Unknown Spotify Content";
+            }
+
+            return {
+                name: name.slice(0, 100),
+                value: url,
+            };
+        } catch (error) {
+            console.error("Error fetching Spotify metadata:", error);
+            return { name: "Error fetching Spotify metadata", value: url };
+        }
+    };
+
     public getSuggestions = async (
         query: string,
         options: IAutoCompleteOptions = {}
@@ -55,6 +129,11 @@ export class SpotifyAutoComplete {
         const maxResults = options.maxResults || this.defaultOptions.maxResults;
 
         try {
+            if (query.startsWith("https://")) {
+                const metadata = await this.getMetadataFromUrl(query);
+                return [metadata];
+            }
+
             const response = await fetch(
                 `https://api.spotify.com/v1/search?q=${encodeURIComponent(
                     query

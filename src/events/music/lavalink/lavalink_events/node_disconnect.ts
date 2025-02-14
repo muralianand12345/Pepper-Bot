@@ -7,7 +7,11 @@ import { LavalinkEvent } from "../../../../types";
  */
 const lavalinkEvent: LavalinkEvent = {
     name: "nodeDisconnect",
-    execute: async (node: Node, reason: string, client: discord.Client) => {
+    execute: async (
+        node: Node,
+        reason: string | number,
+        client: discord.Client
+    ) => {
         client.logger.error(
             `[LAVALINK] Node ${node.options.identifier} disconnected\n${reason}`
         );

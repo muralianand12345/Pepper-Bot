@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import { Player } from "magmastream";
+import { Player, Track, TrackEndEvent } from "magmastream";
 import { wait } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
 import { LavalinkEvent } from "../../../../types";
@@ -33,7 +33,12 @@ const handlePlayerCleanup = async (player: Player): Promise<void> => {
  */
 const lavalinkEvent: LavalinkEvent = {
     name: "queueEnd",
-    execute: async (player: Player, client: discord.Client): Promise<void> => {
+    execute: async (
+        player: Player,
+        track: Track,
+        payload: TrackEndEvent,
+        client: discord.Client
+    ): Promise<void> => {
         if (!player?.textChannelId || !client?.channels) return;
 
         try {

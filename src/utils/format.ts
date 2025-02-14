@@ -63,7 +63,7 @@ class Formatter {
      */
     public static truncateText(
         text: string,
-        maxLength: number = 20,
+        maxLength: number = 50,
         ellipsis: string = "..."
     ): string {
         if (Array.from(text).length > maxLength) {

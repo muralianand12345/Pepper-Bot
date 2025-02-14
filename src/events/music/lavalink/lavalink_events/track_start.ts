@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import { Player, Track } from "magmastream";
+import { Player, Track, TrackStartEvent } from "magmastream";
 import { sendTempMessage } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
 import { LavalinkEvent } from "../../../../types";
@@ -48,7 +48,12 @@ const logTrackStart = (
  */
 const lavalinkEvent: LavalinkEvent = {
     name: "trackStart",
-    execute: async (player: Player, track: Track, client: discord.Client) => {
+    execute: async (
+        player: Player,
+        track: Track,
+        payload: TrackStartEvent,
+        client: discord.Client
+    ) => {
         if (!player?.textChannelId || !client?.channels) return;
 
         try {
@@ -61,7 +66,7 @@ const lavalinkEvent: LavalinkEvent = {
             sendTempMessage(
                 channel,
                 createTrackStartEmbed(track, client),
-                5000
+                track.duration
             );
 
             logTrackStart(track, player, client);
