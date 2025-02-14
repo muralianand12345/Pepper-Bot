@@ -252,3 +252,15 @@ export interface IPremiumData {
     expiresAt: date | null;
     plan: string | null;
 }
+
+export interface ISongs {
+    title: string;
+    url: string;
+    played_number: number;
+    timestamp: Date;
+}
+
+export interface IMusicUser {
+    userId: string;
+    songs: Array<ISongs>;
+}

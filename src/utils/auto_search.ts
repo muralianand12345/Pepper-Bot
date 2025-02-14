@@ -1,13 +1,29 @@
 import discord from "discord.js";
+import axios, { AxiosInstance } from "axios";
 import { IAutoCompleteOptions, SpotifySearchResult } from "../types";
 
+/**
+ * SpotifyAutoComplete class provides functionality for searching Spotify tracks
+ * and retrieving metadata from Spotify URLs.
+ *
+ * @class SpotifyAutoComplete
+ * @description Handles Spotify API authentication, search, and URL metadata retrieval
+ * for Discord autocomplete suggestions. Supports tracks, albums, playlists, and artists.
+ */
 export class SpotifyAutoComplete {
     private token: string | null = null;
     private tokenExpiry: number = 0;
     private readonly clientId: string;
     private readonly clientSecret: string;
     private readonly defaultOptions: IAutoCompleteOptions;
+    private spotifyApi: AxiosInstance;
+    private authApi: AxiosInstance;
 
+    /**
+     * Creates an instance of SpotifyAutoComplete.
+     * @param {string} clientId - Spotify API client ID
+     * @param {string} clientSecret - Spotify API client secret
+     */
     constructor(clientId: string, clientSecret: string) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
@@ -15,36 +31,104 @@ export class SpotifyAutoComplete {
             maxResults: 7,
             language: "en",
         };
-    }
 
-    private refreshToken = async (): Promise<void> => {
-        const auth = Buffer.from(
-            `${this.clientId}:${this.clientSecret}`
-        ).toString("base64");
-        const response = await fetch("https://accounts.spotify.com/api/token", {
-            method: "POST",
+        // Create axios instance for Spotify API
+        this.spotifyApi = axios.create({
+            baseURL: "https://api.spotify.com/v1",
+            timeout: 10000,
             headers: {
-                Authorization: `Basic ${auth}`,
-                "Content-Type": "application/x-www-form-urlencoded",
+                "Content-Type": "application/json",
             },
-            body: "grant_type=client_credentials",
         });
 
-        if (!response.ok) {
-            throw new Error(`Token refresh failed: ${response.statusText}`);
-        }
+        // Create axios instance for authentication
+        this.authApi = axios.create({
+            baseURL: "https://accounts.spotify.com/api",
+            timeout: 10000,
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+        });
 
-        const data = await response.json();
-        this.token = data.access_token;
-        this.tokenExpiry = Date.now() + data.expires_in * 1000;
+        // Add response interceptor for error handling
+        this.spotifyApi.interceptors.response.use(
+            (response) => response,
+            (error) => {
+                if (axios.isAxiosError(error)) {
+                    if (error.response?.status === 401) {
+                        // Token expired, refresh it
+                        return this.refreshToken().then(() => {
+                            const originalRequest = error.config;
+                            if (originalRequest && originalRequest.headers) {
+                                originalRequest.headers.Authorization = `Bearer ${this.token}`;
+                                return this.spotifyApi(originalRequest);
+                            }
+                        });
+                    }
+                }
+                return Promise.reject(error);
+            }
+        );
+    }
+
+    /**
+     * Refreshes the Spotify API access token.
+     * @private
+     * @returns {Promise<void>}
+     * @throws {Error} If token refresh fails
+     */
+    private refreshToken = async (): Promise<void> => {
+        try {
+            const auth = Buffer.from(
+                `${this.clientId}:${this.clientSecret}`
+            ).toString("base64");
+
+            const { data } = await this.authApi.post(
+                "/token",
+                "grant_type=client_credentials",
+                {
+                    headers: {
+                        Authorization: `Basic ${auth}`,
+                    },
+                }
+            );
+
+            this.token = data.access_token;
+            this.tokenExpiry = Date.now() + data.expires_in * 1000;
+
+            // Update the default Authorization header
+            this.spotifyApi.defaults.headers.common[
+                "Authorization"
+            ] = `Bearer ${this.token}`;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                throw new Error(
+                    `Token refresh failed: ${
+                        error.response?.data?.error || error.message
+                    }`
+                );
+            }
+            throw error;
+        }
     };
 
+    /**
+     * Checks if the current token is valid and refreshes it if necessary.
+     * @private
+     * @returns {Promise<void>}
+     */
     private checkToken = async (): Promise<void> => {
         if (!this.token || Date.now() >= this.tokenExpiry) {
             await this.refreshToken();
         }
     };
 
+    /**
+     * Extracts Spotify ID and content type from a Spotify URL.
+     * @private
+     * @param {string} url - Spotify URL to parse
+     * @returns {{ type: string; id: string } | null} Object containing content type and ID, or null if invalid
+     */
     private getSpotifyIdFromUrl = (
         url: string
     ): { type: string; id: string } | null => {
@@ -67,6 +151,12 @@ export class SpotifyAutoComplete {
         }
     };
 
+    /**
+     * Retrieves metadata for a Spotify URL.
+     * @private
+     * @param {string} url - Spotify URL to get metadata for
+     * @returns {Promise<discord.ApplicationCommandOptionChoiceData>} Discord option choice data
+     */
     private getMetadataFromUrl = async (
         url: string
     ): Promise<discord.ApplicationCommandOptionChoiceData> => {
@@ -78,18 +168,10 @@ export class SpotifyAutoComplete {
         }
 
         try {
-            const response = await fetch(
-                `https://api.spotify.com/v1/${urlInfo.type}s/${urlInfo.id}`,
-                {
-                    headers: { Authorization: `Bearer ${this.token}` },
-                }
+            const { data } = await this.spotifyApi.get(
+                `/${urlInfo.type}s/${urlInfo.id}`
             );
 
-            if (!response.ok) {
-                return { name: "Invalid Spotify URL", value: url };
-            }
-
-            const data = await response.json();
             let name = "";
 
             switch (urlInfo.type) {
@@ -115,10 +197,28 @@ export class SpotifyAutoComplete {
             };
         } catch (error) {
             console.error("Error fetching Spotify metadata:", error);
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+                return { name: "Invalid Spotify URL", value: url };
+            }
             return { name: "Error fetching Spotify metadata", value: url };
         }
     };
 
+    /**
+     * Gets autocomplete suggestions for a search query or Spotify URL.
+     * @public
+     * @param {string} query - Search query or Spotify URL
+     * @param {IAutoCompleteOptions} [options={}] - Search options
+     * @returns {Promise<discord.ApplicationCommandOptionChoiceData[]>} Array of Discord option choices
+     *
+     * @example
+     * // Search for tracks
+     * const suggestions = await spotifyAutoComplete.getSuggestions("bohemian rhapsody");
+     *
+     * @example
+     * // Get metadata for a Spotify URL
+     * const metadata = await spotifyAutoComplete.getSuggestions("https://open.spotify.com/track/...");
+     */
     public getSuggestions = async (
         query: string,
         options: IAutoCompleteOptions = {}
@@ -134,19 +234,17 @@ export class SpotifyAutoComplete {
                 return [metadata];
             }
 
-            const response = await fetch(
-                `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-                    query
-                )}&type=track&limit=${maxResults}`,
+            const { data } = await this.spotifyApi.get<SpotifySearchResult>(
+                "/search",
                 {
-                    headers: { Authorization: `Bearer ${this.token}` },
+                    params: {
+                        q: query,
+                        type: "track",
+                        limit: maxResults,
+                    },
                 }
             );
 
-            if (!response.ok)
-                throw new Error(`Search failed: ${response.statusText}`);
-
-            const data = (await response.json()) as SpotifySearchResult;
             return data.tracks.items.map((track) => ({
                 name: `${track.name} - ${track.artists[0].name}`.slice(0, 100),
                 value: track.external_urls.spotify,

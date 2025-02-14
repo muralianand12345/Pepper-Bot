@@ -2,6 +2,7 @@ import discord from "discord.js";
 import { Player, Track, TrackStartEvent } from "magmastream";
 import { sendTempMessage } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
+import { addMusicUserData } from "../../../../utils/music/music_db";
 import { LavalinkEvent } from "../../../../types";
 
 /**
@@ -61,6 +62,13 @@ const lavalinkEvent: LavalinkEvent = {
                 player.textChannelId
             )) as discord.TextChannel;
             if (!channel?.isTextBased() || player.trackRepeat) return;
+
+            await addMusicUserData(track.requester?.id || null, {
+                title: track.title,
+                url: track.uri,
+                played_number: 0,
+                timestamp: new Date(),
+            });
 
             // Delete track start notification after 5 seconds
             sendTempMessage(
