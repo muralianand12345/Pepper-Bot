@@ -77,7 +77,9 @@ const pingCommand: SlashCommand = {
 
             await interaction.editReply({ embeds: [embed] });
         } catch (error) {
-            console.error("Error executing ping command:", error);
+            client.logger.error(
+                `[PING] Failed to fetch system status: ${error}`
+            );
             await interaction.reply({
                 content: "Failed to fetch system status. Please try again.",
                 flags: discord.MessageFlags.Ephemeral,

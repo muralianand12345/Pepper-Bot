@@ -11,6 +11,7 @@ import { IAutoCompleteOptions, SpotifySearchResult } from "../types";
  * for Discord autocomplete suggestions. Supports tracks, albums, playlists, and artists.
  */
 export class SpotifyAutoComplete {
+    private client: discord.Client;
     private token: string | null = null;
     private tokenExpiry: number = 0;
     private readonly clientId: string;
@@ -24,7 +25,12 @@ export class SpotifyAutoComplete {
      * @param {string} clientId - Spotify API client ID
      * @param {string} clientSecret - Spotify API client secret
      */
-    constructor(clientId: string, clientSecret: string) {
+    constructor(
+        client: discord.Client,
+        clientId: string,
+        clientSecret: string
+    ) {
+        this.client = client;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.defaultOptions = {
@@ -196,7 +202,6 @@ export class SpotifyAutoComplete {
                 value: url,
             };
         } catch (error) {
-            console.error("Error fetching Spotify metadata:", error);
             if (axios.isAxiosError(error) && error.response?.status === 404) {
                 return { name: "Invalid Spotify URL", value: url };
             }
@@ -250,7 +255,9 @@ export class SpotifyAutoComplete {
                 value: track.external_urls.spotify,
             }));
         } catch (error) {
-            console.error("Spotify search error:", error);
+            this.client.logger.warn(
+                `[AUTO_SEARCH] Spotify Autocomplete error: ${error}`
+            );
             return [];
         }
     };

@@ -75,7 +75,9 @@ const feedbackCommand: SlashCommand = {
 
             await interaction.showModal(modal);
         } catch (error) {
-            console.error("Error creating feedback modal:", error);
+            client.logger.error(
+                `[FEEDBACK] Failed to open feedback form: ${error}`
+            );
             await interaction.reply({
                 content:
                     "Failed to open feedback form. Please try again later.",

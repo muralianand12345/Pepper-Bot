@@ -2,7 +2,7 @@ import path from "path";
 import discord from "discord.js";
 import { promises as fs } from "fs";
 import { BotEvent } from "../../../types";
-import { ManagerEvents } from "magmastream";
+import magmastream from "magmastream";
 
 /**
  * Loads Lavalink events from the specified directory
@@ -35,7 +35,7 @@ const loadLavalinkEvents = async (
 
                 // Using keyof ManagerEvents to ensure type safety
                 client.manager.on(
-                    event.name as keyof ManagerEvents,
+                    event.name as keyof magmastream.ManagerEvents,
                     (...args) => event.execute(...args, client)
                 );
                 client.logger.debug(

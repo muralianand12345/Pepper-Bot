@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import mongoose from "mongoose";
-import { Manager } from "magmastream";
+import magmastream from "magmastream";
 import { CommandLogger } from "./utils/command_logger";
 
 //Global
@@ -46,6 +46,23 @@ export interface IAutoCompleteOptions {
     maxResults?: number;
     language?: string;
     client?: string;
+}
+
+export interface ITrackFormatOptions {
+    maxTitleLength?: number;
+    maxArtistLength?: number;
+    includeDuration?: boolean;
+}
+
+export interface ILastFmTrack {
+    name: string;
+    playcount: number;
+    match: number;
+    url: string;
+    artist: {
+        name: string;
+        url: string;
+    };
 }
 
 //Config
@@ -197,7 +214,7 @@ declare module "discord.js" {
         logger: ILogger;
         cmdLogger: typeof CommandLogger;
         config: IConfig;
-        manager: Manager;
+        manager: magmastream.Manager;
     }
 }
 
@@ -253,9 +270,27 @@ export interface IPremiumData {
     plan: string | null;
 }
 
+export interface ISongsUser {
+    id: string;
+    username: string;
+    discriminator: string;
+    avatar?: string;
+}
+
 export interface ISongs {
+    track: string;
+    artworkUrl: string;
+    sourceName: magmastream.TrackSourceName;
     title: string;
-    url: string;
+    identifier: string;
+    author: string;
+    duration: number;
+    isrc: string;
+    isSeekable: boolean;
+    isStream: boolean;
+    uri: string;
+    thumbnail: string | null;
+    requester?: ISongsUser | null;
     played_number: number;
     timestamp: Date;
 }

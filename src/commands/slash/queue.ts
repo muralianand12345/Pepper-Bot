@@ -6,7 +6,7 @@ import { VoiceChannelValidator } from "../../utils/music/music_validations";
 import { SlashCommand } from "../../types";
 
 const queuecommand: SlashCommand = {
-    cooldown: 5,
+    cooldown: 10,
     owner: false,
     data: new discord.SlashCommandBuilder()
         .setName("queue")

@@ -138,8 +138,8 @@ const setupErrorHandlers = (client: discord.Client): void => {
         client.logger.error(
             `[UNCAUGHT-EXCEPTION] ${error.name}: ${error.message}`
         );
-        client.logger.error(`Origin: ${origin}`);
-        client.logger.error(`Stack trace: ${error.stack}`);
+        client.logger.error(`[UNCAUGHT-EXCEPTION] Origin: ${origin}`);
+        client.logger.error(`[UNCAUGHT-EXCEPTION] Stack trace: ${error.stack}`);
     });
 };
 
@@ -169,6 +169,6 @@ const initializeBot = async (client: discord.Client): Promise<void> => {
 
 // Initialize the bot
 initializeBot(client).catch((error) => {
-    console.error("[MAIN] Fatal error during initialization:", error);
+    client.logger.error(`[MAIN] Fatal error during initialization: ${error}`);
     process.exit(1);
 });

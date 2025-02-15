@@ -15,13 +15,13 @@ const configManager = ConfigManager.getInstance();
  * Loads configuration from YAML file
  * @returns Configuration object
  */
-const loadConfig = () => {
+const loadConfig = (client: discord.Client) => {
     try {
         const configPath = path.join(__dirname, "../config/config.yml");
         const file = fs.readFileSync(configPath, "utf8");
         return yaml.parse(file);
     } catch (error) {
-        console.error("Failed to load configuration:", error);
+        client.logger.error(`[PEPPER] Failed to load configuration: ${error}`);
         process.exit(1);
     }
 };
@@ -72,7 +72,7 @@ const createClient = (): discord.Client => {
     client.cooldowns = new discord.Collection<string, number>();
 
     // Load configuration
-    client.config = loadConfig();
+    client.config = loadConfig(client);
 
     // Initialize manager with config
     client.manager = initializeManager(client.config, client);

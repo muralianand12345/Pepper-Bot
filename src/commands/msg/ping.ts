@@ -1,5 +1,5 @@
-import discord from "discord.js";
 import os from "os";
+import discord from "discord.js";
 import Formatter from "../../utils/format";
 import { Command } from "../../types";
 
@@ -77,11 +77,15 @@ const command: Command = {
                 .setFooter({ text: `${client.user?.username} Status Monitor` })
                 .setTimestamp();
 
-            await sent
-                .edit({ content: "", embeds: [embed] })
-                .catch(console.error);
+            await sent.edit({ content: "", embeds: [embed] }).catch((error) => {
+                client.logger.error(
+                    `[PING] Failed to edit ping message: ${error}`
+                );
+            });
         } catch (error) {
-            console.error("Error executing ping command:", error);
+            client.logger.error(
+                `[PING] Failed to fetch system status: ${error}`
+            );
             await message.reply({
                 content: "Failed to fetch system status. Please try again.",
             });

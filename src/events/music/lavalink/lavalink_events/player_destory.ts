@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import { Player } from "magmastream";
+import magmastream from "magmastream";
 import { LavalinkEvent } from "../../../../types";
 
 /**
@@ -7,7 +7,7 @@ import { LavalinkEvent } from "../../../../types";
  */
 const lavalinkEvent: LavalinkEvent = {
     name: "playerDestroy",
-    execute: async (player: Player, client: discord.Client) => {
+    execute: async (player: magmastream.Player, client: discord.Client) => {
         const guild = client.guilds.cache.get(player.guildId);
         if (!guild) return;
 

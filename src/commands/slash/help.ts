@@ -17,7 +17,7 @@ const formatCommandSection = (
 };
 
 const helpCommand: SlashCommand = {
-    cooldown: 10,
+    cooldown: 60,
     owner: false,
     data: new discord.SlashCommandBuilder()
         .setName("help")

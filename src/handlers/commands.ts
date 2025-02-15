@@ -20,24 +20,19 @@ const loadCommands = async (
     directory: string,
     fileFilter: (file: string) => boolean
 ): Promise<Command[] | SlashCommand[]> => {
-    try {
-        // Read all files from the specified directory
-        const files = await fs.readdir(directory);
-        const commandFiles = files.filter(fileFilter);
+    // Read all files from the specified directory
+    const files = await fs.readdir(directory);
+    const commandFiles = files.filter(fileFilter);
 
-        // Load and return command modules
-        return await Promise.all(
-            commandFiles.map(async (file) => {
-                const { default: command } = await import(
-                    path.join(directory, file)
-                );
-                return command;
-            })
-        );
-    } catch (error) {
-        console.error(`Error loading commands from ${directory}:`, error);
-        return [];
-    }
+    // Load and return command modules
+    return await Promise.all(
+        commandFiles.map(async (file) => {
+            const { default: command } = await import(
+                path.join(directory, file)
+            );
+            return command;
+        })
+    );
 };
 
 /**

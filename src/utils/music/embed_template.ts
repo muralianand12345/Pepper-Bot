@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import magmastream, { Track } from "magmastream";
+import magmastream from "magmastream";
 import Formatter from "../format";
 import { IConfig } from "../../types";
 
@@ -42,7 +42,7 @@ const noMusicEmbed = async (client: discord.Client & { config: IConfig }) => {
  */
 const musicEmbed = async (
     client: discord.Client & { config: IConfig },
-    track: Track
+    track: magmastream.Track
 ) => {
     const trackImg =
         track.displayThumbnail("maxresdefault") ||

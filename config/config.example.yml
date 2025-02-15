@@ -64,7 +64,7 @@ content:
         no_music_playing: No Music Playing Right Now 😔
     embed:
         color:
-            default: Burple
+            default: Purple
             success: Green
             error: Red
             info: Blue

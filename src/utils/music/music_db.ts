@@ -11,7 +11,7 @@ const addMusicUserData = async (userId: string | null, data: ISongs) => {
                 songs: [data],
             });
         } else {
-            const songExists = user.songs.find((song) => song.url === data.url);
+            const songExists = user.songs.find((song) => song.uri === data.uri);
             if (songExists) {
                 songExists.played_number += 1;
                 songExists.timestamp = new Date();

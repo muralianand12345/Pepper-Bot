@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import { Node } from "magmastream";
+import magmastream from "magmastream";
 import { LavalinkEvent } from "../../../../types";
 
 /**
@@ -8,7 +8,7 @@ import { LavalinkEvent } from "../../../../types";
 const lavalinkEvent: LavalinkEvent = {
     name: "nodeDisconnect",
     execute: async (
-        node: Node,
+        node: magmastream.Node,
         reason: string | number,
         client: discord.Client
     ) => {

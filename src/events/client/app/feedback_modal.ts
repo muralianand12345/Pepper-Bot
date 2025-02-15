@@ -131,7 +131,9 @@ const event: BotEvent = {
                 flags: discord.MessageFlags.Ephemeral,
             });
         } catch (error) {
-            console.error("Error processing feedback:", error);
+            client.logger.error(
+                `[FEEDBACK_MODALS] Failed to submit feedback: ${error}`
+            );
             await interaction.reply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(

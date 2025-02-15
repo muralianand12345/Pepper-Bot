@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import { Player, Track, TrackEndEvent } from "magmastream";
+import magmastream from "magmastream";
 import { wait } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
 import { LavalinkEvent } from "../../../../types";
@@ -20,7 +20,9 @@ const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {
  * @param player - Music player instance
  * @param status247 - Whether 24/7 mode is enabled
  */
-const handlePlayerCleanup = async (player: Player): Promise<void> => {
+const handlePlayerCleanup = async (
+    player: magmastream.Player
+): Promise<void> => {
     // Wait 5 minutes before destroying the player
     const CLEANUP_DELAY = 300000; // 5 minutes in milliseconds
     await wait(CLEANUP_DELAY);
@@ -34,9 +36,9 @@ const handlePlayerCleanup = async (player: Player): Promise<void> => {
 const lavalinkEvent: LavalinkEvent = {
     name: "queueEnd",
     execute: async (
-        player: Player,
-        track: Track,
-        payload: TrackEndEvent,
+        player: magmastream.Player,
+        track: magmastream.Track,
+        payload: magmastream.TrackEndEvent,
         client: discord.Client
     ): Promise<void> => {
         if (!player?.textChannelId || !client?.channels) return;

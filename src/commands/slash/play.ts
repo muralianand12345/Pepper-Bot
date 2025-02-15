@@ -65,13 +65,14 @@ const playcommand: SlashCommand = {
                       },
                   ]
                 : await new SpotifyAutoComplete(
+                      client,
                       configManager.getSpotifyClientId(),
                       configManager.getSpotifyClientSecret()
                   ).getSuggestions(focused.value);
 
             await interaction.respond(suggestions);
         } catch (error) {
-            client.logger.warn(`[SLASH_COMMAND] Autocomplete error: ${error}`);
+            client.logger.warn(`[PLAY] Autocomplete error: ${error}`);
             await interaction.respond([
                 {
                     name: CONFIG.DEFAULT_SEARCH_TEXT,
@@ -115,7 +116,7 @@ const playcommand: SlashCommand = {
         }
 
         client.logger.info(
-            `[SLASH_COMMAND] Play | User ${interaction.user.tag} | Query: ${query} | Guild: ${interaction.guildId}`
+            `[PLAY] Play | User ${interaction.user.tag} | Query: ${query} | Guild: ${interaction.guildId}`
         );
 
         // Validate voice and music requirements
@@ -169,7 +170,7 @@ const playcommand: SlashCommand = {
             if (res.loadType === "error") throw new Error("Search error");
             await handleSearchResult(res, player, interaction, client);
         } catch (error) {
-            client.logger.error(`[SLASH_COMMAND] Play error: ${error}`);
+            client.logger.error(`[PLAY] Play error: ${error}`);
             await interaction.followUp({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(

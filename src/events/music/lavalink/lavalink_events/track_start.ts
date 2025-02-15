@@ -1,9 +1,9 @@
 import discord from "discord.js";
-import { Player, Track, TrackStartEvent } from "magmastream";
+import magmastream from "magmastream";
 import { sendTempMessage } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
 import { addMusicUserData } from "../../../../utils/music/music_db";
-import { LavalinkEvent } from "../../../../types";
+import { LavalinkEvent, ISongsUser } from "../../../../types";
 
 /**
  * Creates a track start notification embed
@@ -12,7 +12,7 @@ import { LavalinkEvent } from "../../../../types";
  * @returns EmbedBuilder instance
  */
 const createTrackStartEmbed = (
-    track: Track,
+    track: magmastream.Track,
     client: discord.Client
 ): discord.EmbedBuilder => {
     return new MusicResponseHandler(client).createSuccessEmbed(
@@ -27,8 +27,8 @@ const createTrackStartEmbed = (
  * @param client - Discord client instance
  */
 const logTrackStart = (
-    track: Track,
-    player: Player,
+    track: magmastream.Track,
+    player: magmastream.Player,
     client: discord.Client
 ): void => {
     const guildName = client.guilds.cache.get(player.guildId)?.name;
@@ -45,14 +45,24 @@ const logTrackStart = (
 };
 
 /**
+ * Creates a user data object from a discord user
+ */
+const convertUserToUserData = (user: discord.User): ISongsUser => ({
+    id: user.id,
+    username: user.username,
+    discriminator: user.discriminator,
+    avatar: user.avatar || undefined,
+});
+
+/**
  * Lavalink track start event handler
  */
 const lavalinkEvent: LavalinkEvent = {
     name: "trackStart",
     execute: async (
-        player: Player,
-        track: Track,
-        payload: TrackStartEvent,
+        player: magmastream.Player,
+        track: magmastream.Track,
+        payload: magmastream.TrackStartEvent,
         client: discord.Client
     ) => {
         if (!player?.textChannelId || !client?.channels) return;
@@ -63,10 +73,25 @@ const lavalinkEvent: LavalinkEvent = {
             )) as discord.TextChannel;
             if (!channel?.isTextBased() || player.trackRepeat) return;
 
+            const requesterData = track.requester
+                ? convertUserToUserData(track.requester as discord.User)
+                : null;
+
             await addMusicUserData(track.requester?.id || null, {
+                track: track.title,
+                artworkUrl: track.artworkUrl,
+                sourceName: track.sourceName,
                 title: track.title,
-                url: track.uri,
-                played_number: 0,
+                identifier: track.identifier,
+                author: track.author,
+                duration: track.duration,
+                isrc: track.isrc,
+                isSeekable: track.isSeekable,
+                isStream: track.isStream,
+                uri: track.uri,
+                thumbnail: track.thumbnail,
+                requester: requesterData,
+                played_number: 1,
                 timestamp: new Date(),
             });
 
