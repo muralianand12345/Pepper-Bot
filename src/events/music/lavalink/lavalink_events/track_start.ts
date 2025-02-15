@@ -2,7 +2,7 @@ import discord from "discord.js";
 import magmastream from "magmastream";
 import { sendTempMessage } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
-import { addMusicUserData } from "../../../../utils/music/music_db";
+import MusicDB from "../../../../utils/music/music_db";
 import { LavalinkEvent, ISongsUser } from "../../../../types";
 
 /**
@@ -77,7 +77,7 @@ const lavalinkEvent: LavalinkEvent = {
                 ? convertUserToUserData(track.requester as discord.User)
                 : null;
 
-            await addMusicUserData(track.requester?.id || null, {
+            const songData = {
                 track: track.title,
                 artworkUrl: track.artworkUrl,
                 sourceName: track.sourceName,
@@ -93,7 +93,13 @@ const lavalinkEvent: LavalinkEvent = {
                 requester: requesterData,
                 played_number: 1,
                 timestamp: new Date(),
-            });
+            };
+
+            await MusicDB.addMusicUserData(
+                track.requester?.id || null,
+                songData
+            );
+            await MusicDB.addMusicGuildData(player.guildId, songData);
 
             // Delete track start notification after 5 seconds
             sendTempMessage(

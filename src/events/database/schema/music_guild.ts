@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { ISongsUser, IMusicUser } from "../../../types";
+import { ISongsUser, IMusicGuild } from "../../../types";
 
 const userDataSchema = new Schema<ISongsUser>({
     id: { type: String, required: true },
@@ -8,8 +8,8 @@ const userDataSchema = new Schema<ISongsUser>({
     avatar: { type: String, required: false },
 });
 
-const musicUserSchema = new Schema<IMusicUser>({
-    userId: { type: String, required: true },
+const musicGuildSchema = new Schema<IMusicGuild>({
+    guildId: { type: String, required: true },
     songs: [
         {
             track: { type: String, required: true },
@@ -31,4 +31,4 @@ const musicUserSchema = new Schema<IMusicUser>({
     ],
 });
 
-export default model("music-users", musicUserSchema);
+export default model("music-guild", musicGuildSchema);

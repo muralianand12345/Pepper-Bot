@@ -11,7 +11,7 @@ const nodestatsCommand: SlashCommand = {
     cooldown: 120,
     owner: false,
     data: new discord.SlashCommandBuilder()
-        .setName("nodestats")
+        .setName("node-stats")
         .setDescription("Display Lavalink node statistics"),
 
     /**

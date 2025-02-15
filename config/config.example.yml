@@ -15,11 +15,11 @@ bot:
             ]
     command:
         prefix: "!"
-        disable_message: false
+        disable_message: true
         cooldown_message: You are on `<duration>` cooldown!
         register_specific_commands:
-            enabled: false
-            commands: ["help", "ping", "info"]
+            enabled: true
+            commands: ["node"]
     log:
         command: "1234567890" # Command Log Channel ID
         server: "1234567890" # New/Left Server Log Channel ID

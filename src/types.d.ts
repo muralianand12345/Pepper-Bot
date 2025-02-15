@@ -65,6 +65,11 @@ export interface ILastFmTrack {
     };
 }
 
+export interface INodeOption {
+    name: string;
+    value: string;
+}
+
 //Config
 
 export interface IConfig {
@@ -299,3 +304,12 @@ export interface IMusicUser {
     userId: string;
     songs: Array<ISongs>;
 }
+
+export interface IMusicGuild {
+    guildId: string;
+    songs: Array<ISongs>;
+}
+
+//Schema extends
+export interface IMusicUserDocument extends IMusicUser, mongoose.Document {}
+export interface IMusicGuildDocument extends IMusicGuild, mongoose.Document {}
