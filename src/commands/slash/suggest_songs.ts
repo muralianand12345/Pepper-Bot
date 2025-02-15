@@ -120,7 +120,7 @@ const suggestSongsCommand: SlashCommand = {
                         "Music is currently disabled"
                     ),
                 ],
-                ephemeral: true,
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
@@ -133,7 +133,7 @@ const suggestSongsCommand: SlashCommand = {
                         "No music is currently playing"
                     ),
                 ],
-                ephemeral: true,
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
@@ -149,7 +149,7 @@ const suggestSongsCommand: SlashCommand = {
             if (!isValid) {
                 return await interaction.reply({
                     embeds: [embed],
-                    ephemeral: true,
+                    flags: discord.MessageFlags.Ephemeral,
                 });
             }
         }

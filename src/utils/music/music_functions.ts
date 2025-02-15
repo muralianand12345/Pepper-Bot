@@ -147,7 +147,12 @@ const sendTempMessage = async (
     embed: discord.EmbedBuilder,
     duration: number = 10000
 ): Promise<void> => {
-    const message = await channel.send({ embeds: [embed] });
+    const message = await channel.send({ embeds: [embed] }).catch((error) => {
+        if (error.code === 50001) new Error("Unable to send message");
+        new Error(error);
+    });
+    if (!message) return;
+
     setTimeout(() => message.delete().catch(() => {}), duration);
 };
 

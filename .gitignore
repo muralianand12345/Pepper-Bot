@@ -8,6 +8,8 @@ lavalink/logs
 .DS_Store
 **/.DS_Store
 
+path.ts
+project-structure.md
 **.log
 .env
 .env.*
