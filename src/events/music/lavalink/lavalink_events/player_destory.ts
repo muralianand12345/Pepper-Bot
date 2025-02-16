@@ -1,12 +1,12 @@
 import discord from "discord.js";
-import magmastream from "magmastream";
+import magmastream, { ManagerEventTypes } from "magmastream";
 import { LavalinkEvent } from "../../../../types";
 
 /**
  * Lavalink player destory event handler
  */
 const lavalinkEvent: LavalinkEvent = {
-    name: "playerDestroy",
+    name: ManagerEventTypes.PlayerDestroy,
     execute: async (player: magmastream.Player, client: discord.Client) => {
         const guild = client.guilds.cache.get(player.guildId);
         if (!guild) return;

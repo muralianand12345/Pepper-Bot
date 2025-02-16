@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import magmastream from "magmastream";
+import magmastream, { ManagerEventTypes } from "magmastream";
 import { wait } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
 import { LavalinkEvent } from "../../../../types";
@@ -34,7 +34,7 @@ const handlePlayerCleanup = async (
  * Handles the event when all music in the queue has finished playing
  */
 const lavalinkEvent: LavalinkEvent = {
-    name: "queueEnd",
+    name: ManagerEventTypes.QueueEnd,
     execute: async (
         player: magmastream.Player,
         track: magmastream.Track,

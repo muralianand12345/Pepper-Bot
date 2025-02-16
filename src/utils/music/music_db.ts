@@ -1,6 +1,6 @@
 import music_user from "../../events/database/schema/music_user";
 import music_guild from "../../events/database/schema/music_guild";
-import { IMusicUserDocument, IMusicGuildDocument, ISongs } from "../../types";
+import { IMusicUser, IMusicGuild, ISongs } from "../../types";
 
 /**
  * Class handling music database operations for both users and guilds
@@ -14,9 +14,10 @@ class MusicDB {
      * @throws Error if database operation fails
      * @private
      */
-    private static async addMusicDB<
-        T extends IMusicUserDocument | IMusicGuildDocument
-    >(data: T, songs_data: ISongs): Promise<void> {
+    private static async addMusicDB<T extends IMusicUser | IMusicGuild>(
+        data: T,
+        songs_data: ISongs
+    ): Promise<void> {
         try {
             const songExists = data.songs.find(
                 (song) => song.uri === songs_data.uri
@@ -112,7 +113,7 @@ class MusicDB {
      */
     public static async getUserMusicHistory(
         userId: string | null
-    ): Promise<IMusicUserDocument | null> {
+    ): Promise<IMusicUser | null> {
         try {
             if (!userId) {
                 throw new Error("User ID is required to get music history");
@@ -133,7 +134,7 @@ class MusicDB {
      */
     public static async getGuildMusicHistory(
         guildId: string | null
-    ): Promise<IMusicGuildDocument | null> {
+    ): Promise<IMusicGuild | null> {
         try {
             if (!guildId) {
                 throw new Error("Guild ID is required to get music history");

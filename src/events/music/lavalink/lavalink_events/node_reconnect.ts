@@ -1,12 +1,12 @@
 import discord from "discord.js";
-import magmastream from "magmastream";
+import magmastream, { ManagerEventTypes } from "magmastream";
 import { LavalinkEvent } from "../../../../types";
 
 /**
  * Lavalink node reconnect event handler
  */
 const lavalinkEvent: LavalinkEvent = {
-    name: "nodeReconnect",
+    name: ManagerEventTypes.NodeDisconnect,
     execute: async (node: magmastream.Node, client: discord.Client) => {
         client.logger.warn(
             `[LAVALINK] Node ${node.options.identifier} reconnected`

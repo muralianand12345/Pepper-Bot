@@ -1,12 +1,12 @@
 import discord from "discord.js";
-import magmastream from "magmastream";
+import magmastream, { ManagerEventTypes } from "magmastream";
 import { LavalinkEvent } from "../../../../types";
 
 /**
  * Lavalink node error event handler
  */
 const lavalinkEvent: LavalinkEvent = {
-    name: "nodeError",
+    name: ManagerEventTypes.NodeError,
     execute: async (
         node: magmastream.Node,
         error: Error,

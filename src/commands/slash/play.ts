@@ -167,7 +167,8 @@ const playcommand: SlashCommand = {
 
         try {
             const res = await client.manager.search(query, interaction.user);
-            if (res.loadType === "error") throw new Error("Search error");
+            if (res.loadType === "error")
+                throw new Error("No results found | loadType: error");
             await handleSearchResult(res, player, interaction, client);
         } catch (error) {
             client.logger.error(`[PLAY] Play error: ${error}`);

@@ -3,173 +3,35 @@ import mongoose from "mongoose";
 import magmastream from "magmastream";
 import { CommandLogger } from "./utils/command_logger";
 
-//Global
+//-----------GLOBAL-----------//
+
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
+            DEBUG_MODE: boolean | string;
             TOKEN: string;
             MONGO_URI: string;
-            DEBUG_MODE: boolean | string;
+            LASTFM_API_KEY: string;
+            SPOTIFY_CLIENT_ID: string;
+            SPOTIFY_CLIENT_SECRET: string;
+            FEEDBACK_WEBHOOK: string;
         }
     }
 }
 
-//Utils
-
-export interface ILogger {
-    success(message: string | Error): void;
-    log(message: string | Error): void;
-    error(message: string | Error): void;
-    warn(message: string | Error): void;
-    info(message: string | Error): void;
-    debug(message: string | Error): void;
+declare module "discord.js" {
+    export interface Client {
+        slashCommands: discord.Collection<string, SlashCommand>;
+        commands: discord.Collection<string, Command>;
+        cooldowns: discord.Collection<string, number>;
+        logger: ILogger;
+        cmdLogger: typeof CommandLogger;
+        config: IConfig;
+        manager: magmastream.Manager;
+    }
 }
 
-export interface ICommandLogger {
-    client: discord.Client;
-    commandName: string;
-    guild: discord.Guild | null;
-    user: discord.User | null;
-    channel: discord.TextChannel | null;
-}
-
-export interface IPlayer {
-    position: number;
-    queue: {
-        current: {
-            duration: number;
-        };
-    };
-}
-
-export interface IAutoCompleteOptions {
-    maxResults?: number;
-    language?: string;
-    client?: string;
-}
-
-export interface ITrackFormatOptions {
-    maxTitleLength?: number;
-    maxArtistLength?: number;
-    includeDuration?: boolean;
-}
-
-export interface ILastFmTrack {
-    name: string;
-    playcount: number;
-    match: number;
-    url: string;
-    artist: {
-        name: string;
-        url: string;
-    };
-}
-
-export interface INodeOption {
-    name: string;
-    value: string;
-}
-
-//Config
-
-export interface IConfig {
-    bot: IBotConfig;
-    music: IMusicConfig;
-    content: IContentConfig;
-}
-
-// ------
-
-export interface IBotConfig {
-    owners: Array<string>;
-    presence: IPresenceConfig;
-    command: ICommandConfig;
-    log: ILogConfig;
-}
-
-export interface IMusicConfig {
-    enabled: boolean;
-    image: string;
-    lavalink: ILavalinkConfig;
-}
-
-export interface IContentConfig {
-    text: ITextConfig;
-    embed: IEmbedConfig;
-}
-
-// ------
-
-export interface ICommandConfig {
-    prefix: string;
-    disable_message: boolean;
-    cooldown_message: string;
-    register_specific_commands: IRegisterSpecificCommandsConfig;
-}
-
-export interface IPresenceConfig {
-    enabled: boolean;
-    status: string;
-    interval: number;
-    activity: Array<BotPresence>;
-}
-
-export interface ILogConfig {
-    command: string;
-    server: string;
-}
-
-export interface ILavalinkConfig {
-    default_search: string;
-    nodes: Array<ILavalinkNodeConfig>;
-}
-
-export interface ITextConfig {
-    no_music_playing: string;
-}
-
-export interface IEmbedConfig {
-    color: IDiscordColorConfig;
-    no_music_playing: INoMusicPlayingEmbedConfig;
-}
-
-// ------
-
-export interface IRegisterSpecificCommandsConfig {
-    enabled: boolean;
-    commands: Array<string>;
-}
-
-export interface ILavalinkNodeConfig {
-    identifier: string;
-    host: string;
-    port: number;
-    password: string;
-    secure: boolean;
-    retryAmount: number;
-    retrydelay: number;
-    resumeStatus: boolean;
-    resumeTimeout: number;
-}
-
-export interface IDiscordColorConfig {
-    default: discord.ColorResolvable;
-    success: discord.ColorResolvable;
-    error: discord.ColorResolvable;
-    info: discord.ColorResolvable;
-    warning: discord.ColorResolvable;
-}
-
-export interface INoMusicPlayingEmbedConfig {
-    color: discord.ColorResolvable | nul;
-    image: string;
-    author: {
-        name: string;
-        icon_url: string;
-    };
-}
-
-//Client
+//-----------EVENTS-----------//
 
 export interface SlashCommand {
     data: typeof data;
@@ -206,28 +68,6 @@ export interface Command {
     ) => void;
 }
 
-export interface CommandInfo {
-    name: string;
-    description: string;
-}
-
-declare module "discord.js" {
-    export interface Client {
-        slashCommands: discord.Collection<string, SlashCommand>;
-        commands: discord.Collection<string, Command>;
-        cooldowns: discord.Collection<string, number>;
-        logger: ILogger;
-        cmdLogger: typeof CommandLogger;
-        config: IConfig;
-        manager: magmastream.Manager;
-    }
-}
-
-export interface BotPresence {
-    name: string;
-    type: discord.ActivityType;
-}
-
 export interface BotEvent {
     name: string;
     once?: boolean | false;
@@ -239,17 +79,74 @@ export interface LavalinkEvent {
     execute: (...args) => void;
 }
 
-export interface SpotifySearchResult {
-    tracks: {
-        items: Array<{
-            name: string;
-            artists: Array<{ name: string }>;
-            external_urls: { spotify: string };
-        }>;
+//-----------YAML Config-----------//
+
+export interface IConfig {
+    bot: {
+        owners: Array<string>;
+        presence: {
+            enabled: boolean;
+            status: string;
+            interval: number;
+            activity: Array<BotPresence>;
+        };
+        command: {
+            prefix: string;
+            disable_message: boolean;
+            cooldown_message: string;
+            register_specific_commands: {
+                enabled: boolean;
+                commands: Array<string>;
+            };
+        };
+        log: {
+            command: string;
+            server: string;
+        };
+    };
+    music: {
+        enabled: boolean;
+        image: string;
+        lavalink: {
+            default_search: string;
+            nodes: Array<{
+                identifier: string;
+                host: string;
+                port: number;
+                password: string;
+                secure: boolean;
+                retryAmount: number;
+                retrydelay: number;
+                resumeStatus: boolean;
+                resumeTimeout: number;
+            }>;
+        };
+    };
+    content: {
+        text: {
+            no_music_playing: string;
+        };
+        embed: {
+            color: {
+                default: discord.ColorResolvable;
+                success: discord.ColorResolvable;
+                error: discord.ColorResolvable;
+                info: discord.ColorResolvable;
+                warning: discord.ColorResolvable;
+            };
+            no_music_playing: {
+                color: discord.ColorResolvable | null;
+                image: string;
+                author: {
+                    name: string;
+                    icon_url: string;
+                };
+            };
+        };
     };
 }
 
-// Models
+//-----------DB MODELS-----------//
 
 export interface IBlockUser extends mongoose.Document {
     userId: string;
@@ -300,16 +197,88 @@ export interface ISongs {
     timestamp: Date;
 }
 
-export interface IMusicUser {
+export interface IMusicUser extends mongoose.Document {
     userId: string;
     songs: Array<ISongs>;
 }
 
-export interface IMusicGuild {
+export interface IMusicGuild extends mongoose.Document {
     guildId: string;
     songs: Array<ISongs>;
 }
 
-//Schema extends
-export interface IMusicUserDocument extends IMusicUser, mongoose.Document {}
-export interface IMusicGuildDocument extends IMusicGuild, mongoose.Document {}
+//--------------------------------//
+
+export interface ILogger {
+    success(message: string | Error): void;
+    log(message: string | Error): void;
+    error(message: string | Error): void;
+    warn(message: string | Error): void;
+    info(message: string | Error): void;
+    debug(message: string | Error): void;
+}
+
+export interface ICommandLogger {
+    client: discord.Client;
+    commandName: string;
+    guild: discord.Guild | null;
+    user: discord.User | null;
+    channel: discord.TextChannel | null;
+}
+
+export interface CommandInfo {
+    name: string;
+    description: string;
+}
+
+export interface BotPresence {
+    name: string;
+    type: discord.ActivityType;
+}
+
+export interface IPlayer {
+    position: number;
+    queue: {
+        current: {
+            duration: number;
+        };
+    };
+}
+
+export interface IAutoCompleteOptions {
+    maxResults?: number;
+    language?: string;
+    client?: string;
+}
+
+export interface SpotifySearchResult {
+    tracks: {
+        items: Array<{
+            name: string;
+            artists: Array<{ name: string }>;
+            external_urls: { spotify: string };
+        }>;
+    };
+}
+
+export interface ITrackFormatOptions {
+    maxTitleLength?: number;
+    maxArtistLength?: number;
+    includeDuration?: boolean;
+}
+
+export interface ILastFmTrack {
+    name: string;
+    playcount: number;
+    match: number;
+    url: string;
+    artist: {
+        name: string;
+        url: string;
+    };
+}
+
+export interface INodeOption {
+    name: string;
+    value: string;
+}

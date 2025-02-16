@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import magmastream from "magmastream";
+import magmastream, { ManagerEventTypes } from "magmastream";
 import { sendTempMessage } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
 import MusicDB from "../../../../utils/music/music_db";
@@ -58,7 +58,7 @@ const convertUserToUserData = (user: discord.User): ISongsUser => ({
  * Lavalink track start event handler
  */
 const lavalinkEvent: LavalinkEvent = {
-    name: "trackStart",
+    name: ManagerEventTypes.TrackStart,
     execute: async (
         player: magmastream.Player,
         track: magmastream.Track,
