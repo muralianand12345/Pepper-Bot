@@ -133,16 +133,17 @@ const handleCommandPrerequisites = async (
         const cooldownKey = `${command.name}${message.author.id}`;
         if (cooldown.has(cooldownKey)) {
             const cooldownTime = cooldown.get(cooldownKey);
-            const remainingCooldown = cooldownTime
-                ? ms(cooldownTime - Date.now(), { long: true })
-                : "N/A";
+            const remainingTime = cooldownTime ? cooldownTime - Date.now() : 0;
 
             const coolMsg = client.config.bot.command.cooldown_message.replace(
                 "<duration>",
-                remainingCooldown
+                ms(remainingTime)
             );
-            await sendErrorEmbed(message, coolMsg);
-            return false;
+
+            if (remainingTime > 0) {
+                await sendErrorEmbed(message, coolMsg);
+                return false;
+            }
         }
     }
 
@@ -216,9 +217,12 @@ const executeCommand = async (
         });
 
         if (command.cooldown) {
+            if (client.config.bot.owners.includes(message.author.id)) return;
             const cooldownKey = `${command.name}${message.author.id}`;
-            cooldown.set(cooldownKey, Date.now() + command.cooldown);
-            setTimeout(() => cooldown.delete(cooldownKey), command.cooldown);
+            const cooldownAmount = command.cooldown * 1000;
+
+            cooldown.set(cooldownKey, Date.now() + cooldownAmount);
+            setTimeout(() => cooldown.delete(cooldownKey), cooldownAmount);
         }
     } catch (error) {
         client.logger.error(

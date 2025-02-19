@@ -127,17 +127,18 @@ const handleCommandPrerequisites = async (
     // Check cooldown
     if (command.cooldown) {
         const cooldownKey = `${command.data.name}${interaction.user.id}`;
+
         if (cooldown.has(cooldownKey)) {
             const cooldownTime = cooldown.get(cooldownKey);
             const remainingTime = cooldownTime ? cooldownTime - Date.now() : 0;
 
+            const coolMsg = client.config.bot.command.cooldown_message.replace(
+                "<duration>",
+                ms(remainingTime)
+            );
+
             if (remainingTime > 0) {
-                await sendErrorReply(
-                    interaction,
-                    `Please wait \`${ms(
-                        remainingTime
-                    )}\` before using this command again.`
-                );
+                await sendErrorReply(interaction, coolMsg);
                 return false;
             }
         }
@@ -215,6 +216,7 @@ const executeCommand = async (
         });
 
         if (command.cooldown) {
+            if (client.config.bot.owners.includes(interaction.user.id)) return;
             const cooldownKey = `${command.data.name}${interaction.user.id}`;
             const cooldownAmount = command.cooldown * 1000;
 
