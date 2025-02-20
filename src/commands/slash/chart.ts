@@ -10,6 +10,7 @@ const musicChartCommand: SlashCommand = {
     data: new discord.SlashCommandBuilder()
         .setName("chart")
         .setDescription("View music listening charts and statistics")
+        .setContexts(discord.InteractionContextType.Guild)
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("personal")

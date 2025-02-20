@@ -26,7 +26,6 @@ class MusicButtonHandler {
         this.player = client.manager.get(interaction.guild!.id);
         this.playerValidator = new MusicPlayerValidator(
             client,
-            interaction,
             this.player
         );
         this.responseHandler = new MusicResponseHandler(client);

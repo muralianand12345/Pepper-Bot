@@ -106,7 +106,8 @@ const suggestSongsCommand: SlashCommand = {
         .setName("suggest-songs")
         .setDescription(
             "Beta feature: Suggest similar songs based on the current track"
-        ),
+        )
+        .setContexts(discord.InteractionContextType.Guild),
 
     execute: async (
         interaction: discord.ChatInputCommandInteraction,

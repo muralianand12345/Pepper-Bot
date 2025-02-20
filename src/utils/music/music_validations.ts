@@ -207,16 +207,13 @@ class VoiceChannelValidator {
  */
 class MusicPlayerValidator {
     private readonly client: discord.Client;
-    private readonly interaction: discord.ButtonInteraction;
     private readonly player: any;
 
     constructor(
         client: discord.Client,
-        interaction: discord.ButtonInteraction,
         player: any
     ) {
         this.client = client;
-        this.interaction = interaction;
         this.player = player;
     }
 
