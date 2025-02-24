@@ -34,13 +34,15 @@ const logTrackStart = (
     const guildName = client.guilds.cache.get(player.guildId)?.name;
     const requester = track.requester as discord.User;
 
-    client.logger.debug(
+    client.logger.info(
         `[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` +
             `By ${requester.tag} (${requester.id})`
     );
-    client.logger.debug(
+    client.logger.info(
         `[LAVALINK] User: ${requester.tag} (${requester.id}) requested song uri ${track.uri} ` +
-            `in ${guildName} (${player.guildId})`
+            `in ${guildName} (${player.guildId}) using Node ${
+                player.node.options.identifier
+            } (${player.node.options.host}:${player.node.options.port || ""})`
     );
 };
 

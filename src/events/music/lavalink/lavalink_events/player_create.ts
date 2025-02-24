@@ -12,7 +12,11 @@ const lavalinkEvent: LavalinkEvent = {
         if (!guild) return;
 
         client.logger.info(
-            `[LAVALINK] Player for guild ${guild.name} (${guild.id}) created`
+            `[LAVALINK] Player for guild ${guild.name} (${
+                guild.id
+            }) created using Node ${player.node.options.identifier} (${
+                player.node.options.host
+            }:${player.node.options.port || ""})`
         );
     },
 };

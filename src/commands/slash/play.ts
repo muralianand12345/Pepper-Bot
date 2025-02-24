@@ -1,10 +1,11 @@
 import discord from "discord.js";
+import magmastream from "magmastream";
 import { SpotifyAutoComplete } from "../../utils/auto_search";
 import { VoiceChannelValidator } from "../../utils/music/music_validations";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { handleSearchResult } from "../../utils/music/music_functions";
 import { ConfigManager } from "../../utils/config";
-import { SlashCommand } from "../../types";
+import { SlashCommand, INodeOption } from "../../types";
 
 // Load environment variables
 const configManager = ConfigManager.getInstance();
@@ -14,6 +15,8 @@ const configManager = ConfigManager.getInstance();
  * @type {const}
  */
 const CONFIG = {
+    /** Error message for failed Lavalink node search */
+    ERROR_SEARCH_TEXT: "Error fetching Lavalink nodes",
     /** Default placeholder text for search input */
     DEFAULT_SEARCH_TEXT: "Please enter a song name or url",
     /** Default player configuration options */
@@ -40,6 +43,13 @@ const playcommand: SlashCommand = {
                 .setDescription("Song Name/URL")
                 .setRequired(true)
                 .setAutocomplete(true)
+        )
+        .addStringOption((option) =>
+            option
+                .setName("lavalink_node")
+                .setDescription("Lavalink to play the song (Optional)")
+                .setRequired(false)
+                .setAutocomplete(true)
         ),
 
     /**
@@ -54,29 +64,44 @@ const playcommand: SlashCommand = {
     ): Promise<void> => {
         const focused = interaction.options.getFocused(true);
 
-        if (focused.name !== "song") return;
-
         try {
-            const suggestions = !focused.value
-                ? [
-                      {
-                          name: CONFIG.DEFAULT_SEARCH_TEXT,
-                          value: CONFIG.DEFAULT_SEARCH_TEXT,
-                      },
-                  ]
-                : await new SpotifyAutoComplete(
-                      client,
-                      configManager.getSpotifyClientId(),
-                      configManager.getSpotifyClientSecret()
-                  ).getSuggestions(focused.value);
+            let suggestions;
 
-            await interaction.respond(suggestions);
+            if (focused.name === "lavalink_node") {
+                const nodes: INodeOption[] = client.manager.nodes
+                    .filter((node: magmastream.Node) => node.connected == true)
+                    .map((node: magmastream.Node) => ({
+                        name: `${node.options.identifier} (${node.options.host})`,
+                        value: node.options.identifier || "Unknown Node",
+                    }));
+
+                suggestions = nodes.filter((option: INodeOption) =>
+                    option.name
+                        .toLowerCase()
+                        .includes(focused.value.toLowerCase())
+                );
+            } else if (focused.name === "song") {
+                suggestions = !focused.value
+                    ? [
+                          {
+                              name: CONFIG.DEFAULT_SEARCH_TEXT,
+                              value: CONFIG.DEFAULT_SEARCH_TEXT,
+                          },
+                      ]
+                    : await new SpotifyAutoComplete(
+                          client,
+                          configManager.getSpotifyClientId(),
+                          configManager.getSpotifyClientSecret()
+                      ).getSuggestions(focused.value);
+            }
+
+            await interaction.respond(suggestions || []);
         } catch (error) {
-            client.logger.warn(`[PLAY] Autocomplete error: ${error}`);
+            client.logger.error(`[NODE_PLAY] Autocomplete error: ${error}`);
             await interaction.respond([
                 {
-                    name: CONFIG.DEFAULT_SEARCH_TEXT,
-                    value: CONFIG.DEFAULT_SEARCH_TEXT,
+                    name: CONFIG.ERROR_SEARCH_TEXT,
+                    value: CONFIG.ERROR_SEARCH_TEXT,
                 },
             ]);
         }
@@ -104,6 +129,46 @@ const playcommand: SlashCommand = {
 
         const query =
             interaction.options.getString("song") || CONFIG.DEFAULT_SEARCH_TEXT;
+        const nodeChoice =
+            interaction.options.getString("lavalink_node") || undefined;
+
+        if (nodeChoice) {
+            if (client.manager.get(interaction.guild?.id || "")) {
+                return await interaction.reply({
+                    embeds: [
+                        new MusicResponseHandler(client).createErrorEmbed(
+                            "Music is already playing on another node. Disconnect/stop the current player first."
+                        ),
+                    ],
+                    flags: discord.MessageFlags.Ephemeral,
+                });
+            }
+
+            const node = client.manager.nodes.find(
+                (n: magmastream.Node) => n.options.identifier === nodeChoice
+            );
+            if (!node) {
+                return await interaction.reply({
+                    embeds: [
+                        new MusicResponseHandler(client).createErrorEmbed(
+                            "Invalid Lavalink node"
+                        ),
+                    ],
+                    flags: discord.MessageFlags.Ephemeral,
+                });
+            }
+            if (!node.connected) {
+                return await interaction.reply({
+                    embeds: [
+                        new MusicResponseHandler(client).createErrorEmbed(
+                            "Lavalink node is not connected"
+                        ),
+                    ],
+                    flags: discord.MessageFlags.Ephemeral,
+                });
+            }
+        }
+
         if (query === CONFIG.DEFAULT_SEARCH_TEXT) {
             return await interaction.reply({
                 embeds: [
@@ -141,6 +206,7 @@ const playcommand: SlashCommand = {
             guildId: interaction.guildId || "",
             voiceChannelId: guildMember?.voice.channelId || "",
             textChannelId: interaction.channelId,
+            node: nodeChoice,
             ...CONFIG.PLAYER_OPTIONS,
         });
 
