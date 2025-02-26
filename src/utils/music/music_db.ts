@@ -19,6 +19,10 @@ class MusicDB {
         songs_data: ISongs
     ): Promise<void> {
         try {
+            if (!data.songs) {
+                data.songs = [];
+            }
+
             const songExists = data.songs.find(
                 (song) => song.uri === songs_data.uri
             );
@@ -107,42 +111,119 @@ class MusicDB {
     /**
      * Retrieves a user's music history
      * @param userId - Discord user ID
-     * @returns Promise<IMusicUserDocument | null>
+     * @returns Promise with music history or null
      * @throws Error if userId is null or if database operation fails
      * @public
      */
     public static async getUserMusicHistory(
         userId: string | null
-    ): Promise<IMusicUser | null> {
+    ): Promise<{ songs: ISongs[] } | null> {
         try {
             if (!userId) {
                 throw new Error("User ID is required to get music history");
             }
 
-            return await music_user.findOne({ userId });
+            const user = await music_user.findOne({ userId });
+
+            if (!user) {
+                return null;
+            }
+
+            return {
+                songs: user.songs || [],
+            };
         } catch (err) {
-            throw new Error(`Failed to get user music history: ${err}`);
+            console.error(`Failed to get user music history: ${err}`);
+            return { songs: [] };
         }
     }
 
     /**
      * Retrieves a guild's music history
      * @param guildId - Discord guild ID
-     * @returns Promise<IMusicGuildDocument | null>
+     * @returns Promise with music history or null
      * @throws Error if guildId is null or if database operation fails
      * @public
      */
     public static async getGuildMusicHistory(
         guildId: string | null
-    ): Promise<IMusicGuild | null> {
+    ): Promise<{ songs: ISongs[] } | null> {
         try {
             if (!guildId) {
                 throw new Error("Guild ID is required to get music history");
             }
 
-            return await music_guild.findOne({ guildId });
+            const guild = await music_guild.findOne({ guildId });
+
+            if (!guild) {
+                return null;
+            }
+
+            return {
+                songs: guild.songs || [],
+            };
         } catch (err) {
-            throw new Error(`Failed to get guild music history: ${err}`);
+            console.error(`Failed to get guild music history: ${err}`);
+            return { songs: [] };
+        }
+    }
+
+    /**
+     * Retrieves global music history across all guilds
+     * @returns Promise with combined song stats
+     * @throws Error if database operation fails
+     * @public
+     */
+    public static async getGlobalMusicHistory(): Promise<{ songs: ISongs[] }> {
+        try {
+            const allGuilds = await music_guild.find();
+
+            // Edge case: no guild data found
+            if (!allGuilds || allGuilds.length === 0) {
+                return { songs: [] };
+            }
+
+            const combinedSongs: Record<string, ISongs> = {};
+
+            allGuilds.forEach((guild) => {
+                // Add null check for guild.songs
+                if (!guild.songs || !Array.isArray(guild.songs)) return;
+
+                guild.songs.forEach((song) => {
+                    // Skip songs with missing essential data
+                    if (!song.uri || !song.title || !song.author) return;
+
+                    // Make sure played_number is a number greater than 0
+                    if (!song.played_number || song.played_number <= 0) return;
+
+                    const key = song.uri;
+                    if (combinedSongs[key]) {
+                        combinedSongs[key].played_number += song.played_number;
+                    } else {
+                        // Create a clean copy with all required fields
+                        combinedSongs[key] = {
+                            ...song,
+                            // Ensure these fields exist
+                            title: song.title || "Unknown Title",
+                            author: song.author || "Unknown Artist",
+                            played_number: song.played_number || 0,
+                            duration: song.duration || 0,
+                            timestamp: song.timestamp || new Date(),
+                        };
+                    }
+                });
+            });
+
+            // Convert to array and sort by play count
+            const globalSongs = Object.values(combinedSongs)
+                .filter((song) => song.played_number > 0) // Extra safeguard
+                .sort((a, b) => b.played_number - a.played_number);
+
+            return { songs: globalSongs };
+        } catch (err) {
+            console.error(`Failed to get global music history: ${err}`);
+            // Return empty songs array rather than throwing
+            return { songs: [] };
         }
     }
 
@@ -164,7 +245,7 @@ class MusicDB {
             }
 
             const user = await music_user.findOne({ userId });
-            if (!user) {
+            if (!user || !user.songs) {
                 return false;
             }
 
@@ -200,7 +281,7 @@ class MusicDB {
             }
 
             const guild = await music_guild.findOne({ guildId });
-            if (!guild) {
+            if (!guild || !guild.songs) {
                 return false;
             }
 
@@ -288,15 +369,16 @@ class MusicDB {
             }
 
             const user = await music_user.findOne({ userId });
-            if (!user) {
+            if (!user || !user.songs || !Array.isArray(user.songs)) {
                 return [];
             }
 
             return user.songs
-                .sort((a, b) => b.played_number - a.played_number)
+                .sort((a, b) => (b.played_number || 0) - (a.played_number || 0))
                 .slice(0, limit);
         } catch (err) {
-            throw new Error(`Failed to get user top songs: ${err}`);
+            console.error(`Failed to get user top songs: ${err}`);
+            return [];
         }
     }
 
@@ -318,15 +400,16 @@ class MusicDB {
             }
 
             const guild = await music_guild.findOne({ guildId });
-            if (!guild) {
+            if (!guild || !guild.songs || !Array.isArray(guild.songs)) {
                 return [];
             }
 
             return guild.songs
-                .sort((a, b) => b.played_number - a.played_number)
+                .sort((a, b) => (b.played_number || 0) - (a.played_number || 0))
                 .slice(0, limit);
         } catch (err) {
-            throw new Error(`Failed to get guild top songs: ${err}`);
+            console.error(`Failed to get guild top songs: ${err}`);
+            return [];
         }
     }
 }
