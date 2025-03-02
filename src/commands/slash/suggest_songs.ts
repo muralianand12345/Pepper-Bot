@@ -1,111 +1,27 @@
 import discord from "discord.js";
-import magmastream from "magmastream";
 import Formatter from "../../utils/format";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
-import { VoiceChannelValidator } from "../../utils/music/music_validations";
-import { SlashCommand, ITrackFormatOptions, ILastFmTrack } from "../../types";
+import PlaylistSuggestion from "../../utils/music/playlist_suggestion";
+import { SlashCommand, ISongs } from "../../types";
 
 /**
- * Determines if a track is from Last.fm format
- * @param track - Track to check
- * @returns Boolean indicating if track is Last.fm format
+ * Command to get Spotify song recommendations based on user's listening history
  */
-const isLastFmTrack = (track: any): track is ILastFmTrack => {
-    return (
-        "playcount" in track &&
-        "match" in track &&
-        "artist" in track &&
-        typeof track.artist === "object"
-    );
-};
-
-/**
- * Formats play count with K/M suffix
- * @param count - Number of plays
- * @returns Formatted play count string
- */
-const formatPlaycount = (count: number): string => {
-    if (count >= 1_000_000) {
-        return `${(count / 1_000_000).toFixed(1)}M plays`;
-    } else if (count >= 1_000) {
-        return `${(count / 1_000).toFixed(1)}K plays`;
-    }
-    return `${count} plays`;
-};
-
-/**
- * Formats a single track for display
- * @param track - Track to format
- * @param index - Track index in list
- * @param similarity - Similarity score
- * @param options - Formatting options
- * @returns Formatted track string
- */
-const formatTrack = (
-    track: magmastream.Track | ILastFmTrack,
-    index: number,
-    similarity: number,
-    options: ITrackFormatOptions = {}
-): string => {
-    const {
-        maxTitleLength = 45,
-        maxArtistLength = 20,
-        includeDuration = true,
-    } = options;
-
-    if (isLastFmTrack(track)) {
-        // Format Last.fm track
-        const trackName = Formatter.truncateText(track.name, maxTitleLength);
-        const artistName = Formatter.truncateText(
-            track.artist.name,
-            maxArtistLength
-        );
-        const matchPercent = `${(track.match * 100).toFixed(1)}%`;
-        const plays = formatPlaycount(track.playcount);
-
-        return (
-            `**${index + 1}.** ${Formatter.hyperlink(
-                trackName,
-                track.url
-            )} by **${artistName}**\n` +
-            `┗ Match: \`${matchPercent}\` • ${plays}`
-        );
-    } else {
-        // Format MagmaStream track
-        const trackName = Formatter.truncateText(
-            track.title || "Unknown Track",
-            maxTitleLength
-        );
-        const artistName = Formatter.truncateText(
-            track.author || "Unknown Artist",
-            maxArtistLength
-        );
-        const matchPercent = `${((1 - index * 0.1) * 100).toFixed(1)}%`;
-        const duration =
-            includeDuration && track.duration
-                ? ` • \`${Formatter.msToTime(track.duration).substring(3)}\``
-                : "";
-
-        return (
-            `**${index + 1}.** ${Formatter.hyperlink(
-                trackName,
-                track.uri || "#"
-            )} by **${artistName}**\n` +
-            `┗ Match: \`${matchPercent}\`${duration}`
-        );
-    }
-};
-
-/**
- * Command to suggest similar songs based on the currently playing track
- */
-const suggestSongsCommand: SlashCommand = {
-    cooldown: 15,
+const spotifyRecommendCommand: SlashCommand = {
+    cooldown: 10,
     owner: false,
     data: new discord.SlashCommandBuilder()
         .setName("suggest-songs")
         .setDescription(
-            "Beta feature: Suggest similar songs based on the current track"
+            "Get Spotify music recommendations based on your listening history"
+        )
+        .addIntegerOption((option) =>
+            option
+                .setName("count")
+                .setDescription("Number of recommendations to get")
+                .setRequired(false)
+                .setMinValue(1)
+                .setMaxValue(20)
         )
         .setContexts(discord.InteractionContextType.Guild),
 
@@ -113,7 +29,7 @@ const suggestSongsCommand: SlashCommand = {
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
     ) => {
-        // Music system validation
+        // Check if music system is enabled
         if (!client.config.music.enabled) {
             return await interaction.reply({
                 embeds: [
@@ -121,117 +37,470 @@ const suggestSongsCommand: SlashCommand = {
                         "Music is currently disabled"
                     ),
                 ],
-                flags: discord.MessageFlags.Ephemeral,
+                ephemeral: true,
             });
         }
 
-        // Player validation
-        const player = client.manager.get(interaction.guild?.id || "");
-        if (!player) {
+        // Validate guild context
+        if (!interaction.guild) {
             return await interaction.reply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
-                        "No music is currently playing"
+                        "This command can only be used in a server"
                     ),
                 ],
-                flags: discord.MessageFlags.Ephemeral,
+                ephemeral: true,
             });
         }
 
-        // Voice channel validation
-        const validator = new VoiceChannelValidator(client, interaction);
-        for (const check of [
-            validator.validateGuildContext(),
-            validator.validateVoiceConnection(),
-            validator.validateMusicPlaying(player),
-            validator.validateVoiceSameChannel(player),
-        ]) {
-            const [isValid, embed] = await check;
-            if (!isValid) {
-                return await interaction.reply({
-                    embeds: [embed],
-                    flags: discord.MessageFlags.Ephemeral,
-                });
-            }
-        }
+        const count = interaction.options.getInteger("count") || 10;
 
+        // Show loading indicator
         await interaction.deferReply();
 
         try {
-            const currentTrack = player.queue.current;
-            if (!currentTrack?.title) {
-                throw new Error("No valid track currently playing");
-            }
+            // Create recommendation engine
+            const suggestionEngine = new PlaylistSuggestion(client);
 
-            const tracks = await player.getRecommendedTracks(currentTrack);
+            // Get recommendations based on user's top song
+            const { seedSong, recommendations } =
+                await suggestionEngine.getSuggestionsFromUserTopSong(
+                    interaction.user.id,
+                    interaction.guild.id,
+                    count
+                );
 
-            if (!tracks?.length) {
+            // Handle case where user has no listening history
+            if (!seedSong) {
                 return await interaction.editReply({
                     embeds: [
                         new MusicResponseHandler(client).createInfoEmbed(
-                            "No recommendations found for the current track"
+                            "You don't have any listening history yet. Play some songs first!"
                         ),
                     ],
                 });
             }
 
-            // Create formatted track groups
-            const firstGroup = tracks
-                .slice(0, 5)
-                .map((track, index) =>
-                    formatTrack(track, index, 1 - index * 0.1)
-                )
-                .join("\n\n");
+            // Handle case where we couldn't find recommendations
+            if (!recommendations || recommendations.length === 0) {
+                return await interaction.editReply({
+                    embeds: [
+                        new MusicResponseHandler(client).createInfoEmbed(
+                            `No recommendations found based on "${seedSong.title}". Try playing more varied songs!`
+                        ),
+                    ],
+                });
+            }
 
-            const secondGroup = tracks
-                .slice(5, 10)
-                .map((track, index) =>
-                    formatTrack(track, index + 5, 1 - (index + 5) * 0.1)
-                )
-                .join("\n\n");
+            // Count Spotify vs non-Spotify links with safety check
+            const spotifyCount = recommendations.filter(
+                (track) =>
+                    track && track.uri && track.uri.includes("spotify.com")
+            ).length;
 
+            // Format function for track display
+            const formatRecommendation = (
+                track: ISongs,
+                index: number
+            ): string => {
+                if (!track || !track.title || !track.author) {
+                    return `**${index + 1}.** Unknown Track`;
+                }
+
+                const title = Formatter.truncateText(track.title, 40);
+                const author = Formatter.truncateText(track.author, 20);
+                const isSpotify =
+                    track.uri && track.uri.includes("spotify.com");
+                const icon = isSpotify ? "🟢" : "🎵";
+
+                // Safety check for URI
+                const trackUri = track.uri || "#";
+
+                return `${icon} **${index + 1}.** ${Formatter.hyperlink(
+                    title,
+                    trackUri
+                )} - **${author}**`;
+            };
+
+            // Create an embed to display the recommendations
             const embed = new discord.EmbedBuilder()
-                .setColor(client.config.content.embed.color.default)
-                .setTitle("🎵 Similar Songs You Might Like")
+                .setColor("#1DB954") // Spotify green
+                .setTitle("🎵 Spotify Recommendations")
                 .setDescription(
-                    `Based on your current track: **${Formatter.truncateText(
-                        currentTrack.title,
-                        45
-                    )}**\n` +
-                        `by **${currentTrack.author}** \`${Formatter.msToTime(
-                            currentTrack.duration
-                        ).substring(3)}\`\n` +
-                        "*Here are some songs with similar vibes:*"
-                )
-                .addFields(
-                    {
-                        name: "Top Recommendations",
-                        value: firstGroup || "No recommendations found",
-                    },
-                    {
-                        name: "More Suggestions",
-                        value: secondGroup || "No additional recommendations",
-                    }
-                )
-                .setThumbnail(
-                    currentTrack.thumbnail || currentTrack.artworkUrl || null
+                    `Based on your top song: **${Formatter.truncateText(
+                        seedSong.title || "Unknown Title",
+                        40
+                    )}** by **${seedSong.author || "Unknown Artist"}**\n\n` +
+                        `Found ${spotifyCount} Spotify tracks out of ${recommendations.length} recommendations`
                 )
                 .setFooter({
-                    text: `Requested by ${interaction.user.tag} • Powered by MagmaStream and Last.fm`,
+                    text: `Requested by ${interaction.user.tag}`,
                     iconURL: interaction.user.displayAvatarURL(),
                 })
                 .setTimestamp();
 
-            return await interaction.editReply({ embeds: [embed] });
-        } catch (error) {
-            client.logger.error(
-                `[SUGGEST_SONGS] SuggestSongs | Error: ${error}`
-            );
+            // Add thumbnail with safety check
+            if (seedSong.thumbnail || seedSong.artworkUrl) {
+                embed.setThumbnail(
+                    seedSong.thumbnail || seedSong.artworkUrl || null
+                );
+            }
 
-            return await interaction.editReply({
+            // Split recommendations into groups
+            if (recommendations.length > 0) {
+                const firstGroup = recommendations
+                    .slice(0, 5)
+                    .map((track, index) => formatRecommendation(track, index))
+                    .join("\n");
+
+                embed.addFields({
+                    name: "Top Recommendations",
+                    value: firstGroup || "No valid recommendations found",
+                });
+
+                if (recommendations.length > 5) {
+                    const secondGroup = recommendations
+                        .slice(5, 10)
+                        .map((track, index) =>
+                            formatRecommendation(track, index + 5)
+                        )
+                        .join("\n");
+
+                    embed.addFields({
+                        name: "More Recommendations",
+                        value: secondGroup || "No additional recommendations",
+                    });
+                }
+
+                if (recommendations.length > 10) {
+                    const thirdGroup = recommendations
+                        .slice(10, Math.min(15, recommendations.length))
+                        .map((track, index) =>
+                            formatRecommendation(track, index + 10)
+                        )
+                        .join("\n");
+
+                    embed.addFields({
+                        name: "Additional Recommendations",
+                        value: thirdGroup || "No additional recommendations",
+                    });
+                }
+            }
+
+            // Create action buttons
+            const row =
+                new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
+                    new discord.ButtonBuilder()
+                        .setCustomId("play-recommendation-first")
+                        .setLabel("Play Top Pick")
+                        .setStyle(discord.ButtonStyle.Success)
+                        .setEmoji("▶️"),
+                    new discord.ButtonBuilder()
+                        .setCustomId("add-recommendation-queue")
+                        .setLabel("Add All to Queue")
+                        .setStyle(discord.ButtonStyle.Primary)
+                        .setEmoji("📋"),
+                    new discord.ButtonBuilder()
+                        .setCustomId("refresh-recommendation")
+                        .setLabel("Get New Suggestions")
+                        .setStyle(discord.ButtonStyle.Secondary)
+                        .setEmoji("🔄")
+                );
+
+            // Get manager for player access
+            const player = client.manager.get(interaction.guild.id);
+
+            // Send the embed with buttons (show buttons only if a player exists)
+            const message = await interaction.editReply({
+                embeds: [embed],
+                components: player ? [row] : [],
+            });
+
+            // Set up collector for button interactions
+            if (player) {
+                const collector = message.createMessageComponentCollector({
+                    filter: (i) => i.user.id === interaction.user.id,
+                    time: 60000, // 1 minute timeout
+                });
+
+                // Button actions
+                collector.on("collect", async (i) => {
+                    try {
+                        if (
+                            i.customId === "play-recommendation-first" &&
+                            recommendations.length > 0
+                        ) {
+                            // Play the first recommendation
+                            await i.deferUpdate();
+
+                            const topPick = recommendations[0];
+                            // Safety check for URI
+                            if (!topPick || !topPick.uri) {
+                                await i.followUp({
+                                    embeds: [
+                                        new MusicResponseHandler(
+                                            client
+                                        ).createErrorEmbed(
+                                            "Invalid track data for the top recommendation"
+                                        ),
+                                    ],
+                                    ephemeral: true,
+                                });
+                                return;
+                            }
+
+                            const searchResult = await client.manager.search(
+                                topPick.uri,
+                                interaction.user
+                            );
+
+                            if (
+                                searchResult.tracks &&
+                                searchResult.tracks.length > 0
+                            ) {
+                                player.queue.unshift(searchResult.tracks[0]);
+                                player.stop(); // Skips to the newly added track
+
+                                await i.followUp({
+                                    embeds: [
+                                        new MusicResponseHandler(
+                                            client
+                                        ).createSuccessEmbed(
+                                            `Now playing: **${
+                                                topPick.title || "Unknown Track"
+                                            }** by **${
+                                                topPick.author ||
+                                                "Unknown Artist"
+                                            }**`
+                                        ),
+                                    ],
+                                    ephemeral: true,
+                                });
+                            }
+                        } else if (i.customId === "add-recommendation-queue") {
+                            // Add all recommendations to queue
+                            await i.deferUpdate();
+
+                            let addedCount = 0;
+                            for (const rec of recommendations) {
+                                try {
+                                    // Safety check for URI
+                                    if (!rec || !rec.uri) continue;
+
+                                    const searchResult =
+                                        await client.manager.search(
+                                            rec.uri,
+                                            interaction.user
+                                        );
+                                    if (
+                                        searchResult.tracks &&
+                                        searchResult.tracks.length > 0
+                                    ) {
+                                        player.queue.add(
+                                            searchResult.tracks[0]
+                                        );
+                                        addedCount++;
+                                    }
+                                } catch (err) {
+                                    client.logger.error(
+                                        `Failed to add track to queue: ${err}`
+                                    );
+                                }
+                            }
+
+                            if (
+                                !player.playing &&
+                                !player.paused &&
+                                player.queue.size > 0
+                            ) {
+                                player.play();
+                            }
+
+                            await i.followUp({
+                                embeds: [
+                                    new MusicResponseHandler(
+                                        client
+                                    ).createSuccessEmbed(
+                                        `Added ${addedCount} tracks to the queue!`
+                                    ),
+                                ],
+                                ephemeral: true,
+                            });
+                        } else if (i.customId === "refresh-recommendation") {
+                            // Get new recommendations
+                            await i.deferUpdate();
+
+                            // Get fresh recommendations
+                            const {
+                                seedSong: newSeedSong,
+                                recommendations: newRecommendations,
+                            } =
+                                await suggestionEngine.getSuggestionsFromUserTopSong(
+                                    interaction.user.id,
+                                    interaction.guild?.id || "",
+                                    count
+                                );
+
+                            if (
+                                !newSeedSong ||
+                                !newRecommendations ||
+                                newRecommendations.length === 0
+                            ) {
+                                await i.followUp({
+                                    embeds: [
+                                        new MusicResponseHandler(
+                                            client
+                                        ).createInfoEmbed(
+                                            "No new recommendations found"
+                                        ),
+                                    ],
+                                    ephemeral: true,
+                                });
+                                return;
+                            }
+
+                            // Count Spotify vs non-Spotify links with safety check
+                            const newSpotifyCount = newRecommendations.filter(
+                                (track) =>
+                                    track &&
+                                    track.uri &&
+                                    track.uri.includes("spotify.com")
+                            ).length;
+
+                            // Create updated embed
+                            const updatedEmbed = new discord.EmbedBuilder()
+                                .setColor("#1DB954")
+                                .setTitle("🎵 Fresh Spotify Recommendations")
+                                .setDescription(
+                                    `Based on your top song: **${Formatter.truncateText(
+                                        newSeedSong.title || "Unknown Title",
+                                        40
+                                    )}** by **${
+                                        newSeedSong.author || "Unknown Artist"
+                                    }**\n\n` +
+                                        `Found ${newSpotifyCount} Spotify tracks out of ${newRecommendations.length} recommendations`
+                                )
+                                .setFooter({
+                                    text: `Refreshed by ${interaction.user.tag}`,
+                                    iconURL:
+                                        interaction.user.displayAvatarURL(),
+                                })
+                                .setTimestamp();
+
+                            // Add thumbnail with safety check
+                            if (
+                                newSeedSong.thumbnail ||
+                                newSeedSong.artworkUrl
+                            ) {
+                                updatedEmbed.setThumbnail(
+                                    newSeedSong.thumbnail ||
+                                        newSeedSong.artworkUrl ||
+                                        null
+                                );
+                            }
+
+                            // Format new recommendations
+                            if (newRecommendations.length > 0) {
+                                const firstGroup = newRecommendations
+                                    .slice(0, 5)
+                                    .map((track, index) =>
+                                        formatRecommendation(track, index)
+                                    )
+                                    .join("\n");
+
+                                updatedEmbed.addFields({
+                                    name: "Top Recommendations",
+                                    value:
+                                        firstGroup ||
+                                        "No valid recommendations found",
+                                });
+
+                                if (newRecommendations.length > 5) {
+                                    const secondGroup = newRecommendations
+                                        .slice(5, 10)
+                                        .map((track, index) =>
+                                            formatRecommendation(
+                                                track,
+                                                index + 5
+                                            )
+                                        )
+                                        .join("\n");
+
+                                    updatedEmbed.addFields({
+                                        name: "More Recommendations",
+                                        value:
+                                            secondGroup ||
+                                            "No additional recommendations",
+                                    });
+                                }
+
+                                if (newRecommendations.length > 10) {
+                                    const thirdGroup = newRecommendations
+                                        .slice(
+                                            10,
+                                            Math.min(
+                                                15,
+                                                newRecommendations.length
+                                            )
+                                        )
+                                        .map((track, index) =>
+                                            formatRecommendation(
+                                                track,
+                                                index + 10
+                                            )
+                                        )
+                                        .join("\n");
+
+                                    updatedEmbed.addFields({
+                                        name: "Additional Recommendations",
+                                        value:
+                                            thirdGroup ||
+                                            "No additional recommendations",
+                                    });
+                                }
+                            }
+
+                            // Update message with new recommendations
+                            await interaction.editReply({
+                                embeds: [updatedEmbed],
+                                components: [row],
+                            });
+                        }
+                    } catch (error) {
+                        client.logger.error(
+                            `Button interaction error: ${error}`
+                        );
+                        await i.reply({
+                            embeds: [
+                                new MusicResponseHandler(
+                                    client
+                                ).createErrorEmbed(
+                                    "An error occurred while processing your request"
+                                ),
+                            ],
+                            ephemeral: true,
+                        });
+                    }
+                });
+
+                // When collector expires, disable the buttons
+                collector.on("end", async () => {
+                    row.components.forEach((button) =>
+                        button.setDisabled(true)
+                    );
+                    await interaction
+                        .editReply({
+                            components: [row],
+                        })
+                        .catch(() => {});
+                });
+            }
+        } catch (error) {
+            client.logger.error(`[SPOTIFY_RECOMMEND] Error: ${error}`);
+            await interaction.editReply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
-                        "Failed to fetch song recommendations"
+                        "Failed to generate recommendations"
                     ),
                 ],
             });
@@ -239,4 +508,4 @@ const suggestSongsCommand: SlashCommand = {
     },
 };
 
-export default suggestSongsCommand;
+export default spotifyRecommendCommand;

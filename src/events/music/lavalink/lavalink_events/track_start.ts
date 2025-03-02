@@ -75,8 +75,17 @@ const lavalinkEvent: LavalinkEvent = {
             )) as discord.TextChannel;
             if (!channel?.isTextBased() || player.trackRepeat) return;
 
-            const requesterData = track.requester
-                ? convertUserToUserData(track.requester as discord.User)
+            const requester = track.requester as discord.User;
+            const requesterId = requester?.id;
+
+            if (!requesterId) {
+                client.logger.warn(
+                    `[TRACK_START] No requester ID for track: ${track.title}`
+                );
+            }
+
+            const requesterData = requester
+                ? convertUserToUserData(requester)
                 : null;
 
             const songData = {
@@ -97,10 +106,14 @@ const lavalinkEvent: LavalinkEvent = {
                 timestamp: new Date(),
             };
 
-            await MusicDB.addMusicUserData(
-                track.requester?.id || null,
-                songData
-            );
+            if (requesterId) {
+                await MusicDB.addMusicUserData(requesterId, songData);
+            } else {
+                client.logger.warn(
+                    `[TRACK_START] No requester ID for track: ${track.title}`
+                );
+            }
+
             await MusicDB.addMusicGuildData(player.guildId, songData);
 
             // Delete track start notification after 5 seconds

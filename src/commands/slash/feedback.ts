@@ -10,8 +10,7 @@ const feedbackCommand: SlashCommand = {
     owner: false,
     data: new discord.SlashCommandBuilder()
         .setName("feedback")
-        .setDescription("Send feedback to the bot developers")
-        .setContexts(discord.InteractionContextType.Guild),
+        .setDescription("Send feedback to the bot developers"),
 
     /**
      * Executes the feedback command by displaying a modal form
