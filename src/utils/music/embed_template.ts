@@ -211,13 +211,26 @@ class MusicResponseHandler {
     /**
      * Creates an error embed for music actions
      * @param {string} message - Error message
+     * @param {boolean} contact_dev - Whether to contact the developer prompt to be included
      * @returns {discord.EmbedBuilder} Configured error embed
      */
-    public createErrorEmbed(message: string): discord.EmbedBuilder {
+    public createErrorEmbed(
+        message: string,
+        contact_dev: boolean = false
+    ): discord.EmbedBuilder {
         const color = this.client.config.content.embed.color.error ?? "#FF0000";
-        return new discord.EmbedBuilder()
+        const embed = new discord.EmbedBuilder()
             .setColor(color as discord.ColorResolvable)
             .setDescription(message);
+
+        if (contact_dev) {
+            embed.setFooter({
+                text: "If this issue persists, please use `/feedback` or contact the developer.",
+                iconURL: this.client.user?.displayAvatarURL(),
+            });
+        }
+
+        return embed;
     }
 
     /**
@@ -243,6 +256,19 @@ class MusicResponseHandler {
         return new discord.EmbedBuilder()
             .setColor(color as discord.ColorResolvable)
             .setDescription(message);
+    }
+
+    /**
+     * Gets support button for error messages
+     * @returns {discord.ActionRowBuilder<discord.ButtonBuilder>} Support button component
+     */
+    public getSupportButton(): discord.ActionRowBuilder<discord.ButtonBuilder> {
+        return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
+            new discord.ButtonBuilder()
+                .setLabel("Pepper Support")
+                .setStyle(discord.ButtonStyle.Link)
+                .setURL("https://discord.gg/XzE9hSbsNb")
+        );
     }
 }
 

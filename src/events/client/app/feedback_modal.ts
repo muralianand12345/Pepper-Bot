@@ -137,8 +137,12 @@ const event: BotEvent = {
             await interaction.reply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
-                        "Failed to submit feedback. Please try again later."
+                        "Failed to submit feedback. Please try again later.",
+                        true
                     ),
+                ],
+                components: [
+                    new MusicResponseHandler(client).getSupportButton(),
                 ],
                 flags: discord.MessageFlags.Ephemeral,
             });

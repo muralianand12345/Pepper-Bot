@@ -1,6 +1,7 @@
 import os from "os";
 import discord from "discord.js";
 import Formatter from "../../utils/format";
+import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { Command } from "../../types";
 
 /**
@@ -87,7 +88,15 @@ const command: Command = {
                 `[PING] Failed to fetch system status: ${error}`
             );
             await message.reply({
-                content: "Failed to fetch system status. Please try again.",
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Failed to fetch system status",
+                        true
+                    ),
+                ],
+                components: [
+                    new MusicResponseHandler(client).getSupportButton(),
+                ],
             });
         }
     },

@@ -241,8 +241,12 @@ const playcommand: SlashCommand = {
             await interaction.followUp({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
-                        "An error occurred while processing the song"
+                        "An error occurred while processing the song",
+                        true
                     ),
+                ],
+                components: [
+                    new MusicResponseHandler(client).getSupportButton(),
                 ],
                 flags: discord.MessageFlags.Ephemeral,
             });

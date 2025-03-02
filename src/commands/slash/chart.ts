@@ -257,8 +257,12 @@ const musicChartCommand: SlashCommand = {
             await interaction.editReply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
-                        `An error occurred while generating music statistics: ${error}`
+                        `An error occurred while generating music statistics, please try again later!`,
+                        true
                     ),
+                ],
+                components: [
+                    new MusicResponseHandler(client).getSupportButton(),
                 ],
             });
         }

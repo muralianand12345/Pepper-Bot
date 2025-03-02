@@ -37,7 +37,7 @@ const spotifyRecommendCommand: SlashCommand = {
                         "Music is currently disabled"
                     ),
                 ],
-                ephemeral: true,
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
@@ -49,7 +49,7 @@ const spotifyRecommendCommand: SlashCommand = {
                         "This command can only be used in a server"
                     ),
                 ],
-                ephemeral: true,
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
@@ -241,10 +241,16 @@ const spotifyRecommendCommand: SlashCommand = {
                                         new MusicResponseHandler(
                                             client
                                         ).createErrorEmbed(
-                                            "Invalid track data for the top recommendation"
+                                            "Invalid track data for the top recommendation",
+                                            true
                                         ),
                                     ],
-                                    ephemeral: true,
+                                    components: [
+                                        new MusicResponseHandler(
+                                            client
+                                        ).getSupportButton(),
+                                    ],
+                                    flags: discord.MessageFlags.Ephemeral,
                                 });
                                 return;
                             }
@@ -274,7 +280,7 @@ const spotifyRecommendCommand: SlashCommand = {
                                             }**`
                                         ),
                                     ],
-                                    ephemeral: true,
+                                    flags: discord.MessageFlags.Ephemeral,
                                 });
                             }
                         } else if (i.customId === "add-recommendation-queue") {
@@ -324,7 +330,7 @@ const spotifyRecommendCommand: SlashCommand = {
                                         `Added ${addedCount} tracks to the queue!`
                                     ),
                                 ],
-                                ephemeral: true,
+                                flags: discord.MessageFlags.Ephemeral,
                             });
                         } else if (i.customId === "refresh-recommendation") {
                             // Get new recommendations
@@ -354,7 +360,7 @@ const spotifyRecommendCommand: SlashCommand = {
                                             "No new recommendations found"
                                         ),
                                     ],
-                                    ephemeral: true,
+                                    flags: discord.MessageFlags.Ephemeral,
                                 });
                                 return;
                             }
@@ -475,10 +481,16 @@ const spotifyRecommendCommand: SlashCommand = {
                                 new MusicResponseHandler(
                                     client
                                 ).createErrorEmbed(
-                                    "An error occurred while processing your request"
+                                    "An error occurred while processing your request",
+                                    true
                                 ),
                             ],
-                            ephemeral: true,
+                            components: [
+                                new MusicResponseHandler(
+                                    client
+                                ).getSupportButton(),
+                            ],
+                            flags: discord.MessageFlags.Ephemeral,
                         });
                     }
                 });
@@ -500,8 +512,12 @@ const spotifyRecommendCommand: SlashCommand = {
             await interaction.editReply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
-                        "Failed to generate recommendations"
+                        "Failed to generate recommendations",
+                        true
                     ),
+                ],
+                components: [
+                    new MusicResponseHandler(client).getSupportButton(),
                 ],
             });
         }

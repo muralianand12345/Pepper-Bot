@@ -1,4 +1,5 @@
 import discord from "discord.js";
+import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { SlashCommand } from "../../types";
 
 /**
@@ -78,8 +79,15 @@ const feedbackCommand: SlashCommand = {
                 `[FEEDBACK] Failed to open feedback form: ${error}`
             );
             await interaction.reply({
-                content:
-                    "Failed to open feedback form. Please try again later.",
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Failed to open feedback form. Please try again later.",
+                        true
+                    ),
+                ],
+                components: [
+                    new MusicResponseHandler(client).getSupportButton(),
+                ],
                 flags: discord.MessageFlags.Ephemeral,
             });
         }
