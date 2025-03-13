@@ -144,6 +144,18 @@ export interface IConfig {
             };
         };
     };
+    api: {
+        enabled: boolean;
+        port: number;
+        auth: {
+            enabled: boolean;
+            apiKey: string;
+        };
+        rateLimit: {
+            windowMs: number;
+            max: number;
+        };
+    };
 }
 
 //-----------DB MODELS-----------//
