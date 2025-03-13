@@ -128,6 +128,34 @@ class MusicService {
             throw error;
         }
     }
+
+    public async getUserMusicHistory(userId: string, limit: number = 10): Promise<MusicHistoryDto[] | null> {
+        try {
+            // Use MusicDB utility to get user history
+            const MusicDB = require('../../../../utils/music/music_db').default;
+            const history = await MusicDB.getUserMusicHistory(userId);
+
+            if (!history || !history.songs || history.songs.length === 0) {
+                return null;
+            }
+
+            // Format history data for API response
+            return history.songs
+                .sort((a: MusicDBSong, b: MusicDBSong) => b.played_number - a.played_number)
+                .slice(0, limit)
+                .map((song: MusicDBSong) => ({
+                    title: song.title,
+                    author: song.author,
+                    sourceName: song.sourceName,
+                    uri: song.uri,
+                    playCount: song.played_number,
+                    lastPlayed: song.timestamp,
+                    artworkUrl: song.artworkUrl || song.thumbnail
+                }));
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default MusicService;

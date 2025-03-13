@@ -85,6 +85,36 @@ class MusicController {
             });
         }
     };
+
+    public getUserMusicHistory = async (req: express.Request, res: express.Response): Promise<void> => {
+        const { userId } = req.params;
+        const limit = parseInt(req.query.limit as string) || 10;
+
+        try {
+            const history = await this.musicService.getUserMusicHistory(userId, limit);
+
+            if (!history) {
+                res.status(404).json({
+                    status: 'error',
+                    message: 'No music history found for this user'
+                });
+                return;
+            }
+
+            res.json({
+                status: 'success',
+                timestamp: new Date().toISOString(),
+                count: history.length,
+                data: history
+            });
+        } catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: 'Failed to retrieve music history',
+                details: error instanceof Error ? error.message : String(error)
+            });
+        }
+    };
 }
 
 export default MusicController;

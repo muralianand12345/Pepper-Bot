@@ -59,7 +59,7 @@ const musicRouter = (client: discord.Client): express.Router => {
 
     /**
      * @swagger
-     * /music/history/{guildId}:
+     * /music/history/guild/{guildId}:
      *   get:
      *     summary: Get music history for a guild
      *     description: Retrieves the music playback history for a specific guild
@@ -87,7 +87,39 @@ const musicRouter = (client: discord.Client): express.Router => {
      *             schema:
      *               $ref: '#/components/schemas/MusicHistoryResponse'
      */
-    router.get('/history/:guildId', controller.getGuildMusicHistory);
+    router.get('/history/guild/:guildId', controller.getGuildMusicHistory);
+
+    /**
+     * @swagger
+     * /music/history/user/{userId}:
+     *   get:
+     *     summary: Get music history for a user
+     *     description: Retrieves the music playback history for a specific user
+     *     tags: [Music]
+     *     security:
+     *       - ApiKeyAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: userId
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Discord user ID
+     *       - in: query
+     *         name: limit
+     *         schema:
+     *           type: integer
+     *           default: 10
+     *         description: Number of tracks to retrieve
+     *     responses:
+     *       200:
+     *         description: Successful operation
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/MusicHistoryResponse'
+     */
+    router.get('/history/user/:userId', controller.getUserMusicHistory);
 
     return router;
 };
