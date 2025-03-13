@@ -1,5 +1,7 @@
+import fs from 'fs';
 import cors from 'cors';
 import path from 'path';
+import https from 'https';
 import express from 'express';
 import discord from 'discord.js';
 import swaggerUi from 'swagger-ui-express';
@@ -152,7 +154,13 @@ class ApiServer {
 
         const port = this.apiConfig.getPort();
 
-        this.app.listen(port, () => {
+        const options = {
+            key: fs.readFileSync(path.join(process.cwd(), 'config/certs/private-key.pem')),
+            cert: fs.readFileSync(path.join(process.cwd(), 'config/certs/certificate.pem'))
+        };
+
+        // Create HTTPS server
+        https.createServer(options, this.app).listen(port, () => {
             this.logger.info(`[API] Server started on port ${port}`);
             this.logger.info(`[API] Swagger documentation available at http://localhost:${port}/docs`);
 

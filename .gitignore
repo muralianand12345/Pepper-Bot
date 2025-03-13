@@ -17,3 +17,4 @@ yarn.lock
 lavalink/application.yml
 config/config.prod.yml
 config/config.yml
+config/certs/
