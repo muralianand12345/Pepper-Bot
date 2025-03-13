@@ -100,7 +100,7 @@ const handleSearchResult = async (
                 player.play();
 
             await interaction.followUp({
-                embeds: [createTrackEmbed(track, client)],
+                embeds: [createTrackEmbed(track, client, player.queue.size)],
                 components: [musicButton],
             });
             break;

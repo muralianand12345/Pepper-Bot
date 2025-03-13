@@ -1,24 +1,9 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
-import { sendTempMessage } from "../../../../utils/music/music_functions";
-import { MusicResponseHandler } from "../../../../utils/music/embed_template";
+import { musicEmbed, musicButton } from "../../../../utils/music/embed_template";
 import MusicDB from "../../../../utils/music/music_db";
+import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import { LavalinkEvent, ISongsUser } from "../../../../types";
-
-/**
- * Creates a track start notification embed
- * @param track - Track that started playing
- * @param client - Discord client instance
- * @returns EmbedBuilder instance
- */
-const createTrackStartEmbed = (
-    track: magmastream.Track,
-    client: discord.Client
-): discord.EmbedBuilder => {
-    return new MusicResponseHandler(client).createSuccessEmbed(
-        `🎵 ${track.title}`
-    );
-};
 
 /**
  * Handles track start event logging
@@ -34,15 +19,21 @@ const logTrackStart = (
     const guildName = client.guilds.cache.get(player.guildId)?.name;
     const requester = track.requester as discord.User;
 
+    if (!requester) {
+        client.logger.info(
+            `[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId})`
+        );
+        return;
+    }
+
     client.logger.info(
         `[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` +
-            `By ${requester.tag} (${requester.id})`
+        `By ${requester.tag} (${requester.id})`
     );
     client.logger.info(
         `[LAVALINK] User: ${requester.tag} (${requester.id}) requested song uri ${track.uri} ` +
-            `in ${guildName} (${player.guildId}) using Node ${
-                player.node.options.identifier
-            } (${player.node.options.host}:${player.node.options.port || ""})`
+        `in ${guildName} (${player.guildId}) using Node ${player.node.options.identifier
+        } (${player.node.options.host}:${player.node.options.port || ""})`
     );
 };
 
@@ -73,7 +64,10 @@ const lavalinkEvent: LavalinkEvent = {
             const channel = (await client.channels.fetch(
                 player.textChannelId
             )) as discord.TextChannel;
-            if (!channel?.isTextBased() || player.trackRepeat) return;
+            if (!channel?.isTextBased()) return;
+
+            // Skip displaying the embed if track is repeating, but still log data
+            const shouldDisplayEmbed = !player.trackRepeat;
 
             const requesterData = track.requester
                 ? convertUserToUserData(track.requester as discord.User)
@@ -97,18 +91,34 @@ const lavalinkEvent: LavalinkEvent = {
                 timestamp: new Date(),
             };
 
+            // Save song data for analytics regardless of repeat status
             await MusicDB.addMusicUserData(
                 track.requester?.id || null,
                 songData
             );
             await MusicDB.addMusicGuildData(player.guildId, songData);
 
-            // Delete track start notification after 5 seconds
-            sendTempMessage(
-                channel,
-                createTrackStartEmbed(track, client),
-                track.duration
-            );
+            // Only send the now playing message if not repeating
+            if (shouldDisplayEmbed) {
+                // Get the now playing manager for this guild
+                const nowPlayingManager = NowPlayingManager.getInstance(
+                    player.guildId,
+                    player,
+                    client
+                );
+
+                // Create initial embed
+                const embed = await musicEmbed(client, track, player);
+
+                // Send a new message
+                const message = await channel.send({
+                    embeds: [embed],
+                    components: [musicButton]
+                });
+
+                // Register the message with the now playing manager
+                nowPlayingManager.setMessage(message, false);
+            }
 
             logTrackStart(track, player, client);
         } catch (error) {

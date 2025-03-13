@@ -208,7 +208,7 @@ const executeCommand = async (
     try {
         await command.execute(client, message, args);
 
-        client.cmdLogger.log({
+        await client.cmdLogger.log({
             client,
             commandName: `${client.config.bot.command.prefix}${command.name}`,
             guild: message.guild,

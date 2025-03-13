@@ -24,6 +24,7 @@ const processActivityName = (name: string, client: discord.Client): string => {
         "<usersize>": client.guilds.cache
             .reduce((acc, guild) => acc + guild.memberCount, 0)
             .toString(),
+        "<playersize>": client.manager.players.size.toString(),
         "<guildsize>": client.guilds.cache.size.toString(),
         "<channelsize>": client.channels.cache.size.toString(),
         "<prefix>": (client as any).config.bot.prefix,

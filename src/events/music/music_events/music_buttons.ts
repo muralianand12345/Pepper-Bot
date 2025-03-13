@@ -5,6 +5,7 @@ import {
     VoiceChannelValidator,
 } from "../../../utils/music/music_validations";
 import { MusicResponseHandler } from "../../../utils/music/embed_template";
+import { NowPlayingManager } from "../../../utils/music/now_playing_manager";
 
 /**
  * Handles music commands through button interactions
@@ -16,6 +17,7 @@ class MusicButtonHandler {
     private readonly player: any;
     private readonly playerValidator: MusicPlayerValidator;
     private readonly responseHandler: MusicResponseHandler;
+    private readonly nowPlayingManager: NowPlayingManager | null;
 
     constructor(
         interaction: discord.ButtonInteraction,
@@ -29,6 +31,11 @@ class MusicButtonHandler {
             this.player
         );
         this.responseHandler = new MusicResponseHandler(client);
+
+        // Get the now playing manager if player exists
+        this.nowPlayingManager = this.player
+            ? NowPlayingManager.getInstance(interaction.guild!.id, this.player, client)
+            : null;
     }
 
     /**
@@ -41,8 +48,7 @@ class MusicButtonHandler {
             await this.playerValidator.validatePlayerState();
         if (!playerValid && playerError) {
             await this.interaction.reply({
-                embeds: [playerError],
-                flags: discord.MessageFlags.Ephemeral,
+                embeds: [playerError]
             });
             return false;
         }
@@ -58,8 +64,7 @@ class MusicButtonHandler {
             await voiceValidator.validateVoiceConnection();
         if (!voiceValid) {
             await this.interaction.reply({
-                embeds: [voiceError],
-                flags: discord.MessageFlags.Ephemeral,
+                embeds: [voiceError]
             });
             return false;
         }
@@ -69,8 +74,7 @@ class MusicButtonHandler {
             await voiceValidator.validateVoiceSameChannel(this.player);
         if (!sameChannelValid) {
             await this.interaction.reply({
-                embeds: [sameChannelError],
-                flags: discord.MessageFlags.Ephemeral,
+                embeds: [sameChannelError]
             });
             return false;
         }
@@ -88,18 +92,22 @@ class MusicButtonHandler {
             await this.playerValidator.validatePauseState();
         if (!stateValid && stateError) {
             await this.interaction.reply({
-                embeds: [stateError],
-                flags: discord.MessageFlags.Ephemeral,
+                embeds: [stateError]
             });
             return;
         }
 
         this.player.pause(true);
+
+        // Update now playing manager with pause state
+        if (this.nowPlayingManager) {
+            this.nowPlayingManager.onPause();
+        }
+
         await this.interaction.reply({
             embeds: [
                 this.responseHandler.createSuccessEmbed("Paused the music!"),
-            ],
-            flags: discord.MessageFlags.Ephemeral,
+            ]
         });
     }
 
@@ -113,18 +121,22 @@ class MusicButtonHandler {
             await this.playerValidator.validateResumeState();
         if (!stateValid && stateError) {
             await this.interaction.reply({
-                embeds: [stateError],
-                flags: discord.MessageFlags.Ephemeral,
+                embeds: [stateError]
             });
             return;
         }
 
         this.player.pause(false);
+
+        // Update now playing manager with resume state
+        if (this.nowPlayingManager) {
+            this.nowPlayingManager.onResume();
+        }
+
         await this.interaction.reply({
             embeds: [
                 this.responseHandler.createSuccessEmbed("Resumed the music!"),
-            ],
-            flags: discord.MessageFlags.Ephemeral,
+            ]
         });
     }
 
@@ -138,8 +150,7 @@ class MusicButtonHandler {
             await this.playerValidator.validateQueueSize(1);
         if (!queueValid && queueError) {
             await this.interaction.reply({
-                embeds: [queueError],
-                flags: discord.MessageFlags.Ephemeral,
+                embeds: [queueError]
             });
             return;
         }
@@ -147,6 +158,9 @@ class MusicButtonHandler {
         this.player.stop(1);
         if (this.player.queue.size === 0) {
             this.player.destroy();
+
+            // Clean up the now playing manager when player is destroyed
+            NowPlayingManager.removeInstance(this.interaction.guild!.id);
         }
 
         await this.interaction.reply({
@@ -154,8 +168,7 @@ class MusicButtonHandler {
                 this.responseHandler.createSuccessEmbed(
                     "Skipped the current song!"
                 ),
-            ],
-            flags: discord.MessageFlags.Ephemeral,
+            ]
         });
     }
 
@@ -169,8 +182,7 @@ class MusicButtonHandler {
                     this.responseHandler.createErrorEmbed(
                         "There is no music playing"
                     ),
-                ],
-                flags: discord.MessageFlags.Ephemeral,
+                ]
             });
             return;
         }
@@ -178,11 +190,14 @@ class MusicButtonHandler {
         if (!(await this.validateCommand())) return;
 
         this.player.destroy();
+
+        // Clean up the now playing manager when player is destroyed
+        NowPlayingManager.removeInstance(this.interaction.guild!.id);
+
         await this.interaction.reply({
             embeds: [
                 this.responseHandler.createSuccessEmbed("Stopped the music!"),
-            ],
-            flags: discord.MessageFlags.Ephemeral,
+            ]
         });
     }
 
@@ -196,8 +211,7 @@ class MusicButtonHandler {
                     this.responseHandler.createErrorEmbed(
                         "There is no music playing"
                     ),
-                ],
-                flags: discord.MessageFlags.Ephemeral,
+                ]
             });
             return;
         }
@@ -208,12 +222,10 @@ class MusicButtonHandler {
         await this.interaction.reply({
             embeds: [
                 this.responseHandler.createSuccessEmbed(
-                    `Loop mode is now ${
-                        this.player.trackRepeat ? "enabled" : "disabled"
+                    `Loop mode is now ${this.player.trackRepeat ? "enabled" : "disabled"
                     }!`
                 ),
-            ],
-            flags: discord.MessageFlags.Ephemeral,
+            ]
         });
     }
 }

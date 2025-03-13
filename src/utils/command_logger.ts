@@ -79,8 +79,8 @@ class CommandLogger {
      * @returns An EmbedBuilder instance with command execution details
      * @private
      */
-    private createLogEmbed(options: ICommandLogger): discord.EmbedBuilder {
-        const { user, commandName, guild, channel } = options;
+    private async createLogEmbed(options: ICommandLogger): Promise<discord.EmbedBuilder> {
+        const { client, user, commandName, guild, channel } = options;
 
         const embed = new discord.EmbedBuilder()
             .setColor("Green")
@@ -98,10 +98,18 @@ class CommandLogger {
         if (!guild) {
             embed.addFields({ name: "Guild", value: "DM" });
         } else {
-            embed.addFields({
-                name: "Guild",
-                value: `${guild.name} (${guild.id})`,
-            });
+
+            const botGuildNickname = await client.guilds.cache.get(guild.id)?.members.fetch(client.user!.id).then(member => member.displayName).catch(() => "N/A");
+
+            embed.addFields(
+                {
+                    name: "Guild",
+                    value: `${guild.name} (${guild.id})`,
+                },
+                {
+                    name: "Bot Nickname", value: `${botGuildNickname}`
+                }
+            );
         }
 
         // Add channel information
@@ -126,11 +134,9 @@ class CommandLogger {
      */
     private createLogMessage(options: ICommandLogger): string {
         const { user, commandName, guild, channel } = options;
-        return `${this.getCurrentTimestamp()} '[COMMAND]' ${user?.tag} (${
-            user?.id
-        }) used command ${commandName || "N/A"} in ${
-            guild ? guild.name : "DM"
-        } [#${channel ? channel.name : "DM"}]`;
+        return `${this.getCurrentTimestamp()} '[COMMAND]' ${user?.tag} (${user?.id
+            }) used command ${commandName || "N/A"} in ${guild ? guild.name : "DM"
+            } [#${channel ? channel.name : "DM"}]`;
     }
 
     /**
@@ -149,7 +155,7 @@ class CommandLogger {
      * });
      * ```
      */
-    public log(options: ICommandLogger): void {
+    public async log(options: ICommandLogger): Promise<void> {
         const { client, user, commandName } = options;
 
         if (!client?.config?.bot?.log?.command) {
@@ -182,7 +188,7 @@ class CommandLogger {
         this.writeToLogFile(logMessage);
 
         // Send embed to log channel
-        const embed = this.createLogEmbed(options);
+        const embed = await this.createLogEmbed(options);
         logChannel
             .send({ embeds: [embed] })
             .catch((error) =>

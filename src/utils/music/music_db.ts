@@ -133,7 +133,6 @@ class MusicDB {
                 songs: user.songs || [],
             };
         } catch (err) {
-            console.error(`Failed to get user music history: ${err}`);
             return { songs: [] };
         }
     }
@@ -163,7 +162,6 @@ class MusicDB {
                 songs: guild.songs || [],
             };
         } catch (err) {
-            console.error(`Failed to get guild music history: ${err}`);
             return { songs: [] };
         }
     }
@@ -221,7 +219,6 @@ class MusicDB {
 
             return { songs: globalSongs };
         } catch (err) {
-            console.error(`Failed to get global music history: ${err}`);
             // Return empty songs array rather than throwing
             return { songs: [] };
         }
@@ -377,7 +374,6 @@ class MusicDB {
                 .sort((a, b) => (b.played_number || 0) - (a.played_number || 0))
                 .slice(0, limit);
         } catch (err) {
-            console.error(`Failed to get user top songs: ${err}`);
             return [];
         }
     }
@@ -408,7 +404,6 @@ class MusicDB {
                 .sort((a, b) => (b.played_number || 0) - (a.played_number || 0))
                 .slice(0, limit);
         } catch (err) {
-            console.error(`Failed to get guild top songs: ${err}`);
             return [];
         }
     }

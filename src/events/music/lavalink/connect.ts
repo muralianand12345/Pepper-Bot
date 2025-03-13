@@ -18,7 +18,7 @@ const loadLavalinkEvents = async (
 ): Promise<void> => {
     try {
         const eventFiles = (await fs.readdir(eventsPath)).filter((file) =>
-            file.endsWith(".js")
+            file.endsWith(".js") || file.endsWith(".ts")
         );
 
         for (const file of eventFiles) {
@@ -43,8 +43,7 @@ const loadLavalinkEvents = async (
                 );
             } catch (error) {
                 client.logger.error(
-                    `[LAVALINK_EVENT] Failed to load event ${file}: ${
-                        error instanceof Error ? error.message : String(error)
+                    `[LAVALINK_EVENT] Failed to load event ${file}: ${error instanceof Error ? error.message : String(error)
                     }`
                 );
                 throw error;
@@ -52,8 +51,7 @@ const loadLavalinkEvents = async (
         }
     } catch (error) {
         client.logger.error(
-            `[LAVALINK_EVENT] Failed to read events directory: ${
-                error instanceof Error ? error.message : String(error)
+            `[LAVALINK_EVENT] Failed to read events directory: ${error instanceof Error ? error.message : String(error)
             }`
         );
         throw error;
@@ -92,8 +90,7 @@ const event: BotEvent = {
             );
         } catch (error) {
             client.logger.error(
-                `[LAVALINK] Initialization failed: ${
-                    error instanceof Error ? error.message : String(error)
+                `[LAVALINK] Initialization failed: ${error instanceof Error ? error.message : String(error)
                 }`
             );
             throw error;

@@ -4,89 +4,255 @@ import Formatter from "../format";
 import { IConfig } from "../../types";
 
 /**
- * Creates an embed for when no music is playing
- * @param client Discord client with configuration
- * @returns Promise<EmbedBuilder>
+ * Creates a progress bar with emoji indicators
+ * @param position Current position in milliseconds
+ * @param duration Total duration in milliseconds
+ * @param length Number of segments in the bar
+ * @returns Formatted progress bar string
  */
-const noMusicEmbed = async (client: discord.Client & { config: IConfig }) => {
-    const prefixText = client.config.bot.command.disable_message
-        ? "/"
-        : client.config.bot.command.prefix;
-    const defaultColor: discord.ColorResolvable = "#FF0000"; // Default red color
+const createProgressBar = (position: number, duration: number, length: number = 15): string => {
+    // Prevent division by zero
+    if (!duration) return "▬".repeat(length);
 
-    return new discord.EmbedBuilder()
-        .setColor(
-            (client.config.content.embed.color.error ??
-                defaultColor) as discord.ColorResolvable
-        )
-        .setImage(client.config.content.embed.no_music_playing.image)
-        .setAuthor({
-            name: client.config.content.embed.no_music_playing.author.name,
-            iconURL:
-                client.config.content.embed.no_music_playing.author.icon_url,
-        })
-        .setDescription(
-            `> **${Formatter.hyperlink(
-                `${client.user?.username}`,
-                "https://discord.gg/XzE9hSbsNb"
-            )}** | **Music Search Channel**`
-        )
-        .setFooter({ text: `Prefix is: ${prefixText}` });
+    // Calculate progress percentage (capped between 0-1)
+    const progress = Math.min(1, Math.max(0, position / duration));
+
+    // Calculate number of filled blocks
+    const filledBlocks = Math.floor(progress * length);
+
+    // Build the progress bar
+    return "▬".repeat(Math.max(0, filledBlocks)) +
+        "●" +
+        "▬".repeat(Math.max(0, length - filledBlocks - 1));
 };
 
 /**
- * Creates an embed for the currently playing music
+ * Creates a modern Discord-style embed for currently playing music
  * @param client Discord client with configuration
  * @param track Currently playing track
+ * @param player Optional player instance for progress info
  * @returns Promise<EmbedBuilder>
  */
 const musicEmbed = async (
     client: discord.Client & { config: IConfig },
-    track: magmastream.Track
+    track: magmastream.Track,
+    player?: magmastream.Player
 ) => {
     const trackImg =
         track.displayThumbnail("maxresdefault") ||
         track.artworkUrl ||
         client.config.music.image;
-    const trackAuthor = track.author || "Unknown";
-    const trackTitle =
-        track.title.length > 250 ? track.title.substring(0, 250) : track.title;
-    const defaultColor: discord.ColorResolvable =
-        client.config.content.embed.color.default;
 
-    return new discord.EmbedBuilder()
+    // Format track title and author for display
+    const trackTitle = Formatter.truncateText(track.title, 60);
+    const trackAuthor = track.author || "Unknown";
+    const trackUri = track.uri || "https://google.com"
+
+    const defaultColor: discord.ColorResolvable = "#2b2d31"; // Modern discord dark
+
+    // Create progress information if player is available
+    let progressText = "";
+
+    if (player && player.queue && player.queue.current) {
+        try {
+            // Get time values
+            const position = Math.max(0, player.position);
+            const duration = track.duration || 0;
+            const progressTime = Formatter.msToTime(position);
+            const durationTime = track.isStream ? 'LIVE' : Formatter.msToTime(duration);
+
+            // Create progress bar
+            const progressBar = createProgressBar(position, duration);
+            progressText = `${progressBar}\n\`${progressTime} / ${durationTime}\``;
+        } catch (error) {
+            // Fallback if progress calculation fails
+            progressText = "";
+        }
+    }
+
+    const embed = new discord.EmbedBuilder()
         .setColor(
             (client.config.content.embed.color.default ??
                 defaultColor) as discord.ColorResolvable
         )
-        .setAuthor({
-            name: `${trackTitle} By - ${trackAuthor}`,
-            iconURL: client.user?.displayAvatarURL(),
-        })
-        .setImage(trackImg)
-        .setFooter({ text: `Requested by ${track.requester?.tag}` })
-        .setDescription(
-            `> **Song Link: ${Formatter.hyperlink(
-                "Click Me",
-                `${track.uri}`
-            )}** | **${Formatter.hyperlink(
-                `${client.user?.username}`,
-                "https://discord.gg/XzE9hSbsNb"
-            )}**`
-        );
+        .setTitle(`Now Playing`)
+        .setDescription(`**${Formatter.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`)
+        .setThumbnail(trackImg);
+
+    // Add progress field if we have progress info
+    if (progressText) {
+        embed.addFields([{
+            name: "Progress",
+            value: progressText,
+            inline: false
+        }]);
+    }
+
+    // Add source and requester info in footer
+    embed.setFooter({
+        text: `${track.sourceName || 'Unknown'} • ${track.requester?.tag || 'Unknown'}`,
+        iconURL: client.user?.displayAvatarURL()
+    })
+        .setTimestamp();
+
+    return embed;
 };
 
-// Button configurations remain the same
+/**
+ * Creates a modern Discord-style embed for tracks added to queue
+ * @param {magmastream.Track} track - Music track information
+ * @param {any} client - Discord client instance
+ * @param {number | null} [position] - Optional position in queue (null to hide position)
+ * @returns {discord.EmbedBuilder} Formatted embed for track
+ */
+const createTrackEmbed = (
+    track: magmastream.Track,
+    client: discord.Client,
+    position?: number | null
+): discord.EmbedBuilder => {
+    // Format track info
+    const title = Formatter.truncateText(track.title, 60);
+    const url = track.uri || "https://google.com";
+    const author = track.author || "Unknown";
+    const duration = track.isStream ? "LIVE" : Formatter.msToTime(track.duration);
+
+    // Position info
+    let queueInfo = "";
+    if (position === 0) {
+        queueInfo = "Playing next";
+    } else if (position !== null && position !== undefined) {
+        queueInfo = `Position #${position + 1}`;
+    }
+
+    // Create fields
+    const fields = [
+        {
+            name: "Duration",
+            value: duration,
+            inline: true,
+        },
+        {
+            name: "Source",
+            value: track.sourceName || "Unknown",
+            inline: true,
+        },
+        {
+            name: "Requested by",
+            value: track.requester?.tag || "Unknown",
+            inline: true,
+        }
+    ];
+
+    // Add queue info field if available
+    if (queueInfo) {
+        fields.push({
+            name: "Queue Info",
+            value: queueInfo,
+            inline: false,
+        });
+    }
+
+    return new discord.EmbedBuilder()
+        .setColor("#5865f2") // Discord blurple
+        .setTitle(`Track Added to Queue`)
+        .setDescription(`**${Formatter.hyperlink(title, url)}**\nby ${author}`)
+        .setThumbnail(track.artworkUrl || track.thumbnail || null)
+        .addFields(fields)
+        .setFooter({
+            text: client.user?.username || "Music Bot",
+            iconURL: client.user?.displayAvatarURL()
+        })
+        .setTimestamp();
+};
+
+/**
+ * Creates a modern Discord-style embed for playlists added to queue
+ * @param {magmastream.PlaylistData} playlist - Playlist information
+ * @param {string} query - Original search query
+ * @param {string} requester - User who requested the playlist
+ * @param {any} client - Discord client instance
+ * @returns {discord.EmbedBuilder} Formatted embed for playlist
+ */
+const createPlaylistEmbed = (
+    playlist: magmastream.PlaylistData,
+    query: string,
+    requester: string,
+    client: discord.Client
+): discord.EmbedBuilder => {
+    // Format playlist name
+    const playlistName = Formatter.truncateText(playlist.name || "Untitled Playlist", 50);
+
+    // Format track previews
+    const trackPreview = playlist.tracks
+        .slice(0, 5)
+        .map((track, i) => {
+            const title = Formatter.truncateText(track.title, 40);
+            return `**${i + 1}.** ${title}`;
+        })
+        .join("\n");
+
+    // Text for more tracks
+    const moreTracksText = playlist.tracks.length > 5
+        ? `\n*...and ${playlist.tracks.length - 5} more tracks*`
+        : "";
+
+    // Format duration
+    const totalDuration = Formatter.msToTime(playlist.duration || 0);
+
+    // Calculate average duration
+    let avgDuration = "0:00:00";
+    if (playlist.tracks.length > 0) {
+        const avgMs = Math.floor(playlist.duration / playlist.tracks.length);
+        avgDuration = Formatter.msToTime(avgMs);
+    }
+
+    return new discord.EmbedBuilder()
+        .setColor("#43b581") // Discord green
+        .setTitle("Playlist Added to Queue")
+        .setDescription(`**${playlistName}**\n\n**Preview:**\n${trackPreview}${moreTracksText}`)
+        .setThumbnail(playlist.tracks[0]?.artworkUrl || playlist.tracks[0]?.thumbnail || null)
+        .addFields([
+            {
+                name: "Tracks",
+                value: `${playlist.tracks.length}`,
+                inline: true,
+            },
+            {
+                name: "Total Duration",
+                value: totalDuration,
+                inline: true,
+            },
+            {
+                name: "Avg. Duration",
+                value: avgDuration,
+                inline: true,
+            },
+            {
+                name: "Added by",
+                value: requester || "Unknown",
+                inline: false,
+            }
+        ])
+        .setFooter({
+            text: `Playlist loaded successfully`,
+            iconURL: client.user?.displayAvatarURL()
+        })
+        .setTimestamp();
+};
+
+/**
+ * Button configuration using icons that match Discord's native style
+ */
 const buttonConfig = [
-    { id: "pause-music", label: "Pause", emoji: "▶️" },
-    { id: "resume-music", label: "Resume", emoji: "⏸️" },
+    { id: "pause-music", label: "Pause", emoji: "⏸️" },
+    { id: "resume-music", label: "Resume", emoji: "▶️" },
     { id: "skip-music", label: "Skip", emoji: "⏭️" },
     { id: "stop-music", label: "Stop", emoji: "⏹️" },
-    { id: "loop-music", label: "Loop", emoji: "🔁" },
+    { id: "loop-music", label: "Loop", emoji: "🔄" },
 ];
 
 /**
- * Creates a row of music control buttons
+ * Creates a row of music control buttons with modern Discord-style
  * @param disabled Whether the buttons should be disabled
  * @returns ActionRowBuilder with button components
  */
@@ -108,84 +274,7 @@ const createMusicButtons = (disabled: boolean) => {
 };
 
 /**
- * Creates a rich embed for displaying track information
- * @param {magmastream.Track} track - Music track information
- * @param {any} client - Discord client instance
- * @returns {discord.EmbedBuilder} Formatted embed for track
- */
-const createTrackEmbed = (
-    track: magmastream.Track,
-    client: discord.Client
-): discord.EmbedBuilder => {
-    return new discord.EmbedBuilder()
-        .setTitle("📀 Added to queue!")
-        .setDescription(
-            Formatter.hyperlink(Formatter.truncateText(track.title), track.uri)
-        )
-        .setThumbnail(track.artworkUrl)
-        .setColor(client.config.content.embed.color.info)
-        .addFields(
-            {
-                name: "Duration",
-                value: `┕** \`${
-                    track.isStream
-                        ? "Live Stream"
-                        : Formatter.msToTime(track.duration)
-                }\`**`,
-                inline: true,
-            },
-            {
-                name: "Requested by",
-                value: `┕** ${track.requester}**`,
-                inline: true,
-            },
-            { name: "Author", value: `┕** ${track.author}**`, inline: true }
-        );
-};
-
-/**
- * Creates a rich embed for displaying playlist information
- * @param {magmastream.PlaylistData} playlist - Playlist information
- * @param {string} query - Original search query
- * @param {string} requester - User who requested the playlist
- * @param {any} client - Discord client instance
- * @returns {discord.EmbedBuilder} Formatted embed for playlist
- */
-const createPlaylistEmbed = (
-    playlist: magmastream.PlaylistData,
-    query: string,
-    requester: string,
-    client: discord.Client
-): discord.EmbedBuilder => {
-    return new discord.EmbedBuilder()
-        .setTitle("📋 Added playlist to queue!")
-        .setDescription(
-            Formatter.hyperlink(
-                Formatter.truncateText(playlist.name || "", 50),
-                query
-            )
-        )
-        .setThumbnail(playlist.tracks[0].artworkUrl || "")
-        .setColor(client.config.content.embed.color.success)
-        .addFields(
-            {
-                name: "Playlist Duration",
-                value: `┕** \`${Formatter.msToTime(
-                    playlist.duration || 0
-                )}\`**`,
-                inline: true,
-            },
-            {
-                name: "Total Tracks",
-                value: `┕** ${playlist.tracks.length}**`,
-                inline: true,
-            },
-            { name: "Requested by", value: `┕** ${requester}**`, inline: true }
-        );
-};
-
-/**
- * Handles music button interaction responses
+ * Handles music button interaction responses with modern Discord-style
  * @class MusicResponseHandler
  */
 class MusicResponseHandler {
@@ -201,11 +290,13 @@ class MusicResponseHandler {
      * @returns {discord.EmbedBuilder} Configured success embed
      */
     public createSuccessEmbed(message: string): discord.EmbedBuilder {
-        const color =
-            this.client.config.content.embed.color.success ?? "#FF0000";
         return new discord.EmbedBuilder()
-            .setColor(color as discord.ColorResolvable)
-            .setDescription(message);
+            .setColor("#43b581") // Discord green
+            .setDescription(`✓ ${message}`)
+            .setFooter({
+                text: this.client.user?.username || "Music Bot",
+                iconURL: this.client.user?.displayAvatarURL()
+            });
     }
 
     /**
@@ -218,17 +309,15 @@ class MusicResponseHandler {
         message: string,
         contact_dev: boolean = false
     ): discord.EmbedBuilder {
-        const color = this.client.config.content.embed.color.error ?? "#FF0000";
         const embed = new discord.EmbedBuilder()
-            .setColor(color as discord.ColorResolvable)
-            .setDescription(message);
-
-        if (contact_dev) {
-            embed.setFooter({
-                text: "If this issue persists, please use `/feedback` or contact the developer.",
-                iconURL: this.client.user?.displayAvatarURL(),
+            .setColor("#f04747") // Discord red
+            .setDescription(`❌ ${message}`)
+            .setFooter({
+                text: contact_dev
+                    ? "If this issue persists, please use /feedback or contact the developer"
+                    : this.client.user?.username || "Music Bot",
+                iconURL: this.client.user?.displayAvatarURL()
             });
-        }
 
         return embed;
     }
@@ -239,10 +328,13 @@ class MusicResponseHandler {
      * @returns {discord.EmbedBuilder} Configured info embed
      */
     public createInfoEmbed(message: string): discord.EmbedBuilder {
-        const color = this.client.config.content.embed.color.info ?? "#FF0000";
         return new discord.EmbedBuilder()
-            .setColor(color as discord.ColorResolvable)
-            .setDescription(message);
+            .setColor("#5865f2") // Discord blurple
+            .setDescription(`ℹ️ ${message}`)
+            .setFooter({
+                text: this.client.user?.username || "Music Bot",
+                iconURL: this.client.user?.displayAvatarURL()
+            });
     }
 
     /**
@@ -251,11 +343,13 @@ class MusicResponseHandler {
      * @returns {discord.EmbedBuilder} Configured warning embed
      */
     public createWarningEmbed(message: string): discord.EmbedBuilder {
-        const color =
-            this.client.config.content.embed.color.warning ?? "#FF0000";
         return new discord.EmbedBuilder()
-            .setColor(color as discord.ColorResolvable)
-            .setDescription(message);
+            .setColor("#faa61a") // Discord yellow
+            .setDescription(`⚠️ ${message}`)
+            .setFooter({
+                text: this.client.user?.username || "Music Bot",
+                iconURL: this.client.user?.displayAvatarURL()
+            });
     }
 
     /**
@@ -265,20 +359,20 @@ class MusicResponseHandler {
     public getSupportButton(): discord.ActionRowBuilder<discord.ButtonBuilder> {
         return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
             new discord.ButtonBuilder()
-                .setLabel("Pepper Support")
+                .setLabel("Support Server")
                 .setStyle(discord.ButtonStyle.Link)
                 .setURL("https://discord.gg/XzE9hSbsNb")
+                .setEmoji("🔧")
         );
     }
 }
 
-const disabldMusicButton = createMusicButtons(true);
+const disabledMusicButton = createMusicButtons(true);
 const musicButton = createMusicButtons(false);
 
 export {
-    disabldMusicButton,
+    disabledMusicButton,
     musicButton,
-    noMusicEmbed,
     musicEmbed,
     MusicResponseHandler,
     createTrackEmbed,

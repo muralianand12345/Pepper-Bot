@@ -19,7 +19,7 @@ const loadHandlers = async (
     try {
         const handlerFiles = fs
             .readdirSync(handlersPath)
-            .filter((file) => file.endsWith(".js"));
+            .filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
 
         for (const file of handlerFiles) {
             try {
@@ -74,7 +74,7 @@ const loadEvents = async (
 
                 const eventFiles = fs
                     .readdirSync(subDirPath)
-                    .filter((file) => file.endsWith(".js"));
+                    .filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
 
                 for (const file of eventFiles) {
                     try {

@@ -2,6 +2,7 @@ import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 import { wait } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
+import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import { LavalinkEvent } from "../../../../types";
 
 /**
@@ -18,14 +19,22 @@ const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {
 /**
  * Handles player cleanup after queue end
  * @param player - Music player instance
- * @param status247 - Whether 24/7 mode is enabled
+ * @param guildId - Guild ID for the player
+ * @param client - Discord client instance
  */
 const handlePlayerCleanup = async (
-    player: magmastream.Player
+    player: magmastream.Player,
+    guildId: string,
+    client: discord.Client
 ): Promise<void> => {
     // Wait 5 minutes before destroying the player
     const CLEANUP_DELAY = 300000; // 5 minutes in milliseconds
     await wait(CLEANUP_DELAY);
+
+    // Clean up the now playing manager
+    NowPlayingManager.removeInstance(guildId);
+
+    // Destroy the player
     player.destroy();
 };
 
@@ -53,7 +62,7 @@ const lavalinkEvent: LavalinkEvent = {
                 embeds: [createQueueEndEmbed(client)],
             });
 
-            await handlePlayerCleanup(player);
+            await handlePlayerCleanup(player, player.guildId, client);
         } catch (error) {
             client.logger.error(`Error in queueEnd event: ${error}`);
         }

@@ -68,7 +68,7 @@ const event: BotEvent = {
             const messageCommandsDir = path.join(__dirname, "../commands/msg");
             const messageCommands = (await loadCommands(
                 messageCommandsDir,
-                (file) => file.endsWith(".js")
+                (file) => file.endsWith(".js") || file.endsWith(".ts")
             )) as Command[];
 
             // Register message commands to both collections
@@ -85,7 +85,7 @@ const event: BotEvent = {
         const slashCommandsDir = path.join(__dirname, "../commands/slash");
         const loadedSlashCommands = (await loadCommands(
             slashCommandsDir,
-            (file) => file.endsWith(".js")
+            (file) => file.endsWith(".js") || file.endsWith(".ts")
         )) as SlashCommand[];
 
         /**
