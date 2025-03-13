@@ -22,6 +22,14 @@ const swaggerOptions: swaggerJSDoc.Options = {
         },
         servers: [
             {
+                url: 'https://peppermusic.muralianand.in/api/v1',
+                description: 'Production API',
+            },
+            {
+                url: 'https://pepper.muralianand.in/api/v1',
+                description: 'Local Dev API',
+            },
+            {
                 url: '/api/v1',
                 description: 'Pepper Music API v1',
             },
