@@ -1,3 +1,4 @@
+import cors from 'cors';
 import helmet from 'helmet';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
@@ -11,6 +12,7 @@ class ApiConfig {
     private readonly port: number;
     private readonly rateLimitWindow: number;
     private readonly rateLimitMax: number;
+    private readonly origin: Array<string> | string;
 
     /**
      * Initialize API configuration
@@ -19,6 +21,9 @@ class ApiConfig {
     private constructor(config: IConfig) {
         // Default to port 3000 if not specified in config
         this.port = config.api?.port || 3000;
+
+        //origin is the URL of the website that is allowed to access the API
+        this.origin = config.api?.origin || '*';
 
         // Rate limiting config (15 minutes window, 100 requests max by default)
         this.rateLimitWindow = config.api?.rateLimit?.windowMs || 15 * 60 * 1000;
@@ -43,6 +48,13 @@ class ApiConfig {
      * @returns Configured Express application
      */
     public configureApp(app: express.Application): express.Application {
+
+        // Apply CORS middleware FIRST, before any routes
+        app.use(cors({
+            origin: this.origin,
+            methods: ['GET', 'POST', 'PUT', 'DELETE'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
+        }));
 
         // Set trust proxy to be specific to Cloudflare
         app.set('trust proxy', [
