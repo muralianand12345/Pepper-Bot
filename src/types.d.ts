@@ -144,7 +144,7 @@ export interface IConfig {
             };
         };
     };
-    api: {
+    api?: {
         enabled: boolean;
         port: number;
         auth: {

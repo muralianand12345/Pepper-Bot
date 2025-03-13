@@ -12,65 +12,175 @@ const commandsRouter = (client: discord.Client): express.Router => {
     const controller = new CommandsController(client);
 
     /**
-     * @api {get} /api/commands Get all commands
-     * @apiName GetAllCommands
-     * @apiGroup Commands
-     * @apiDescription Get all available commands (both slash and message-based)
-     *
-     * @apiSuccess {String} status Success status
-     * @apiSuccess {String} timestamp ISO timestamp
-     * @apiSuccess {Number} count Total number of commands
-     * @apiSuccess {Object} data Command data
-     * @apiSuccess {Array} data.slash Array of slash commands
-     * @apiSuccess {Array} data.message Array of message commands
+     * @swagger
+     * /commands:
+     *   get:
+     *     summary: Get all commands
+     *     description: Retrieves all available commands (both slash and message-based)
+     *     tags: [Commands]
+     *     security:
+     *       - ApiKeyAuth: []
+     *     responses:
+     *       200:
+     *         description: Successful operation
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/CommandsResponse'
+     *       401:
+     *         description: Unauthorized - Invalid or missing API key
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       500:
+     *         description: Internal server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
      */
     router.get('/', controller.getAllCommands);
 
     /**
-     * @api {get} /api/commands/slash Get slash commands
-     * @apiName GetSlashCommands
-     * @apiGroup Commands
-     * @apiDescription Get all slash commands
-     *
-     * @apiSuccess {String} status Success status
-     * @apiSuccess {String} timestamp ISO timestamp
-     * @apiSuccess {Number} count Number of slash commands
-     * @apiSuccess {Array} data Array of slash commands
+     * @swagger
+     * /commands/slash:
+     *   get:
+     *     summary: Get slash commands
+     *     description: Retrieves all slash commands
+     *     tags: [Commands]
+     *     security:
+     *       - ApiKeyAuth: []
+     *     responses:
+     *       200:
+     *         description: Successful operation
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 timestamp:
+     *                   type: string
+     *                   format: date-time
+     *                 count:
+     *                   type: integer
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/SlashCommand'
+     *       401:
+     *         description: Unauthorized - Invalid or missing API key
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
      */
     router.get('/slash', controller.getSlashCommands);
 
     /**
-     * @api {get} /api/commands/message Get message commands
-     * @apiName GetMessageCommands
-     * @apiGroup Commands
-     * @apiDescription Get all message-based commands
-     *
-     * @apiSuccess {String} status Success status
-     * @apiSuccess {String} timestamp ISO timestamp
-     * @apiSuccess {Number} count Number of message commands
-     * @apiSuccess {Array} data Array of message commands
+     * @swagger
+     * /commands/message:
+     *   get:
+     *     summary: Get message commands
+     *     description: Retrieves all message-based commands
+     *     tags: [Commands]
+     *     security:
+     *       - ApiKeyAuth: []
+     *     responses:
+     *       200:
+     *         description: Successful operation
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 timestamp:
+     *                   type: string
+     *                   format: date-time
+     *                 count:
+     *                   type: integer
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/MessageCommand'
+     *       401:
+     *         description: Unauthorized - Invalid or missing API key
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
      */
     router.get('/message', controller.getMessageCommands);
 
     /**
-     * @api {get} /api/commands/:name Get command by name
-     * @apiName GetCommandByName
-     * @apiGroup Commands
-     * @apiDescription Get a specific command by name
-     *
-     * @apiParam {String} name Command name
-     * @apiParam {String} [type=SLASH] Command type (SLASH or MESSAGE)
-     *
-     * @apiSuccess {String} status Success status
-     * @apiSuccess {String} timestamp ISO timestamp
-     * @apiSuccess {Object} data Command data
-     *
-     * @apiError {String} status Error status
-     * @apiError {String} message Error message
+     * @swagger
+     * /commands/{name}:
+     *   get:
+     *     summary: Get command by name
+     *     description: Retrieves a specific command by name
+     *     tags: [Commands]
+     *     security:
+     *       - ApiKeyAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: name
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Command name
+     *       - in: query
+     *         name: type
+     *         schema:
+     *           type: string
+     *           enum: [SLASH, MESSAGE]
+     *           default: SLASH
+     *         description: Command type
+     *     responses:
+     *       200:
+     *         description: Successful operation
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 timestamp:
+     *                   type: string
+     *                   format: date-time
+     *                 data:
+     *                   oneOf:
+     *                     - $ref: '#/components/schemas/SlashCommand'
+     *                     - $ref: '#/components/schemas/MessageCommand'
+     *       400:
+     *         description: Bad request - Missing command name
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       404:
+     *         description: Command not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       401:
+     *         description: Unauthorized - Invalid or missing API key
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
      */
     router.get('/:name', controller.getCommandByName);
 
     return router;
 };
 
-module.exports = commandsRouter;
+export default commandsRouter;

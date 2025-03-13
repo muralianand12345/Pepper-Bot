@@ -48,8 +48,9 @@ class ApiConfig {
         app.use(helmet());
         app.use(cors());
 
-        // JSON body parser
-        app.use(express.json());
+        // JSON body parser with increased limit for larger payloads
+        app.use(express.json({ limit: '2mb' }));
+        app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
         // Rate limiting
         const limiter = rateLimit({
