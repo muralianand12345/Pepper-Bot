@@ -1,14 +1,25 @@
-
-
+import discord from 'discord.js';
 export interface HealthResponseDto {
     status: string;
     timestamp: string;
-    uptime: string;
-    version: string;
-    discord: {
-        status: discord.Status;
-        ping: number;
-        guilds: number;
-        users: number;
+    uptime: number;
+    system: {
+        platform: string;
+        cpuLoad: number;
+        memoryUsage: number;
+        nodeVersion: string;
+    };
+}
+
+export interface DiscordHealthResponseDto {
+    status: string;
+    timestamp: string;
+    ping: number;
+    shards: {
+        total: number;
+        status: Array<{
+            id: number;
+            status: discord.Status;
+        }>;
     };
 }

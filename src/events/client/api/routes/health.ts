@@ -1,15 +1,10 @@
 import express from 'express';
 import discord from 'discord.js';
-import os from 'os';
+import HealthController from '../controllers/health-controller';
 
-/**
- * Create and configure routes for health check API
- * @param client - Discord client
- * @returns Configured router
- */
 const healthRouter = (client: discord.Client): express.Router => {
     const router = express.Router();
-    let startTime = Date.now();
+    const controller = new HealthController(client);
 
     /**
      * @swagger
@@ -24,52 +19,9 @@ const healthRouter = (client: discord.Client): express.Router => {
      *         content:
      *           application/json:
      *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: healthy
-     *                 timestamp:
-     *                   type: string
-     *                   format: date-time
-     *                 uptime:
-     *                   type: number
-     *                   description: API uptime in seconds
-     *                 system:
-     *                   type: object
-     *                   properties:
-     *                     platform:
-     *                       type: string
-     *                     cpuLoad:
-     *                       type: number
-     *                     memoryUsage:
-     *                       type: number
-     *                       description: Memory usage percentage
-     *                     nodeVersion:
-     *                       type: string
+     *               $ref: '#/components/schemas/HealthResponse'
      */
-    router.get('/', (req, res) => {
-        // Calculate API uptime
-        const uptime = Math.floor((Date.now() - startTime) / 1000);
-
-        // Get system information
-        const cpuLoad = os.loadavg()[0];
-        const totalMem = os.totalmem();
-        const freeMem = os.freemem();
-        const memoryUsage = parseFloat(((1 - freeMem / totalMem) * 100).toFixed(2));
-
-        res.json({
-            status: 'healthy',
-            timestamp: new Date().toISOString(),
-            uptime,
-            system: {
-                platform: os.platform(),
-                cpuLoad,
-                memoryUsage,
-                nodeVersion: process.version
-            }
-        });
-    });
+    router.get('/', controller.getApiHealth);
 
     /**
      * @swagger
@@ -84,31 +36,7 @@ const healthRouter = (client: discord.Client): express.Router => {
      *         content:
      *           application/json:
      *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: connected
-     *                 timestamp:
-     *                   type: string
-     *                   format: date-time
-     *                 ping:
-     *                   type: number
-     *                   description: Discord WebSocket ping in ms
-     *                 shards:
-     *                   type: object
-     *                   properties:
-     *                     total:
-     *                       type: integer
-     *                     status:
-     *                       type: array
-     *                       items:
-     *                         type: object
-     *                         properties:
-     *                           id:
-     *                             type: integer
-     *                           status:
-     *                             type: string
+     *               $ref: '#/components/schemas/DiscordHealthResponse'
      *       503:
      *         description: Discord connection is not healthy
      *         content:
@@ -116,31 +44,7 @@ const healthRouter = (client: discord.Client): express.Router => {
      *             schema:
      *               $ref: '#/components/schemas/Error'
      */
-    router.get('/discord', (req, res) => {
-        // Check Discord connection status
-        if (!client.user || !client.ws.shards.size) {
-            return res.status(503).json({
-                status: 'error',
-                message: 'Discord connection unavailable'
-            });
-        }
-
-        // Get shard statuses for more detailed health info
-        const shardStatuses = Array.from(client.ws.shards.values()).map(shard => ({
-            id: shard.id,
-            status: shard.status
-        }));
-
-        res.json({
-            status: 'connected',
-            timestamp: new Date().toISOString(),
-            ping: client.ws.ping,
-            shards: {
-                total: client.ws.shards.size,
-                status: shardStatuses
-            }
-        });
-    });
+    router.get('/discord', controller.getDiscordHealth);
 
     return router;
 };
