@@ -22,12 +22,12 @@ const swaggerOptions: swaggerJSDoc.Options = {
         },
         servers: [
             {
-                url: 'https://peppermusic.muralianand.in/api/v1',
+                url: 'https://api.pepper.mrbotz.com/api/v1',
                 description: 'Production API',
             },
             {
-                url: 'https://pepper.muralianand.in/api/v1',
-                description: 'Local Dev API',
+                url: 'https://test.api.pepper.mrbotz.com/api/v1',
+                description: 'Local Test Dev API',
             },
             {
                 url: '/api/v1',
