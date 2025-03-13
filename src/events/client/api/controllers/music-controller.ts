@@ -115,6 +115,35 @@ class MusicController {
             });
         }
     };
+
+    public getRecommendations = async (req: express.Request, res: express.Response): Promise<void> => {
+        const { userId, guildId } = req.params;
+        const count = parseInt(req.query.count as string) || 10;
+
+        try {
+            const recommendations = await this.musicService.getRecommendations(userId, guildId, count);
+
+            if (!recommendations) {
+                res.status(404).json({
+                    status: 'error',
+                    message: 'No listening history found for recommendation generation'
+                });
+                return;
+            }
+
+            res.json({
+                status: 'success',
+                timestamp: new Date().toISOString(),
+                data: recommendations
+            });
+        } catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: 'Failed to generate recommendations',
+                details: error instanceof Error ? error.message : String(error)
+            });
+        }
+    };
 }
 
 export default MusicController;

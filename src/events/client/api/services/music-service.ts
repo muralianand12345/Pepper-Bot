@@ -1,4 +1,5 @@
 import discord from 'discord.js';
+import magmastream from 'magmastream';
 import { PlayerDto, DetailedPlayerDto, MusicHistoryDto } from '../dto/music-dto';
 
 interface MusicDBSong {
@@ -152,6 +153,47 @@ class MusicService {
                     lastPlayed: song.timestamp,
                     artworkUrl: song.artworkUrl || song.thumbnail
                 }));
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public async getRecommendations(userId: string, guildId: string, count: number = 10): Promise<any> {
+        try {
+            // Import PlaylistSuggestion class
+            const PlaylistSuggestion = require('../../../../utils/music/playlist_suggestion').default;
+
+            // Create a new instance of PlaylistSuggestion
+            const suggestionEngine = new PlaylistSuggestion(this.client);
+
+            // Get recommendations based on user's top song
+            const recommendations = await suggestionEngine.getSuggestionsFromUserTopSong(
+                userId,
+                guildId,
+                count
+            );
+
+            // If no seed song was found, return null
+            if (!recommendations.seedSong) {
+                return null;
+            }
+
+            // Format the response
+            return {
+                seedSong: {
+                    title: recommendations.seedSong.title,
+                    author: recommendations.seedSong.author,
+                    uri: recommendations.seedSong.uri,
+                    artworkUrl: recommendations.seedSong.artworkUrl || recommendations.seedSong.thumbnail
+                },
+                recommendations: recommendations.recommendations.map((track: magmastream.Track) => ({
+                    title: track.title,
+                    author: track.author,
+                    uri: track.uri,
+                    sourceName: track.sourceName,
+                    artworkUrl: track.artworkUrl || track.thumbnail
+                }))
+            };
         } catch (error) {
             throw error;
         }

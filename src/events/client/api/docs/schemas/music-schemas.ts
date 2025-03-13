@@ -125,4 +125,52 @@
  *                 format: date-time
  *               artworkUrl:
  *                 type: string
+ *     RecommendationResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *         data:
+ *           type: object
+ *           properties:
+ *             seedSong:
+ *               type: object
+ *               properties:
+ *                 title:
+ *                   type: string
+ *                   description: Title of the seed song
+ *                 author:
+ *                   type: string
+ *                   description: Artist of the seed song
+ *                 uri:
+ *                   type: string
+ *                   description: URI of the seed song
+ *                 artworkUrl:
+ *                   type: string
+ *                   description: URL to the song's artwork
+ *             recommendations:
+ *               type: array
+ *               description: List of recommended songs
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   title:
+ *                     type: string
+ *                     description: Song title
+ *                   author:
+ *                     type: string
+ *                     description: Song artist
+ *                   uri:
+ *                     type: string
+ *                     description: Song URI
+ *                   sourceName:
+ *                     type: string
+ *                     description: Source platform (e.g., Spotify, SoundCloud)
+ *                   artworkUrl:
+ *                     type: string
+ *                     description: URL to song artwork image
  */
