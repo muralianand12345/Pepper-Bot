@@ -1,4 +1,3 @@
-import cors from 'cors';
 import helmet from 'helmet';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
@@ -67,7 +66,6 @@ class ApiConfig {
 
         // Security middleware
         app.use(helmet());
-        app.use(cors());
 
         // JSON body parser with increased limit for larger payloads
         app.use(express.json({ limit: '2mb' }));

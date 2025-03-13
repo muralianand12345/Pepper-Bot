@@ -56,11 +56,12 @@ class ApiServer {
      */
     private registerRoutes(): void {
         // Apply CORS middleware FIRST, before any routes
-        this.app.use(cors({
-            origin: this.client.config.api?.origin || '*',
-            methods: ['GET', 'POST', 'PUT', 'DELETE'],
-            allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
-        }));
+        // this.app.use(cors({
+        //     origin: this.client.config.api?.origin || '*',
+        //     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        //     allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
+        // }));
+        this.app.use(cors());
 
         // Serve static files for Swagger
         this.app.use('/swagger-assets', express.static(path.join(__dirname, '../static')));
