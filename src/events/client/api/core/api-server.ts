@@ -5,6 +5,9 @@ import ApiConfig from './api-config';
 import Logger from '../../../../utils/logger';
 import { ILogger } from '../../../../types';
 import swaggerSpec from '../docs/swagger-config';
+import AuthMiddleware from '../middleware/auth-middleware';
+import LoggerMiddleware from '../middleware/logger-middleware';
+import ApiDiagnostic from '../utils/api-diagnostic';
 
 /**
  * API Server that provides endpoints to interact with the bot
@@ -14,6 +17,8 @@ class ApiServer {
     private readonly client: discord.Client;
     private readonly logger: ILogger;
     private readonly apiConfig: ApiConfig;
+    private readonly authMiddleware: AuthMiddleware;
+    private readonly loggerMiddleware: LoggerMiddleware;
 
     /**
      * Create a new API server
@@ -24,9 +29,20 @@ class ApiServer {
         this.app = express();
         this.logger = new Logger();
         this.apiConfig = ApiConfig.getInstance(client.config);
+        this.logger = new Logger();
+
+        // Initialize middlewares
+        this.authMiddleware = new AuthMiddleware({
+            enabled: client.config.api?.auth?.enabled || false,
+            apiKey: client.config.api?.auth?.apiKey || ''
+        });
+        this.loggerMiddleware = new LoggerMiddleware(this.logger);
 
         // Configure express app
         this.apiConfig.configureApp(this.app);
+
+        // Add request logging middleware
+        this.app.use(this.loggerMiddleware.logRequest);
 
         // Register routes
         this.registerRoutes();
@@ -36,7 +52,7 @@ class ApiServer {
      * Register API routes
      */
     private registerRoutes(): void {
-        // Swagger documentation route
+        // Swagger documentation route (no auth required)
         this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
             explorer: true,
             customSiteTitle: 'Pepper Bot API Documentation',
@@ -48,54 +64,13 @@ class ApiServer {
             }
         }));
 
-        // JSON endpoint for Swagger specification 
+        // JSON endpoint for Swagger specification (no auth required)
         this.app.get('/docs.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);
         });
 
-        // Load routes
-        const commandRoutes = require('../routes/commands').default;
-        const infoRoutes = require('../routes/info').default;
-        const healthRoutes = require('../routes/health').default;
-        const musicRoutes = require('../routes/music').default;
-
-        // Map routes to endpoints
-        this.app.use('/api/commands', commandRoutes(this.client));
-        this.app.use('/api/info', infoRoutes(this.client));
-        this.app.use('/api/health', healthRoutes(this.client));
-        this.app.use('/api/music', musicRoutes(this.client));
-
-        // Root route for API status
-        /**
-         * @swagger
-         * /:
-         *   get:
-         *     summary: API Status
-         *     description: Check if the API is online
-         *     tags: [Status]
-         *     responses:
-         *       200:
-         *         description: API is online
-         *         content:
-         *           application/json:
-         *             schema:
-         *               type: object
-         *               properties:
-         *                 status:
-         *                   type: string
-         *                   example: online
-         *                 timestamp:
-         *                   type: string
-         *                   format: date-time
-         *                 version:
-         *                   type: string
-         *                 endpoints:
-         *                   type: array
-         *                   items:
-         *                     type: string
-         *                   description: Available endpoint groups
-         */
+        // Root route for API status (no auth required)
         this.app.get('/api', (req, res) => {
             const version = process.env.npm_package_version || '1.0.0';
             res.json({
@@ -112,26 +87,26 @@ class ApiServer {
             });
         });
 
-        // Swagger documentation route
-        this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-            explorer: true,
-            customSiteTitle: 'Pepper Bot API Documentation',
-            customCss: `
-                .swagger-ui .topbar { display: none }
-                .swagger-ui .info .title { color: #2B2D31 }
-                .swagger-ui .scheme-container { background-color: #f8f9fa }
-                .swagger-ui .info { margin: 30px 0 }
-                .swagger-ui .btn.authorize { background-color: #5865F2 }
-                .swagger-ui .btn.authorize svg { fill: #fff }
-            `,
-            swaggerOptions: {
-                persistAuthorization: true,
-                docExpansion: 'none',
-                filter: true,
-                tagsSorter: 'alpha',
-                operationsSorter: 'alpha'
-            }
-        }))
+        // Create API router with authentication middleware
+        const apiRouter = express.Router();
+
+        // Apply auth middleware to all API routes except the root
+        apiRouter.use(this.authMiddleware.authenticate);
+
+        // Load route modules
+        const commandRoutes = require('../routes/commands').default;
+        const infoRoutes = require('../routes/info').default;
+        const healthRoutes = require('../routes/health').default;
+        const musicRoutes = require('../routes/music').default;
+
+        // Register route handlers to the authenticated router
+        apiRouter.use('/commands', commandRoutes(this.client));
+        apiRouter.use('/info', infoRoutes(this.client));
+        apiRouter.use('/health', healthRoutes(this.client));
+        apiRouter.use('/music', musicRoutes(this.client));
+
+        // Attach the authenticated router to the app
+        this.app.use('/api/v1', apiRouter);
 
         // 404 handler
         this.app.use('*', (req, res) => {
@@ -155,11 +130,26 @@ class ApiServer {
      * Start the API server
      */
     public start(): void {
+        // Run diagnostics first
+        const diagnostic = new ApiDiagnostic(this.client, this.logger);
+        diagnostic.runDiagnostics();
+
         const port = this.apiConfig.getPort();
 
         this.app.listen(port, () => {
             this.logger.info(`[API] Server started on port ${port}`);
             this.logger.info(`[API] Swagger documentation available at http://localhost:${port}/docs`);
+
+            // Log authentication status
+            const authStatus = this.client.config.api?.auth?.enabled
+                ? `enabled (key required)`
+                : 'disabled (no authentication)';
+            this.logger.info(`[API] Authentication is ${authStatus}`);
+
+            if (this.client.config.api?.auth?.enabled) {
+                this.logger.info(`[API] API key length: ${this.client.config.api?.auth?.apiKey?.length || 0} characters`);
+                this.logger.info(`[API] To test authentication, use: curl -H "x-api-key: YOUR_API_KEY" http://localhost:${port}/api/auth-test`);
+            }
         });
     }
 }
