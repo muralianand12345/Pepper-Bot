@@ -9,8 +9,7 @@ import { IConfig } from '../../../../types';
  */
 class ApiConfig {
     private static instance: ApiConfig;
-    private readonly http_port: number;
-    private readonly https_port: number;
+    private readonly port: number;
     private readonly rateLimitWindow: number;
     private readonly rateLimitMax: number;
     private readonly origin: Array<string> | string;
@@ -21,8 +20,7 @@ class ApiConfig {
      */
     private constructor(config: IConfig) {
         // Default to port 3000 if not specified in config
-        this.http_port = config.api?.http_port || 3000;
-        this.https_port = config.api?.https_port || 3001;
+        this.port = config.api?.port || 3000;
 
         //origin is the URL of the website that is allowed to access the API
         this.origin = config.api?.origin || '*';
@@ -117,14 +115,8 @@ class ApiConfig {
      * Get configured port
      * @returns Port number
      */
-    public getPort(type: number): number | undefined {
-        if (type === 0) {
-            return this.http_port;
-        } else if (type === 1) {
-            return this.https_port;
-        } else {
-            new Error('Invalid port type');
-        }
+    public getPort(): number {
+        return this.port;
     }
 }
 
