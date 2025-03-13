@@ -22,8 +22,8 @@ const swaggerOptions: swaggerJSDoc.Options = {
         },
         servers: [
             {
-                url: '/api',
-                description: 'Development server',
+                url: '/api/v1',
+                description: 'Pepper Music API v1',
             },
         ],
         components: {

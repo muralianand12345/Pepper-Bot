@@ -78,9 +78,9 @@ class ApiServer {
                 timestamp: new Date().toISOString(),
                 version: version,
                 endpoints: [
-                    '/api/commands',
-                    '/api/info',
-                    '/api/health',
+                    '/api/v1/commands',
+                    '/api/v1/info',
+                    '/api/v1/health',
                     '/docs'
                 ],
                 documentation: '/docs'
@@ -148,7 +148,6 @@ class ApiServer {
 
             if (this.client.config.api?.auth?.enabled) {
                 this.logger.info(`[API] API key length: ${this.client.config.api?.auth?.apiKey?.length || 0} characters`);
-                this.logger.info(`[API] To test authentication, use: curl -H "x-api-key: YOUR_API_KEY" http://localhost:${port}/api/auth-test`);
             }
         });
     }

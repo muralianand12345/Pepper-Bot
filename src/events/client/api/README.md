@@ -31,11 +31,11 @@ api:
 
 The API is organized into the following endpoint groups:
 
-- `/api` - Root endpoint with API status information
-- `/api/commands` - Information about bot commands
-- `/api/info` - Bot information and statistics
-- `/api/health` - API and Discord connection health checks
-- `/api/music` - Music player information
+- `/api/v1/` - Root endpoint with API status information
+- `/api/v1/commands` - Information about bot commands
+- `/api/v1/info` - Bot information and statistics
+- `/api/v1/health` - API and Discord connection health checks
+- `/api/v1/music` - Music player information
 - `/docs` - Swagger UI documentation
 
 ## Authentication

@@ -1,8 +1,6 @@
 /**
  * @swagger
  * tags:
- *   - name: Status
- *     description: API status and health check endpoints
  *   - name: Commands
  *     description: Endpoints for retrieving bot commands information
  *   - name: Bot Info
