@@ -143,28 +143,41 @@ class ApiServer {
         const diagnostic = new ApiDiagnostic(this.client, this.logger);
         diagnostic.runDiagnostics();
 
-        const port = this.apiConfig.getPort();
+        const http_port = this.apiConfig.getPort(0);
+        const https_port = this.apiConfig.getPort(1);
 
-        const options = {
-            key: fs.readFileSync(path.join(process.cwd(), 'config/certs/private-key.pem')),
-            cert: fs.readFileSync(path.join(process.cwd(), 'config/certs/certificate.pem'))
-        };
-
-        // Create HTTPS server
-        https.createServer(options, this.app).listen(port, () => {
-            this.logger.info(`[API] Server started on port ${port}`);
-            this.logger.info(`[API] Swagger documentation available at http://localhost:${port}/docs`);
-
-            // Log authentication status
-            const authStatus = this.client.config.api?.auth?.enabled
-                ? `enabled (key required)`
-                : 'disabled (no authentication)';
-            this.logger.info(`[API] Authentication is ${authStatus}`);
-
-            if (this.client.config.api?.auth?.enabled) {
-                this.logger.info(`[API] API key length: ${this.client.config.api?.auth?.apiKey?.length || 0} characters`);
-            }
+        // Start HTTP server
+        this.app.listen(http_port, () => {
+            this.logger.info(`[API] Server started on port ${http_port}`);
+            this.logger.info(`[API] Swagger documentation available at http://localhost:${http_port}/docs`);
         });
+
+        try {
+            // Configure HTTPS options
+            const options = {
+                key: fs.readFileSync(path.join(process.cwd(), 'config/certs/private-key.pem')),
+                cert: fs.readFileSync(path.join(process.cwd(), 'config/certs/certificate.pem'))
+            };
+
+            // Create HTTPS server
+            https.createServer(options, this.app).listen(https_port, () => {
+                this.logger.info(`[API] HTTPS server started on port ${https_port}`);
+                this.logger.info(`[API] Swagger documentation available at https://localhost:${https_port}/docs`);
+
+                // Log authentication status
+                const authStatus = this.client.config.api?.auth?.enabled
+                    ? `enabled (key required)`
+                    : 'disabled (no authentication)';
+                this.logger.info(`[API] Authentication is ${authStatus}`);
+
+                if (this.client.config.api?.auth?.enabled) {
+                    this.logger.info(`[API] API key length: ${this.client.config.api?.auth?.apiKey?.length || 0} characters`);
+                }
+            });
+        } catch (error: any) {
+            this.logger.warn(`[API] Could not start HTTPS server: ${error.message}`);
+            this.logger.info(`[API] Running in HTTP mode only`);
+        }
     }
 }
 

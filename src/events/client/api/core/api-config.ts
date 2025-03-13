@@ -1,5 +1,5 @@
 import cors from 'cors';
-// import helmet from 'helmet';
+import helmet from 'helmet';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { IConfig } from '../../../../types';
@@ -9,7 +9,8 @@ import { IConfig } from '../../../../types';
  */
 class ApiConfig {
     private static instance: ApiConfig;
-    private readonly port: number;
+    private readonly http_port: number;
+    private readonly https_port: number;
     private readonly rateLimitWindow: number;
     private readonly rateLimitMax: number;
     private readonly origin: Array<string> | string;
@@ -20,7 +21,8 @@ class ApiConfig {
      */
     private constructor(config: IConfig) {
         // Default to port 3000 if not specified in config
-        this.port = config.api?.port || 3000;
+        this.http_port = config.api?.http_port || 3000;
+        this.https_port = config.api?.https_port || 3001;
 
         //origin is the URL of the website that is allowed to access the API
         this.origin = config.api?.origin || '*';
@@ -56,27 +58,27 @@ class ApiConfig {
             allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
         }));
 
-        // // Set trust proxy to be specific to Cloudflare
-        // app.set('trust proxy', [
-        //     // Cloudflare IPv4 ranges
-        //     '173.245.48.0/20',
-        //     '103.21.244.0/22',
-        //     '103.22.200.0/22',
-        //     '103.31.4.0/22',
-        //     '141.101.64.0/18',
-        //     '108.162.192.0/18',
-        //     '190.93.240.0/20',
-        //     '188.114.96.0/20',
-        //     '197.234.240.0/22',
-        //     '198.41.128.0/17',
-        //     '162.158.0.0/15',
-        //     '104.16.0.0/13',
-        //     '104.24.0.0/14',
-        //     '172.64.0.0/13',
-        //     '131.0.72.0/22'
-        // ]);
+        // Set trust proxy to be specific to Cloudflare
+        app.set('trust proxy', [
+            // Cloudflare IPv4 ranges
+            '173.245.48.0/20',
+            '103.21.244.0/22',
+            '103.22.200.0/22',
+            '103.31.4.0/22',
+            '141.101.64.0/18',
+            '108.162.192.0/18',
+            '190.93.240.0/20',
+            '188.114.96.0/20',
+            '197.234.240.0/22',
+            '198.41.128.0/17',
+            '162.158.0.0/15',
+            '104.16.0.0/13',
+            '104.24.0.0/14',
+            '172.64.0.0/13',
+            '131.0.72.0/22'
+        ]);
 
-        // // Security middleware
+        // Security middleware
         // app.use(helmet.contentSecurityPolicy({
         //     directives: {
         //         defaultSrc: ["'self'"]
@@ -115,8 +117,14 @@ class ApiConfig {
      * Get configured port
      * @returns Port number
      */
-    public getPort(): number {
-        return this.port;
+    public getPort(type: number): number | undefined {
+        if (type === 0) {
+            return this.http_port;
+        } else if (type === 1) {
+            return this.https_port;
+        } else {
+            new Error('Invalid port type');
+        }
     }
 }
 

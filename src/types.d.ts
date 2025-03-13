@@ -146,7 +146,8 @@ export interface IConfig {
     };
     api?: {
         enabled: boolean;
-        port: number;
+        http_port: number;
+        https_port: number;
         origin: Array<string>;
         auth: {
             enabled: boolean;

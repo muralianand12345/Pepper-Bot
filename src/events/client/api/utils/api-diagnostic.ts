@@ -32,13 +32,23 @@ class ApiDiagnostic {
         }
 
         // Check port configuration
-        const port = this.client.config.api?.port;
-        if (!port) {
-            this.logger.warn('[API] No port specified in configuration, defaulting to 3000');
-        } else if (port < 1024 && process.platform !== 'win32') {
-            this.logger.warn(`[API] Port ${port} requires elevated privileges on this platform`);
-        } else if (port < 0 || port > 65535) {
-            this.logger.error(`[API] Invalid port number: ${port}`);
+        const http_port = this.client.config.api?.http_port;
+        const https_port = this.client.config.api?.https_port;
+
+        if (!http_port && !https_port) {
+            this.logger.warn('[API] No ports specified in configuration');
+        }
+        if (http_port < 1024 && process.platform !== 'win32') {
+            this.logger.warn(`[API] HTTP port ${http_port} requires elevated privileges on this platform`);
+        }
+        if (https_port < 1024 && process.platform !== 'win32') {
+            this.logger.warn(`[API] HTTPS port ${https_port} requires elevated privileges on this platform`);
+        }
+        if (http_port < 0 || http_port > 65535) {
+            this.logger.error(`[API] Invalid HTTP port number: ${http_port}`);
+        }
+        if (https_port < 0 || https_port > 65535) {
+            this.logger.error(`[API] Invalid HTTPS port number: ${https_port}`);
         }
 
         // Check authentication configuration
