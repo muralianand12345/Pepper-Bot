@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express from 'express';
 import discord from 'discord.js';
 import swaggerUi from 'swagger-ui-express';
@@ -52,6 +53,13 @@ class ApiServer {
      * Register API routes
      */
     private registerRoutes(): void {
+        // Apply CORS middleware FIRST, before any routes
+        this.app.use(cors({
+            origin: '*',
+            methods: ['GET', 'POST', 'PUT', 'DELETE'],
+            allowedHeaders: ['Content-Type', 'Authorization']
+        }));
+
         // Swagger documentation route (no auth required)
         this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
             explorer: true,
