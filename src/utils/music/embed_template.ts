@@ -13,25 +13,17 @@ const getTrackProgress = (position: number, duration: number): {
     // Ensure position doesn't exceed duration
     const normalizedPosition = Math.min(position, duration);
 
-    // Logic for end-of-track adjustments
-    let adjustedPosition = normalizedPosition;
-    const remainingTime = duration - normalizedPosition;
-
-    if (remainingTime < 10000) {
-        // Adjust position for display, but keep actual time for counters
-        adjustedPosition = Math.min(normalizedPosition + (10000 - remainingTime) / 2, duration - 100);
-    }
-
-    // Calculate percentage for progress bar
-    const percentage = Math.min(adjustedPosition / duration, 0.999); // Cap at 99.9%
+    // Calculate percentage for progress bar without any artificial adjustments
+    // This ensures the progress bar accurately reflects the actual playback position
+    const percentage = normalizedPosition / duration;
 
     // Format times for display (use the original position for time display)
     const formattedPosition = Formatter.msToTime(normalizedPosition);
     const formattedDuration = Formatter.msToTime(duration);
 
     return {
-        displayPosition: normalizedPosition, // Unadjusted for time display
-        percentage,                        // Adjusted for progress bar
+        displayPosition: normalizedPosition,
+        percentage,
         formattedPosition,
         formattedDuration
     };
@@ -48,7 +40,7 @@ const createProgressBar = (position: number, duration: number, length: number = 
     // Get the track progress data
     const progress = getTrackProgress(position, duration);
 
-    // Use the percentage to create the bar
+    // Calculate the number of filled blocks based on the actual percentage
     const filledBlocks = Math.floor(progress.percentage * length);
 
     // Build the progress bar
