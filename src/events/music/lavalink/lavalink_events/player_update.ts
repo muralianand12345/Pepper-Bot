@@ -46,6 +46,18 @@ const lavalinkEvent: LavalinkEvent = {
                 (changeType?.details?.changeType === "trackChange");
 
             if (isPositionUpdate) {
+                // Add this to check if we're near the end of the track
+                const currentTrack = newPlayer.queue.current;
+                if (currentTrack) {
+                    const isNearEnd = Math.abs(currentTrack.duration - newPlayer.position) < 5000; // Within 5 seconds of end
+
+                    if (isNearEnd) {
+                        client.logger.debug(`[PLAYER_STATE_UPDATE] Track near end, forcing update`);
+                        const nowPlayingManager = NowPlayingManager.getInstance(newPlayer.guildId, newPlayer, client);
+                        nowPlayingManager.forceUpdate();
+                    }
+                }
+
                 // Store the last update time if it doesn't exist
                 if (!(newPlayer as any).lastStateUpdate) {
                     (newPlayer as any).lastStateUpdate = Date.now();

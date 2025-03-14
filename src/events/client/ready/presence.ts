@@ -57,13 +57,12 @@ const event: BotEvent = {
     execute: async (client: discord.Client): Promise<void> => {
         if (!(client as any).config.bot.presence.enabled) return;
 
-        const activityList = createActivityList(
-            client,
-            (client as any).config.bot.presence.activity
-        );
-
         let currentIndex = 0;
         setInterval(() => {
+            let activityList = createActivityList(
+                client,
+                (client as any).config.bot.presence.activity
+            );
             if (currentIndex >= activityList.length) currentIndex = 0;
             client.user?.setActivity(activityList[currentIndex]);
             currentIndex++;

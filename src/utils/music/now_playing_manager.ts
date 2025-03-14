@@ -66,6 +66,51 @@ export class NowPlayingManager {
     }
 
     /**
+ * Get the player with an adjusted position getter
+ * @returns Player with adjusted position getter
+ * @private
+ */
+    private getAdjustedPlayer(): magmastream.Player {
+        // Create a proper proxy that extends the original player
+        const playerProxy = Object.create(Object.getPrototypeOf(this.player));
+
+        // Copy all properties
+        for (const prop of Object.getOwnPropertyNames(this.player)) {
+            if (prop !== 'position') {
+                Object.defineProperty(playerProxy, prop,
+                    Object.getOwnPropertyDescriptor(this.player, prop)!);
+            }
+        }
+
+        // Add the adjusted position getter
+        Object.defineProperty(playerProxy, 'position', {
+            get: () => {
+                const position = this.player.position;
+                const duration = this.player.queue.current?.duration || 0;
+                const remainingTime = duration - position;
+
+                // If remaining time is less than 10 seconds, adjust more aggressively
+                if (remainingTime <= 10000) {
+                    // Create a "scaling factor" that accelerates as we get closer to the end
+                    // For tracks almost completed (less than 2 seconds left), show at 99%
+                    if (remainingTime < 2000) {
+                        return duration - 100; // Almost at end (99.9%)
+                    }
+
+                    // For tracks between 2-10 seconds from completion, scale progressively
+                    const scalingFactor = 1 + ((10000 - remainingTime) / 10000);
+                    return Math.min(position * scalingFactor, duration - 100);
+                }
+
+                // Normal position with small adjustment for latency
+                return Math.min(position + 300, duration);
+            }
+        });
+
+        return playerProxy;
+    }
+
+    /**
      * Private constructor - use getInstance() instead
      * @param player Player instance
      * @param client Discord client
@@ -128,9 +173,22 @@ export class NowPlayingManager {
             // Skip updates if player is paused or not playing
             if (!this.player || !this.player.playing || this.paused) return;
 
-            this.updateNowPlaying().catch(err => {
-                this.client.logger?.error(`[NowPlayingManager] Update error: ${err}`);
-            });
+            // Check if we're near the end of a track - if so, update more frequently
+            const position = this.player.position;
+            const duration = this.player.queue.current?.duration || 0;
+            const remainingTime = duration - position;
+
+            // If we're very close to the end (< 15 seconds), force an update immediately
+            if (remainingTime > 0 && remainingTime < 15000) {
+                this.updateNowPlaying().catch(err => {
+                    this.client.logger?.error(`[NowPlayingManager] End-of-track update error: ${err}`);
+                });
+            } else {
+                // Regular update
+                this.updateNowPlaying().catch(err => {
+                    this.client.logger?.error(`[NowPlayingManager] Regular update error: ${err}`);
+                });
+            }
         }, this.UPDATE_INTERVAL);
     }
 
@@ -151,8 +209,15 @@ export class NowPlayingManager {
         }
 
         try {
-            // Create the embed with updated player info
-            const embed = await musicEmbed(this.client, this.player.queue.current, this.player);
+            // Use our helper to get an adjusted player
+            const adjustedPlayer = this.getAdjustedPlayer();
+
+            // Create the embed with the adjusted player
+            const embed = await musicEmbed(
+                this.client,
+                this.player.queue.current,
+                adjustedPlayer
+            );
 
             // Edit message with updated embed
             await this.message.edit({

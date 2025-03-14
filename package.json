@@ -1,6 +1,6 @@
 {
     "name": "pepper-bot",
-    "version": "4.7.2",
+    "version": "4.7.3",
     "description": "A updated version of pepper music bot.",
     "main": "./build/index.js",
     "type": "commonjs",
@@ -31,7 +31,7 @@
         "@types/swagger-jsdoc": "^6.0.4",
         "@types/swagger-ui-express": "^4.1.8",
         "@types/ws": "^8.18.0",
-        "typescript": "^5.7.3"
+        "typescript": "^5.8.2"
     },
     "dependencies": {
         "axios": "^1.7.9",
@@ -43,8 +43,9 @@
         "express-rate-limit": "^7.5.0",
         "helmet": "^8.0.0",
         "magmastream": "^2.8.5",
-        "mongoose": "^8.10.1",
+        "mongoose": "^8.12.1",
         "ms": "^2.1.3",
+        "openapi-types": "^12.1.3",
         "swagger-jsdoc": "^6.2.8",
         "swagger-ui-express": "^5.0.1",
         "ws": "^8.18.1",

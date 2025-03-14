@@ -3,6 +3,40 @@ import magmastream from "magmastream";
 import Formatter from "../format";
 import { IConfig } from "../../types";
 
+// Create a function that returns both the adjusted time and progress percentage
+const getTrackProgress = (position: number, duration: number): {
+    displayPosition: number;
+    percentage: number;
+    formattedPosition: string;
+    formattedDuration: string;
+} => {
+    // Ensure position doesn't exceed duration
+    const normalizedPosition = Math.min(position, duration);
+
+    // Logic for end-of-track adjustments
+    let adjustedPosition = normalizedPosition;
+    const remainingTime = duration - normalizedPosition;
+
+    if (remainingTime < 10000) {
+        // Adjust position for display, but keep actual time for counters
+        adjustedPosition = Math.min(normalizedPosition + (10000 - remainingTime) / 2, duration - 100);
+    }
+
+    // Calculate percentage for progress bar
+    const percentage = Math.min(adjustedPosition / duration, 0.999); // Cap at 99.9%
+
+    // Format times for display (use the original position for time display)
+    const formattedPosition = Formatter.msToTime(normalizedPosition);
+    const formattedDuration = Formatter.msToTime(duration);
+
+    return {
+        displayPosition: normalizedPosition, // Unadjusted for time display
+        percentage,                        // Adjusted for progress bar
+        formattedPosition,
+        formattedDuration
+    };
+};
+
 /**
  * Creates a progress bar with emoji indicators
  * @param position Current position in milliseconds
@@ -11,14 +45,11 @@ import { IConfig } from "../../types";
  * @returns Formatted progress bar string
  */
 const createProgressBar = (position: number, duration: number, length: number = 15): string => {
-    // Prevent division by zero
-    if (!duration) return "▬".repeat(length);
+    // Get the track progress data
+    const progress = getTrackProgress(position, duration);
 
-    // Calculate progress percentage (capped between 0-1)
-    const progress = Math.min(1, Math.max(0, position / duration));
-
-    // Calculate number of filled blocks
-    const filledBlocks = Math.floor(progress * length);
+    // Use the percentage to create the bar
+    const filledBlocks = Math.floor(progress.percentage * length);
 
     // Build the progress bar
     return "▬".repeat(Math.max(0, filledBlocks)) +
@@ -58,12 +89,17 @@ const musicEmbed = async (
             // Get time values
             const position = Math.max(0, player.position);
             const duration = track.duration || 0;
-            const progressTime = Formatter.msToTime(position);
-            const durationTime = track.isStream ? 'LIVE' : Formatter.msToTime(duration);
 
-            // Create progress bar
-            const progressBar = createProgressBar(position, duration);
-            progressText = `${progressBar}\n\`${progressTime} / ${durationTime}\``;
+            // Use the getTrackProgress function instead of separate calculations
+            const progress = getTrackProgress(position, duration);
+
+            // Create progress bar using the adjusted percentage
+            const length = 15; // Number of segments
+            const filledBlocks = Math.floor(progress.percentage * length);
+            const progressBar = "▬".repeat(filledBlocks) + "●" + "▬".repeat(Math.max(0, length - filledBlocks - 1));
+
+            // Use the formatted times from the progress calculation
+            progressText = `${progressBar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
         } catch (error) {
             // Fallback if progress calculation fails
             progressText = "";
