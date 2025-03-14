@@ -1,10 +1,12 @@
+import http from 'http';
 import path from 'path';
 import express from 'express';
 import discord from 'discord.js';
-import swaggerUi from 'swagger-ui-express';
 import ApiConfig from './api-config';
-import Logger from '../../../../utils/logger';
+import swaggerUi from 'swagger-ui-express';
 import { ILogger } from '../../../../types';
+import Logger from '../../../../utils/logger';
+import WebSocketManager from './websocket-manager';
 import swaggerSpec from '../docs/swagger-config';
 import AuthMiddleware from '../middleware/auth-middleware';
 import LoggerMiddleware from '../middleware/logger-middleware';
@@ -20,6 +22,7 @@ class ApiServer {
     private readonly apiConfig: ApiConfig;
     private readonly authMiddleware: AuthMiddleware;
     private readonly loggerMiddleware: LoggerMiddleware;
+    private httpServer: http.Server | null = null;
 
     /**
      * Create a new API server
@@ -46,6 +49,9 @@ class ApiServer {
         // Add request logging middleware
         this.app.use(this.loggerMiddleware.logRequest);
 
+        // Serve static files for Swagger
+        this.app.use('/swagger-assets', express.static(path.join(__dirname, '../../../../../static/')));
+
         // Register routes
         this.registerRoutes();
     }
@@ -54,9 +60,6 @@ class ApiServer {
      * Register API routes
      */
     private registerRoutes(): void {
-        // Serve static files for Swagger
-        this.app.use('/swagger-assets', express.static(path.join(__dirname, '../static')));
-
         // Swagger documentation route (no auth required)
         this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
             explorer: true,
@@ -143,10 +146,20 @@ class ApiServer {
 
         const port = this.apiConfig.getPort();
 
+        // Create HTTP server instead of directly using Express
+        this.httpServer = http.createServer(this.app);
+
+        // Make the HTTP server available on the client for WebSocket events
+        (this.client as any).httpServer = this.httpServer;
+
+        // Initialize WebSocket manager with HTTP server
+        WebSocketManager.getInstance(this.client, this.httpServer, this.logger);
+
         // Start HTTP server
-        this.app.listen(port, () => {
+        this.httpServer.listen(port, () => {
             this.logger.info(`[API] Server started on port ${port}`);
             this.logger.info(`[API] Swagger documentation available at http://localhost:${port}/docs`);
+            this.logger.info(`[API] WebSocket endpoint available at ws://localhost:${port}/api/v1/music/ws`);
 
             // Log authentication status
             const authStatus = this.client.config.api?.auth?.enabled
