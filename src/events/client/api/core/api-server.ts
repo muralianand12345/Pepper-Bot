@@ -80,6 +80,15 @@ class ApiServer {
             res.send(swaggerSpec);
         });
 
+        //Websocket documentation
+        this.app.get('/music/docs', (req, res) => {
+            try {
+                res.sendFile(path.join(__dirname, '../../../../../static/websocket_ui.html'));
+            } catch (error) {
+                res.status(500).send('Error loading WebSocket documentation');
+            }
+        });
+
         // Root route for API status (no auth required)
         this.app.get('/api', (req, res) => {
             const version = process.env.npm_package_version || '1.0.0';

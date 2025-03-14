@@ -208,29 +208,6 @@ const musicRouter = (client: discord.Client): express.Router => {
      */
     router.get('/recommendations/:userId/:guildId', controller.getRecommendations);
 
-    /**
-     * @swagger
-     * /music/docs:
-     *   get:
-     *     summary: WebSocket API Documentation
-     *     description: Detailed documentation for the music WebSocket API
-     *     tags: [Music]
-     *     responses:
-     *       200:
-     *         description: HTML documentation
-     *         content:
-     *           text/html:
-     *             schema:
-     *               type: string
-     */
-    router.get('/docs', (req, res) => {
-        try {
-            res.sendFile(path.join(__dirname, '../../../../../static/websocket_ui.html'));
-        } catch (error) {
-            res.status(500).send('Error loading WebSocket documentation');
-        }
-    });
-
     return router;
 };
 
