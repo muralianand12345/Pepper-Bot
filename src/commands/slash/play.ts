@@ -137,7 +137,7 @@ const playcommand: SlashCommand = {
                 return await interaction.reply({
                     embeds: [
                         new MusicResponseHandler(client).createErrorEmbed(
-                            "Music is already playing on another node. Disconnect/stop the current player first."
+                            "Hmmm, you have an active music player in this server. Please stop the current player before switching Lavalink nodes."
                         ),
                     ],
                     flags: discord.MessageFlags.Ephemeral,

@@ -21,7 +21,6 @@ const broadcastPlayerEvent = (client: discord.Client, guildId: string, eventType
         // Get HTTP server from client (if available)
         const server = (client as any).httpServer;
         if (!server) {
-            client.logger.warn('[WEBSOCKET] HTTP server not available for broadcasting event');
             return;
         }
 

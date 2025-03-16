@@ -26,8 +26,8 @@ const lavalinkEvent: LavalinkEvent = {
             const player = newPlayer || oldPlayer;
 
             // Guard against null player
-            if (!player) {
-                client.logger.debug("[PLAYER_STATE_UPDATE] No valid player found, skipping");
+            if (!player || !player.guildId) {
+                client.logger.debug("[PLAYER_STATE_UPDATE] No valid player or guild found, skipping");
                 return;
             }
 
@@ -39,62 +39,24 @@ const lavalinkEvent: LavalinkEvent = {
                 return;
             }
 
-            // Check if the update includes position changes (timeUpdate event)
-            const isPositionUpdate =
-                changeType?.changeType === "playerUpdate" ||
-                (changeType?.details?.changeType === "timeUpdate") ||
-                (changeType?.details?.changeType === "trackChange");
+            // Only handle updates for active players
+            if (newPlayer && newPlayer.playing && !newPlayer.paused) {
+                // Only update now playing message at reasonable intervals to avoid rate limiting
+                // or when position changes significantly
+                const now = Date.now();
+                const lastUpdate = (newPlayer as any).lastUpdateTime || 0;
 
-            if (isPositionUpdate) {
-                // Add this to check if we're near the end of the track
-                const currentTrack = newPlayer.queue.current;
-                if (currentTrack) {
-                    const isNearEnd = Math.abs(currentTrack.duration - newPlayer.position) < 5000; // Within 5 seconds of end
+                // Update every 15 seconds or if significant position change (e.g., seeking)
+                if (now - lastUpdate > 15000 || (changeType?.details?.changeType === "trackChange")) {
+                    // Update the last update timestamp
+                    (newPlayer as any).lastUpdateTime = now;
 
-                    if (isNearEnd) {
-                        client.logger.debug(`[PLAYER_STATE_UPDATE] Track near end, forcing update`);
-                        const nowPlayingManager = NowPlayingManager.getInstance(newPlayer.guildId, newPlayer, client);
+                    // Update the now playing message if needed
+                    const nowPlayingManager = NowPlayingManager.getInstance(player.guildId, newPlayer, client);
+                    if (nowPlayingManager.hasMessage()) {
                         nowPlayingManager.forceUpdate();
                     }
                 }
-
-                // Store the last update time if it doesn't exist
-                if (!(newPlayer as any).lastStateUpdate) {
-                    (newPlayer as any).lastStateUpdate = Date.now();
-                }
-
-                // Calculate time since last update
-                const timeSinceLastUpdate = Date.now() - ((newPlayer as any).lastStateUpdate || 0);
-                const regularUpdateNeeded = timeSinceLastUpdate > 15000; // 15 seconds
-
-                // Check for significant position change if we have old and new positions
-                let significantChange = false;
-                if (changeType?.details?.previousTime && changeType?.details?.currentTime) {
-                    const positionDifference = Math.abs(
-                        changeType.details.currentTime - changeType.details.previousTime
-                    );
-                    significantChange = positionDifference > 3000; // 3 seconds threshold
-                }
-
-                // Log detailed debugging information
-                client.logger.debug(
-                    `[PLAYER_STATE_UPDATE] Time since update: ${timeSinceLastUpdate}ms, ` +
-                    `Significant change: ${significantChange}, Regular update needed: ${regularUpdateNeeded}`
-                );
-
-                // Update the timestamp of the last player update
-                (newPlayer as any).lastStateUpdate = Date.now();
-
-                // Check if we should update the now playing message
-                if (significantChange || regularUpdateNeeded || changeType?.details?.changeType === "trackChange") {
-                    client.logger.debug(`[PLAYER_STATE_UPDATE] Forcing now playing update`);
-                    const nowPlayingManager = NowPlayingManager.getInstance(newPlayer.guildId, newPlayer, client);
-                    nowPlayingManager.forceUpdate();
-                }
-            } else {
-                // Log other state updates for debugging
-                client.logger.debug(`[PLAYER_STATE_UPDATE] State update, not position related: ${JSON.stringify(changeType?.changeType || 'unknown')
-                    }`);
             }
         } catch (error) {
             console.error("[PLAYER_STATE_UPDATE] Error:", error);

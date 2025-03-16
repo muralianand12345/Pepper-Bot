@@ -253,7 +253,7 @@ class WebSocketManager {
 
             // If player exists but is not connected, destroy it
             if (player && !player.voiceChannelId) {
-                player.destroy();
+                // player.destroy();
                 player = undefined; // Use undefined instead of null
             }
 

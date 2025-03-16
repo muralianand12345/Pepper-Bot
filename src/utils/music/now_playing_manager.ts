@@ -219,29 +219,38 @@ export class NowPlayingManager {
                 adjustedPlayer
             );
 
-            // Edit message with updated embed
-            await this.message.edit({
-                embeds: [embed],
-                components: [musicButton]
-            });
+            // Check if the message is still valid before attempting to edit
+            if (this.message.editable) {
+                await this.message.edit({
+                    embeds: [embed],
+                    components: [musicButton]
+                });
+            } else {
+                // Message is no longer editable, clear reference
+                this.message = null;
+            }
 
             // Update last update timestamp
             this.lastUpdateTime = Date.now();
         } catch (error) {
-            // Check if error is about unknown message - if so, null out our reference
-            if (error instanceof Error &&
-                (error.message.includes("Unknown Message") ||
-                    error.message.includes("Missing Access"))) {
-                this.message = null;
-            } else if (error instanceof Error &&
-                error.message.includes("rate limited")) {
-                // Handle rate limiting by backing off
-                this.client.logger?.warn(`[NowPlayingManager] Rate limited, backing off: ${error.message}`);
-                // Increase the last update time to force a longer delay
-                this.lastUpdateTime = Date.now();
+            // Handle specific known errors
+            if (error instanceof Error) {
+                const errorMessage = error.message.toLowerCase();
+
+                // Check for common Discord API errors
+                if (errorMessage.includes("unknown message") ||
+                    errorMessage.includes("missing access") ||
+                    errorMessage.includes("cannot edit a deleted message")) {
+                    // Message was deleted or bot lost permissions, clear reference
+                    this.message = null;
+                } else if (errorMessage.includes("rate limited")) {
+                    // Handle rate limiting by backing off
+                    this.lastUpdateTime = Date.now() + 30000; // Add 30 seconds to back off
+                }
             }
 
-            throw error;
+            // Don't re-throw the error as it's not critical
+            this.client.logger?.warn(`[NowPlayingManager] Update error: ${error}`);
         }
     }
 
