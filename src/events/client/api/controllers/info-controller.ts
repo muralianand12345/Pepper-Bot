@@ -9,24 +9,6 @@ class InfoController {
         this.infoService = new InfoService(client);
     }
 
-    public getBotInfo = (req: express.Request, res: express.Response): void => {
-        const botInfo = this.infoService.getBotInfo();
-
-        if (!botInfo) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Bot client user is not available'
-            });
-            return;
-        }
-
-        res.json({
-            status: 'success',
-            timestamp: new Date().toISOString(),
-            data: botInfo
-        });
-    };
-
     public getBotStats = (req: express.Request, res: express.Response): void => {
         const stats = this.infoService.getBotStats();
 
