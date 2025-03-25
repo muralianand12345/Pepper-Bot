@@ -27,6 +27,32 @@
  *           type: string
  *           description: URL to track artwork image
  *
+ *     MusicHistoryDto:
+ *       type: object
+ *       properties:
+ *         title:
+ *           type: string
+ *           description: Track title
+ *         author:
+ *           type: string
+ *           description: Track artist/author
+ *         sourceName:
+ *           type: string
+ *           description: Source platform (e.g., Spotify, SoundCloud)
+ *         uri:
+ *           type: string
+ *           description: Track URI
+ *         playCount:
+ *           type: integer
+ *           description: Number of times the track was played
+ *         lastPlayed:
+ *           type: string
+ *           format: date-time
+ *           description: Last time the track was played
+ *         artworkUrl:
+ *           type: string
+ *           description: URL to track artwork image
+ *
  *     PlayerResponse:
  *       type: object
  *       properties:
@@ -103,28 +129,26 @@
  *         timestamp:
  *           type: string
  *           format: date-time
- *         count:
- *           type: integer
+ *         pagination:
+ *           type: object
+ *           properties:
+ *             page:
+ *               type: integer
+ *               description: Current page number
+ *             pageSize:
+ *               type: integer
+ *               description: Number of items per page
+ *             total:
+ *               type: integer
+ *               description: Total number of items
+ *             totalPages:
+ *               type: integer
+ *               description: Total number of pages
  *         data:
  *           type: array
  *           items:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               author:
- *                 type: string
- *               sourceName:
- *                 type: string
- *               uri:
- *                 type: string
- *               playCount:
- *                 type: integer
- *               lastPlayed:
- *                 type: string
- *                 format: date-time
- *               artworkUrl:
- *                 type: string
+ *             $ref: '#/components/schemas/MusicHistoryDto'
+ * 
  *     RecommendationResponse:
  *       type: object
  *       properties:

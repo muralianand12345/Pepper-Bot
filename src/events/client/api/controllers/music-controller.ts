@@ -58,10 +58,11 @@ class MusicController {
 
     public getGuildMusicHistory = async (req: express.Request, res: express.Response): Promise<void> => {
         const { guildId } = req.params;
-        const limit = parseInt(req.query.limit as string) || 10;
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 10;
 
         try {
-            const history = await this.musicService.getGuildMusicHistory(guildId, limit);
+            const history = await this.musicService.getGuildMusicHistory(guildId, { page, pageSize });
 
             if (!history) {
                 res.status(404).json({
@@ -74,8 +75,13 @@ class MusicController {
             res.json({
                 status: 'success',
                 timestamp: new Date().toISOString(),
-                count: history.length,
-                data: history
+                pagination: {
+                    page: history.page,
+                    pageSize: history.pageSize,
+                    total: history.total,
+                    totalPages: history.totalPages
+                },
+                data: history.items
             });
         } catch (error) {
             res.status(500).json({
@@ -88,10 +94,11 @@ class MusicController {
 
     public getUserMusicHistory = async (req: express.Request, res: express.Response): Promise<void> => {
         const { userId } = req.params;
-        const limit = parseInt(req.query.limit as string) || 10;
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 10;
 
         try {
-            const history = await this.musicService.getUserMusicHistory(userId, limit);
+            const history = await this.musicService.getUserMusicHistory(userId, { page, pageSize });
 
             if (!history) {
                 res.status(404).json({
@@ -104,13 +111,48 @@ class MusicController {
             res.json({
                 status: 'success',
                 timestamp: new Date().toISOString(),
-                count: history.length,
-                data: history
+                pagination: {
+                    page: history.page,
+                    pageSize: history.pageSize,
+                    total: history.total,
+                    totalPages: history.totalPages
+                },
+                data: history.items
             });
         } catch (error) {
             res.status(500).json({
                 status: 'error',
                 message: 'Failed to retrieve music history',
+                details: error instanceof Error ? error.message : String(error)
+            });
+        }
+    };
+
+    public getUserTopSongs = async (req: express.Request, res: express.Response): Promise<void> => {
+        const { userId } = req.params;
+        const limit = parseInt(req.query.limit as string) || 10;
+
+        try {
+            const topSongs = await this.musicService.getUserTopSongs(userId, limit);
+
+            if (!topSongs) {
+                res.status(404).json({
+                    status: 'error',
+                    message: 'No music history found for this user'
+                });
+                return;
+            }
+
+            res.json({
+                status: 'success',
+                timestamp: new Date().toISOString(),
+                count: topSongs.length,
+                data: topSongs
+            });
+        } catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: 'Failed to retrieve top songs',
                 details: error instanceof Error ? error.message : String(error)
             });
         }

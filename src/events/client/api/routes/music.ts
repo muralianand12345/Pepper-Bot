@@ -62,7 +62,7 @@ const musicRouter = (client: discord.Client): express.Router => {
      * /music/history/guild/{guildId}:
      *   get:
      *     summary: Get music history for a guild
-     *     description: Retrieves the music playback history for a specific guild
+     *     description: Retrieves the music playback history for a specific guild with pagination
      *     tags: [Music]
      *     security:
      *       - ApiKeyAuth: []
@@ -74,11 +74,17 @@ const musicRouter = (client: discord.Client): express.Router => {
      *           type: string
      *         description: Discord guild ID
      *       - in: query
-     *         name: limit
+     *         name: page
+     *         schema:
+     *           type: integer
+     *           default: 1
+     *         description: Page number
+     *       - in: query
+     *         name: pageSize
      *         schema:
      *           type: integer
      *           default: 10
-     *         description: Number of tracks to retrieve
+     *         description: Number of items per page
      *     responses:
      *       200:
      *         description: Successful operation
@@ -94,7 +100,45 @@ const musicRouter = (client: discord.Client): express.Router => {
      * /music/history/user/{userId}:
      *   get:
      *     summary: Get music history for a user
-     *     description: Retrieves the music playback history for a specific user
+     *     description: Retrieves the music playback history for a specific user with pagination
+     *     tags: [Music]
+     *     security:
+     *       - ApiKeyAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: userId
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Discord user ID
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *           default: 1
+     *         description: Page number
+     *       - in: query
+     *         name: pageSize
+     *         schema:
+     *           type: integer
+     *           default: 10
+     *         description: Number of items per page
+     *     responses:
+     *       200:
+     *         description: Successful operation
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/MusicHistoryResponse'
+     */
+    router.get('/history/user/:userId', controller.getUserMusicHistory);
+
+    /**
+     * @swagger
+     * /music/topsongs/{userId}:
+     *   get:
+     *     summary: Get top songs for a user
+     *     description: Retrieves the most played songs for a specific user
      *     tags: [Music]
      *     security:
      *       - ApiKeyAuth: []
@@ -110,16 +154,35 @@ const musicRouter = (client: discord.Client): express.Router => {
      *         schema:
      *           type: integer
      *           default: 10
-     *         description: Number of tracks to retrieve
+     *         description: Number of top songs to retrieve
      *     responses:
      *       200:
      *         description: Successful operation
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/MusicHistoryResponse'
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 timestamp:
+     *                   type: string
+     *                   format: date-time
+     *                 count:
+     *                   type: integer
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/MusicHistoryDto'
+     *       404:
+     *         description: No music history found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
      */
-    router.get('/history/user/:userId', controller.getUserMusicHistory);
+    router.get('/topsongs/:userId', controller.getUserTopSongs);
 
     /**
      * @swagger

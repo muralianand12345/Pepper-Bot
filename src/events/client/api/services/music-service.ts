@@ -1,7 +1,7 @@
 import discord from 'discord.js';
 import magmastream from 'magmastream';
 import { PlayerDto, DetailedPlayerDto, MusicHistoryDto } from '../dto/music-dto';
-import { MusicDBSong } from '../../../../types';
+import { MusicDBSong, PaginationParams, PaginatedResponse } from '../../../../types';
 
 
 class MusicService {
@@ -93,7 +93,16 @@ class MusicService {
         };
     }
 
-    public async getGuildMusicHistory(guildId: string, limit: number = 10): Promise<MusicHistoryDto[] | null> {
+    /**
+     * Get paginated music history for a guild
+     * @param guildId - Discord guild ID
+     * @param pagination - Pagination parameters
+     * @returns Promise with paginated music history or null
+     */
+    public async getGuildMusicHistory(
+        guildId: string,
+        pagination: PaginationParams = { page: 1, pageSize: 10 }
+    ): Promise<PaginatedResponse<MusicHistoryDto> | null> {
         try {
             // Use MusicDB utility to get guild history
             const MusicDB = require('../../../../utils/music/music_db').default;
@@ -103,10 +112,23 @@ class MusicService {
                 return null;
             }
 
+            // Sort songs by play count
+            const sortedSongs = history.songs.sort(
+                (a: MusicDBSong, b: MusicDBSong) => b.played_number - a.played_number
+            );
+
+            // Calculate pagination
+            const totalItems = sortedSongs.length;
+            const totalPages = Math.ceil(totalItems / pagination.pageSize);
+            const page = Math.min(Math.max(pagination.page, 1), totalPages); // Ensure page is between 1 and totalPages
+
+            // Get items for current page
+            const startIndex = (page - 1) * pagination.pageSize;
+            const endIndex = Math.min(startIndex + pagination.pageSize, totalItems);
+
             // Format history data for API response
-            return history.songs
-                .sort((a: MusicDBSong, b: MusicDBSong) => b.played_number - a.played_number)
-                .slice(0, limit)
+            const items = sortedSongs
+                .slice(startIndex, endIndex)
                 .map((song: MusicDBSong) => ({
                     title: song.title,
                     author: song.author,
@@ -116,12 +138,29 @@ class MusicService {
                     lastPlayed: song.timestamp,
                     artworkUrl: song.artworkUrl || song.thumbnail
                 }));
+
+            return {
+                items,
+                total: totalItems,
+                page,
+                pageSize: pagination.pageSize,
+                totalPages
+            };
         } catch (error) {
             throw error;
         }
     }
 
-    public async getUserMusicHistory(userId: string, limit: number = 10): Promise<MusicHistoryDto[] | null> {
+    /**
+     * Get paginated music history for a user
+     * @param userId - Discord user ID
+     * @param pagination - Pagination parameters
+     * @returns Promise with paginated music history or null
+     */
+    public async getUserMusicHistory(
+        userId: string,
+        pagination: PaginationParams = { page: 1, pageSize: 10 }
+    ): Promise<PaginatedResponse<MusicHistoryDto> | null> {
         try {
             // Use MusicDB utility to get user history
             const MusicDB = require('../../../../utils/music/music_db').default;
@@ -131,10 +170,23 @@ class MusicService {
                 return null;
             }
 
+            // Sort songs by play count
+            const sortedSongs = history.songs.sort(
+                (a: MusicDBSong, b: MusicDBSong) => b.played_number - a.played_number
+            );
+
+            // Calculate pagination
+            const totalItems = sortedSongs.length;
+            const totalPages = Math.ceil(totalItems / pagination.pageSize);
+            const page = Math.min(Math.max(pagination.page, 1), totalPages); // Ensure page is between 1 and totalPages
+
+            // Get items for current page
+            const startIndex = (page - 1) * pagination.pageSize;
+            const endIndex = Math.min(startIndex + pagination.pageSize, totalItems);
+
             // Format history data for API response
-            return history.songs
-                .sort((a: MusicDBSong, b: MusicDBSong) => b.played_number - a.played_number)
-                .slice(0, limit)
+            const items = sortedSongs
+                .slice(startIndex, endIndex)
                 .map((song: MusicDBSong) => ({
                     title: song.title,
                     author: song.author,
@@ -144,6 +196,45 @@ class MusicService {
                     lastPlayed: song.timestamp,
                     artworkUrl: song.artworkUrl || song.thumbnail
                 }));
+
+            return {
+                items,
+                total: totalItems,
+                page,
+                pageSize: pagination.pageSize,
+                totalPages
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * Get the top most played songs for a user
+     * @param userId - Discord user ID
+     * @param limit - Maximum number of songs to return
+     * @returns Promise with top songs or null if no history found
+     */
+    public async getUserTopSongs(userId: string, limit: number = 10): Promise<MusicHistoryDto[] | null> {
+        try {
+            // Use MusicDB utility to get user's top songs
+            const MusicDB = require('../../../../utils/music/music_db').default;
+            const topSongs = await MusicDB.getUserTopSongs(userId, limit);
+
+            if (!topSongs || topSongs.length === 0) {
+                return null;
+            }
+
+            // Format data for API response
+            return topSongs.map((song: MusicDBSong) => ({
+                title: song.title,
+                author: song.author,
+                sourceName: song.sourceName,
+                uri: song.uri,
+                playCount: song.played_number,
+                lastPlayed: song.timestamp,
+                artworkUrl: song.artworkUrl || song.thumbnail
+            }));
         } catch (error) {
             throw error;
         }
