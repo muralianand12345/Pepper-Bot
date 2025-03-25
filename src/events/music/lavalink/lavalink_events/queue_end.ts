@@ -29,10 +29,37 @@ const handlePlayerCleanup = async (
 ): Promise<void> => {
     // Wait 5 minutes before destroying the player
     const CLEANUP_DELAY = 300000; // 5 minutes in milliseconds
+    const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
+
+    const scheduledAt = Date.now();
+    player.cleanupScheduledAt = scheduledAt;
+
+    client.logger.info(`[QUEUE_END] Scheduled cleanup for guild ${guildId} in ${CLEANUP_DELAY_MINS} minutes`);
+
     await wait(CLEANUP_DELAY);
+
+    const currentPlayer = client.manager.get(guildId);
+    if (!currentPlayer) {
+        client.logger.debug(`[QUEUE_END] Player for guild ${guildId} already destroyed, skipping cleanup`);
+        return;
+    }
+
+    // Check if this cleanup task is still valid (not superseded by a newer one)
+    if (currentPlayer.cleanupScheduledAt !== scheduledAt) {
+        client.logger.debug(`[QUEUE_END] Cleanup task for guild ${guildId} has been superseded, skipping`);
+        return;
+    }
+
+    // Check if player is still inactive (no tracks playing)
+    if (currentPlayer.playing || currentPlayer.queue.current) {
+        client.logger.debug(`[QUEUE_END] Player for guild ${guildId} is active again, skipping cleanup`);
+        return;
+    }
 
     // Clean up the now playing manager
     NowPlayingManager.removeInstance(guildId);
+
+    client.logger.info(`[QUEUE_END] Performing cleanup for guild ${guildId} after ${CLEANUP_DELAY_MINS} minutes of inactivity`);
 
     // Destroy the player
     player.destroy();

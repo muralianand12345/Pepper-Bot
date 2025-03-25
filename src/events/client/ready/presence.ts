@@ -1,5 +1,6 @@
 import discord from "discord.js";
 import { BotEvent, BotPresence } from "../../../types";
+import { version } from "../../../../package.json";
 
 /**
  * Maps activity type strings to Discord.js ActivityType enum
@@ -20,6 +21,7 @@ const ACTIVITY_TYPE_MAP: Record<string, discord.ActivityType> = {
  */
 const processActivityName = (name: string, client: discord.Client): string => {
     const replacements = {
+        "<version>": version,
         "<clientname>": client.user?.username,
         "<usersize>": client.guilds.cache
             .reduce((acc, guild) => acc + guild.memberCount, 0)

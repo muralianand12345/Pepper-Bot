@@ -11,6 +11,7 @@ import swaggerSpec from '../docs/swagger-config';
 import AuthMiddleware from '../middleware/auth-middleware';
 import LoggerMiddleware from '../middleware/logger-middleware';
 import ApiDiagnostic from '../utils/api-diagnostic';
+import { version } from '../../../../../package.json';
 
 /**
  * API Server that provides endpoints to interact with the bot
@@ -91,7 +92,6 @@ class ApiServer {
 
         // Root route for API status (no auth required)
         this.app.get('/api', (req, res) => {
-            const version = process.env.npm_package_version || '1.0.0';
             res.json({
                 status: 'online',
                 timestamp: new Date().toISOString(),

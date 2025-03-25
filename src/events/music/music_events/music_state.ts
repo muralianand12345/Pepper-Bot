@@ -1,6 +1,7 @@
 import discord from "discord.js";
 import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { sendTempMessage } from "../../../utils/music/music_functions";
+import { NowPlayingManager } from "../../../utils/music/now_playing_manager";
 import { BotEvent } from "../../../types";
 
 /**
@@ -21,7 +22,10 @@ const event: BotEvent = {
 
         // Handle bot disconnection
         if (newState.id === client.user?.id && !newState.channelId) {
-            return player.destroy();
+            // Bot was disconnected from voice channel
+            player.destroy();
+            NowPlayingManager.removeInstance(player.guildId);
+            return;
         }
 
         // Get voice channel info
@@ -39,7 +43,6 @@ const event: BotEvent = {
         const memberCount = playerChannel.members.filter(
             (member) => !member.user.bot
         ).size;
-        const color = client.config.content.embed.color.info ?? "#000000";
 
         // Resume playback when first user joins
         if (memberCount === 1 && player.paused) {
@@ -57,6 +60,53 @@ const event: BotEvent = {
                 "⏸️ Paused playback because the voice channel is empty"
             );
             await sendTempMessage(textChannel, embed);
+
+            // Set up auto-disconnect after 10 minutes if no one returns
+            const DISCONNECT_DELAY = 600000; // 10 minutes
+            const scheduledAt = Date.now();
+            player.cleanupScheduledAt = scheduledAt;
+
+            client.logger.info(`[VOICE_STATE] Everyone left channel in guild ${player.guildId}, scheduling disconnect in 10 minutes`);
+
+            // Use setTimeout instead of wait to avoid blocking
+            setTimeout(async () => {
+                try {
+                    // Get fresh player instance
+                    const currentPlayer = client.manager.get(player.guildId);
+                    if (!currentPlayer) return;
+
+                    // Check if this task is still valid
+                    if (currentPlayer.cleanupScheduledAt !== scheduledAt) return;
+
+                    // Check if the voice channel is still empty
+                    const currentChannel = client.channels.cache.get(
+                        String(currentPlayer.voiceChannelId)
+                    ) as discord.VoiceBasedChannel;
+
+                    if (!currentChannel) return;
+
+                    const currentMemberCount = currentChannel.members.filter(
+                        (member) => !member.user.bot
+                    ).size;
+
+                    if (currentMemberCount === 0) {
+                        // Still no users, destroy the player
+                        client.logger.info(`[VOICE_STATE] Voice channel still empty after 10 minutes, disconnecting from guild ${player.guildId}`);
+
+                        // Send message before disconnecting
+                        const disconnectEmbed = new MusicResponseHandler(client).createInfoEmbed(
+                            "🔌 Disconnecting due to inactivity (10 minutes with no listeners)"
+                        );
+                        await sendTempMessage(textChannel, disconnectEmbed);
+
+                        // Clean up
+                        NowPlayingManager.removeInstance(player.guildId);
+                        currentPlayer.destroy();
+                    }
+                } catch (error) {
+                    client.logger.error(`[VOICE_STATE] Error during auto-disconnect: ${error}`);
+                }
+            }, DISCONNECT_DELAY);
         }
     },
 };

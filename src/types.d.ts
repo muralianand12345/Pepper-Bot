@@ -31,6 +31,12 @@ declare module "discord.js" {
     }
 }
 
+declare module "magmastream" {
+    interface Player {
+        cleanupScheduledAt?: number;
+    }
+}
+
 //-----------EVENTS-----------//
 
 export interface SlashCommand {
