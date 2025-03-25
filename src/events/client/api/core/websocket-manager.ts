@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import http from 'http';
 import discord from 'discord.js';
-import { ILogger } from '../../../../types';
+import { ILogger, WebSocketMessage } from '../../../../types';
 import PlaylistSuggestion from '../../../../utils/music/playlist_suggestion';
 
 /**
@@ -17,22 +17,6 @@ enum MessageType {
     QUEUE = 'queue',
     RECOMMEND = 'recommend',
     AUTH = 'auth'
-}
-
-/**
- * WebSocket message structure
- */
-interface WebSocketMessage {
-    type: MessageType;
-    data: {
-        guildId?: string;
-        query?: string;
-        userId?: string;
-        volume?: number;
-        count?: number;
-        apiKey?: string;
-        [key: string]: any;
-    };
 }
 
 /**

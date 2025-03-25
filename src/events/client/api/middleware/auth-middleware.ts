@@ -1,12 +1,5 @@
 import express from 'express';
-
-/**
- * Configuration for API authentication
- */
-interface AuthConfig {
-    enabled: boolean;
-    apiKey: string;
-}
+import { AuthConfig } from '../../../../types';
 
 /**
  * Middleware for authenticating API requests using API key

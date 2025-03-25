@@ -226,6 +226,37 @@ export interface IMusicGuild extends mongoose.Document {
     songs: Array<ISongs>;
 }
 
+//---------API INTERFACE----------//
+
+export interface WebSocketMessage {
+    type: MessageType;
+    data: {
+        guildId?: string;
+        query?: string;
+        userId?: string;
+        volume?: number;
+        count?: number;
+        apiKey?: string;
+        [key: string]: any;
+    };
+}
+
+export interface AuthConfig {
+    enabled: boolean;
+    apiKey: string;
+}
+
+export interface MusicDBSong {
+    title: string;
+    author: string;
+    sourceName: string;
+    uri: string;
+    played_number: number;
+    timestamp: Date;
+    artworkUrl?: string;
+    thumbnail?: string;
+}
+
 //--------------------------------//
 
 export interface ILogger {
@@ -301,3 +332,4 @@ export interface INodeOption {
     name: string;
     value: string;
 }
+

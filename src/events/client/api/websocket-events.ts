@@ -147,6 +147,12 @@ const event: BotEvent = {
                     return;
                 }
 
+                // Use the player that exists for the guild ID
+                const player = newPlayer || oldPlayer;
+                if (!player) {
+                    return;
+                }
+
                 try {
                     // Check if pause state changed
                     if (oldPlayer.paused !== newPlayer.paused) {

@@ -1,17 +1,8 @@
 import discord from 'discord.js';
 import magmastream from 'magmastream';
 import { PlayerDto, DetailedPlayerDto, MusicHistoryDto } from '../dto/music-dto';
+import { MusicDBSong } from '../../../../types';
 
-interface MusicDBSong {
-    title: string;
-    author: string;
-    sourceName: string;
-    uri: string;
-    played_number: number;
-    timestamp: Date;
-    artworkUrl?: string;
-    thumbnail?: string;
-}
 
 class MusicService {
     private readonly client: discord.Client;
