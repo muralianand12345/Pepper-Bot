@@ -1,7 +1,6 @@
 import express from 'express';
 import discord from 'discord.js';
 import MusicController from '../controllers/music-controller';
-import path from 'path';
 
 const musicRouter = (client: discord.Client): express.Router => {
     const router = express.Router();

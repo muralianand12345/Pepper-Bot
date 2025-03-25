@@ -1,5 +1,4 @@
 import cors from 'cors';
-import helmet from 'helmet';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { IConfig } from '../../../../types';
@@ -75,13 +74,6 @@ class ApiConfig {
             '172.64.0.0/13',
             '131.0.72.0/22'
         ]);
-
-        // Security middleware
-        // app.use(helmet.contentSecurityPolicy({
-        //     directives: {
-        //         defaultSrc: ["'self'"]
-        //     }
-        // }));
 
         // JSON body parser with increased limit for larger payloads
         app.use(express.json({ limit: '2mb' }));
