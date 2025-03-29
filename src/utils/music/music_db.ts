@@ -1,3 +1,4 @@
+import discord from "discord.js";
 import music_user from "../../events/database/schema/music_user";
 import music_guild from "../../events/database/schema/music_guild";
 import { IMusicUser, IMusicGuild, ISongs } from "../../types";
@@ -405,6 +406,65 @@ class MusicDB {
                 .slice(0, limit);
         } catch (err) {
             return [];
+        }
+    }
+
+    /**
+     * Gets the song text channel ID for a guild
+     * @param client - Discord client instance
+     * @param guildId - Discord guild ID
+     * @param userId - Discord user ID
+     * @returns Promise<string > - Song text channel ID
+     * @throws Error if guildId is null or if database operation fails
+     * @public
+     */
+    public static async getSongTextChannelId(
+        client: discord.Client,
+        guildId: string | null,
+        userId: string | null
+    ): Promise<string> {
+        try {
+            if (!guildId) {
+                throw new Error("Guild ID is required to get song text channel");
+            }
+
+            if (!userId) {
+                throw new Error("User ID is required to get song text channel");
+            }
+
+            const guildData = await music_guild.findOne({ guildId });
+            if (guildData && guildData.songChannelId) {
+                return guildData.songChannelId;
+            }
+
+            //check which guild vc user is in
+            const guild = client.guilds.cache.get(guildId);
+            if (!guild) {
+                throw new Error("Guild not found");
+            }
+
+            const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
+            if (member && member.voice.channel) {
+                return member.voice.channel.id;
+            }
+
+            const systemChannel = guild.systemChannelId;
+            if (systemChannel) {
+                return systemChannel;
+            }
+
+            const textChannel = guild.channels.cache.find(
+                c => c.type === discord.ChannelType.GuildText
+            );
+
+            if (textChannel) {
+                return textChannel.id;
+            }
+
+            throw new Error("No suitable text channel found in the guild");
+
+        } catch (err) {
+            throw new Error(`Failed to get song text channel ID: ${err}`);
         }
     }
 }

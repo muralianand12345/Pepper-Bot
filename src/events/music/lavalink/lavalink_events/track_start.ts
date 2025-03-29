@@ -111,13 +111,26 @@ const lavalinkEvent: LavalinkEvent = {
                 const embed = await musicEmbed(client, track, player);
 
                 // Send a new message
-                const message = await channel.send({
-                    embeds: [embed],
-                    components: [musicButton]
-                });
+                try {
+                    const message = await channel.send({
+                        embeds: [embed],
+                        components: [musicButton]
+                    });
 
-                // Register the message with the now playing manager
-                nowPlayingManager.setMessage(message, false);
+                    // Register the message with the now playing manager
+                    nowPlayingManager.setMessage(message, false);
+                } catch (error: Error | any) {
+                    if (error.code === 50007) {
+                        client.logger.error(
+                            `[LAVALINK] Missing permissions to send messages in ${channel.name} (${channel.id})`
+                        );
+                        return;
+                    }
+                    client.logger.error(
+                        `[LAVALINK] Error sending message in ${channel.name} (${channel.id}): ${error}`
+                    );
+                    return;
+                }
             }
 
             logTrackStart(track, player, client);

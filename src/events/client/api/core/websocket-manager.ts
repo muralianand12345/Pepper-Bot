@@ -219,6 +219,10 @@ class WebSocketManager {
             return this.sendError(ws, 'query is required');
         }
 
+        if (!userId) {
+            return this.sendError(ws, 'userId is required');  // Make userId required
+        }
+
         try {
             // Save guild association
             const guildSet = this.clientGuilds.get(ws);
@@ -235,34 +239,59 @@ class WebSocketManager {
             // Find active voice channel if no player exists
             let player = this.client.manager.get(guildId);
 
+            // Load the music guild data to check for songChannelId
+            const MusicDB = require('../../../../utils/music/music_db').default;
+
+            // Get songChannelId from database
+            const textChannelId = await MusicDB.getSongTextChannelId(this.client, guildId, userId);
+
+            if (!textChannelId) {
+                return this.sendError(ws, 'Could not find a suitable text channel');
+            }
+
             // If player exists but is not connected, destroy it
             if (player && !player.voiceChannelId) {
-                // player.destroy();
                 player = undefined; // Use undefined instead of null
             }
 
             // Create new player if needed
             if (!player) {
                 // Find a voice channel with members
-                const voiceChannels = guild.channels.cache.filter(
-                    channel => channel.isVoiceBased() && channel.members.size > 0
-                );
+                let voiceChannelId;
 
-                if (voiceChannels.size === 0) {
-                    return this.sendError(ws, 'No active voice channels found in the guild');
+                try {
+                    const member = guild.members.cache.get(userId) ||
+                        await guild.members.fetch(userId);
+
+                    if (member.voice.channel) {
+                        voiceChannelId = member.voice.channel.id;
+                    } else {
+                        // If user is not in a voice channel, find any active voice channel
+                        const voiceChannels = guild.channels.cache.filter(
+                            channel => (channel.type === discord.ChannelType.GuildVoice ||
+                                channel.type === discord.ChannelType.GuildStageVoice) &&
+                                channel.members.size > 0
+                        );
+
+                        if (voiceChannels.size === 0) {
+                            return this.sendError(ws, 'No active voice channels found and user is not in a voice channel');
+                        }
+
+                        voiceChannelId = voiceChannels.first()?.id;
+                    }
+                } catch (error) {
+                    return this.sendError(ws, `Could not find a suitable voice channel: ${error}`);
                 }
 
-                // Use first voice channel with members
-                const voiceChannel = voiceChannels.first();
-                if (!voiceChannel) {
+                if (!voiceChannelId) {
                     return this.sendError(ws, 'Could not find a suitable voice channel');
                 }
 
-                // Create player - ensure textChannelId is always a string
+                // Create player with the determined textChannelId
                 player = this.client.manager.create({
                     guildId: guild.id,
-                    voiceChannelId: voiceChannel.id,
-                    textChannelId: guild.systemChannelId || voiceChannel.id, // Fallback to voice channel ID if system channel is null
+                    voiceChannelId: voiceChannelId,
+                    textChannelId: textChannelId,
                     selfDeafen: true,
                     volume: 50,
                 });
@@ -271,15 +300,11 @@ class WebSocketManager {
                 player.connect();
             }
 
-            // Get user as requester - handle null case
+            // Get user as requester
             let requester: discord.User | discord.ClientUser | undefined;
-            if (userId) {
-                try {
-                    requester = await this.client.users.fetch(userId);
-                } catch (error) {
-                    requester = this.client.user || undefined;
-                }
-            } else {
+            try {
+                requester = await this.client.users.fetch(userId);
+            } catch (error) {
                 requester = this.client.user || undefined;
             }
 

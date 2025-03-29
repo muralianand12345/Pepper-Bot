@@ -10,6 +10,7 @@ const userDataSchema = new Schema<ISongsUser>({
 
 const musicGuildSchema = new Schema<IMusicGuild>({
     guildId: { type: String, required: true },
+    songChannelId: { type: String, default: null },
     songs: [
         {
             track: { type: String, required: true },
