@@ -120,6 +120,34 @@
  *               items:
  *                 $ref: '#/components/schemas/Track'
  *
+ *     SortInfo:
+ *       type: object
+ *       properties:
+ *         by:
+ *           type: string
+ *           enum: [timestamp, playCount]
+ *           description: Field used for sorting
+ *         direction:
+ *           type: string
+ *           enum: [desc, asc]
+ *           description: Sort direction (desc = newest first/most played, asc = oldest first/least played)
+ *
+ *     PaginationInfo:
+ *       type: object
+ *       properties:
+ *         page:
+ *           type: integer
+ *           description: Current page number
+ *         pageSize:
+ *           type: integer
+ *           description: Number of items per page
+ *         total:
+ *           type: integer
+ *           description: Total number of items
+ *         totalPages:
+ *           type: integer
+ *           description: Total number of pages
+ *
  *     MusicHistoryResponse:
  *       type: object
  *       properties:
@@ -130,20 +158,9 @@
  *           type: string
  *           format: date-time
  *         pagination:
- *           type: object
- *           properties:
- *             page:
- *               type: integer
- *               description: Current page number
- *             pageSize:
- *               type: integer
- *               description: Number of items per page
- *             total:
- *               type: integer
- *               description: Total number of items
- *             totalPages:
- *               type: integer
- *               description: Total number of pages
+ *           $ref: '#/components/schemas/PaginationInfo'
+ *         sort:
+ *           $ref: '#/components/schemas/SortInfo'
  *         data:
  *           type: array
  *           items:

@@ -3,7 +3,6 @@ import magmastream from 'magmastream';
 import { PlayerDto, DetailedPlayerDto, MusicHistoryDto } from '../dto/music-dto';
 import { MusicDBSong, PaginationParams, PaginatedResponse } from '../../../../types';
 
-
 class MusicService {
     private readonly client: discord.Client;
 
@@ -94,14 +93,19 @@ class MusicService {
     }
 
     /**
-     * Get paginated music history for a guild
+     * Get paginated music history for a guild with sorting options
      * @param guildId - Discord guild ID
-     * @param pagination - Pagination parameters
+     * @param options - Enhanced pagination parameters with sorting
      * @returns Promise with paginated music history or null
      */
     public async getGuildMusicHistory(
         guildId: string,
-        pagination: PaginationParams = { page: 1, pageSize: 10 }
+        options: PaginationParams = {
+            page: 1,
+            pageSize: 10,
+            sortBy: 'timestamp',
+            sortDirection: 'desc'
+        }
     ): Promise<PaginatedResponse<MusicHistoryDto> | null> {
         try {
             // Use MusicDB utility to get guild history
@@ -112,19 +116,32 @@ class MusicService {
                 return null;
             }
 
-            // Sort songs by play count
-            const sortedSongs = history.songs.sort(
-                (a: MusicDBSong, b: MusicDBSong) => b.played_number - a.played_number
-            );
+            // Get sort field and direction
+            const sortBy = options.sortBy || 'timestamp';
+            const sortDirection = options.sortDirection || 'desc';
+
+            // Sort songs by the selected field and direction
+            const sortedSongs = [...history.songs].sort((a: MusicDBSong, b: MusicDBSong) => {
+                if (sortBy === 'timestamp') {
+                    const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+                    const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+                    return sortDirection === 'desc' ? dateB - dateA : dateA - dateB;
+                } else {
+                    // Default to playCount (played_number)
+                    return sortDirection === 'desc'
+                        ? (b.played_number || 0) - (a.played_number || 0)
+                        : (a.played_number || 0) - (b.played_number || 0);
+                }
+            });
 
             // Calculate pagination
             const totalItems = sortedSongs.length;
-            const totalPages = Math.ceil(totalItems / pagination.pageSize);
-            const page = Math.min(Math.max(pagination.page, 1), totalPages); // Ensure page is between 1 and totalPages
+            const totalPages = Math.ceil(totalItems / options.pageSize);
+            const page = Math.min(Math.max(options.page, 1), totalPages || 1); // Ensure page is between 1 and totalPages
 
             // Get items for current page
-            const startIndex = (page - 1) * pagination.pageSize;
-            const endIndex = Math.min(startIndex + pagination.pageSize, totalItems);
+            const startIndex = (page - 1) * options.pageSize;
+            const endIndex = Math.min(startIndex + options.pageSize, totalItems);
 
             // Format history data for API response
             const items = sortedSongs
@@ -143,7 +160,7 @@ class MusicService {
                 items,
                 total: totalItems,
                 page,
-                pageSize: pagination.pageSize,
+                pageSize: options.pageSize,
                 totalPages
             };
         } catch (error) {
@@ -152,14 +169,19 @@ class MusicService {
     }
 
     /**
-     * Get paginated music history for a user
+     * Get paginated music history for a user with sorting options
      * @param userId - Discord user ID
-     * @param pagination - Pagination parameters
+     * @param options - Enhanced pagination parameters with sorting
      * @returns Promise with paginated music history or null
      */
     public async getUserMusicHistory(
         userId: string,
-        pagination: PaginationParams = { page: 1, pageSize: 10 }
+        options: PaginationParams = {
+            page: 1,
+            pageSize: 10,
+            sortBy: 'timestamp',
+            sortDirection: 'desc'
+        }
     ): Promise<PaginatedResponse<MusicHistoryDto> | null> {
         try {
             // Use MusicDB utility to get user history
@@ -170,19 +192,32 @@ class MusicService {
                 return null;
             }
 
-            // Sort songs by play count
-            const sortedSongs = history.songs.sort(
-                (a: MusicDBSong, b: MusicDBSong) => b.played_number - a.played_number
-            );
+            // Get sort field and direction
+            const sortBy = options.sortBy || 'timestamp';
+            const sortDirection = options.sortDirection || 'desc';
+
+            // Sort songs by the selected field and direction
+            const sortedSongs = [...history.songs].sort((a: MusicDBSong, b: MusicDBSong) => {
+                if (sortBy === 'timestamp') {
+                    const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+                    const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+                    return sortDirection === 'desc' ? dateB - dateA : dateA - dateB;
+                } else {
+                    // Default to playCount (played_number)
+                    return sortDirection === 'desc'
+                        ? (b.played_number || 0) - (a.played_number || 0)
+                        : (a.played_number || 0) - (b.played_number || 0);
+                }
+            });
 
             // Calculate pagination
             const totalItems = sortedSongs.length;
-            const totalPages = Math.ceil(totalItems / pagination.pageSize);
-            const page = Math.min(Math.max(pagination.page, 1), totalPages); // Ensure page is between 1 and totalPages
+            const totalPages = Math.ceil(totalItems / options.pageSize);
+            const page = Math.min(Math.max(options.page, 1), totalPages || 1); // Ensure page is between 1 and totalPages
 
             // Get items for current page
-            const startIndex = (page - 1) * pagination.pageSize;
-            const endIndex = Math.min(startIndex + pagination.pageSize, totalItems);
+            const startIndex = (page - 1) * options.pageSize;
+            const endIndex = Math.min(startIndex + options.pageSize, totalItems);
 
             // Format history data for API response
             const items = sortedSongs
@@ -201,7 +236,7 @@ class MusicService {
                 items,
                 total: totalItems,
                 page,
-                pageSize: pagination.pageSize,
+                pageSize: options.pageSize,
                 totalPages
             };
         } catch (error) {

@@ -21,7 +21,7 @@ const musicRouter = (client: discord.Client): express.Router => {
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/PlayersResponse'
+     *               $ref: '#/components/schemas/PlayerResponse'
      */
     router.get('/players', controller.getAllPlayers);
 
@@ -62,7 +62,7 @@ const musicRouter = (client: discord.Client): express.Router => {
      * /music/history/guild/{guildId}:
      *   get:
      *     summary: Get music history for a guild
-     *     description: Retrieves the music playback history for a specific guild with pagination
+     *     description: Retrieves the music playback history for a specific guild with pagination and sorting options
      *     tags: [Music]
      *     security:
      *       - ApiKeyAuth: []
@@ -85,13 +85,64 @@ const musicRouter = (client: discord.Client): express.Router => {
      *           type: integer
      *           default: 10
      *         description: Number of items per page
+     *       - in: query
+     *         name: sortBy
+     *         schema:
+     *           type: string
+     *           enum: [timestamp, playCount]
+     *           default: timestamp
+     *         description: Field to sort by (timestamp for newest/oldest or playCount for most/least played)
+     *       - in: query
+     *         name: sortDirection
+     *         schema:
+     *           type: string
+     *           enum: [desc, asc]
+     *           default: desc
+     *         description: Sort direction (desc for newest first or most played, asc for oldest first or least played)
      *     responses:
      *       200:
      *         description: Successful operation
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/MusicHistoryResponse'
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 timestamp:
+     *                   type: string
+     *                   format: date-time
+     *                 pagination:
+     *                   type: object
+     *                   properties:
+     *                     page:
+     *                       type: integer
+     *                     pageSize:
+     *                       type: integer
+     *                     total:
+     *                       type: integer
+     *                     totalPages:
+     *                       type: integer
+     *                 sort:
+     *                   type: object
+     *                   properties:
+     *                     by:
+     *                       type: string
+     *                       enum: [timestamp, playCount]
+     *                     direction:
+     *                       type: string
+     *                       enum: [desc, asc]
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/MusicHistoryDto'
+     *       404:
+     *         description: No music history found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
      */
     router.get('/history/guild/:guildId', controller.getGuildMusicHistory);
 
@@ -100,7 +151,7 @@ const musicRouter = (client: discord.Client): express.Router => {
      * /music/history/user/{userId}:
      *   get:
      *     summary: Get music history for a user
-     *     description: Retrieves the music playback history for a specific user with pagination
+     *     description: Retrieves the music playback history for a specific user with pagination and sorting options
      *     tags: [Music]
      *     security:
      *       - ApiKeyAuth: []
@@ -123,13 +174,64 @@ const musicRouter = (client: discord.Client): express.Router => {
      *           type: integer
      *           default: 10
      *         description: Number of items per page
+     *       - in: query
+     *         name: sortBy
+     *         schema:
+     *           type: string
+     *           enum: [timestamp, playCount]
+     *           default: timestamp
+     *         description: Field to sort by (timestamp for newest/oldest or playCount for most/least played)
+     *       - in: query
+     *         name: sortDirection
+     *         schema:
+     *           type: string
+     *           enum: [desc, asc]
+     *           default: desc
+     *         description: Sort direction (desc for newest first or most played, asc for oldest first or least played)
      *     responses:
      *       200:
      *         description: Successful operation
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/MusicHistoryResponse'
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 timestamp:
+     *                   type: string
+     *                   format: date-time
+     *                 pagination:
+     *                   type: object
+     *                   properties:
+     *                     page:
+     *                       type: integer
+     *                     pageSize:
+     *                       type: integer
+     *                     total:
+     *                       type: integer
+     *                     totalPages:
+     *                       type: integer
+     *                 sort:
+     *                   type: object
+     *                   properties:
+     *                     by:
+     *                       type: string
+     *                       enum: [timestamp, playCount]
+     *                     direction:
+     *                       type: string
+     *                       enum: [desc, asc]
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/MusicHistoryDto'
+     *       404:
+     *         description: No music history found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
      */
     router.get('/history/user/:userId', controller.getUserMusicHistory);
 
@@ -218,51 +320,9 @@ const musicRouter = (client: discord.Client): express.Router => {
      *         content:
      *           application/json:
      *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: success
-     *                 timestamp:
-     *                   type: string
-     *                   format: date-time
-     *                 data:
-     *                   type: object
-     *                   properties:
-     *                     seedSong:
-     *                       type: object
-     *                       properties:
-     *                         title:
-     *                           type: string
-     *                         author:
-     *                           type: string
-     *                         uri:
-     *                           type: string
-     *                         artworkUrl:
-     *                           type: string
-     *                     recommendations:
-     *                       type: array
-     *                       items:
-     *                         type: object
-     *                         properties:
-     *                           title:
-     *                             type: string
-     *                           author:
-     *                             type: string
-     *                           uri:
-     *                             type: string
-     *                           sourceName:
-     *                             type: string
-     *                           artworkUrl:
-     *                             type: string
+     *               $ref: '#/components/schemas/RecommendationResponse'
      *       404:
      *         description: No listening history found
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/Error'
-     *       500:
-     *         description: Internal server error
      *         content:
      *           application/json:
      *             schema:

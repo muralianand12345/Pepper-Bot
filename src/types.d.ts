@@ -261,6 +261,8 @@ export interface MusicDBSong {
 export interface PaginationParams {
     page: number;
     pageSize: number;
+    sortBy?: 'timestamp' | 'playCount';
+    sortDirection?: 'desc' | 'asc';
 }
 
 export interface PaginatedResponse<T> {
@@ -269,6 +271,11 @@ export interface PaginatedResponse<T> {
     page: number;
     pageSize: number;
     totalPages: number;
+}
+
+export interface SortInfo {
+    by: 'timestamp' | 'playCount';
+    direction: 'desc' | 'asc';
 }
 
 //--------------------------------//

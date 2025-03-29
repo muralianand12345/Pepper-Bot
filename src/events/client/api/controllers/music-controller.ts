@@ -58,11 +58,20 @@ class MusicController {
 
     public getGuildMusicHistory = async (req: express.Request, res: express.Response): Promise<void> => {
         const { guildId } = req.params;
+
+        // Extract pagination and sorting parameters from query
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
+        const sortBy = (req.query.sortBy as 'timestamp' | 'playCount') || 'timestamp';
+        const sortDirection = (req.query.sortDirection as 'desc' | 'asc') || 'desc';
 
         try {
-            const history = await this.musicService.getGuildMusicHistory(guildId, { page, pageSize });
+            const history = await this.musicService.getGuildMusicHistory(guildId, {
+                page,
+                pageSize,
+                sortBy,
+                sortDirection
+            });
 
             if (!history) {
                 res.status(404).json({
@@ -81,6 +90,10 @@ class MusicController {
                     total: history.total,
                     totalPages: history.totalPages
                 },
+                sort: {
+                    by: sortBy,
+                    direction: sortDirection
+                },
                 data: history.items
             });
         } catch (error) {
@@ -94,11 +107,20 @@ class MusicController {
 
     public getUserMusicHistory = async (req: express.Request, res: express.Response): Promise<void> => {
         const { userId } = req.params;
+
+        // Extract pagination and sorting parameters from query
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
+        const sortBy = (req.query.sortBy as 'timestamp' | 'playCount') || 'timestamp';
+        const sortDirection = (req.query.sortDirection as 'desc' | 'asc') || 'desc';
 
         try {
-            const history = await this.musicService.getUserMusicHistory(userId, { page, pageSize });
+            const history = await this.musicService.getUserMusicHistory(userId, {
+                page,
+                pageSize,
+                sortBy,
+                sortDirection
+            });
 
             if (!history) {
                 res.status(404).json({
@@ -116,6 +138,10 @@ class MusicController {
                     pageSize: history.pageSize,
                     total: history.total,
                     totalPages: history.totalPages
+                },
+                sort: {
+                    by: sortBy,
+                    direction: sortDirection
                 },
                 data: history.items
             });
