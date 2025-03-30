@@ -245,31 +245,76 @@ class MusicService {
     }
 
     /**
-     * Get the top most played songs for a user
+     * Get paginated top songs for a user with sorting options
      * @param userId - Discord user ID
-     * @param limit - Maximum number of songs to return
-     * @returns Promise with top songs or null if no history found
+     * @param options - Enhanced pagination parameters with sorting
+     * @returns Promise with paginated top songs or null if no history found
      */
-    public async getUserTopSongs(userId: string, limit: number = 10): Promise<MusicHistoryDto[] | null> {
+    public async getUserTopSongs(
+        userId: string,
+        options: PaginationParams = {
+            page: 1,
+            pageSize: 10,
+            sortBy: 'playCount', // Default to playCount for top songs
+            sortDirection: 'desc' // Default to descending (most played first)
+        }
+    ): Promise<PaginatedResponse<MusicHistoryDto> | null> {
         try {
-            // Use MusicDB utility to get user's top songs
+            // Use MusicDB utility to get all user songs
             const MusicDB = require('../../../../utils/music/music_db').default;
-            const topSongs = await MusicDB.getUserTopSongs(userId, limit);
+            const history = await MusicDB.getUserMusicHistory(userId);
 
-            if (!topSongs || topSongs.length === 0) {
+            if (!history || !history.songs || history.songs.length === 0) {
                 return null;
             }
 
-            // Format data for API response
-            return topSongs.map((song: MusicDBSong) => ({
-                title: song.title,
-                author: song.author,
-                sourceName: song.sourceName,
-                uri: song.uri,
-                playCount: song.played_number,
-                lastPlayed: song.timestamp,
-                artworkUrl: song.artworkUrl || song.thumbnail
-            }));
+            // Get sort field and direction
+            const sortBy = options.sortBy || 'playCount';
+            const sortDirection = options.sortDirection || 'desc';
+
+            // Sort songs based on the parameters
+            const sortedSongs = [...history.songs].sort((a: MusicDBSong, b: MusicDBSong) => {
+                if (sortBy === 'timestamp') {
+                    const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+                    const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+                    return sortDirection === 'desc' ? dateB - dateA : dateA - dateB;
+                } else {
+                    // Sort by playCount (played_number)
+                    return sortDirection === 'desc'
+                        ? (b.played_number || 0) - (a.played_number || 0)
+                        : (a.played_number || 0) - (b.played_number || 0);
+                }
+            });
+
+            // Calculate pagination
+            const totalItems = sortedSongs.length;
+            const totalPages = Math.ceil(totalItems / options.pageSize);
+            const page = Math.min(Math.max(options.page, 1), totalPages || 1); // Ensure page is between 1 and totalPages
+
+            // Get items for current page
+            const startIndex = (page - 1) * options.pageSize;
+            const endIndex = Math.min(startIndex + options.pageSize, totalItems);
+
+            // Format songs for API response
+            const items = sortedSongs
+                .slice(startIndex, endIndex)
+                .map((song: MusicDBSong) => ({
+                    title: song.title,
+                    author: song.author,
+                    sourceName: song.sourceName,
+                    uri: song.uri,
+                    playCount: song.played_number,
+                    lastPlayed: song.timestamp,
+                    artworkUrl: song.artworkUrl || song.thumbnail
+                }));
+
+            return {
+                items,
+                total: totalItems,
+                page,
+                pageSize: options.pageSize,
+                totalPages
+            };
         } catch (error) {
             throw error;
         }

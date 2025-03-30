@@ -239,8 +239,8 @@ const musicRouter = (client: discord.Client): express.Router => {
      * @swagger
      * /music/topsongs/{userId}:
      *   get:
-     *     summary: Get top songs for a user
-     *     description: Retrieves the most played songs for a specific user
+     *     summary: Get top songs for a user with pagination
+     *     description: Retrieves the most played songs for a specific user with pagination and sorting options
      *     tags: [Music]
      *     security:
      *       - ApiKeyAuth: []
@@ -252,11 +252,31 @@ const musicRouter = (client: discord.Client): express.Router => {
      *           type: string
      *         description: Discord user ID
      *       - in: query
-     *         name: limit
+     *         name: page
+     *         schema:
+     *           type: integer
+     *           default: 1
+     *         description: Page number
+     *       - in: query
+     *         name: pageSize
      *         schema:
      *           type: integer
      *           default: 10
-     *         description: Number of top songs to retrieve
+     *         description: Number of items per page
+     *       - in: query
+     *         name: sortBy
+     *         schema:
+     *           type: string
+     *           enum: [timestamp, playCount]
+     *           default: playCount
+     *         description: Field to sort by (timestamp for newest/oldest or playCount for most/least played)
+     *       - in: query
+     *         name: sortDirection
+     *         schema:
+     *           type: string
+     *           enum: [desc, asc]
+     *           default: desc
+     *         description: Sort direction (desc for newest first or most played, asc for oldest first or least played)
      *     responses:
      *       200:
      *         description: Successful operation
@@ -271,8 +291,10 @@ const musicRouter = (client: discord.Client): express.Router => {
      *                 timestamp:
      *                   type: string
      *                   format: date-time
-     *                 count:
-     *                   type: integer
+     *                 pagination:
+     *                   $ref: '#/components/schemas/PaginationInfo'
+     *                 sort:
+     *                   $ref: '#/components/schemas/SortInfo'
      *                 data:
      *                   type: array
      *                   items:

@@ -156,10 +156,20 @@ class MusicController {
 
     public getUserTopSongs = async (req: express.Request, res: express.Response): Promise<void> => {
         const { userId } = req.params;
-        const limit = parseInt(req.query.limit as string) || 10;
+
+        // Extract pagination and sorting parameters from query
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 10;
+        const sortBy = (req.query.sortBy as 'timestamp' | 'playCount') || 'playCount';
+        const sortDirection = (req.query.sortDirection as 'desc' | 'asc') || 'desc';
 
         try {
-            const topSongs = await this.musicService.getUserTopSongs(userId, limit);
+            const topSongs = await this.musicService.getUserTopSongs(userId, {
+                page,
+                pageSize,
+                sortBy,
+                sortDirection
+            });
 
             if (!topSongs) {
                 res.status(404).json({
@@ -172,8 +182,17 @@ class MusicController {
             res.json({
                 status: 'success',
                 timestamp: new Date().toISOString(),
-                count: topSongs.length,
-                data: topSongs
+                pagination: {
+                    page: topSongs.page,
+                    pageSize: topSongs.pageSize,
+                    total: topSongs.total,
+                    totalPages: topSongs.totalPages
+                },
+                sort: {
+                    by: sortBy,
+                    direction: sortDirection
+                },
+                data: topSongs.items
             });
         } catch (error) {
             res.status(500).json({
