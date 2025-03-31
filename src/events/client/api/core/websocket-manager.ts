@@ -545,8 +545,14 @@ class WebSocketManager {
             return this.sendError(ws, 'guildId is required');
         }
 
+        const player = this.client.manager.get(guildId);
+
+        if (!player) {
+            return this.sendError(ws, 'No active player found for this guild', 404);
+        }
+
         if (volume === undefined || volume === null) {
-            return this.sendError(ws, 'volume is required');
+            return this.sendMessage(ws, 'current_volume', { guildId, volume: player.volume });
         }
 
         if (typeof volume !== 'number' || volume < 0 || volume > 100) {
@@ -554,11 +560,6 @@ class WebSocketManager {
         }
 
         try {
-            const player = this.client.manager.get(guildId);
-
-            if (!player) {
-                return this.sendError(ws, 'No active player found for this guild', 404);
-            }
 
             player.setVolume(volume);
             this.sendMessage(ws, 'volume_set', { guildId, volume });
