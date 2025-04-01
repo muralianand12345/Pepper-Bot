@@ -1,349 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Pepper Music WebSocket API Documentation</title>
+        <link rel="stylesheet" href="/static/styles.css" />
+    </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pepper Music WebSocket API Documentation</title>
-    <style>
-        :root {
-            --primary-color: #5865F2;
-            --secondary-color: #2B2D31;
-            --text-color: #DCDDDE;
-            --background-color: #36393F;
-            --code-background: #2F3136;
-            --border-color: #202225;
-            --success-color: #43B581;
-            --error-color: #F04747;
-            --warning-color: #FAA61A;
-        }
+    <body>
+        <div class="container">
+            <header>
+                <h1>Pepper Music WebSocket API</h1>
+                <p>Real-time music control for Discord bots</p>
+            </header>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--background-color);
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        h1 {
-            color: white;
-            font-size: 2.5rem;
-        }
-
-        h2 {
-            color: white;
-            margin-top: 2rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        h3 {
-            color: white;
-            margin-top: 1.5rem;
-        }
-
-        pre {
-            background-color: var(--code-background);
-            border-radius: 4px;
-            padding: 1rem;
-            overflow-x: auto;
-            margin: 1rem 0;
-            border-left: 3px solid var(--primary-color);
-        }
-
-        code {
-            font-family: 'Courier New', Courier, monospace;
-            color: #E5E5E5;
-        }
-
-        .endpoint {
-            background-color: var(--secondary-color);
-            padding: 1rem;
-            border-radius: 4px;
-            margin: 1rem 0;
-        }
-
-        .endpoint h3 {
-            margin-top: 0;
-        }
-
-        .method {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-weight: bold;
-            margin-right: 0.5rem;
-        }
-
-        .method.ws {
-            background-color: var(--primary-color);
-        }
-
-        .toc {
-            background-color: var(--secondary-color);
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 2rem;
-        }
-
-        .toc ul {
-            list-style-type: none;
-            padding-left: 1rem;
-        }
-
-        .toc li {
-            margin-bottom: 0.5rem;
-        }
-
-        .toc a {
-            color: var(--text-color);
-            text-decoration: none;
-        }
-
-        .toc a:hover {
-            color: white;
-            text-decoration: underline;
-        }
-
-        .example-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-
-        .example {
-            flex: 1;
-            min-width: 300px;
-        }
-
-        .tabs {
-            display: flex;
-            margin-bottom: -1px;
-        }
-
-        .tab {
-            padding: 0.5rem 1rem;
-            background-color: var(--code-background);
-            border-top-left-radius: 4px;
-            border-top-right-radius: 4px;
-            cursor: pointer;
-            border: 1px solid var(--border-color);
-            border-bottom: none;
-            margin-right: 0.25rem;
-        }
-
-        .tab.active {
-            background-color: var(--secondary-color);
-            border-bottom: 1px solid var(--secondary-color);
-        }
-
-        .tab-content {
-            display: none;
-            background-color: var(--secondary-color);
-            padding: 1rem;
-            border-radius: 0 4px 4px 4px;
-            border: 1px solid var(--border-color);
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .response-success {
-            border-left: 3px solid var(--success-color);
-        }
-
-        .response-error {
-            border-left: 3px solid var(--error-color);
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-            color: #99AAB5;
-        }
-
-        /* Demo console styles */
-        .demo-console {
-            background-color: var(--code-background);
-            padding: 1rem;
-            border-radius: 4px;
-            margin: 2rem 0;
-        }
-
-        .console-content {
-            height: 300px;
-            overflow-y: auto;
-            padding: 1rem;
-            background-color: #202225;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .console-input {
-            display: flex;
-        }
-
-        .console-input input {
-            flex: 1;
-            padding: 0.5rem;
-            background-color: #202225;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-color);
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .console-input button {
-            padding: 0.5rem 1rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            margin-left: 0.5rem;
-            cursor: pointer;
-        }
-
-        .console-log {
-            margin-bottom: 0.5rem;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        .log-info {
-            color: var(--text-color);
-        }
-
-        .log-success {
-            color: var(--success-color);
-        }
-
-        .log-error {
-            color: var(--error-color);
-        }
-
-        .log-warning {
-            color: var(--warning-color);
-        }
-
-        /* Responsive styles */
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .example-container {
-                flex-direction: column;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <header>
-            <h1>Pepper Music WebSocket API</h1>
-            <p>Real-time music control for Discord bots</p>
-        </header>
-
-        <div class="toc">
-            <h2>Table of Contents</h2>
-            <ul>
-                <li><a href="#introduction">Introduction</a></li>
-                <li><a href="#connection">Connection & Authentication</a></li>
-                <li><a href="#message-format">Message Format</a></li>
-                <li><a href="#client-commands">Client Commands</a></li>
-                <li><a href="#server-events">Server Events</a></li>
-                <li><a href="#success-responses">Success Responses</a></li>
-                <li><a href="#error-handling">Error Handling</a></li>
-                <li><a href="#examples">Client Examples</a></li>
-                <li><a href="#demo">Live Demo</a></li>
-                <li><a href="#best-practices">Best Practices</a></li>
-            </ul>
-        </div>
-
-        <section id="introduction">
-            <h2>Introduction</h2>
-            <p>
-                Pepper Music WebSocket API enables real-time bidirectional communication for controlling music playback
-                across Discord guilds. Unlike REST APIs, WebSockets allow instant updates and notifications about player
-                state changes, providing a seamless experience for building music interfaces.
-            </p>
-            <p>
-                This API allows you to:
-            </p>
-            <ul>
-                <li>Play, pause, resume, and skip songs</li>
-                <li>Control volume and manage queues</li>
-                <li>Get real-time notifications about player state changes</li>
-                <li>Receive personalized music recommendations</li>
-            </ul>
-        </section>
-
-        <section id="connection">
-            <h2>Connection & Authentication</h2>
-            <div class="endpoint">
-                <h3><span class="method ws">WS</span> /api/v1/music/ws</h3>
-                <p>Connect to this WebSocket endpoint to establish a real-time connection.</p>
+            <div class="toc">
+                <h2>Table of Contents</h2>
+                <ul>
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li>
+                        <a href="#connection">Connection & Authentication</a>
+                    </li>
+                    <li><a href="#message-format">Message Format</a></li>
+                    <li><a href="#client-commands">Client Commands</a></li>
+                    <li><a href="#server-events">Server Events</a></li>
+                    <li><a href="#success-responses">Success Responses</a></li>
+                    <li><a href="#error-handling">Error Handling</a></li>
+                    <li><a href="#demo">Live Demo</a></li>
+                </ul>
             </div>
 
-            <p>Upon connecting, you'll receive a welcome message. You must authenticate with your API key before
-                performing any operations:</p>
+            <section id="introduction">
+                <h2>Introduction</h2>
+                <p>
+                    Pepper Music WebSocket API enables real-time bidirectional
+                    communication for controlling music playback across Discord
+                    guilds. Unlike REST APIs, WebSockets allow instant updates
+                    and notifications about player state changes, providing a
+                    seamless experience for building music interfaces.
+                </p>
+                <p>This API allows you to:</p>
+                <ul>
+                    <li>Play, pause, resume, and skip songs</li>
+                    <li>Control volume and manage queues</li>
+                    <li>
+                        Get real-time notifications about player state changes
+                    </li>
+                    <li>Receive personalized music recommendations</li>
+                </ul>
+            </section>
 
-            <pre><code>{
+            <section id="connection">
+                <h2>Connection & Authentication</h2>
+                <div class="endpoint">
+                    <h3><span class="method ws">WS</span> /api/v1/music/ws</h3>
+                    <p>
+                        Connect to this WebSocket endpoint to establish a
+                        real-time connection.
+                    </p>
+                </div>
+
+                <p>
+                    Upon connecting, you'll receive a welcome message. You must
+                    authenticate with your API key before performing any
+                    operations:
+                </p>
+
+                <pre><code>{
   "type": "auth",
   "data": {
     "apiKey": "your-api-key-here"
   }
 }</code></pre>
 
-            <p>If authentication succeeds, you'll receive:</p>
+                <p>If authentication succeeds, you'll receive:</p>
 
-            <pre class="response-success"><code>{
+                <pre class="response-success"><code>{
   "type": "auth_success",
   "data": {
     "message": "Successfully authenticated"
   }
 }</code></pre>
-        </section>
+            </section>
 
-        <section id="message-format">
-            <h2>Message Format</h2>
-            <p>All WebSocket messages follow this format:</p>
+            <section id="message-format">
+                <h2>Message Format</h2>
+                <p>All WebSocket messages follow this format:</p>
 
-            <pre><code>{
+                <pre><code>{
   "type": "message_type",
   "data": {
     "key1": "value1",
     "key2": "value2"
   }
 }</code></pre>
-        </section>
+            </section>
 
-        <section id="client-commands">
-            <h2>Client Commands</h2>
+            <section id="client-commands">
+                <h2>Client Commands</h2>
 
-            <h3>Play a Song/Playlist</h3>
-            <pre><code>{
+                <h3>Play a Song/Playlist</h3>
+                <pre><code>{
   "type": "play",
   "data": {
     "guildId": "1234567890",
@@ -352,40 +109,40 @@
   }
 }</code></pre>
 
-            <h3>Pause Playback</h3>
-            <pre><code>{
+                <h3>Pause Playback</h3>
+                <pre><code>{
   "type": "pause",
   "data": {
     "guildId": "1234567890"
   }
 }</code></pre>
 
-            <h3>Resume Playback</h3>
-            <pre><code>{
+                <h3>Resume Playback</h3>
+                <pre><code>{
   "type": "resume",
   "data": {
     "guildId": "1234567890"
   }
 }</code></pre>
 
-            <h3>Skip Current Song</h3>
-            <pre><code>{
+                <h3>Skip Current Song</h3>
+                <pre><code>{
   "type": "skip",
   "data": {
     "guildId": "1234567890"
   }
 }</code></pre>
 
-            <h3>Stop Playback</h3>
-            <pre><code>{
+                <h3>Stop Playback</h3>
+                <pre><code>{
   "type": "stop",
   "data": {
     "guildId": "1234567890"
   }
 }</code></pre>
 
-            <h3>Set Volume</h3>
-            <pre><code>{
+                <h3>Set Volume</h3>
+                <pre><code>{
   "type": "volume",
   "data": {
     "guildId": "1234567890",
@@ -393,16 +150,16 @@
   }
 }</code></pre>
 
-            <h3>Get Queue</h3>
-            <pre><code>{
+                <h3>Get Queue</h3>
+                <pre><code>{
   "type": "queue",
   "data": {
     "guildId": "1234567890"
   }
 }</code></pre>
 
-            <h3>Get Recommendations</h3>
-            <pre><code>{
+                <h3>Get Recommendations</h3>
+                <pre><code>{
   "type": "recommend",
   "data": {
     "guildId": "1234567890",
@@ -410,13 +167,21 @@
     "count": 10 // Optional
   }
 }</code></pre>
-        </section>
 
-        <section id="server-events">
-            <h2>Server Events</h2>
+                <h3>Get Now Playing Information</h3>
+                <pre><code>{
+  "type": "now_playing",
+  "data": {
+    "guildId": "1234567890"
+  }
+}</code></pre>
+            </section>
 
-            <h3>Track Started</h3>
-            <pre><code>{
+            <section id="server-events">
+                <h2>Server Events</h2>
+
+                <h3>Track Started</h3>
+                <pre><code>{
   "type": "track_start",
   "data": {
     "guildId": "1234567890",
@@ -434,8 +199,8 @@
   }
 }</code></pre>
 
-            <h3>Track Ended</h3>
-            <pre><code>{
+                <h3>Track Ended</h3>
+                <pre><code>{
   "type": "track_end",
   "data": {
     "guildId": "1234567890",
@@ -449,8 +214,8 @@
   }
 }</code></pre>
 
-            <h3>Queue Ended</h3>
-            <pre><code>{
+                <h3>Queue Ended</h3>
+                <pre><code>{
   "type": "queue_end",
   "data": {
     "guildId": "1234567890",
@@ -458,10 +223,13 @@
   }
 }</code></pre>
 
-            <h3>Player State Changes</h3>
-            <p>The server sends events when player state changes, such as pause/resume, volume changes, etc.</p>
+                <h3>Player State Changes</h3>
+                <p>
+                    The server sends events when player state changes, such as
+                    pause/resume, volume changes, etc.
+                </p>
 
-            <pre><code>{
+                <pre><code>{
   "type": "player_paused",
   "data": {
     "guildId": "1234567890",
@@ -469,15 +237,44 @@
     "position": 150000
   }
 }</code></pre>
-        </section>
 
-        <section id="success-responses">
-            <h2>Success Responses</h2>
+                <h3>Now Playing Response</h3>
+                <pre><code>{
+  "type": "now_playing",
+  "data": {
+    "guildId": "1234567890",
+    "playing": true,
+    "paused": false,
+    "volume": 50,
+    "track": {
+      "title": "Bohemian Rhapsody",
+      "author": "Queen",
+      "duration": 367000,
+      "position": 145000,
+      "uri": "https://open.spotify.com/track/4u7EnebtmKWzUH433cf5Qv",
+      "sourceName": "spotify",
+      "isStream": false,
+      "artworkUrl": "https://i.scdn.co/image/ab67616d0000b273...",
+      "requester": {
+        "id": "1234567890",
+        "username": "user",
+        "discriminator": "0"
+      }
+    },
+    "progressBar": "**[ ▬▬▬▬▬●▬▬▬▬▬▬▬▬▬ ]**",
+    "progressPercent": 39,
+    "queueSize": 5
+  }
+}</code></pre>
+            </section>
 
-            <div class="example-container">
-                <div class="example">
-                    <h3>Track Added</h3>
-                    <pre class="response-success"><code>{
+            <section id="success-responses">
+                <h2>Success Responses</h2>
+
+                <div class="example-container">
+                    <div class="example">
+                        <h3>Track Added</h3>
+                        <pre class="response-success"><code>{
   "type": "track_added",
   "data": {
     "track": {
@@ -493,11 +290,11 @@
     "voiceChannelId": "1234567890123456"
   }
 }</code></pre>
-                </div>
+                    </div>
 
-                <div class="example">
-                    <h3>Playlist Added</h3>
-                    <pre class="response-success"><code>{
+                    <div class="example">
+                        <h3>Playlist Added</h3>
+                        <pre class="response-success"><code>{
   "type": "playlist_added",
   "data": {
     "playlist": {
@@ -518,13 +315,13 @@
     "voiceChannelId": "1234567890123456"
   }
 }</code></pre>
+                    </div>
                 </div>
-            </div>
 
-            <div class="example-container">
-                <div class="example">
-                    <h3>Queue Information</h3>
-                    <pre class="response-success"><code>{
+                <div class="example-container">
+                    <div class="example">
+                        <h3>Queue Information</h3>
+                        <pre class="response-success"><code>{
   "type": "queue",
   "data": {
     "guildId": "1234567890",
@@ -555,11 +352,11 @@
     ]
   }
 }</code></pre>
-                </div>
+                    </div>
 
-                <div class="example">
-                    <h3>Recommendations</h3>
-                    <pre class="response-success"><code>{
+                    <div class="example">
+                        <h3>Recommendations</h3>
+                        <pre class="response-success"><code>{
   "type": "recommendations",
   "data": {
     "guildId": "1234567890",
@@ -582,15 +379,15 @@
     ]
   }
 }</code></pre>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section id="error-handling">
-            <h2>Error Handling</h2>
-            <p>If a command fails, you'll receive an error message:</p>
+            <section id="error-handling">
+                <h2>Error Handling</h2>
+                <p>If a command fails, you'll receive an error message:</p>
 
-            <pre class="response-error"><code>{
+                <pre class="response-error"><code>{
   "type": "error",
   "data": {
     "message": "Error message describing what went wrong",
@@ -598,489 +395,58 @@
   }
 }</code></pre>
 
-            <p>Common error codes:</p>
-            <ul>
-                <li><strong>400</strong>: Bad request (invalid parameters)</li>
-                <li><strong>401</strong>: Unauthorized (authentication failed)</li>
-                <li><strong>404</strong>: Not found (guild, player, etc. not found)</li>
-                <li><strong>500</strong>: Server error</li>
-            </ul>
-        </section>
+                <p>Common error codes:</p>
+                <ul>
+                    <li>
+                        <strong>400</strong>: Bad request (invalid parameters)
+                    </li>
+                    <li>
+                        <strong>401</strong>: Unauthorized (authentication
+                        failed)
+                    </li>
+                    <li>
+                        <strong>404</strong>: Not found (guild, player, etc. not
+                        found)
+                    </li>
+                    <li><strong>500</strong>: Server error</li>
+                </ul>
+            </section>
 
-        <section id="examples">
-            <h2>Client Examples</h2>
-
-            <div class="tabs">
-                <div class="tab active" data-tab="javascript">JavaScript</div>
-                <div class="tab" data-tab="python">Python</div>
-                <div class="tab" data-tab="typescript">TypeScript</div>
-            </div>
-
-            <div class="tab-content active" data-tab="javascript">
-                <pre><code>// Basic JavaScript WebSocket client
-
-// Connect to the WebSocket
-const ws = new WebSocket('ws://your-server:port/api/v1/music/ws');
-
-// Handle connection open
-ws.onopen = () => {
-  console.log('Connected to Pepper Music WebSocket');
-  
-  // Authenticate
-  ws.send(JSON.stringify({
-    type: 'auth',
-    data: {
-      apiKey: 'your-api-key-here'
-    }
-  }));
-};
-
-// Handle incoming messages
-ws.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  
-  switch (message.type) {
-    case 'auth_success':
-      console.log('Authentication successful');
-      break;
-      
-    case 'error':
-      console.error(`Error: ${message.data.message} (${message.data.code})`);
-      break;
-      
-    case 'track_start':
-      console.log(`Now playing: ${message.data.track.title} by ${message.data.track.author}`);
-      break;
-      
-    // Handle other message types...
-  }
-};
-
-// Handle errors and reconnection
-ws.onerror = (error) => {
-  console.error('WebSocket error:', error);
-};
-
-ws.onclose = (event) => {
-  console.log(`Connection closed: ${event.code} ${event.reason}`);
-  // Implement reconnection logic here
-};
-
-// Example: Play a song
-function playSong(guildId, query) {
-  ws.send(JSON.stringify({
-    type: 'play',
-    data: {
-      guildId,
-      query
-    }
-  }));
-}</code></pre>
-            </div>
-
-            <div class="tab-content" data-tab="python">
-                <pre><code>import json
-import websockets
-import asyncio
-
-# Basic Python WebSocket client
-async def pepper_music_client():
-    # Connect to the WebSocket
-    async with websockets.connect("ws://your-server:port/api/v1/music/ws") as websocket:
-        print("Connected to Pepper Music WebSocket")
-        
-        # Authenticate
-        await websocket.send(json.dumps({
-            "type": "auth",
-            "data": {
-                "apiKey": "your-api-key-here"
-            }
-        }))
-        
-        # Handle incoming messages
-        async def receive_messages():
-            while True:
-                try:
-                    message = await websocket.recv()
-                    data = json.loads(message)
-                    
-                    if data["type"] == "auth_success":
-                        print("Authentication successful")
-                    elif data["type"] == "error":
-                        print(f"Error: {data['data']['message']} ({data['data']['code']})")
-                    elif data["type"] == "track_start":
-                        track = data["data"]["track"]
-                        print(f"Now playing: {track['title']} by {track['author']}")
-                    # Handle other message types...
-                    
-                except websockets.exceptions.ConnectionClosed:
-                    print("Connection closed")
-                    break
-                except Exception as e:
-                    print(f"Error processing message: {e}")
-        
-        # Start message receiver
-        receiver_task = asyncio.create_task(receive_messages())
-        
-        # Example: Play a song
-        await websocket.send(json.dumps({
-            "type": "play",
-            "data": {
-                "guildId": "1234567890",
-                "query": "bohemian rhapsody"
-            }
-        }))
-        
-        # Wait for receiver to complete (won't normally happen)
-        await receiver_task
-
-# Run the client
-asyncio.run(pepper_music_client())</code></pre>
-            </div>
-
-            <div class="tab-content" data-tab="typescript">
-                <pre><code>// TypeScript WebSocket client with type safety
-
-// Define message types
-interface WebSocketMessage {
-  type: string;
-  data: any;
-}
-
-interface AuthMessage extends WebSocketMessage {
-  type: 'auth';
-  data: {
-    apiKey: string;
-  };
-}
-
-interface PlayMessage extends WebSocketMessage {
-  type: 'play';
-  data: {
-    guildId: string;
-    query: string;
-    userId?: string;
-  };
-}
-
-interface TrackStartMessage extends WebSocketMessage {
-  type: 'track_start';
-  data: {
-    guildId: string;
-    timestamp: string;
-    track: {
-      title: string;
-      author: string;
-      duration: number;
-      uri: string;
-      sourceName: string;
-      artworkUrl?: string;
-    };
-    position: number;
-    volume: number;
-  };
-}
-
-class PepperMusicClient {
-  private ws: WebSocket;
-  private authenticated: boolean = false;
-  private readonly apiKey: string;
-  private readonly serverUrl: string;
-  
-  constructor(serverUrl: string, apiKey: string) {
-    this.serverUrl = serverUrl;
-    this.apiKey = apiKey;
-    this.ws = this.connect();
-  }
-  
-  private connect(): WebSocket {
-    const ws = new WebSocket(this.serverUrl);
-    
-    ws.onopen = this.handleOpen.bind(this);
-    ws.onmessage = this.handleMessage.bind(this);
-    ws.onerror = this.handleError.bind(this);
-    ws.onclose = this.handleClose.bind(this);
-    
-    return ws;
-  }
-  
-  private handleOpen(event: Event): void {
-    console.log('Connected to Pepper Music WebSocket');
-    this.authenticate();
-  }
-  
-  private handleMessage(event: MessageEvent): void {
-    try {
-      const message = JSON.parse(event.data) as WebSocketMessage;
-      
-      switch (message.type) {
-        case 'auth_success':
-          this.authenticated = true;
-          console.log('Authentication successful');
-          break;
-          
-        case 'error':
-          console.error(`Error: ${message.data.message} (${message.data.code})`);
-          break;
-          
-        case 'track_start':
-          const trackData = (message as TrackStartMessage).data;
-          console.log(`Now playing: ${trackData.track.title} by ${trackData.track.author}`);
-          break;
-          
-        // Handle other message types...
-      }
-    } catch (error) {
-      console.error('Error parsing message:', error);
-    }
-  }
-  
-  private handleError(event: Event): void {
-    console.error('WebSocket error:', event);
-  }
-  
-  private handleClose(event: CloseEvent): void {
-    console.log(`Connection closed: ${event.code} ${event.reason}`);
-    this.authenticated = false;
-    
-    // Implement reconnection logic
-    setTimeout(() => {
-      console.log('Reconnecting...');
-      this.ws = this.connect();
-    }, 5000);
-  }
-  
-  private authenticate(): void {
-    const authMessage: AuthMessage = {
-      type: 'auth',
-      data: {
-        apiKey: this.apiKey
-      }
-    };
-    
-    this.sendMessage(authMessage);
-  }
-  
-  private sendMessage(message: WebSocketMessage): void {
-    if (this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(message));
-    } else {
-      console.error('WebSocket is not connected');
-    }
-  }
-  
-  public playSong(guildId: string, query: string, userId?: string): void {
-    if (!this.authenticated) {
-      console.error('Not authenticated');
-      return;
-    }
-    
-    const playMessage: PlayMessage = {
-      type: 'play',
-      data: {
-        guildId,
-        query,
-        userId
-      }
-    };
-    
-    this.sendMessage(playMessage);
-  }
-}
-
-// Usage
-const client = new PepperMusicClient(
-  'ws://your-server:port/api/v1/music/ws',
-  'your-api-key-here'
-);
-
-// Play a song after a short delay to ensure authentication
-setTimeout(() => {
-  client.playSong('1234567890', 'bohemian rhapsody');
-}, 1000);</code></pre>
-            </div>
-        </section>
-
-        <section id="demo">
-            <h2>Live Demo</h2>
-            <div class="demo-console">
-                <h3>WebSocket Console</h3>
-                <div class="console-content" id="console-output">
-                    <div class="console-log log-info">// WebSocket console ready. Connect to start.</div>
+            <section id="demo">
+                <h2>Live Demo</h2>
+                <div class="demo-console">
+                    <h3>WebSocket Console</h3>
+                    <div class="console-content" id="console-output">
+                        <div class="console-log log-info">
+                            // WebSocket console ready. Connect to start.
+                        </div>
+                    </div>
+                    <div class="console-input">
+                        <input
+                            type="text"
+                            id="server-url"
+                            placeholder="WebSocket URL (ws://your-server:port/api/v1/music/ws)"
+                        />
+                        <button id="connect-button">Connect</button>
+                    </div>
+                    <div class="console-input" style="margin-top: 10px">
+                        <input
+                            type="text"
+                            id="message-input"
+                            placeholder="Enter message (JSON format)"
+                            disabled
+                        />
+                        <button id="send-button" disabled>Send</button>
+                    </div>
                 </div>
-                <div class="console-input">
-                    <input type="text" id="server-url"
-                        placeholder="WebSocket URL (ws://your-server:port/api/v1/music/ws)" />
-                    <button id="connect-button">Connect</button>
-                </div>
-                <div class="console-input" style="margin-top: 10px;">
-                    <input type="text" id="message-input" placeholder="Enter message (JSON format)" disabled />
-                    <button id="send-button" disabled>Send</button>
-                </div>
-            </div>
+            </section>
 
-            <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    // Tab functionality
-                    const tabs = document.querySelectorAll('.tab');
-                    const tabContents = document.querySelectorAll('.tab-content');
+            <footer>
+                <p>Pepper Music WebSocket API Documentation &copy; 2025</p>
+                <p>Created with 💖 for Discord music lovers</p>
+            </footer>
+        </div>
 
-                    tabs.forEach(tab => {
-                        tab.addEventListener('click', () => {
-                            const tabName = tab.getAttribute('data-tab');
-
-                            // Deactivate all tabs
-                            tabs.forEach(t => t.classList.remove('active'));
-                            tabContents.forEach(c => c.classList.remove('active'));
-
-                            // Activate selected tab
-                            tab.classList.add('active');
-                            document.querySelector(`.tab-content[data-tab="${tabName}"]`).classList.add('active');
-                        });
-                    });
-
-                    // WebSocket demo functionality
-                    let ws = null;
-                    const consoleOutput = document.getElementById('console-output');
-                    const messageInput = document.getElementById('message-input');
-                    const serverUrlInput = document.getElementById('server-url');
-                    const connectButton = document.getElementById('connect-button');
-                    const sendButton = document.getElementById('send-button');
-
-                    // Log message to console
-                    function logToConsole(message, type = 'info') {
-                        const logDiv = document.createElement('div');
-                        logDiv.className = `console-log log-${type}`;
-                        logDiv.textContent = message;
-                        consoleOutput.appendChild(logDiv);
-                        consoleOutput.scrollTop = consoleOutput.scrollHeight;
-                    }
-
-                    // Format JSON for display
-                    function formatJson(json) {
-                        try {
-                            return JSON.stringify(JSON.parse(json), null, 2);
-                        } catch (e) {
-                            return json;
-                        }
-                    }
-
-                    // Connect button
-                    connectButton.addEventListener('click', () => {
-                        const url = serverUrlInput.value.trim();
-                        if (!url) {
-                            logToConsole('Please enter a WebSocket URL', 'error');
-                            return;
-                        }
-
-                        try {
-                            // Close existing connection
-                            if (ws) {
-                                ws.close();
-                                ws = null;
-                            }
-
-                            // Create new connection
-                            ws = new WebSocket(url);
-
-                            // Connection open
-                            ws.addEventListener('open', (event) => {
-                                logToConsole(`Connected to ${url}`, 'success');
-                                messageInput.disabled = false;
-                                sendButton.disabled = false;
-                                connectButton.textContent = 'Disconnect';
-
-                                // Add authentication template
-                                messageInput.value = JSON.stringify({
-                                    type: 'auth',
-                                    data: {
-                                        apiKey: 'your-api-key-here'
-                                    }
-                                });
-                            });
-
-                            // Connection message
-                            ws.addEventListener('message', (event) => {
-                                logToConsole(`<< ${formatJson(event.data)}`, 'info');
-                            });
-
-                            // Connection error
-                            ws.addEventListener('error', (event) => {
-                                logToConsole('WebSocket error', 'error');
-                            });
-
-                            // Connection close
-                            ws.addEventListener('close', (event) => {
-                                logToConsole(`Connection closed: ${event.code} ${event.reason}`, 'warning');
-                                messageInput.disabled = true;
-                                sendButton.disabled = true;
-                                connectButton.textContent = 'Connect';
-                                ws = null;
-                            });
-
-                        } catch (error) {
-                            logToConsole(`Error: ${error.message}`, 'error');
-                        }
-                    });
-
-                    // Send button
-                    sendButton.addEventListener('click', () => {
-                        if (!ws || ws.readyState !== WebSocket.OPEN) {
-                            logToConsole('WebSocket is not connected', 'error');
-                            return;
-                        }
-
-                        const message = messageInput.value.trim();
-                        if (!message) {
-                            logToConsole('Please enter a message', 'error');
-                            return;
-                        }
-
-                        try {
-                            // Validate JSON
-                            JSON.parse(message);
-
-                            // Send message
-                            ws.send(message);
-                            logToConsole(`>> ${formatJson(message)}`, 'success');
-
-                        } catch (error) {
-                            logToConsole(`Invalid JSON: ${error.message}`, 'error');
-                        }
-                    });
-
-                    // Input keypress
-                    messageInput.addEventListener('keypress', (event) => {
-                        if (event.key === 'Enter') {
-                            sendButton.click();
-                        }
-                    });
-                });
-            </script>
-        </section>
-
-        <section id="best-practices">
-            <h2>Best Practices</h2>
-            <ol>
-                <li><strong>Authentication</strong>: Always authenticate immediately after connecting</li>
-                <li><strong>Error Handling</strong>: Implement proper error handling for all commands</li>
-                <li><strong>Reconnection</strong>: Use exponential backoff when reconnecting to avoid overwhelming the
-                    server</li>
-                <li><strong>Event Listening</strong>: Listen for all relevant events to keep your application state in
-                    sync</li>
-                <li><strong>Command Validation</strong>: Validate inputs before sending commands</li>
-                <li><strong>Guild Tracking</strong>: Keep track of the guilds you're interested in to filter events</li>
-                <li><strong>Heartbeat</strong>: Consider implementing a heartbeat mechanism to detect silent
-                    disconnections</li>
-                <li><strong>Rate Limiting</strong>: Avoid sending too many commands in quick succession</li>
-            </ol>
-        </section>
-
-        <footer>
-            <p>Pepper Music WebSocket API Documentation &copy; 2025</p>
-            <p>Created with 💖 for Discord music lovers</p>
-        </footer>
-    </div>
-</body>
-
+        <script src="/static/script.js"></script>
+    </body>
 </html>

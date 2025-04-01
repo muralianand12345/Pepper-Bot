@@ -90,6 +90,8 @@ class ApiServer {
             }
         });
 
+        this.app.use('/static', express.static(path.join(__dirname, '../../../../../static/')));
+
         // Root route for API status (no auth required)
         this.app.get('/api', (req, res) => {
             res.json({

@@ -16,7 +16,8 @@ enum MessageType {
     VOLUME = 'volume',
     QUEUE = 'queue',
     RECOMMEND = 'recommend',
-    AUTH = 'auth'
+    AUTH = 'auth',
+    NOW_PLAYING = 'now_playing'
 }
 
 /**
@@ -168,6 +169,10 @@ class WebSocketManager {
 
             case MessageType.RECOMMEND:
                 await this.handleRecommend(ws, message);
+                break;
+
+            case MessageType.NOW_PLAYING:
+                this.handleNowPlaying(ws, message);
                 break;
 
             default:
@@ -679,6 +684,87 @@ class WebSocketManager {
 
         } catch (error) {
             this.sendError(ws, `Error getting recommendations: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    /**
+     * Handle now playing message
+     * @param ws - WebSocket connection
+     * @param message - Message with now playing request data
+     * @private
+     */
+    private handleNowPlaying(ws: WebSocket, message: WebSocketMessage): void {
+        const { guildId } = message.data;
+
+        if (!guildId) {
+            return this.sendError(ws, 'guildId is required');
+        }
+
+        try {
+            const player = this.client.manager.get(guildId);
+
+            if (!player) {
+                return this.sendError(ws, 'No active player found for this guild', 404);
+            }
+
+            if (!player.queue.current) {
+                return this.sendMessage(ws, 'now_playing', {
+                    guildId,
+                    playing: false,
+                    paused: player.paused,
+                    currentTrack: null
+                });
+            }
+
+            // Get the NowPlayingManager for this guild to get accurate position
+            const NowPlayingManager = require('../../../../utils/music/now_playing_manager').NowPlayingManager;
+            const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, this.client);
+
+            // Get playback status including adjusted position
+            const playbackStatus = nowPlayingManager.getPlaybackStatus();
+
+            // Current track details
+            const currentTrack = {
+                title: player.queue.current.title,
+                author: player.queue.current.author,
+                duration: player.queue.current.duration,
+                position: playbackStatus.position, // Use position from playback status
+                uri: player.queue.current.uri,
+                sourceName: player.queue.current.sourceName,
+                isStream: player.queue.current.isStream,
+                artworkUrl: player.queue.current.artworkUrl || player.queue.current.thumbnail,
+                requester: player.queue.current.requester ? {
+                    id: player.queue.current.requester.id,
+                    username: player.queue.current.requester.username,
+                    discriminator: player.queue.current.requester.discriminator || '0'
+                } : null
+            };
+
+            // Format progress bar
+            const Formatter = require('../../../../utils/format').default;
+            const progressBar = Formatter.createProgressBar({
+                position: playbackStatus.position,
+                queue: {
+                    current: {
+                        duration: playbackStatus.duration
+                    }
+                }
+            });
+
+            // Send response with current track details
+            this.sendMessage(ws, 'now_playing', {
+                guildId,
+                playing: player.playing,
+                paused: player.paused,
+                volume: player.volume,
+                track: currentTrack,
+                progressBar: progressBar,
+                progressPercent: Math.min(100, Math.floor((playbackStatus.position / Math.max(1, playbackStatus.duration)) * 100)),
+                queueSize: player.queue.size
+            });
+
+        } catch (error) {
+            this.sendError(ws, `Error getting now playing info: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 
