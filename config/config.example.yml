@@ -23,6 +23,9 @@ bot:
     log:
         command: "1234567890" # Command Log Channel ID
         server: "1234567890" # New/Left Server Log Channel ID
+    features:
+        spotify_presence:
+            enabled: false # Need improvements
 
 music:
     enabled: true
