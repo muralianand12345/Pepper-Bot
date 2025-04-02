@@ -223,8 +223,17 @@ const handleInfoSubcommand = async (
                 iconURL: client.user?.displayAvatarURL()
             });
 
+        const components = new discord.ActionRowBuilder<discord.ButtonBuilder>()
+            .addComponents(
+                new discord.ButtonBuilder()
+                    .setLabel("Support Server")
+                    .setStyle(discord.ButtonStyle.Link)
+                    .setURL("https://discord.gg/XzE9hSbsNb")
+            );
+
         await interaction.reply({
             embeds: [embed],
+            components: [components],
             flags: discord.MessageFlags.Ephemeral,
         });
     } catch (error) {

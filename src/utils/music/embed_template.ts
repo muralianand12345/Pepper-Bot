@@ -61,10 +61,7 @@ const musicEmbed = async (
     track: magmastream.Track,
     player?: magmastream.Player
 ) => {
-    const trackImg =
-        track.displayThumbnail("maxresdefault") ||
-        track.artworkUrl ||
-        client.config.music.image;
+    const trackImg = track.thumbnail || track.artworkUrl || client.config.music.image;
 
     // Format track title and author for display
     const trackTitle = Formatter.truncateText(track.title, 60);

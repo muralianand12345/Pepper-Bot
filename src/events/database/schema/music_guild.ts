@@ -20,7 +20,7 @@ const musicGuildSchema = new Schema<IMusicGuild>({
             identifier: { type: String, required: true },
             author: { type: String, required: true },
             duration: { type: Number, required: true },
-            isrc: { type: String, required: true },
+            isrc: { type: String, required: false, default: "" },
             isSeekable: { type: Boolean, required: true },
             isStream: { type: Boolean, required: true },
             uri: { type: String, required: true },

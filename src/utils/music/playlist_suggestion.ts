@@ -48,9 +48,8 @@ class PlaylistSuggestion {
             identifier: track.identifier || `unknown_${Date.now()}`,
             author: track.author || "Unknown Artist",
             duration: track.duration || 0,
-            isrc: track.isrc || "",
-            isSeekable:
-                track.isSeekable !== undefined ? track.isSeekable : true,
+            isrc: track.isrc || "", // Add fallback empty string
+            isSeekable: track.isSeekable !== undefined ? track.isSeekable : true,
             isStream: track.isStream !== undefined ? track.isStream : false,
             uri: track.uri || "",
             thumbnail: track.thumbnail || null,
@@ -105,8 +104,7 @@ class PlaylistSuggestion {
 
             const endTime = Date.now();
             this.client.logger.info(
-                `[PLAYLIST_SUGGESTION] Generated ${
-                    recommendations.length
+                `[PLAYLIST_SUGGESTION] Generated ${recommendations.length
                 } suggestions in ${endTime - startTime}ms`
             );
 
@@ -280,9 +278,8 @@ class PlaylistSuggestion {
 
                     try {
                         // Create search query from track title and author
-                        const searchQuery = `${track.author || ""} - ${
-                            track.title || ""
-                        }`.trim();
+                        const searchQuery = `${track.author || ""} - ${track.title || ""
+                            }`.trim();
                         if (!searchQuery) return track;
 
                         // Search for the track on Spotify
@@ -304,8 +301,7 @@ class PlaylistSuggestion {
                         }
                     } catch (error) {
                         this.client.logger.warn(
-                            `[PLAYLIST_SUGGESTION] Failed to convert track "${
-                                track.title || "Unknown"
+                            `[PLAYLIST_SUGGESTION] Failed to convert track "${track.title || "Unknown"
                             }" to Spotify: ${error}`
                         );
                     }
@@ -721,8 +717,8 @@ class PlaylistSuggestion {
                             new Date(a.timestamp).getTime();
                         return (
                             0.7 *
-                                ((b.played_number || 0) -
-                                    (a.played_number || 0)) +
+                            ((b.played_number || 0) -
+                                (a.played_number || 0)) +
                             0.3 * recencyScore
                         );
                     } catch (err) {
