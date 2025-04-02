@@ -3,6 +3,7 @@ import magmastream, { ManagerEventTypes } from "magmastream";
 import { wait } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
+import AutoplayManager from "../../../../utils/music/autoplay_manager";
 import { LavalinkEvent } from "../../../../types";
 
 /**
@@ -17,6 +18,31 @@ const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {
 };
 
 /**
+ * Checks if autoplay should keep the player alive
+ * @param player - Music player instance
+ * @param guildId - Guild ID for the player
+ * @param client - Discord client instance
+ * @returns Whether autoplay is enabled and active
+ */
+const shouldAutoplayKeepAlive = (
+    player: magmastream.Player,
+    guildId: string,
+    client: discord.Client
+): boolean => {
+    try {
+        const autoplayManager = AutoplayManager.getInstance(
+            guildId,
+            player,
+            client
+        );
+        return autoplayManager.isEnabled();
+    } catch (error) {
+        client.logger.error(`[QUEUE_END] Error checking autoplay status: ${error}`);
+        return false;
+    }
+};
+
+/**
  * Handles player cleanup after queue end
  * @param player - Music player instance
  * @param guildId - Guild ID for the player
@@ -27,6 +53,13 @@ const handlePlayerCleanup = async (
     guildId: string,
     client: discord.Client
 ): Promise<void> => {
+    // Check if autoplay is enabled and should keep the player alive
+    if (shouldAutoplayKeepAlive(player, guildId, client)) {
+        client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
+        // Don't schedule cleanup when autoplay is enabled
+        return;
+    }
+
     // Wait 5 minutes before destroying the player
     const CLEANUP_DELAY = 300000; // 5 minutes in milliseconds
     const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
@@ -59,6 +92,9 @@ const handlePlayerCleanup = async (
     // Clean up the now playing manager
     NowPlayingManager.removeInstance(guildId);
 
+    // Clean up the autoplay manager
+    AutoplayManager.removeInstance(guildId);
+
     client.logger.info(`[QUEUE_END] Performing cleanup for guild ${guildId} after ${CLEANUP_DELAY_MINS} minutes of inactivity`);
 
     // Destroy the player
@@ -85,13 +121,33 @@ const lavalinkEvent: LavalinkEvent = {
             )) as discord.TextChannel;
             if (!channel?.isTextBased()) return;
 
+            // Get autoplay manager
+            const autoplayManager = AutoplayManager.getInstance(
+                player.guildId,
+                player,
+                client
+            );
+
+            // Process the track for autoplay if enabled
+            if (autoplayManager.isEnabled() && track) {
+                const processed = await autoplayManager.processTrack(track);
+
+                // If autoplay successfully added tracks, don't send queue end message
+                if (processed) {
+                    client.logger.info(`[QUEUE_END] Autoplay added tracks for guild ${player.guildId}`);
+                    return;
+                }
+            }
+
+            // Send queue end message if autoplay didn't add tracks or is disabled
             await channel.send({
                 embeds: [createQueueEndEmbed(client)],
             });
 
+            // Schedule player cleanup if needed
             await handlePlayerCleanup(player, player.guildId, client);
         } catch (error) {
-            client.logger.error(`Error in queueEnd event: ${error}`);
+            client.logger.error(`[QUEUE_END] Error in queue end event: ${error}`);
         }
     },
 };

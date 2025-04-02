@@ -1,6 +1,7 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
+import AutoplayManager from "../../../../utils/music/autoplay_manager";
 import { LavalinkEvent } from "../../../../types";
 
 /**
@@ -14,6 +15,9 @@ const lavalinkEvent: LavalinkEvent = {
 
         // Clean up the now playing manager when player is destroyed
         NowPlayingManager.removeInstance(player.guildId);
+
+        // Clean up the autoplay manager when player is destroyed
+        AutoplayManager.removeInstance(player.guildId);
 
         client.logger.info(
             `[LAVALINK] Player for guild ${guild.name} (${guild.id}) destroyed`

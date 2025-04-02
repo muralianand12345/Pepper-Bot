@@ -1,19 +1,20 @@
 import discord from "discord.js";
 import { VoiceChannelValidator } from "../../utils/music/music_validations";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
+import AutoplayManager from "../../utils/music/autoplay_manager";
 import { SlashCommand } from "../../types";
 
-
 /**
- * Slash command for skipping time or skip to next song
+ * Slash command for toggling custom autoplay functionality
+ * Uses our own recommendation system rather than YouTube's algorithm
  * @type {SlashCommand}
  */
 const autoplaycommand: SlashCommand = {
-    cooldown: 2,
+    cooldown: 5,
     owner: false,
     data: new discord.SlashCommandBuilder()
         .setName("autoplay")
-        .setDescription("Toggle autoplay for the current playlist")
+        .setDescription("Toggle smart autoplay based on your music preferences")
         .setContexts(discord.InteractionContextType.Guild)
         .addBooleanOption((option) =>
             option
@@ -23,7 +24,7 @@ const autoplaycommand: SlashCommand = {
         ),
 
     /**
-     * Executes the play command, handling music playback setup and validation
+     * Executes the autoplay command, toggling the custom autoplay system
      * @param {discord.ChatInputCommandInteraction} interaction - Command interaction
      * @param {discord.Client} client - Discord client instance
      */
@@ -31,6 +32,7 @@ const autoplaycommand: SlashCommand = {
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
     ) => {
+        // Check if music is enabled
         if (!client.config.music.enabled) {
             return await interaction.reply({
                 embeds: [
@@ -42,8 +44,9 @@ const autoplaycommand: SlashCommand = {
             });
         }
 
+        // Get player and validate
         const player = client.manager.get(interaction.guild?.id || "");
-        if (!player)
+        if (!player) {
             return await interaction.reply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
@@ -52,7 +55,9 @@ const autoplaycommand: SlashCommand = {
                 ],
                 flags: discord.MessageFlags.Ephemeral,
             });
+        }
 
+        // Run validation checks
         const validator = new VoiceChannelValidator(client, interaction);
         for (const check of [
             validator.validateGuildContext(),
@@ -61,37 +66,70 @@ const autoplaycommand: SlashCommand = {
             validator.validateVoiceSameChannel(player),
         ]) {
             const [isValid, embed] = await check;
-            if (!isValid)
+            if (!isValid) {
                 return await interaction.reply({
                     embeds: [embed],
                     flags: discord.MessageFlags.Ephemeral,
                 });
+            }
         }
 
         await interaction.deferReply();
 
-        const autoplayEnabled = interaction.options.getBoolean("enabled") || true;
-
         try {
-            player.setAutoplay(autoplayEnabled, client.user || undefined);
+            // Get the autoplay setting from command options
+            const autoplayEnabled = interaction.options.getBoolean("enabled") || false;
+
+            // Get the AutoplayManager for this guild
+            const autoplayManager = AutoplayManager.getInstance(
+                player.guildId,
+                player,
+                client
+            );
+
+            if (autoplayEnabled) {
+                // Enable autoplay with the current user as the "owner" (context for recommendations)
+                autoplayManager.enable(interaction.user.id);
+
+                // Create success embed
+                const embed = new MusicResponseHandler(client).createSuccessEmbed(
+                    "🎵 Smart Autoplay is now **enabled**\n\n" +
+                    "When the queue is empty, I'll automatically add songs based on your music preferences."
+                );
+
+                await interaction.editReply({
+                    embeds: [embed],
+                });
+            } else {
+                // Disable autoplay
+                autoplayManager.disable();
+
+                // Create info embed
+                const embed = new MusicResponseHandler(client).createInfoEmbed(
+                    "⏹️ Autoplay is now **disabled**\n\n" +
+                    "Playback will stop when the queue is empty."
+                );
+
+                await interaction.editReply({
+                    embeds: [embed],
+                });
+            }
         } catch (error) {
+            client.logger.error(`[AUTOPLAY] Command error: ${error}`);
+
+            // Send error message
             await interaction.editReply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
-                        'Failed to set autoplay'
+                        "An error occurred while toggling autoplay.",
+                        true
                     ),
                 ],
+                components: [
+                    new MusicResponseHandler(client).getSupportButton(),
+                ],
             });
-
-            throw error;
         }
-
-        const embed = new MusicResponseHandler(client).createSuccessEmbed(
-            `Autoplay is now ${autoplayEnabled ? "enabled" : "disabled"}`
-        );
-        await interaction.editReply({
-            embeds: [embed],
-        });
     },
 };
 

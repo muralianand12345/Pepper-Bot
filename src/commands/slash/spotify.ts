@@ -84,7 +84,7 @@ const handleConfigSubcommand = async (
     const userId = interaction.user.id;
     const enabled = interaction.options.getBoolean("enabled", true);
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: discord.MessageFlags.Ephemeral });
 
     try {
         // Find or create user document
