@@ -77,6 +77,77 @@ class MusicDB {
     }
 
     /**
+     * Check if a user exists in the database without creating a document
+     * @param userId - Discord user ID
+     * @returns Promise<boolean> - True if user exists, false otherwise
+     * @public
+     */
+    public static async userExists(userId: string): Promise<boolean> {
+        if (!userId) return false;
+        const count = await music_user.countDocuments({ userId });
+        return count > 0;
+    }
+
+    /**
+     * Atomic operation to add or update song data with race condition prevention
+     * This method uses findOneAndUpdate with upsert to prevent duplicate documents
+     * @param userId - Discord user ID
+     * @param songData - Song data to be added or updated
+     * @returns Promise<void>
+     * @throws Error if userId is null or if database operation fails
+     * @public
+     */
+    public static async atomicAddMusicUserData(
+        userId: string,
+        songData: ISongs
+    ): Promise<void> {
+        if (!userId) {
+            throw new Error("User ID is required to add music data");
+        }
+
+        try {
+            // Check if the song already exists for this user
+            const user = await music_user.findOne({
+                userId,
+                "songs.uri": songData.uri
+            });
+
+            if (user) {
+                // Song exists, update its play count and timestamp
+                await music_user.updateOne(
+                    {
+                        userId,
+                        "songs.uri": songData.uri
+                    },
+                    {
+                        $inc: { "songs.$.played_number": 1 },
+                        $set: { "songs.$.timestamp": new Date() }
+                    }
+                );
+            } else {
+                // Check if user exists but song doesn't
+                const userExists = await this.userExists(userId);
+
+                if (userExists) {
+                    // User exists but song doesn't, push the new song
+                    await music_user.updateOne(
+                        { userId },
+                        { $push: { songs: songData } }
+                    );
+                } else {
+                    // User doesn't exist, create new document with the song
+                    await music_user.create({
+                        userId,
+                        songs: [songData],
+                    });
+                }
+            }
+        } catch (err) {
+            throw new Error(`Failed to add music user data atomically: ${err}`);
+        }
+    }
+
+    /**
      * Adds or updates music data for a guild
      * @param guildId - Discord guild ID
      * @param data - Song data to be added

@@ -56,7 +56,6 @@ class PlaylistSuggestion {
             thumbnail: track.thumbnail || null,
             requester: requesterData,
             played_number: 1,
-            presence_song: false,
             timestamp: new Date(),
         };
     }

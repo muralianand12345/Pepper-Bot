@@ -5,6 +5,7 @@ import { BotEvent, ISongsUser } from "../../../types";
 /**
  * Handles user presence updates to track Spotify activity
  * Captures song details when a user is listening to Spotify and saves them to their music history
+ * Uses locking mechanism and atomic operations to prevent race conditions
  */
 const event: BotEvent = {
     name: discord.Events.PresenceUpdate,
@@ -14,100 +15,111 @@ const event: BotEvent = {
         client: discord.Client
     ): Promise<void> => {
         try {
-            // Return if we don't have a valid presence update
-            if (!newPresence || !newPresence.user) return;
-
-            // Load settings from database to check if tracking is enabled globally
-            if (!client.config.bot.features?.spotify_presence?.enabled) {
+            // Skip if presence update is invalid or feature is disabled
+            if (!newPresence?.user || !client.config.bot.features?.spotify_presence?.enabled) {
                 return;
             }
 
-            // Check if the user has Spotify activity
+            // Get Spotify activity if available
             const spotifyActivity = newPresence.activities.find(
                 (activity) => activity.type === discord.ActivityType.Listening &&
                     activity.name === "Spotify" &&
-                    activity.syncId // Only process if we have a Spotify sync ID
+                    activity.syncId
             );
 
-            if (!spotifyActivity) return;
+            if (!spotifyActivity || !spotifyActivity.assets) return;
 
-            // Get the Spotify details from the activity
-            const spotifyData = spotifyActivity.assets;
-            if (!spotifyData) return;
+            // Create Spotify URL from sync ID
+            const spotifyUrl = `https://open.spotify.com/track/${spotifyActivity.syncId}`;
+            const userId = newPresence.user.id;
 
-            //TODO: use await client.manager.search("songs name + url", newPresence.user) to get the song data and add to the db
+            // Initialize trackers if needed
+            if (!(client as any).presenceTracker) {
+                (client as any).presenceTracker = new Map();
+            }
 
-            // // Parse Spotify data
-            // const songTitle = spotifyActivity.details || "Unknown Title";
-            // const songAuthor = spotifyActivity.state?.split("; ").join(", ") || "Unknown Artist";
-            // const albumName = spotifyActivity.assets?.largeText || "Unknown Album";
-            // const albumCover = spotifyActivity.assets?.largeImageURL() || "";
-            // const songDuration = spotifyActivity.timestamps ?
-            //     (spotifyActivity.timestamps.end?.getTime() || 0) -
-            //     (spotifyActivity.timestamps.start?.getTime() || 0) : 0;
-                
+            if (!(client as any).presenceLocks) {
+                (client as any).presenceLocks = new Map();
+            }
 
-            // // Create timestamp
-            // const timestamp = new Date();
+            // Check if there's an active lock for this user - prevent concurrent processing
+            const userLockKey = `lock:${userId}`;
+            if ((client as any).presenceLocks.get(userLockKey)) {
+                return; // Skip processing if another update for this user is in progress
+            }
 
-            // // Generate a consistent, unique URI for the Spotify track
-            // const spotifyUri = `spotify:track:${spotifyActivity.syncId}`;
-            // const spotifyUrl = `https://open.spotify.com/track/${spotifyActivity.syncId}`;
+            // Check for recent duplicate entries (within 5 minutes)
+            const lastAddedSongKey = `presence:${userId}:${spotifyActivity.syncId}`;
+            const lastAdded = (client as any).presenceTracker.get(lastAddedSongKey);
+            if (lastAdded && (Date.now() - lastAdded) < 5 * 60 * 1000) {
+                return;
+            }
 
-            // // Create requester data
-            // const requesterData: ISongsUser = {
-            //     id: newPresence.user.id,
-            //     username: newPresence.user.username,
-            //     discriminator: newPresence.user.discriminator || "0",
-            //     avatar: newPresence.user.avatar || undefined
-            // };
+            // Acquire lock for this user
+            (client as any).presenceLocks.set(userLockKey, true);
 
-            // // Create song data object
-            // const songData = {
-            //     track: songTitle,
-            //     artworkUrl: albumCover,
-            //     sourceName: "spotify",
-            //     title: songTitle,
-            //     identifier: spotifyActivity.syncId || `spotify_${Date.now()}`,
-            //     author: songAuthor,
-            //     duration: songDuration,
-            //     isrc: "",
-            //     isSeekable: true,
-            //     isStream: false,
-            //     uri: spotifyUrl,
-            //     thumbnail: albumCover,
-            //     requester: requesterData,
-            //     played_number: 1,
-            //     presence_song: true, // Mark that this song was detected via presence
-            //     timestamp: timestamp
-            // };
+            try {
+                // Create requester data
+                const requesterData: ISongsUser = {
+                    id: userId,
+                    username: newPresence.user.username,
+                    discriminator: newPresence.user.discriminator || "0",
+                    avatar: newPresence.user.avatar || undefined
+                };
 
-            // // Check if we've already added this song from this user's presence recently
-            // // This prevents duplicate entries when presence updates frequently
-            // // We use the user ID and song URI to check for duplicates
-            // const lastAddedSongKey = `presence:${newPresence.user.id}:${spotifyUri}`;
-            // const lastAdded = (client as any).presenceTracker?.get(lastAddedSongKey);
+                // Search for track using Lavalink manager with direct Spotify URL
+                const searchResult = await client.manager.search(spotifyUrl, newPresence.user);
 
-            // // If we've added this song in the last 5 minutes, don't add it again
-            // if (lastAdded && (Date.now() - lastAdded) < 5 * 60 * 1000) {
-            //     return;
-            // }
+                // Skip if no results
+                if (searchResult.loadType === "empty" || !searchResult.tracks?.length) {
+                    return;
+                }
 
-            // // Save the song to user's music history
-            // await MusicDB.addMusicUserData(newPresence.user.id, songData);
+                // Use search result data
+                const track = searchResult.tracks[0];
 
-            // // Save the timestamp to prevent duplicates
-            // if (!(client as any).presenceTracker) {
-            //     (client as any).presenceTracker = new Map();
-            // }
-            // (client as any).presenceTracker.set(lastAddedSongKey, Date.now());
+                // Create song data object with enhanced metadata
+                const songData = {
+                    track: track.title,
+                    artworkUrl: track.artworkUrl,
+                    sourceName: track.sourceName,
+                    title: track.title,
+                    identifier: track.identifier,
+                    author: track.author,
+                    duration: track.duration,
+                    isrc: track.isrc,
+                    isSeekable: track.isSeekable !== undefined ? track.isSeekable : true,
+                    isStream: track.isStream,
+                    uri: track.uri,
+                    thumbnail: track.thumbnail,
+                    requester: requesterData,
+                    played_number: 1,
+                    timestamp: new Date()
+                };
 
-            // // Log the activity
-            // client.logger.debug(
-            //     `[SPOTIFY_PRESENCE] Tracked song for ${newPresence.user.tag}: ${songTitle} by ${songAuthor}`
-            // );
+                // Use atomic update to add or update the song - prevents race conditions
+                await MusicDB.atomicAddMusicUserData(userId, songData);
+
+                // Update tracker to prevent processing the same song again for 5 minutes
+                (client as any).presenceTracker.set(lastAddedSongKey, Date.now());
+
+                client.logger.debug(
+                    `[SPOTIFY_PRESENCE] Tracked song for ${newPresence.user.tag}: ${songData.title} by ${songData.author}`
+                );
+            } catch (error) {
+                client.logger.warn(`[SPOTIFY_PRESENCE] Error processing song: ${error}`);
+            } finally {
+                // Always release the lock, even if an error occurred
+                (client as any).presenceLocks.delete(userLockKey);
+            }
         } catch (error) {
             client.logger.error(`[SPOTIFY_PRESENCE] Error tracking presence: ${error}`);
+
+            // Make sure we don't leave locks hanging in case of errors
+            if (newPresence?.user) {
+                const userLockKey = `lock:${newPresence.user.id}`;
+                (client as any).presenceLocks?.delete(userLockKey);
+            }
         }
     },
 };

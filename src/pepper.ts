@@ -58,6 +58,7 @@ const createClient = (): discord.Client => {
             discord.GatewayIntentBits.GuildWebhooks,
             discord.GatewayIntentBits.GuildMessages,
             discord.GatewayIntentBits.GuildVoiceStates,
+            discord.GatewayIntentBits.GuildPresences
         ],
         shards: "auto",
     });
