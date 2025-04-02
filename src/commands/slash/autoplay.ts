@@ -6,22 +6,23 @@ import {
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { SlashCommand } from "../../types";
 
+
 /**
  * Slash command for skipping time or skip to next song
  * @type {SlashCommand}
  */
-const skipcommand: SlashCommand = {
+const autoplaycommand: SlashCommand = {
     cooldown: 2,
     owner: false,
     data: new discord.SlashCommandBuilder()
-        .setName("skip")
-        .setDescription("Skip the current song or skip to a specific time")
+        .setName("autoplay")
+        .setDescription("Toggle autoplay for the current playlist")
         .setContexts(discord.InteractionContextType.Guild)
-        .addIntegerOption((option) =>
+        .addBooleanOption((option) =>
             option
-                .setName("time")
-                .setDescription("Skip to a specific time in seconds")
-                .setRequired(false)
+                .setName("enabled")
+                .setDescription("Enable or disable autoplay")
+                .setRequired(true)
         ),
 
     /**
@@ -70,43 +71,40 @@ const skipcommand: SlashCommand = {
                 });
         }
 
-        await interaction.deferReply();
-
-        const time = interaction.options.getInteger("time") || 0;
-        if (time > 0) {
-            player.seek(time * 1000);
-            return await interaction.editReply({
-                embeds: [
-                    new MusicResponseHandler(client).createSuccessEmbed(
-                        `Skipped to ${time} seconds`
-                    ),
-                ],
-            });
-        } else {
-            const music_validator = new MusicPlayerValidator(client, player);
-            const [queueValid, queueError] =
-                await music_validator.validateQueueSize(1);
-            if (!queueValid && queueError) {
-                await interaction.editReply({
-                    embeds: [queueError],
-                });
-                return;
-            }
-
-            player.stop(1);
-            if (player.queue.size === 0) {
-                player.destroy();
-            }
-
-            await interaction.editReply({
-                embeds: [
-                    new MusicResponseHandler(client).createSuccessEmbed(
-                        "Skipped the current song!"
-                    ),
-                ],
+        const music_validator = new MusicPlayerValidator(client, player);
+        const [queueValid, queueError] =
+            await music_validator.validateQueueSize(1);
+        if (!queueValid && queueError) {
+            return await interaction.reply({
+                embeds: [queueError],
             });
         }
+
+        await interaction.deferReply();
+
+        const autoplayEnabled = interaction.options.getBoolean("enabled") || true;
+
+        try {
+            player.setAutoplay(autoplayEnabled, client.user || undefined);
+        } catch (error) {
+            await interaction.editReply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        'Failed to set autoplay'
+                    ),
+                ],
+            });
+
+            throw error;
+        }
+
+        const embed = new MusicResponseHandler(client).createSuccessEmbed(
+            `Autoplay is now ${autoplayEnabled ? "enabled" : "disabled"}`
+        );
+        await interaction.editReply({
+            embeds: [embed],
+        });
     },
 };
 
-export default skipcommand;
+export default autoplaycommand;
