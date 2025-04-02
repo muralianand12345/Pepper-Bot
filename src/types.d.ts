@@ -213,6 +213,7 @@ export interface ISongs {
     thumbnail: string | null;
     requester?: ISongsUser | null;
     played_number: number;
+    presence_song: boolean | null;
     timestamp: Date;
 }
 

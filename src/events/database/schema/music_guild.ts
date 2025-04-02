@@ -27,6 +27,7 @@ const musicGuildSchema = new Schema<IMusicGuild>({
             thumbnail: { type: String, required: false },
             requester: { type: userDataSchema, required: false },
             played_number: { type: Number, default: 1, required: true },
+            presence_song: { type: Boolean, default: false, required: false },
             timestamp: { type: Date, required: true },
         },
     ],
