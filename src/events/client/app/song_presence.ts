@@ -1,11 +1,13 @@
 import discord from "discord.js";
 import MusicDB from "../../../utils/music/music_db";
+import music_user from "../../database/schema/music_user";
 import { BotEvent, ISongsUser } from "../../../types";
 
 /**
  * Handles user presence updates to track Spotify activity
  * Captures song details when a user is listening to Spotify and saves them to their music history
  * Uses locking mechanism and atomic operations to prevent race conditions
+ * Respects user preferences for tracking/not tracking
  */
 const event: BotEvent = {
     name: discord.Events.PresenceUpdate,
@@ -29,9 +31,18 @@ const event: BotEvent = {
 
             if (!spotifyActivity || !spotifyActivity.assets) return;
 
+            const userId = newPresence.user.id;
+
+            // Check if user has opted out of tracking
+            const userSettings = await music_user.findOne({ userId });
+            if (userSettings && userSettings.spotify_presence === false) {
+                // User has explicitly opted out of tracking
+                client.logger.debug(`[SPOTIFY_PRESENCE] User ${userId} has opted out of tracking`);
+                return;
+            }
+
             // Create Spotify URL from sync ID
             const spotifyUrl = `https://open.spotify.com/track/${spotifyActivity.syncId}`;
-            const userId = newPresence.user.id;
 
             // Initialize trackers if needed
             if (!(client as any).presenceTracker) {
