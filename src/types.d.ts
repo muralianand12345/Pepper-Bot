@@ -109,6 +109,11 @@ export interface IConfig {
             command: string;
             server: string;
         };
+        features?: {
+            spotify_presence?: {
+                enabled: boolean;
+            };
+        };
     };
     music: {
         enabled: boolean;
@@ -219,6 +224,7 @@ export interface ISongs {
 
 export interface IMusicUser extends mongoose.Document {
     userId: string;
+    spotify_presence: boolean;
     songs: Array<ISongs>;
 }
 

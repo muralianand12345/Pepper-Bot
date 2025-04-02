@@ -10,6 +10,7 @@ const userDataSchema = new Schema<ISongsUser>({
 
 const musicUserSchema = new Schema<IMusicUser>({
     userId: { type: String, required: true },
+    spotify_presence: { type: Boolean, default: true, required: true },
     songs: [
         {
             track: { type: String, required: true },
