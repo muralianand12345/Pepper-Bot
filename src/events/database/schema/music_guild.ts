@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { ISongsUser, IMusicGuild } from "../../../types";
+import { ISongsUser, IMusicGuild, IDJUser } from "../../../types";
 
 const userDataSchema = new Schema<ISongsUser>({
     id: { type: String, required: true },
@@ -8,9 +8,35 @@ const userDataSchema = new Schema<ISongsUser>({
     avatar: { type: String, required: false },
 });
 
+const djDataSchema = new Schema<IDJUser>({
+    enabled: { type: Boolean, required: true },
+    roleId: { type: String, required: true },
+    auto: {
+        assign: { type: Boolean, required: true },
+        timeout: { type: Number, required: true },
+    },
+    users: {
+        currentDJ: {
+            userId: { type: String, required: true },
+            username: { type: String, required: true },
+            assignedAt: { type: Date, required: true },
+            expiresAt: { type: Date, required: true },
+        },
+        previousDJs: [
+            {
+                userId: { type: String, required: true },
+                username: { type: String, required: true },
+                assignedAt: { type: Date, required: true },
+                expiresAt: { type: Date, required: true },
+            },
+        ],
+    },
+});
+
 const musicGuildSchema = new Schema<IMusicGuild>({
     guildId: { type: String, required: true },
     songChannelId: { type: String, default: null },
+    dj: { type: djDataSchema, required: true },
     songs: [
         {
             track: { type: String, required: true },

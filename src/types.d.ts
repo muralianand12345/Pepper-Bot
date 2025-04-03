@@ -203,6 +203,29 @@ export interface ISongsUser {
     avatar?: string;
 }
 
+export interface IDJUser {
+    enabled: boolean;
+    roleId: string;
+    auto: {
+        assign: boolean;
+        timeout: number;
+    },
+    users: {
+        currentDJ: {
+            userId: string;
+            username: string;
+            assignedAt: Date;
+            expiresAt: Date;
+        },
+        previousDJs: Array<{
+            userId: string;
+            username: string;
+            assignedAt: Date;
+            expiresAt: Date;
+        }>;
+    }
+}
+
 export interface ISongs {
     track: string;
     artworkUrl: string;
@@ -230,6 +253,7 @@ export interface IMusicUser extends mongoose.Document {
 export interface IMusicGuild extends mongoose.Document {
     guildId: string;
     songChannelId: string | null;
+    dj: IDJUser;
     songs: Array<ISongs>;
 }
 
