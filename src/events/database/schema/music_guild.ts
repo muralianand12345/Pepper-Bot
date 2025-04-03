@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { ISongsUser, IMusicGuild } from "../../../types";
+import { ISongsUser, IMusicGuild, IDJUser } from "../../../types";
 
 const userDataSchema = new Schema<ISongsUser>({
     id: { type: String, required: true },
@@ -8,9 +8,48 @@ const userDataSchema = new Schema<ISongsUser>({
     avatar: { type: String, required: false },
 });
 
+const djDataSchema = new Schema<IDJUser>({
+    enabled: { type: Boolean, required: true, default: false },
+    roleId: { type: String, required: true, default: "" },
+    auto: {
+        assign: { type: Boolean, required: true, default: true },
+        timeout: { type: Number, required: true, default: 86400000 }, // 24 hours
+    },
+    users: {
+        currentDJ: {
+            userId: { type: String, required: false, default: null },
+            username: { type: String, required: false, default: null },
+            assignedAt: { type: Date, required: false, default: null },
+            expiresAt: { type: Date, required: false, default: null },
+        },
+        previousDJs: [
+            {
+                userId: { type: String, required: true },
+                username: { type: String, required: true },
+                assignedAt: { type: Date, required: true },
+                expiresAt: { type: Date, required: true },
+            },
+        ],
+    },
+});
+
 const musicGuildSchema = new Schema<IMusicGuild>({
     guildId: { type: String, required: true },
     songChannelId: { type: String, default: null },
+    dj: {
+        type: djDataSchema, required: false, default: () => ({
+            enabled: false,
+            roleId: "",
+            auto: {
+                assign: true,
+                timeout: 86400000, // 24 hours
+            },
+            users: {
+                currentDJ: null,
+                previousDJs: []
+            }
+        })
+    },
     songs: [
         {
             track: { type: String, required: true },

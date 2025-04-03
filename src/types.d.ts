@@ -49,6 +49,7 @@ export interface SlashCommand {
     cooldown?: number;
     owner?: boolean;
     premium?: boolean;
+    dj?: boolean;
     execute: (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
@@ -67,6 +68,7 @@ export interface Command {
     cooldown?: number;
     owner?: boolean;
     premium?: boolean;
+    dj?: boolean;
     execute: (
         client: discord.Client,
         message: discord.Message,
@@ -112,6 +114,11 @@ export interface IConfig {
         features?: {
             spotify_presence?: {
                 enabled: boolean;
+            };
+            dj_role?: {
+                enabled: boolean;
+                default_timeout: number;
+                default_role_name: string;
             };
         };
     };
@@ -203,6 +210,29 @@ export interface ISongsUser {
     avatar?: string;
 }
 
+export interface IDJUser {
+    enabled: boolean;
+    roleId: string;
+    auto: {
+        assign: boolean;
+        timeout: number;
+    },
+    users: {
+        currentDJ: {
+            userId: string | null;
+            username: string | null;
+            assignedAt: Date | null;
+            expiresAt: Date | null;
+        } | null,
+        previousDJs: Array<{
+            userId: string;
+            username: string;
+            assignedAt: Date;
+            expiresAt: Date;
+        }>;
+    }
+}
+
 export interface ISongs {
     track: string;
     artworkUrl: string;
@@ -230,6 +260,7 @@ export interface IMusicUser extends mongoose.Document {
 export interface IMusicGuild extends mongoose.Document {
     guildId: string;
     songChannelId: string | null;
+    dj: IDJUser;
     songs: Array<ISongs>;
 }
 
@@ -360,3 +391,8 @@ export interface INodeOption {
     value: string;
 }
 
+export interface FilterPreset {
+    name: string;
+    emoji: string;
+    description: string;
+}

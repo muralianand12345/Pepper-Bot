@@ -3,6 +3,7 @@ import discord from "discord.js";
 import { BotEvent } from "../../../types";
 import { sendTempMessage } from "../../../utils/music/music_functions";
 import block_users from "../../database/schema/block_users";
+import music_guild from "../../database/schema/music_guild";
 import premium_users from "../../database/schema/premium_users";
 
 /**
@@ -49,6 +50,19 @@ const checkPremiumStatus = async (userId: string): Promise<boolean> => {
         premiumUser.premium.expiresAt !== null &&
         premiumUser.premium.expiresAt > now
     );
+};
+
+/**
+ * Checks if a user is a DJ
+ * @param {string} userId - Discord user ID
+ * @param {string} guildId - Discord guild ID
+ * @returns {Promise<boolean>}
+ */
+const checkDJStatus = async (userId: string, guildId: string): Promise<boolean> => {
+    const djGuild = await music_guild.findOne({ guildId: guildId });
+    if (!djGuild) return false;
+    if (!djGuild.dj.enabled) return false;
+    return djGuild.dj.users?.currentDJ?.userId === userId;
 };
 
 /**
@@ -142,6 +156,31 @@ const handleCommandPrerequisites = async (
 
             if (remainingTime > 0) {
                 await sendErrorEmbed(message, coolMsg);
+                return false;
+            }
+        }
+    }
+
+    // Check if user is a DJ
+    if (command.dj) {
+        const isDJ = await checkDJStatus(
+            message.author.id,
+            message.guild?.id || ""
+        );
+        if (!isDJ) {
+            const member = await message.guild?.members.fetch(
+                message.author.id
+            );
+
+            if (!member) {
+                return false;
+            }
+
+            if (!member.permissions.has(discord.PermissionsBitField.Flags.Administrator)) {
+                await sendErrorEmbed(
+                    message,
+                    "🚫 You need to be a DJ or have admin permissions to use this command!"
+                );
                 return false;
             }
         }
