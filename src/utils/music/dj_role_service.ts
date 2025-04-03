@@ -31,15 +31,15 @@ class DJRoleService {
                 // Create default DJ configuration
                 const defaultDJConfig: IDJUser = {
                     enabled: false,
-                    roleId: "",
+                    roleId: "no role",
                     auto: {
                         assign: true,
                         timeout: 86400000, // 24 hours
                     },
                     users: {
                         currentDJ: {
-                            userId: "",
-                            username: "",
+                            userId: "user not assigned",
+                            username: "user not assigned",
                             assignedAt: new Date(),
                             expiresAt: new Date(),
                         },
@@ -60,15 +60,15 @@ class DJRoleService {
                 // If guild exists but DJ config doesn't, add default DJ config
                 guildData.dj = {
                     enabled: false,
-                    roleId: "",
+                    roleId: "no role",
                     auto: {
                         assign: true,
                         timeout: 86400000, // 24 hours
                     },
                     users: {
                         currentDJ: {
-                            userId: "",
-                            username: "",
+                            userId: "user not assigned",
+                            username: "user not assigned",
                             assignedAt: new Date(),
                             expiresAt: new Date(),
                         },

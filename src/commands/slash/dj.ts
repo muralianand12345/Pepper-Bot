@@ -476,6 +476,12 @@ const djRoleCommand: SlashCommand = {
                         .setDescription("Enable or disable the DJ role system")
                         .setRequired(true)
                 )
+                .addRoleOption(option =>
+                    option
+                        .setName("role")
+                        .setDescription("Select an existing role to use as the DJ role")
+                        .setRequired(true)
+                )
                 .addBooleanOption(option =>
                     option
                         .setName("auto_assign")
@@ -488,12 +494,6 @@ const djRoleCommand: SlashCommand = {
                         .setDescription("How long a DJ role should last (in hours)")
                         .setMinValue(1)
                         .setMaxValue(168) // 1 week
-                        .setRequired(false)
-                )
-                .addRoleOption(option =>
-                    option
-                        .setName("role")
-                        .setDescription("Select an existing role to use as the DJ role")
                         .setRequired(false)
                 )
         )
