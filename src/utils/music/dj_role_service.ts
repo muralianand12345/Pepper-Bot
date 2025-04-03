@@ -334,21 +334,6 @@ class DJRoleService {
                 const member = await guild.members.fetch(userId);
                 if (member && role) {
                     await member.roles.add(role);
-
-                    // Send notification in default channel if possible
-                    const defaultChannel = guild.systemChannel;
-                    if (defaultChannel && defaultChannel.isTextBased()) {
-                        await defaultChannel.send({
-                            embeds: [
-                                new discord.EmbedBuilder()
-                                    .setColor(discord.Colors.Purple)
-                                    .setTitle("🎧 New DJ Assigned")
-                                    .setDescription(`${member.toString()} is now the server DJ until <t:${Math.floor(expiresAt.getTime() / 1000)}:f>`)
-                                    .setFooter({ text: "This role was assigned based on music activity" })
-                            ]
-                        }).catch(err => this.client.logger.warn(`[DJ_ROLE] Failed to send DJ notification: ${err}`));
-                    }
-
                     return true;
                 } else {
                     return false;
@@ -466,20 +451,6 @@ class DJRoleService {
                 const member = await guild.members.fetch(targetUserId);
                 if (member) {
                     await member.roles.remove(role);
-
-                    // Send notification in default channel if possible
-                    const defaultChannel = guild.systemChannel;
-                    if (defaultChannel && defaultChannel.isTextBased()) {
-                        await defaultChannel.send({
-                            embeds: [
-                                new discord.EmbedBuilder()
-                                    .setColor(discord.Colors.Purple)
-                                    .setTitle("🎧 DJ Role Removed")
-                                    .setDescription(`${member.toString()} is no longer the server DJ.`)
-                            ]
-                        }).catch(err => this.client.logger.warn(`[DJ_ROLE] Failed to send DJ removal notification: ${err}`));
-                    }
-
                     return true;
                 }
             } catch (error) {
