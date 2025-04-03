@@ -145,11 +145,21 @@ const handleCommandPrerequisites = async (
             interaction.guild?.id || ""
         );
         if (!isDJ) {
-            await sendErrorReply(
-                interaction,
-                "🚫 You need to be a DJ to use this command! Contact your discord server admin."
+            const member = await interaction.guild?.members.fetch(
+                interaction.user.id
             );
-            return false;
+
+            if (!member) {
+                return false;
+            }
+
+            if (!member.permissions.has(discord.PermissionsBitField.Flags.Administrator)) {
+                await sendErrorReply(
+                    interaction,
+                    "🚫 You need to be a DJ or have admin permissions to use this command!"
+                );
+                return false;
+            }
         }
     }
 

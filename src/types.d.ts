@@ -391,3 +391,8 @@ export interface INodeOption {
     value: string;
 }
 
+export interface FilterPreset {
+    name: string;
+    emoji: string;
+    description: string;
+}
