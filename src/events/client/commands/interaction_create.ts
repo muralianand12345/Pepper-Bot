@@ -2,6 +2,7 @@ import ms from "ms";
 import discord from "discord.js";
 import { BotEvent } from "../../../types";
 import block_users from "../../database/schema/block_users";
+import music_guild from "../../database/schema/music_guild";
 import premium_users from "../../database/schema/premium_users";
 
 /**
@@ -48,6 +49,19 @@ const checkPremiumStatus = async (userId: string): Promise<boolean> => {
         premiumUser.premium.expiresAt !== null &&
         premiumUser.premium.expiresAt > now
     );
+};
+
+/**
+ * Checks if a user is a DJ
+ * @param {string} userId - Discord user ID
+ * @param {string} guildId - Discord guild ID
+ * @returns {Promise<boolean>}
+ */
+const checkDJStatus = async (userId: string, guildId: string): Promise<boolean> => {
+    const djGuild = await music_guild.findOne({ guildId: guildId });
+    if (!djGuild) return false;
+    if (!djGuild.dj.enabled) return false;
+    return djGuild.dj.users?.currentDJ?.userId === userId;
 };
 
 /**
@@ -119,6 +133,21 @@ const handleCommandPrerequisites = async (
             await sendErrorReply(
                 interaction,
                 "⭐ This command requires premium access. Please upgrade to use this feature!"
+            );
+            return false;
+        }
+    }
+
+    // Check if user is a DJ
+    if (command.dj) {
+        const isDJ = await checkDJStatus(
+            interaction.user.id,
+            interaction.guild?.id || ""
+        );
+        if (!isDJ) {
+            await sendErrorReply(
+                interaction,
+                "🚫 You need to be a DJ to use this command! Contact your discord server admin."
             );
             return false;
         }

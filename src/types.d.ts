@@ -49,6 +49,7 @@ export interface SlashCommand {
     cooldown?: number;
     owner?: boolean;
     premium?: boolean;
+    dj?: boolean;
     execute: (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
@@ -67,6 +68,7 @@ export interface Command {
     cooldown?: number;
     owner?: boolean;
     premium?: boolean;
+    dj?: boolean;
     execute: (
         client: discord.Client,
         message: discord.Message,
