@@ -9,18 +9,18 @@ const userDataSchema = new Schema<ISongsUser>({
 });
 
 const djDataSchema = new Schema<IDJUser>({
-    enabled: { type: Boolean, required: true },
-    roleId: { type: String, required: true },
+    enabled: { type: Boolean, required: true, default: false },
+    roleId: { type: String, required: true, default: "" },
     auto: {
-        assign: { type: Boolean, required: true },
-        timeout: { type: Number, required: true },
+        assign: { type: Boolean, required: true, default: true },
+        timeout: { type: Number, required: true, default: 86400000 }, // 24 hours
     },
     users: {
         currentDJ: {
-            userId: { type: String, required: true },
-            username: { type: String, required: true },
-            assignedAt: { type: Date, required: true },
-            expiresAt: { type: Date, required: true },
+            userId: { type: String, required: false, default: null },
+            username: { type: String, required: false, default: null },
+            assignedAt: { type: Date, required: false, default: null },
+            expiresAt: { type: Date, required: false, default: null },
         },
         previousDJs: [
             {
@@ -36,7 +36,20 @@ const djDataSchema = new Schema<IDJUser>({
 const musicGuildSchema = new Schema<IMusicGuild>({
     guildId: { type: String, required: true },
     songChannelId: { type: String, default: null },
-    dj: { type: djDataSchema, required: true },
+    dj: {
+        type: djDataSchema, required: false, default: () => ({
+            enabled: false,
+            roleId: "",
+            auto: {
+                assign: true,
+                timeout: 86400000, // 24 hours
+            },
+            users: {
+                currentDJ: null,
+                previousDJs: []
+            }
+        })
+    },
     songs: [
         {
             track: { type: String, required: true },

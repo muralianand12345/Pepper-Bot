@@ -184,11 +184,19 @@ const handleAssignSubcommand = async (
             });
         }
 
-        // Calculate expiry time
-        const now = new Date();
-        const expiryTime = durationMs
-            ? Math.floor((now.getTime() + durationMs) / 1000)
-            : Math.floor((now.getTime() + guildData.dj.auto.timeout) / 1000);
+        // Recalculate expiry time based on updated guild data
+        const updatedGuildData = await djService.getConfig(guildId);
+        if (!updatedGuildData || !updatedGuildData.dj.users.currentDJ || !updatedGuildData.dj.users.currentDJ.expiresAt) {
+            return await interaction.editReply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Failed to retrieve updated DJ information"
+                    )
+                ]
+            });
+        }
+
+        const expiryTime = Math.floor(updatedGuildData.dj.users.currentDJ.expiresAt.getTime() / 1000);
 
         // Send success message
         await interaction.editReply({
@@ -351,13 +359,18 @@ const handleInfoSubcommand = async (
             });
 
             // Add current DJ information
-            if (guildData.dj.users.currentDJ && guildData.dj.users.currentDJ.userId) {
+            if (guildData.dj.users.currentDJ &&
+                guildData.dj.users.currentDJ.userId &&
+                guildData.dj.users.currentDJ.assignedAt &&
+                guildData.dj.users.currentDJ.expiresAt) {
+
+                const assignedTimestamp = Math.floor(guildData.dj.users.currentDJ.assignedAt.getTime() / 1000);
                 const expiryTimestamp = Math.floor(guildData.dj.users.currentDJ.expiresAt.getTime() / 1000);
 
                 embed.addFields({
                     name: "Current DJ",
                     value: `• User: <@${guildData.dj.users.currentDJ.userId}>
-• Assigned: <t:${Math.floor(guildData.dj.users.currentDJ.assignedAt.getTime() / 1000)}:R>
+• Assigned: <t:${assignedTimestamp}:R>
 • Expires: <t:${expiryTimestamp}:R> (<t:${expiryTimestamp}:f>)`
                 });
             } else {

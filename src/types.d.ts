@@ -113,6 +113,11 @@ export interface IConfig {
             spotify_presence?: {
                 enabled: boolean;
             };
+            dj_role?: {
+                enabled: boolean;
+                default_timeout: number;
+                default_role_name: string;
+            };
         };
     };
     music: {
@@ -212,11 +217,11 @@ export interface IDJUser {
     },
     users: {
         currentDJ: {
-            userId: string;
-            username: string;
-            assignedAt: Date;
-            expiresAt: Date;
-        },
+            userId: string | null;
+            username: string | null;
+            assignedAt: Date | null;
+            expiresAt: Date | null;
+        } | null,
         previousDJs: Array<{
             userId: string;
             username: string;

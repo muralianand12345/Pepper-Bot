@@ -31,18 +31,13 @@ class DJRoleService {
                 // Create default DJ configuration
                 const defaultDJConfig: IDJUser = {
                     enabled: false,
-                    roleId: "no role",
+                    roleId: "",
                     auto: {
                         assign: true,
                         timeout: 86400000, // 24 hours
                     },
                     users: {
-                        currentDJ: {
-                            userId: "user not assigned",
-                            username: "user not assigned",
-                            assignedAt: new Date(),
-                            expiresAt: new Date(),
-                        },
+                        currentDJ: null,
                         previousDJs: []
                     }
                 };
@@ -60,18 +55,13 @@ class DJRoleService {
                 // If guild exists but DJ config doesn't, add default DJ config
                 guildData.dj = {
                     enabled: false,
-                    roleId: "no role",
+                    roleId: "",
                     auto: {
                         assign: true,
                         timeout: 86400000, // 24 hours
                     },
                     users: {
-                        currentDJ: {
-                            userId: "user not assigned",
-                            username: "user not assigned",
-                            assignedAt: new Date(),
-                            expiresAt: new Date(),
-                        },
+                        currentDJ: null,
                         previousDJs: []
                     }
                 };
@@ -113,7 +103,23 @@ class DJRoleService {
             // Update user data if provided
             if (updateData.users) {
                 if (updateData.users.currentDJ) {
-                    Object.assign(guildData.dj.users.currentDJ, updateData.users.currentDJ);
+                    if (!guildData.dj.users.currentDJ) {
+                        guildData.dj.users.currentDJ = {
+                            userId: null,
+                            username: null,
+                            assignedAt: null,
+                            expiresAt: null
+                        };
+                    }
+
+                    if (updateData.users.currentDJ.userId)
+                        guildData.dj.users.currentDJ.userId = updateData.users.currentDJ.userId;
+                    if (updateData.users.currentDJ.username)
+                        guildData.dj.users.currentDJ.username = updateData.users.currentDJ.username;
+                    if (updateData.users.currentDJ.assignedAt)
+                        guildData.dj.users.currentDJ.assignedAt = updateData.users.currentDJ.assignedAt;
+                    if (updateData.users.currentDJ.expiresAt)
+                        guildData.dj.users.currentDJ.expiresAt = updateData.users.currentDJ.expiresAt;
                 }
 
                 if (updateData.users.previousDJs) {
@@ -252,7 +258,7 @@ class DJRoleService {
                 role = guild.roles.cache.get(guildData.dj.roleId) || null;
             }
 
-            // Create role if it doesn't exist
+            // Create role if it doesn't exist or if the existing role ID is invalid
             if (!role) {
                 try {
                     role = await guild.roles.create({
@@ -272,13 +278,17 @@ class DJRoleService {
             }
 
             // If there's a current DJ, move them to previous DJs
-            if (guildData.dj.users.currentDJ?.userId && guildData.dj.users.currentDJ.userId !== userId) {
+            if (guildData.dj.users.currentDJ &&
+                guildData.dj.users.currentDJ.userId &&
+                guildData.dj.users.currentDJ.userId !== userId &&
+                this.isValidSnowflake(guildData.dj.users.currentDJ.userId)) {
+
                 // Add current DJ to previous DJs list
                 guildData.dj.users.previousDJs.push({
                     userId: guildData.dj.users.currentDJ.userId,
-                    username: guildData.dj.users.currentDJ.username,
-                    assignedAt: guildData.dj.users.currentDJ.assignedAt,
-                    expiresAt: guildData.dj.users.currentDJ.expiresAt
+                    username: guildData.dj.users.currentDJ.username || "Unknown",
+                    assignedAt: guildData.dj.users.currentDJ.assignedAt || new Date(),
+                    expiresAt: guildData.dj.users.currentDJ.expiresAt || new Date()
                 });
 
                 // Limit previous DJs list to last 10
@@ -303,12 +313,19 @@ class DJRoleService {
             const duration = durationMs || guildData.dj.auto.timeout;
             const expiresAt = new Date(now.getTime() + duration);
 
-            guildData.dj.users.currentDJ = {
-                userId,
-                username: userName,
-                assignedAt: now,
-                expiresAt
-            };
+            if (!guildData.dj.users.currentDJ) {
+                guildData.dj.users.currentDJ = {
+                    userId: null,
+                    username: null,
+                    assignedAt: null,
+                    expiresAt: null
+                };
+            }
+
+            guildData.dj.users.currentDJ.userId = userId;
+            guildData.dj.users.currentDJ.username = userName;
+            guildData.dj.users.currentDJ.assignedAt = now;
+            guildData.dj.users.currentDJ.expiresAt = expiresAt;
 
             await guildData.save();
 
@@ -361,9 +378,44 @@ class DJRoleService {
             }
 
             // Determine which user to remove the role from
-            const targetUserId = userId || guildData.dj.users.currentDJ?.userId;
-            if (!targetUserId) {
+            if (!userId && (!guildData.dj.users.currentDJ || !guildData.dj.users.currentDJ.userId)) {
+                // No user specified and no current DJ
                 return false;
+            }
+
+            const targetUserId = userId || (guildData.dj.users.currentDJ?.userId || null);
+
+            // Validate the user ID is a valid snowflake
+            if (!targetUserId || !this.isValidSnowflake(targetUserId)) {
+                this.client.logger.warn(`[DJ_ROLE] Invalid user ID for role removal: ${targetUserId}`);
+
+                // Still update the database to remove invalid current DJ
+                if (!userId && guildData.dj.users.currentDJ) {
+                    // Move to previous DJs list if it's a valid entry
+                    if (guildData.dj.users.currentDJ.userId &&
+                        guildData.dj.users.currentDJ.username &&
+                        guildData.dj.users.currentDJ.assignedAt &&
+                        guildData.dj.users.currentDJ.expiresAt) {
+
+                        guildData.dj.users.previousDJs.push({
+                            userId: guildData.dj.users.currentDJ.userId,
+                            username: guildData.dj.users.currentDJ.username,
+                            assignedAt: guildData.dj.users.currentDJ.assignedAt,
+                            expiresAt: guildData.dj.users.currentDJ.expiresAt
+                        });
+
+                        // Limit previous DJs list
+                        if (guildData.dj.users.previousDJs.length > 10) {
+                            guildData.dj.users.previousDJs = guildData.dj.users.previousDJs.slice(-10);
+                        }
+                    }
+
+                    // Clear current DJ
+                    guildData.dj.users.currentDJ = null;
+                    await guildData.save();
+                }
+
+                return true; // Return true because we've cleaned up the database
             }
 
             // Get the Discord guild
@@ -377,18 +429,25 @@ class DJRoleService {
             const role = guild.roles.cache.get(guildData.dj.roleId);
             if (!role) {
                 this.client.logger.error(`[DJ_ROLE] Role ${guildData.dj.roleId} not found in guild ${guildId}`);
-                return false;
+
+                // Update the configuration anyway
+                if (!userId && guildData.dj.users.currentDJ) {
+                    guildData.dj.users.currentDJ = null;
+                    await guildData.save();
+                }
+
+                return true; // Return true because we've cleaned up the database
             }
 
             // If removing the current DJ, update the configuration
-            if (!userId || (guildData.dj.users.currentDJ && guildData.dj.users.currentDJ.userId === userId)) {
+            if (!userId || (guildData.dj.users.currentDJ && guildData.dj.users.currentDJ.userId === targetUserId)) {
                 if (guildData.dj.users.currentDJ && guildData.dj.users.currentDJ.userId) {
                     // Move to previous DJs list
                     guildData.dj.users.previousDJs.push({
                         userId: guildData.dj.users.currentDJ.userId,
-                        username: guildData.dj.users.currentDJ.username,
-                        assignedAt: guildData.dj.users.currentDJ.assignedAt,
-                        expiresAt: guildData.dj.users.currentDJ.expiresAt
+                        username: guildData.dj.users.currentDJ.username || "Unknown",
+                        assignedAt: guildData.dj.users.currentDJ.assignedAt || new Date(),
+                        expiresAt: guildData.dj.users.currentDJ.expiresAt || new Date()
                     });
 
                     // Limit previous DJs list to last 10
@@ -398,13 +457,7 @@ class DJRoleService {
                 }
 
                 // Clear current DJ
-                guildData.dj.users.currentDJ = {
-                    userId: "",
-                    username: "",
-                    assignedAt: new Date(),
-                    expiresAt: new Date()
-                };
-
+                guildData.dj.users.currentDJ = null;
                 await guildData.save();
             }
 
@@ -431,6 +484,9 @@ class DJRoleService {
                 }
             } catch (error) {
                 this.client.logger.error(`[DJ_ROLE] Failed to remove DJ role from user ${targetUserId}: ${error}`);
+
+                // Still return true if we updated the database successfully
+                return true;
             }
 
             return false;
@@ -438,6 +494,16 @@ class DJRoleService {
             this.client.logger.error(`[DJ_ROLE] Error removing DJ role: ${error}`);
             return false;
         }
+    }
+
+    /**
+     * Check if a string is a valid Discord snowflake (user ID)
+     * @param id String to validate
+     * @returns Boolean indicating if the ID is a valid snowflake
+     */
+    private isValidSnowflake(id: string): boolean {
+        // Discord snowflakes are 17-20 digit numbers
+        return /^\d{17,20}$/.test(id);
     }
 
     /**
@@ -450,7 +516,7 @@ class DJRoleService {
             const now = new Date();
             const guilds = await music_guild.find({
                 "dj.enabled": true,
-                "dj.users.currentDJ.userId": { $exists: true, $ne: "" },
+                "dj.users.currentDJ.userId": { $exists: true, $ne: null },
                 "dj.users.currentDJ.expiresAt": { $lt: now }
             });
 

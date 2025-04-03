@@ -28,7 +28,10 @@ const event: BotEvent = {
             if (!guildData || !guildData.dj || !guildData.dj.enabled || !guildData.dj.auto.assign) return;
 
             // Check if the DJ role has expired but wasn't removed yet
-            if (guildData.dj.users.currentDJ && guildData.dj.users.currentDJ.userId) {
+            if (guildData.dj.users.currentDJ &&
+                guildData.dj.users.currentDJ.userId &&
+                guildData.dj.users.currentDJ.expiresAt) {
+
                 const now = new Date();
                 const expiryTime = new Date(guildData.dj.users.currentDJ.expiresAt);
 
