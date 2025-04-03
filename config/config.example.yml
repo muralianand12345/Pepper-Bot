@@ -25,7 +25,12 @@ bot:
         server: "1234567890" # New/Left Server Log Channel ID
     features:
         spotify_presence:
-            enabled: false # Need improvements
+            enabled: false
+        dj_role:
+            enabled: false
+            default_timeout: 86400000
+            default_role_name: DJ
+        
 
 music:
     enabled: true
