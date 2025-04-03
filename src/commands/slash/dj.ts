@@ -479,6 +479,7 @@ const djRoleCommand: SlashCommand = {
     data: new discord.SlashCommandBuilder()
         .setName("dj")
         .setDescription("Manage the DJ role for music commands")
+        .setContexts(discord.InteractionContextType.Guild)
         .addSubcommand(subcommand =>
             subcommand
                 .setName("setup")
@@ -563,6 +564,29 @@ const djRoleCommand: SlashCommand = {
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
     ) => {
+
+        if (!client.config.music.enabled) {
+            return await interaction.reply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "Music is currently disabled"
+                    )
+                ],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+        }
+
+        if (!client.config.bot.features?.dj_role?.enabled) {
+            return await interaction.reply({
+                embeds: [
+                    new MusicResponseHandler(client).createErrorEmbed(
+                        "The DJ role feature is not enabled on this server"
+                    )
+                ],
+                flags: discord.MessageFlags.Ephemeral,
+            });
+        }
+
         // Check if the interaction is in a guild
         if (!interaction.guild) {
             return await interaction.reply({
@@ -571,7 +595,7 @@ const djRoleCommand: SlashCommand = {
                         "This command can only be used in a server"
                     )
                 ],
-                ephemeral: true
+                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
@@ -593,7 +617,7 @@ const djRoleCommand: SlashCommand = {
                             "You need Administrator or Manage Roles permission to use this command"
                         )
                     ],
-                    ephemeral: true
+                    flags: discord.MessageFlags.Ephemeral,
                 });
             }
         }
