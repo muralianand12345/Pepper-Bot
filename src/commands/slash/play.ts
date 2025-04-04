@@ -16,7 +16,7 @@ const configManager = ConfigManager.getInstance();
  */
 const CONFIG = {
     /** Error message for failed Lavalink node search */
-    ERROR_SEARCH_TEXT: "Error fetching Lavalink nodes",
+    ERROR_SEARCH_TEXT: "Unable To Fetch Results",
     /** Default placeholder text for search input */
     DEFAULT_SEARCH_TEXT: "Please enter a song name or url",
     /** Default player configuration options */
@@ -81,18 +81,32 @@ const playcommand: SlashCommand = {
                         .includes(focused.value.toLowerCase())
                 );
             } else if (focused.name === "song") {
-                suggestions = !focused.value
-                    ? [
+                if (!focused.value) {
+                    suggestions = [
                         {
                             name: CONFIG.DEFAULT_SEARCH_TEXT.slice(0, 100),
                             value: CONFIG.DEFAULT_SEARCH_TEXT,
                         },
-                    ]
-                    : await new SpotifyAutoComplete(
-                        client,
-                        configManager.getSpotifyClientId(),
-                        configManager.getSpotifyClientSecret()
-                    ).getSuggestions(focused.value);
+                    ];
+                } else {
+                    focused.value = focused.value.split("?")[0].split("#")[0];
+
+                    const isSpotifyLink = focused.value.match(/^(https:\/\/open\.spotify\.com\/|spotify:)/i);
+                    if (isSpotifyLink) {
+                        suggestions = await new SpotifyAutoComplete(
+                            client,
+                            configManager.getSpotifyClientId(),
+                            configManager.getSpotifyClientSecret()
+                        ).getSuggestions(focused.value);
+                    } else {
+                        suggestions = [
+                            {
+                                name: `${focused.value.slice(0, 80)}`,
+                                value: focused.value,
+                            },
+                        ];
+                    }
+                }
             }
 
             await interaction.respond(suggestions || []);
