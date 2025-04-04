@@ -54,9 +54,6 @@ const validateMessage = (
 
     if (client.config.bot.command.disable_message) return false;
     if (message.author.bot) return false;
-    if (!message.content.startsWith(client.config.bot.command.prefix))
-        return false;
-
     return true;
 };
 
@@ -236,7 +233,20 @@ const event: BotEvent = {
             // Early validation checks
             if (!validateMessage(message, client)) return;
 
-            const prefix = client.config.bot.command.prefix;
+            let prefix;
+
+            const guild_data = await music_guild.findOne({
+                guildId: message.guild?.id,
+            });
+
+            if (guild_data) {
+                prefix = guild_data.prefix;
+            } else {
+                prefix = client.config.bot.command.prefix;
+            }
+
+            if (!message.content.startsWith(prefix)) return;
+
             const args = message.content
                 .slice(prefix.length)
                 .trim()

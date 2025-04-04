@@ -15,10 +15,8 @@ const command: Command = {
         args: Array<string>
     ) => {
         try {
-            const chan = message.channel as
-                | discord.GuildTextBasedChannel
-                | discord.DMChannel;
-            const sent = await chan.send("🏓 Pinging...");
+
+            const sent = await message.reply("🏓 Pinging...");
 
             const roundTripLatency =
                 sent.createdTimestamp - message.createdTimestamp;
