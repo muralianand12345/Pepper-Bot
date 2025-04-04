@@ -29,24 +29,29 @@ const getTrackProgress = (position: number, duration: number): {
     };
 };
 
+
+
 /**
- * Creates a progress bar with emoji indicators
- * @param position Current position in milliseconds
- * @param duration Total duration in milliseconds
- * @param length Number of segments in the bar
- * @returns Formatted progress bar string
+ * Sets up the music channel embed with modern Discord-style
+ * @param {discord.TextChannel} channel - Discord text channel to send the embed
+ * @param {discord.Client} client - Discord client instance
+ * @returns {Promise<discord.Message>} The message object containing the embed
  */
-const createProgressBar = (position: number, duration: number, length: number = 15): string => {
-    // Get the track progress data
-    const progress = getTrackProgress(position, duration);
+const setupMusicChannelEmbed = async (channel: discord.TextChannel | any, client: discord.Client) => {
+    const embed = new discord.EmbedBuilder()
+        .setColor("Blurple")
+        .setTitle(`${client.user?.username} Music Panel`)
+        .setDescription("Type a song name or URL to get started!")
+        .setImage(client.config.music.image)
+        .setFooter({ text: `${client.user?.username}`, iconURL: client.user?.displayAvatarURL() })
+        .setTimestamp();
 
-    // Calculate the number of filled blocks based on the actual percentage
-    const filledBlocks = Math.floor(progress.percentage * length);
+    const message = await channel.send({
+        embeds: [embed],
+        components: [musicButton]
+    });
 
-    // Build the progress bar
-    return "▬".repeat(Math.max(0, filledBlocks)) +
-        "●" +
-        "▬".repeat(Math.max(0, length - filledBlocks - 1));
+    return message;
 };
 
 /**
@@ -402,4 +407,5 @@ export {
     MusicResponseHandler,
     createTrackEmbed,
     createPlaylistEmbed,
+    setupMusicChannelEmbed
 };

@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import music_guild from "../../events/database/schema/music_guild";
-import { MusicResponseHandler } from "../../utils/music/embed_template";
+import { MusicResponseHandler, setupMusicChannelEmbed } from "../../utils/music/embed_template";
 import { SlashCommand } from "../../types";
 
 const setupCommand: SlashCommand = {
@@ -90,6 +90,11 @@ const setupCommand: SlashCommand = {
             // Update music channel if provided
             if (musicChannel) {
                 guildData.songChannelId = musicChannel.id;
+                const music_pannel_message = await setupMusicChannelEmbed(musicChannel, client);
+                guildData.musicPannelId = music_pannel_message?.id || null;
+                client.logger.info(
+                    `[SETUP] Initialized music channel embed in #${musicChannel.name} (${musicChannel.id})`
+                );
             }
 
             // Save changes to database

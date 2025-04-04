@@ -261,6 +261,7 @@ export interface IMusicGuild extends mongoose.Document {
     guildId: string;
     prefix: string;
     songChannelId: string | null;
+    musicPannelId: string | null;
     dj: IDJUser;
     songs: Array<ISongs>;
 }

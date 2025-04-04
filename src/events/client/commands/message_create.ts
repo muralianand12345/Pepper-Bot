@@ -245,6 +245,7 @@ const event: BotEvent = {
                 prefix = client.config.bot.command.prefix;
             }
 
+            if (message.channel.id === guild_data?.songChannelId) return;
             if (!message.content.startsWith(prefix)) return;
 
             const args = message.content
