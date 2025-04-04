@@ -4,14 +4,6 @@ import { promises as fs } from "fs";
 import { BotEvent } from "../../../types";
 import magmastream from "magmastream";
 
-/**
- * Loads Lavalink events from the specified directory
- * @async
- * @param {discord.Client} client - The Discord client instance
- * @param {string} eventsPath - The path to the events directory
- * @throws {Error} When event loading fails
- * @returns {Promise<void>}
- */
 const loadLavalinkEvents = async (
     client: discord.Client,
     eventsPath: string
@@ -58,11 +50,6 @@ const loadLavalinkEvents = async (
     }
 };
 
-/**
- * Client Ready event handler
- * Initializes Lavalink manager and loads events when the client is ready
- * @type {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.ClientReady,
     execute: async (client: discord.Client): Promise<void> => {

@@ -4,9 +4,6 @@ import { MusicResponseHandler } from "../../utils/music/embed_template";
 import PlaylistSuggestion from "../../utils/music/playlist_suggestion";
 import { SlashCommand, ISongs } from "../../types";
 
-/**
- * Command to get Spotify song recommendations based on user's listening history
- */
 const spotifyRecommendCommand: SlashCommand = {
     cooldown: 10,
     owner: false,

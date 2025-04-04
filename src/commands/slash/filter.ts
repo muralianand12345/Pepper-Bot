@@ -6,9 +6,6 @@ import { VoiceChannelValidator } from "../../utils/music/music_validations";
 import { SlashCommand, FilterPreset } from "../../types";
 
 
-/**
- * Available audio filter presets for the music player
- */
 const FILTER_PRESETS: Record<string, FilterPreset> = {
     clear: { name: "Clear", emoji: "🔄", description: "Remove all filters" },
     bassboost: { name: "Bass Boost", emoji: "🔊", description: "Enhance the bass frequencies" },
@@ -23,20 +20,10 @@ const FILTER_PRESETS: Record<string, FilterPreset> = {
     tremolo: { name: "Tremolo", emoji: "📳", description: "Add tremolo effect" }
 };
 
-/**
- * Type guard to check if a filter name is valid
- * @param filterName Name of the filter to check
- * @returns Whether the filter name is a valid key in FILTER_PRESETS
- */
 const isValidFilterName = (filterName: string): filterName is keyof typeof FILTER_PRESETS => {
     return filterName in FILTER_PRESETS;
 };
 
-/**
- * Slash command for applying audio filters to the currently playing music
- * Can only be used by users with the DJ role
- * @type {SlashCommand}
- */
 const filterCommand: SlashCommand = {
     cooldown: 5,
     owner: false,

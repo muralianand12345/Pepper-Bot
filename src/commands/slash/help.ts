@@ -2,11 +2,6 @@ import discord from "discord.js";
 import Formatter from "../../utils/format";
 import { SlashCommand, Command, CommandInfo } from "../../types";
 
-/**
- * Creates a formatted section for commands
- * @param commands - Array of command information
- * @returns Formatted string of commands
- */
 const formatCommandSection = (
     commands: CommandInfo[],
     prefix: string
@@ -22,12 +17,6 @@ const helpCommand: SlashCommand = {
     data: new discord.SlashCommandBuilder()
         .setName("help")
         .setDescription("Display a comprehensive list of available commands"),
-
-    /**
-     * Executes the help command and displays a detailed command listing
-     * @param {discord.ChatInputCommandInteraction} interaction - The command interaction
-     * @param {discord.Client} client - The Discord client instance
-     */
     execute: async (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
@@ -57,10 +46,9 @@ const helpCommand: SlashCommand = {
                     "🔗 **Quick Links:**",
                     `[Add to Server](https://discord.com/oauth2/authorize?client_id=${botUser.id}&permissions=8&scope=bot%20applications.commands) • [Support Server](https://discord.gg/XzE9hSbsNb) • [Website](https://pepperbot.muralianand.in/)`,
                     "",
-                    `⚡ **Prefix:** \`${
-                        client.config.bot.command.disable_message
-                            ? "/"
-                            : client.config.bot.command.prefix
+                    `⚡ **Prefix:** \`${client.config.bot.command.disable_message
+                        ? "/"
+                        : client.config.bot.command.prefix
                     }\``,
                     `⏰ **Uptime:** \`${Formatter.msToTime(
                         client.uptime || 0

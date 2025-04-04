@@ -2,22 +2,12 @@ import discord from "discord.js";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { SlashCommand } from "../../types";
 
-/**
- * Slash command for collecting user feedback via a modal form
- * @type {SlashCommand}
- */
 const feedbackCommand: SlashCommand = {
     cooldown: 120,
     owner: false,
     data: new discord.SlashCommandBuilder()
         .setName("feedback")
         .setDescription("Send feedback to the bot developers"),
-
-    /**
-     * Executes the feedback command by displaying a modal form
-     * @param {discord.ChatInputCommandInteraction} interaction - The command interaction
-     * @param {discord.Client} client - The Discord client instance
-     */
     execute: async (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client

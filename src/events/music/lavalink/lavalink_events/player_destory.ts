@@ -4,9 +4,6 @@ import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import AutoplayManager from "../../../../utils/music/autoplay_manager";
 import { LavalinkEvent } from "../../../../types";
 
-/**
- * Lavalink player destroy event handler
- */
 const lavalinkEvent: LavalinkEvent = {
     name: ManagerEventTypes.PlayerDestroy,
     execute: async (player: magmastream.Player, client: discord.Client) => {

@@ -11,10 +11,6 @@ import { Command, SlashCommand } from "./types";
 // Load environment variables
 const configManager = ConfigManager.getInstance();
 
-/**
- * Loads configuration from YAML file
- * @returns Configuration object
- */
 const loadConfig = (client: discord.Client) => {
     try {
         const configPath = path.join(__dirname, "../config/config.yml");
@@ -26,12 +22,6 @@ const loadConfig = (client: discord.Client) => {
     }
 };
 
-/**
- * Initializes the Lavalink manager configuration
- * @param config The application configuration
- * @param client The Discord client instance
- * @returns Manager instance
- */
 const initializeManager = (config: any, client: discord.Client) => {
     return new Manager({
         usePriority: true,
@@ -47,10 +37,6 @@ const initializeManager = (config: any, client: discord.Client) => {
     });
 };
 
-/**
- * Creates and configures the Discord client with all necessary properties
- * @returns Configured Discord client
- */
 const createClient = (): discord.Client => {
     const client = new discord.Client({
         intents: [

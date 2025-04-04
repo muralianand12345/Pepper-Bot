@@ -6,24 +6,12 @@ import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import AutoplayManager from "../../../../utils/music/autoplay_manager";
 import { LavalinkEvent } from "../../../../types";
 
-/**
- * Creates a queue end notification embed
- * @param client - Discord client instance
- * @returns EmbedBuilder instance
- */
 const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {
     return new MusicResponseHandler(client).createInfoEmbed(
         "🎵 Played all music in queue"
     );
 };
 
-/**
- * Checks if autoplay should keep the player alive
- * @param player - Music player instance
- * @param guildId - Guild ID for the player
- * @param client - Discord client instance
- * @returns Whether autoplay is enabled and active
- */
 const shouldAutoplayKeepAlive = (
     player: magmastream.Player,
     guildId: string,
@@ -42,12 +30,6 @@ const shouldAutoplayKeepAlive = (
     }
 };
 
-/**
- * Handles player cleanup after queue end
- * @param player - Music player instance
- * @param guildId - Guild ID for the player
- * @param client - Discord client instance
- */
 const handlePlayerCleanup = async (
     player: magmastream.Player,
     guildId: string,
@@ -101,10 +83,6 @@ const handlePlayerCleanup = async (
     player.destroy();
 };
 
-/**
- * Lavalink queue end event handler
- * Handles the event when all music in the queue has finished playing
- */
 const lavalinkEvent: LavalinkEvent = {
     name: ManagerEventTypes.QueueEnd,
     execute: async (

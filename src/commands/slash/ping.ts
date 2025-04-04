@@ -4,22 +4,12 @@ import Formatter from "../../utils/format";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { SlashCommand } from "../../types";
 
-/**
- * Ping command to check bot latency and system status
- * @type {SlashCommand}
- */
 const pingCommand: SlashCommand = {
     cooldown: 120,
     owner: false,
     data: new discord.SlashCommandBuilder()
         .setName("ping")
         .setDescription("Check bot status and response time"),
-
-    /**
-     * Executes the ping command and displays detailed system information
-     * @param {discord.ChatInputCommandInteraction} interaction - The command interaction
-     * @param {discord.Client} client - The Discord client instance
-     */
     execute: async (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client

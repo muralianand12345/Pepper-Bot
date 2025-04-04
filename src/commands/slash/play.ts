@@ -10,26 +10,15 @@ import { SlashCommand, INodeOption } from "../../types";
 // Load environment variables
 const configManager = ConfigManager.getInstance();
 
-/**
- * Configuration for music playback settings
- * @type {const}
- */
 const CONFIG = {
-    /** Error message for failed Lavalink node search */
     ERROR_SEARCH_TEXT: "Unable To Fetch Results",
-    /** Default placeholder text for search input */
     DEFAULT_SEARCH_TEXT: "Please enter a song name or url",
-    /** Default player configuration options */
     PLAYER_OPTIONS: {
         volume: 50,
         selfDeafen: true,
     },
 } as const;
 
-/**
- * Slash command for playing music in voice channels
- * @type {SlashCommand}
- */
 const playcommand: SlashCommand = {
     cooldown: 5,
     owner: false,
@@ -51,13 +40,6 @@ const playcommand: SlashCommand = {
                 .setRequired(false)
                 .setAutocomplete(true)
         ),
-
-    /**
-     * Handles song name autocomplete suggestions
-     * @param {discord.AutocompleteInteraction} interaction - Autocomplete interaction
-     * @param {discord.Client} client - Discord client instance
-     * @returns {Promise<void>}
-     */
     autocomplete: async (
         interaction: discord.AutocompleteInteraction,
         client: discord.Client
@@ -120,12 +102,6 @@ const playcommand: SlashCommand = {
             ]);
         }
     },
-
-    /**
-     * Executes the play command, handling music playback setup and validation
-     * @param {discord.ChatInputCommandInteraction} interaction - Command interaction
-     * @param {discord.Client} client - Discord client instance
-     */
     execute: async (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client

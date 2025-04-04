@@ -5,12 +5,6 @@ import MusicDB from "../../../../utils/music/music_db";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import { LavalinkEvent, ISongsUser } from "../../../../types";
 
-/**
- * Handles track start event logging
- * @param track - Track that started playing
- * @param player - Music player instance
- * @param client - Discord client instance
- */
 const logTrackStart = (
     track: magmastream.Track,
     player: magmastream.Player,
@@ -37,9 +31,6 @@ const logTrackStart = (
     );
 };
 
-/**
- * Creates a user data object from a discord user
- */
 const convertUserToUserData = (user: discord.User | null): ISongsUser | null => {
     if (!user) return null;
     
@@ -51,9 +42,6 @@ const convertUserToUserData = (user: discord.User | null): ISongsUser | null => 
     };
 };
 
-/**
- * Lavalink track start event handler
- */
 const lavalinkEvent: LavalinkEvent = {
     name: ManagerEventTypes.TrackStart,
     execute: async (

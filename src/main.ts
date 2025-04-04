@@ -7,11 +7,6 @@ import { ConfigManager } from "./utils/config";
 // Load environment variables
 const configManager = ConfigManager.getInstance();
 
-/**
- * Loads handler files and attaches them to the client
- * @param client Discord client instance
- * @param handlersPath Path to handlers directory
- */
 const loadHandlers = async (
     client: discord.Client,
     handlersPath: string
@@ -51,11 +46,6 @@ const loadHandlers = async (
     }
 };
 
-/**
- * Loads event files from nested directory structure
- * @param client Discord client instance
- * @param eventsPath Path to events directory
- */
 const loadEvents = async (
     client: discord.Client,
     eventsPath: string
@@ -122,10 +112,6 @@ const loadEvents = async (
     }
 };
 
-/**
- * Sets up process-wide error handlers
- * @param client Discord client instance
- */
 const setupErrorHandlers = (client: discord.Client): void => {
     process.on("unhandledRejection", (error: Error) => {
         client.logger.error(
@@ -143,10 +129,6 @@ const setupErrorHandlers = (client: discord.Client): void => {
     });
 };
 
-/**
- * Initializes the bot by loading all handlers, events and connect to database
- * @param client Discord client instance
- */
 const initializeBot = async (client: discord.Client): Promise<void> => {
     const handlersPath = path.join(__dirname, "handlers");
     const eventsPath = path.join(__dirname, "events");

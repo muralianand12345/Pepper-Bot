@@ -6,10 +6,6 @@ import {
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { SlashCommand } from "../../types";
 
-/**
- * Slash command for skipping time or skip to next song
- * @type {SlashCommand}
- */
 const skipcommand: SlashCommand = {
     cooldown: 2,
     owner: false,
@@ -23,12 +19,6 @@ const skipcommand: SlashCommand = {
                 .setDescription("Skip to a specific time in seconds")
                 .setRequired(false)
         ),
-
-    /**
-     * Executes the play command, handling music playback setup and validation
-     * @param {discord.ChatInputCommandInteraction} interaction - Command interaction
-     * @param {discord.Client} client - Discord client instance
-     */
     execute: async (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
