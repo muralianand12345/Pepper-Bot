@@ -24,6 +24,8 @@ class MusicDB {
                 data.songs = [];
             }
 
+            songs_data.artworkUrl = songs_data.artworkUrl || songs_data.thumbnail || "https://www.shutterstock.com/image-illustration/no-music-sound-sign-symbol-260nw-1102194074.jpg";
+
             const songExists = data.songs.find(
                 (song) => song.uri === songs_data.uri
             );

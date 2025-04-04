@@ -212,7 +212,7 @@ export interface ISongsUser {
 
 export interface IDJUser {
     enabled: boolean;
-    roleId: string;
+    roleId: string | null;
     auto: {
         assign: boolean;
         timeout: number;

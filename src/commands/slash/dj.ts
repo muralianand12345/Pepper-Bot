@@ -345,6 +345,15 @@ const handleInfoSubcommand = async (
 
         // Add role information if enabled
         if (guildData.dj.enabled) {
+            if (!guildData.dj.roleId) {
+                return await interaction.editReply({
+                    embeds: [
+                        new MusicResponseHandler(client).createErrorEmbed(
+                            "The DJ role is not configured. Please use `/dj setup` to configure it."
+                        )
+                    ]
+                });
+            }
             const role = interaction.guild?.roles.cache.get(guildData.dj.roleId);
 
             embed.addFields({

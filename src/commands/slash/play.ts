@@ -83,16 +83,16 @@ const playcommand: SlashCommand = {
             } else if (focused.name === "song") {
                 suggestions = !focused.value
                     ? [
-                          {
-                              name: CONFIG.DEFAULT_SEARCH_TEXT,
-                              value: CONFIG.DEFAULT_SEARCH_TEXT,
-                          },
-                      ]
+                        {
+                            name: CONFIG.DEFAULT_SEARCH_TEXT.slice(0, 100),
+                            value: CONFIG.DEFAULT_SEARCH_TEXT,
+                        },
+                    ]
                     : await new SpotifyAutoComplete(
-                          client,
-                          configManager.getSpotifyClientId(),
-                          configManager.getSpotifyClientSecret()
-                      ).getSuggestions(focused.value);
+                        client,
+                        configManager.getSpotifyClientId(),
+                        configManager.getSpotifyClientSecret()
+                    ).getSuggestions(focused.value);
             }
 
             await interaction.respond(suggestions || []);
@@ -100,7 +100,7 @@ const playcommand: SlashCommand = {
             client.logger.error(`[NODE_PLAY] Autocomplete error: ${error}`);
             await interaction.respond([
                 {
-                    name: CONFIG.ERROR_SEARCH_TEXT,
+                    name: CONFIG.ERROR_SEARCH_TEXT.slice(0, 100),
                     value: CONFIG.ERROR_SEARCH_TEXT,
                 },
             ]);

@@ -10,10 +10,10 @@ const userDataSchema = new Schema<ISongsUser>({
 
 const djDataSchema = new Schema<IDJUser>({
     enabled: { type: Boolean, required: true, default: false },
-    roleId: { type: String, required: true, default: "" },
+    roleId: { type: String, required: false },
     auto: {
         assign: { type: Boolean, required: true, default: true },
-        timeout: { type: Number, required: true, default: 86400000 }, // 24 hours
+        timeout: { type: Number, required: true, default: 86400000 }, 
     },
     users: {
         currentDJ: {

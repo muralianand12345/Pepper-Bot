@@ -40,12 +40,16 @@ const logTrackStart = (
 /**
  * Creates a user data object from a discord user
  */
-const convertUserToUserData = (user: discord.User): ISongsUser => ({
-    id: user.id,
-    username: user.username,
-    discriminator: user.discriminator,
-    avatar: user.avatar || undefined,
-});
+const convertUserToUserData = (user: discord.User | null): ISongsUser | null => {
+    if (!user) return null;
+    
+    return {
+        id: user.id,
+        username: user.username,
+        discriminator: user.discriminator,
+        avatar: user.avatar || undefined,
+    };
+};
 
 /**
  * Lavalink track start event handler
