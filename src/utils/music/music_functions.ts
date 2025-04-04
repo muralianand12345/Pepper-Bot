@@ -137,6 +137,34 @@ const handleSearchResult = async (
 };
 
 /**
+ * Sends a temporary message that auto-deletes after specified time
+ * @param channel - Text channel to send message
+ * @param content - Message content to send
+ * @param duration - Duration in ms before deletion
+ * @returns Promise resolving to the sent message
+ */
+const sendTempMessageContent = async (
+    channel: discord.TextChannel,
+    content: discord.MessageCreateOptions,
+    duration: number = 5000
+): Promise<discord.Message | null> => {
+    try {
+        const message = await channel.send(content);
+
+        // Set timeout to delete the message
+        setTimeout(() => {
+            message.delete().catch(() => {
+                // Ignore error if message is already deleted
+            });
+        }, duration);
+
+        return message;
+    } catch (error) {
+        return null;
+    }
+};
+
+/**
  * Sends temporary message that auto-deletes after specified time
  * @param channel - Text channel to send message
  * @param embed - Embed message to send
@@ -153,7 +181,7 @@ const sendTempMessage = async (
     });
     if (!message) return;
 
-    setTimeout(() => message.delete().catch(() => {}), duration);
+    setTimeout(() => message.delete().catch(() => { }), duration);
 };
 
 /**
@@ -212,4 +240,5 @@ export {
     sendTempMessage,
     formatQueueMessage,
     QueuePagination,
+    sendTempMessageContent
 };

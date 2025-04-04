@@ -2,7 +2,10 @@ import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 import { musicEmbed, musicButton } from "../../../../utils/music/embed_template";
 import MusicDB from "../../../../utils/music/music_db";
+import music_guild from "../../../../events/database/schema/music_guild";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
+import MusicPanelManager from "../../../../utils/music/panel_manager";
+import { sendTempMessageContent } from "../../../../utils/music/music_functions";
 import { LavalinkEvent, ISongsUser } from "../../../../types";
 
 const logTrackStart = (
@@ -33,7 +36,7 @@ const logTrackStart = (
 
 const convertUserToUserData = (user: discord.User | null): ISongsUser | null => {
     if (!user) return null;
-    
+
     return {
         id: user.id,
         username: user.username,
@@ -57,6 +60,9 @@ const lavalinkEvent: LavalinkEvent = {
                 player.textChannelId
             )) as discord.TextChannel;
             if (!channel?.isTextBased()) return;
+
+            const guildData = await music_guild.findOne({ guildId: player.guildId });
+            const isSongChannel = guildData?.songChannelId === channel.id;
 
             // Skip displaying the embed if track is repeating, but still log data
             const shouldDisplayEmbed = !player.trackRepeat;
@@ -90,6 +96,10 @@ const lavalinkEvent: LavalinkEvent = {
             );
             await MusicDB.addMusicGuildData(player.guildId, songData);
 
+            // Update the music panel with current track
+            const panelManager = MusicPanelManager.getInstance(player.guildId, client);
+            await panelManager.updateWithCurrentTrack(track, player);
+
             // Only send the now playing message if not repeating
             if (shouldDisplayEmbed) {
                 // Get the now playing manager for this guild
@@ -104,13 +114,22 @@ const lavalinkEvent: LavalinkEvent = {
 
                 // Send a new message
                 try {
-                    const message = await channel.send({
-                        embeds: [embed],
-                        components: [musicButton]
-                    });
+                    if (isSongChannel) {
+                        await sendTempMessageContent(
+                            channel,
+                            { embeds: [embed], components: [musicButton] },
+                            5000 // 5 seconds
+                        );
+                    } else {
+                        // Regular channel - permanent message
+                        const message = await channel.send({
+                            embeds: [embed],
+                            components: [musicButton]
+                        });
 
-                    // Register the message with the now playing manager
-                    nowPlayingManager.setMessage(message, false);
+                        // Register the message with the now playing manager
+                        nowPlayingManager.setMessage(message, false);
+                    }
                 } catch (error: Error | any) {
                     if (error.code === 50007) {
                         client.logger.error(

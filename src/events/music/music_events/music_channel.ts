@@ -14,7 +14,6 @@ const tempMessage = async (
     }, timeout);
 }
 
-
 const event: BotEvent = {
     name: discord.Events.MessageCreate,
     execute: async (message: discord.Message, client: discord.Client) => {
@@ -106,6 +105,8 @@ const event: BotEvent = {
                 case "search": {
                     const track = res.tracks[0];
                     player.queue.add(track);
+
+                    console.log(!player.playing, !player.paused, player.queue.size);
                     if (!player.playing && !player.paused && player.queue.size)
                         player.play();
 
@@ -153,7 +154,6 @@ const event: BotEvent = {
                     tempMessage(message, msg);
                     break;
                 }
-
             }
         } catch (error) {
             client.logger.error(`[MUSIC_CHANNEL] Play error: ${error}`);
@@ -167,6 +167,5 @@ const event: BotEvent = {
         }
     }
 }
-
 
 export default event;

@@ -1,9 +1,11 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
-import { wait } from "../../../../utils/music/music_functions";
+import { wait, sendTempMessageContent } from "../../../../utils/music/music_functions";
 import { MusicResponseHandler } from "../../../../utils/music/embed_template";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import AutoplayManager from "../../../../utils/music/autoplay_manager";
+import MusicPanelManager from "../../../../utils/music/panel_manager";
+import music_guild from "../../../../events/database/schema/music_guild";
 import { LavalinkEvent } from "../../../../types";
 
 const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {
@@ -41,6 +43,10 @@ const handlePlayerCleanup = async (
         // Don't schedule cleanup when autoplay is enabled
         return;
     }
+
+    // Reset the music panel to default
+    const panelManager = MusicPanelManager.getInstance(guildId, client);
+    await panelManager.resetToDefault();
 
     // Wait 5 minutes before destroying the player
     const CLEANUP_DELAY = 300000; // 5 minutes in milliseconds
@@ -99,6 +105,10 @@ const lavalinkEvent: LavalinkEvent = {
             )) as discord.TextChannel;
             if (!channel?.isTextBased()) return;
 
+            // Check if this is the song channel
+            const guildData = await music_guild.findOne({ guildId: player.guildId });
+            const isSongChannel = guildData?.songChannelId === channel.id;
+
             // Get autoplay manager
             const autoplayManager = AutoplayManager.getInstance(
                 player.guildId,
@@ -117,10 +127,20 @@ const lavalinkEvent: LavalinkEvent = {
                 }
             }
 
-            // Send queue end message if autoplay didn't add tracks or is disabled
-            await channel.send({
-                embeds: [createQueueEndEmbed(client)],
-            });
+            // When sending the queue end message:
+            if (isSongChannel) {
+                // If it's the song channel, make it temporary
+                await sendTempMessageContent(
+                    channel,
+                    { embeds: [createQueueEndEmbed(client)] },
+                    5000 // 5 seconds
+                );
+            } else {
+                // Regular channel - permanent message
+                await channel.send({
+                    embeds: [createQueueEndEmbed(client)],
+                });
+            }
 
             // Schedule player cleanup if needed
             await handlePlayerCleanup(player, player.guildId, client);
