@@ -94,15 +94,23 @@ class VoiceChannelValidator {
 
     /**
      * Retrieves the guild member associated with the context
-     * @returns {discord.GuildMember | undefined} The guild member or undefined if not found
+     * @returns {Promise<discord.GuildMember | undefined>} The guild member or undefined if not found
      * @private
      */
-    private getGuildMember = (): discord.GuildMember | undefined => {
+    private getGuildMember = async (): Promise<discord.GuildMember | undefined> => {
         const guild = this.getGuild();
         const userId = this.getUserId();
 
         if (!guild) return undefined;
-        return guild.members.cache.get(userId);
+
+        try {
+            // Try to get from cache first, then fetch if not found
+            const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
+            return member;
+        } catch (error) {
+            this.client.logger.error(`[VALIDATOR] Failed to fetch guild member: ${error}`);
+            return undefined;
+        }
     };
 
     /**
@@ -113,7 +121,7 @@ class VoiceChannelValidator {
     private validateGuildMember = async (): Promise<
         [boolean, discord.EmbedBuilder]
     > => {
-        const member = this.getGuildMember();
+        const member = await this.getGuildMember();
         if (!member)
             return [false, this.createErrorEmbed("You are not in the server")];
         return [true, this.createErrorEmbed("")];
@@ -148,7 +156,14 @@ class VoiceChannelValidator {
         const [isValid, errorEmbed] = await this.validateGuildMember();
         if (!isValid) return [false, errorEmbed];
 
-        const member = this.getGuildMember()!;
+        const member = await this.getGuildMember();
+        if (!member) {
+            return [
+                false,
+                this.createErrorEmbed("Failed to find your guild member information"),
+            ];
+        }
+
         const voiceChannel = member.voice.channel;
 
         if (!voiceChannel) {
@@ -189,7 +204,14 @@ class VoiceChannelValidator {
     public async validateVoiceSameChannel(
         player: magmastream.Player
     ): Promise<[boolean, discord.EmbedBuilder]> {
-        const member = this.getGuildMember()!;
+        const member = await this.getGuildMember();
+        if (!member) {
+            return [
+                false,
+                this.createErrorEmbed("Failed to find your guild member information"),
+            ];
+        }
+
         return member.voice.channelId !== player.voiceChannelId
             ? [
                 false,
@@ -231,7 +253,14 @@ class VoiceChannelValidator {
         const [isValid, errorEmbed] = await this.validateGuildMember();
         if (!isValid) return [false, errorEmbed];
 
-        const member = this.getGuildMember()!;
+        const member = await this.getGuildMember();
+        if (!member) {
+            return [
+                false,
+                this.createErrorEmbed("Failed to find your guild member information"),
+            ];
+        }
+
         return member.voice.channelId !== player.voiceChannelId
             ? [
                 false,

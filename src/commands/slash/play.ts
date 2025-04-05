@@ -249,7 +249,13 @@ const playcommand: SlashCommand = {
             const res = await client.manager.search(query, interaction.user);
             if (res.loadType === "error")
                 throw new Error("No results found | loadType: error");
-            await handleSearchResult(res, player, interaction, client);
+
+            const interactionContext = {
+                type: "interaction" as const,
+                interaction: interaction,
+            }
+
+            await handleSearchResult(res, player, interactionContext, client);
         } catch (error) {
             client.logger.error(`[PLAY] Play error: ${error}`);
             await interaction.followUp({

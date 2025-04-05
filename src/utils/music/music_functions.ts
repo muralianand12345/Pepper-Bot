@@ -1,5 +1,5 @@
-import https from "https";
 import discord from "discord.js";
+import https from "https";
 import { Readable } from "stream";
 import timers from "timers/promises";
 import magmastream from "magmastream";
@@ -63,24 +63,70 @@ const fetchAudioStream = (url: string): Promise<Readable> => {
 };
 
 /**
+ * Command context that can be either an interaction or a message
+ */
+type CommandContext =
+    | { type: 'interaction'; interaction: discord.ChatInputCommandInteraction }
+    | { type: 'message'; message: discord.Message };
+
+// Type guard functions to check context type
+const isInteractionContext = (context: CommandContext): context is { type: 'interaction'; interaction: discord.ChatInputCommandInteraction } => {
+    return context.type === 'interaction';
+};
+
+const isMessageContext = (context: CommandContext): context is { type: 'message'; message: discord.Message } => {
+    return context.type === 'message';
+};
+
+/**
  * Processes search results and manages music playback
  * @param {magmastream.SearchResult} res - Music search results
  * @param {magmastream.Player} player - Music player instance
- * @param {discord.ChatInputCommandInteraction} interaction - Command interaction
- * @param {any} client - Discord client instance
+ * @param {CommandContext} context - Command context (interaction or message)
+ * @param {discord.Client} client - Discord client instance
  */
 const handleSearchResult = async (
     res: magmastream.SearchResult,
     player: magmastream.Player,
-    interaction: discord.ChatInputCommandInteraction,
+    context: CommandContext,
     client: discord.Client
 ): Promise<void> => {
-    const searchQuery = interaction.options.getString("song", true);
+    // Helper to handle replies based on context type
+    const reply = async (options: {
+        embeds: discord.EmbedBuilder[],
+        components?: discord.ActionRowBuilder<discord.ButtonBuilder>[],
+        flags?: discord.MessageFlags
+    }) => {
+        if (isInteractionContext(context)) {
+            // For interactions, we use followUp
+            return await context.interaction.followUp({
+                embeds: options.embeds,
+                components: options.components,
+                ephemeral: options.flags ? (options.flags === discord.MessageFlags.Ephemeral) : false
+            });
+        } else if (isMessageContext(context)) {
+            // For messages, we send to the channel
+            // Ensure the channel is a text-based channel
+            const chan = context.message.channel as discord.TextChannel;
+            if (chan.isTextBased()) {
+                return await chan.send({
+                    embeds: options.embeds,
+                    components: options.components
+                });
+            }
+        }
+        return null;
+    };
+
+    // Get search query based on context
+    const searchQuery = isInteractionContext(context)
+        ? context.interaction.options.getString("song", true)
+        : context.message.content.trim();
 
     switch (res.loadType) {
         case "empty": {
             if (!player.queue.current) player.destroy();
-            await interaction.followUp({
+            await reply({
                 embeds: [
                     new discord.EmbedBuilder()
                         .setColor("Red")
@@ -99,7 +145,7 @@ const handleSearchResult = async (
             if (!player.playing && !player.paused && !player.queue.size)
                 player.play();
 
-            await interaction.followUp({
+            await reply({
                 embeds: [createTrackEmbed(track, client, player.queue.size)],
                 components: [musicButton],
             });
@@ -120,12 +166,17 @@ const handleSearchResult = async (
                 player.play();
             }
 
-            await interaction.followUp({
+            // Get user tag based on context
+            const userTag = isInteractionContext(context)
+                ? context.interaction.user.tag
+                : context.message.author.tag;
+
+            await reply({
                 embeds: [
                     createPlaylistEmbed(
                         res.playlist,
                         searchQuery,
-                        interaction.user.tag,
+                        userTag,
                         client
                     ),
                 ],
@@ -147,13 +198,32 @@ const sendTempMessage = async (
     embed: discord.EmbedBuilder,
     duration: number = 10000
 ): Promise<void> => {
-    const message = await channel.send({ embeds: [embed] }).catch((error) => {
-        if (error.code === 50001) new Error("Unable to send message");
-        new Error(error);
+    // Ensure the channel is text-based before sending
+    if (!channel.isTextBased()) {
+        throw new Error("Channel is not text-based");
+    }
+
+    // Send the message with error handling
+    const message = await channel.send({ embeds: [embed] }).catch((error: Error | any) => {
+        if (error.code === 50001) {
+            console.error("Unable to send message: Missing access");
+            return null;
+        }
+        console.error(`Error sending message: ${error.message}`);
+        return null;
     });
+
     if (!message) return;
 
-    setTimeout(() => message.delete().catch(() => {}), duration);
+    // Set up auto-deletion after the specified duration
+    setTimeout(() => {
+        message.delete().catch((deleteError: Error | any) => {
+            // Silently fail if message was already deleted
+            if (deleteError.code !== 10008) {
+                console.error(`Error deleting message: ${deleteError.message}`);
+            }
+        });
+    }, duration);
 };
 
 /**
