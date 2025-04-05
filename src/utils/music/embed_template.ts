@@ -278,6 +278,9 @@ const createMusicButtons = (disabled: boolean) => {
     return row;
 };
 
+const disabledMusicButton = createMusicButtons(true);
+const musicButton = createMusicButtons(false);
+
 /**
  * Handles music button interaction responses with modern Discord-style
  * @class MusicResponseHandler
@@ -406,21 +409,31 @@ class MusicChannelManager {
     };
 
     /**
- * Updates the music channel embed with current queue information
- * @param messageId ID of the message to update
- * @param channel Text channel containing the message
- * @param player The Magmastream player instance
- * @returns Promise resolving to the updated message or null if update failed
- */
+     * Updates the music channel embed with current queue information
+     * @param messageId ID of the message to update
+     * @param channel Text channel containing the message
+     * @param player The Magmastream player instance
+     * @returns Promise resolving to the updated message or null if update failed
+     */
     public updateQueueEmbed = async (
         messageId: string,
         channel: discord.TextChannel,
         player: magmastream.Player
     ): Promise<discord.Message | null> => {
         try {
+            // Debug logging
+            this.client.logger.debug(`[MUSIC_CHANNEL] Attempting to update embed message ID: ${messageId} in channel: ${channel.name}`);
+
             // Fetch the message
-            const message = await channel.messages.fetch(messageId);
-            if (!message) return null;
+            const message = await channel.messages.fetch(messageId).catch(error => {
+                this.client.logger.error(`[MUSIC_CHANNEL] Failed to fetch message ${messageId}: ${error}`);
+                return null;
+            });
+
+            if (!message) {
+                this.client.logger.warn(`[MUSIC_CHANNEL] Message with ID ${messageId} not found in channel ${channel.name}`);
+                return null;
+            }
 
             // Get current track and queue from the player
             const currentTrack = player.queue.current;
@@ -429,7 +442,7 @@ class MusicChannelManager {
                 return await this.resetEmbed(messageId, channel);
             }
 
-            // Create the updated embed
+            // Create the updated embed with rich information
             const embed = new discord.EmbedBuilder()
                 .setColor('Blurple')
                 .setTitle(`${this.client.user?.username} Music Queue`)
@@ -441,25 +454,26 @@ class MusicChannelManager {
                 )
                 .setImage(currentTrack.thumbnail || currentTrack.artworkUrl || this.client.config.music.image)
                 .setFooter({
-                    text: `Requested by ${currentTrack.requester?.username || "Unknown"}`,
+                    text: `Requested by ${(currentTrack.requester as discord.User)?.tag || "Unknown"}`,
                     iconURL: this.client.user?.displayAvatarURL()
                 })
                 .setTimestamp();
 
-            // Add queue information if there are songs in queue
+            // Show queue with more details including requester information
             if (player.queue && player.queue.length > 0) {
                 const queueList = player.queue
-                    .slice(0, this.maxQueueItems)
+                    .slice(0, 5)  // Show top 5 songs
                     .map((track, index) => {
+                        const requester = track.requester as discord.User;
                         return `**${index + 1}.** ${Formatter.hyperlink(
                             Formatter.truncateText(track.title, 40),
                             track.uri
-                        )} - ${track.author || "Unknown Artist"}`;
+                        )} - ${track.author || "Unknown Artist"}\n┗ Requested by: ${requester?.tag || "Unknown"}`;
                     })
-                    .join("\n");
+                    .join("\n\n");
 
-                const remainingTracks = player.queue.length > this.maxQueueItems
-                    ? `\n*+${player.queue.length - this.maxQueueItems} more tracks in queue*`
+                const remainingTracks = player.queue.length > 5
+                    ? `\n\n*+${player.queue.length - 5} more tracks in queue*`
                     : "";
 
                 embed.addFields({
@@ -469,7 +483,12 @@ class MusicChannelManager {
             }
 
             // Edit the message with the updated embed
-            await message.edit({ embeds: [embed] });
+            await message.edit({ embeds: [embed], components: [musicButton] }).catch(error => {
+                this.client.logger.error(`[MUSIC_CHANNEL] Failed to edit message: ${error}`);
+                return null;
+            });
+
+            this.client.logger.debug(`[MUSIC_CHANNEL] Successfully updated music panel for track: ${currentTrack.title}`);
             return message;
         } catch (error) {
             this.client.logger.error(`[MUSIC_CHANNEL] Failed to update queue embed: ${error}`);
@@ -493,7 +512,7 @@ class MusicChannelManager {
 
             // Reset to the initial embed
             const embed = this.setupMusicChannelEmbed();
-            await message.edit({ embeds: [embed] });
+            await message.edit({ embeds: [embed], components: [disabledMusicButton] });
             return message;
         } catch (error) {
             this.client.logger.error(`[MUSIC_CHANNEL] Failed to reset embed: ${error}`);
@@ -511,16 +530,16 @@ class MusicChannelManager {
     ): Promise<discord.Message | null> => {
         try {
             const embed = this.setupMusicChannelEmbed();
-            return await channel.send({ embeds: [embed] });
+            return await channel.send({
+                embeds: [embed],
+                components: [disabledMusicButton]
+            });
         } catch (error) {
             this.client.logger.error(`[MUSIC_CHANNEL] Failed to create music embed: ${error}`);
             return null;
         }
     };
 }
-
-const disabledMusicButton = createMusicButtons(true);
-const musicButton = createMusicButtons(false);
 
 export {
     disabledMusicButton,

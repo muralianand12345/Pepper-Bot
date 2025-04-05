@@ -104,20 +104,33 @@ const lavalinkEvent: LavalinkEvent = {
             await MusicDB.addMusicGuildData(player.guildId, songData);
 
             const guild_data = await music_guild.findOne({
-                guild_id: player.guildId,
+                guildId: player.guildId,
             });
 
             if (guild_data?.songChannelId && guild_data?.musicPannelId) {
-                const channel = await client.channels.fetch(
-                    guild_data.songChannelId
-                ) as discord.TextChannel;
-                if (channel) {
-                    const musicChannelManager = new MusicChannelManager(client);
-                    const message_pannel = await musicChannelManager.updateQueueEmbed(
-                        guild_data.musicPannelId,
-                        channel,
-                        player,
-                    );
+                try {
+                    const channel = await client.channels.fetch(
+                        guild_data.songChannelId
+                    ) as discord.TextChannel;
+
+                    if (channel) {
+                        const musicChannelManager = new MusicChannelManager(client);
+                        const message_pannel = await musicChannelManager.updateQueueEmbed(
+                            guild_data.musicPannelId,
+                            channel,
+                            player,
+                        );
+
+                        // Add debug logging
+                        if (message_pannel) {
+                            client.logger.info(`[TRACK_START] Successfully updated music panel in ${channel.name}`);
+                        } else {
+                            client.logger.warn(`[TRACK_START] Failed to update music panel in ${channel.name}`);
+                        }
+                    }
+                } catch (error) {
+                    // Log the full error for debugging
+                    client.logger.error(`[TRACK_START] Error updating music channel: ${error}`);
                 }
             }
 
