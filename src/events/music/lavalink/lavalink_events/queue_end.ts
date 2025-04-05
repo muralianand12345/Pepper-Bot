@@ -1,9 +1,10 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 import { wait } from "../../../../utils/music/music_functions";
-import { MusicResponseHandler } from "../../../../utils/music/embed_template";
+import { MusicResponseHandler, MusicChannelManager } from "../../../../utils/music/embed_template";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import AutoplayManager from "../../../../utils/music/autoplay_manager";
+import music_guild from "../../../database/schema/music_guild";
 import { LavalinkEvent } from "../../../../types";
 
 /**
@@ -102,6 +103,35 @@ const handlePlayerCleanup = async (
 };
 
 /**
+ * Resets the music channel embed if it exists
+ * @param guildId - Guild ID for the player
+ * @param client - Discord client instance
+ */
+const resetMusicChannelEmbed = async (
+    guildId: string,
+    client: discord.Client
+): Promise<void> => {
+    try {
+        // Get guild data to check for music channel and panel message
+        const guildData = await music_guild.findOne({ guildId });
+
+        if (!guildData?.songChannelId || !guildData?.musicPannelId) return;
+
+        // Get the channel
+        const channel = await client.channels.fetch(guildData.songChannelId);
+        if (!channel || !channel.isTextBased()) return;
+
+        // Use MusicChannelManager to reset the embed
+        const musicChannelManager = new MusicChannelManager(client);
+        await musicChannelManager.resetEmbed(guildData.musicPannelId, channel as discord.TextChannel);
+
+        client.logger.info(`[QUEUE_END] Reset music channel embed in guild ${guildId}`);
+    } catch (error) {
+        client.logger.error(`[QUEUE_END] Error resetting music channel embed: ${error}`);
+    }
+};
+
+/**
  * Lavalink queue end event handler
  * Handles the event when all music in the queue has finished playing
  */
@@ -143,6 +173,9 @@ const lavalinkEvent: LavalinkEvent = {
             await channel.send({
                 embeds: [createQueueEndEmbed(client)],
             });
+
+            // Reset the music channel embed
+            await resetMusicChannelEmbed(player.guildId, client);
 
             // Schedule player cleanup if needed
             await handlePlayerCleanup(player, player.guildId, client);
