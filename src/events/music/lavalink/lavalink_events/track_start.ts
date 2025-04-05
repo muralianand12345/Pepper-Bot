@@ -1,7 +1,8 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
-import { musicEmbed, musicButton } from "../../../../utils/music/embed_template";
+import { musicEmbed, musicButton, MusicChannelManager } from "../../../../utils/music/embed_template";
 import MusicDB from "../../../../utils/music/music_db";
+import music_guild from "../../../database/schema/music_guild";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import { LavalinkEvent, ISongsUser } from "../../../../types";
 
@@ -42,7 +43,7 @@ const logTrackStart = (
  */
 const convertUserToUserData = (user: discord.User | null): ISongsUser | null => {
     if (!user) return null;
-    
+
     return {
         id: user.id,
         username: user.username,
@@ -101,6 +102,24 @@ const lavalinkEvent: LavalinkEvent = {
                 songData
             );
             await MusicDB.addMusicGuildData(player.guildId, songData);
+
+            const guild_data = await music_guild.findOne({
+                guild_id: player.guildId,
+            });
+
+            if (guild_data?.songChannelId && guild_data?.musicPannelId) {
+                const channel = await client.channels.fetch(
+                    guild_data.songChannelId
+                ) as discord.TextChannel;
+                if (channel) {
+                    const musicChannelManager = new MusicChannelManager(client);
+                    const message_pannel = await musicChannelManager.updateQueueEmbed(
+                        guild_data.musicPannelId,
+                        channel,
+                        player,
+                    );
+                }
+            }
 
             // Only send the now playing message if not repeating
             if (shouldDisplayEmbed) {

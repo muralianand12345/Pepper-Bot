@@ -1,6 +1,6 @@
 import ms from "ms";
 import discord from "discord.js";
-import { BotEvent } from "../../../types";
+import { BotEvent, IMusicGuild } from "../../../types";
 import { sendTempMessage } from "../../../utils/music/music_functions";
 import block_users from "../../database/schema/block_users";
 import music_guild from "../../database/schema/music_guild";
@@ -58,11 +58,10 @@ const checkPremiumStatus = async (userId: string): Promise<boolean> => {
  * @param {string} guildId - Discord guild ID
  * @returns {Promise<boolean>}
  */
-const checkDJStatus = async (userId: string, guildId: string): Promise<boolean> => {
-    const djGuild = await music_guild.findOne({ guildId: guildId });
-    if (!djGuild) return false;
-    if (!djGuild.dj.enabled) return false;
-    return djGuild.dj.users?.currentDJ?.userId === userId;
+const checkDJStatus = async (userId: string, music_guild: IMusicGuild | null): Promise<boolean> => {
+    if (!music_guild) return false;
+    if (!music_guild.dj.enabled) return false;
+    return music_guild.dj.users?.currentDJ?.userId === userId;
 };
 
 /**
@@ -118,7 +117,8 @@ const sendErrorEmbed = async (
 const handleCommandPrerequisites = async (
     command: any,
     message: discord.Message,
-    client: discord.Client
+    client: discord.Client,
+    music_guild: IMusicGuild | null
 ): Promise<boolean> => {
     // Check if user is blocked
     const blockStatus = await checkBlockedStatus(message.author.id);
@@ -163,9 +163,9 @@ const handleCommandPrerequisites = async (
 
     // Check if user is a DJ
     if (command.dj) {
+
         const isDJ = await checkDJStatus(
-            message.author.id,
-            message.guild?.id || ""
+            message.author.id, music_guild
         );
         if (!isDJ) {
             const member = await message.guild?.members.fetch(
@@ -300,7 +300,18 @@ const event: BotEvent = {
             // Early validation checks
             if (!validateMessage(message, client)) return;
 
-            const prefix = client.config.bot.command.prefix;
+            let prefix;
+
+            const guild_data = await music_guild.findOne({
+                guildId: message.guild?.id,
+            });
+
+            if (guild_data) {
+                prefix = guild_data.prefix || client.config.bot.command.prefix;
+            } else {
+                prefix = client.config.bot.command.prefix;
+            }
+
             const args = message.content
                 .slice(prefix.length)
                 .trim()
@@ -323,7 +334,7 @@ const event: BotEvent = {
             if (!command) return;
 
             // Handle permissions and execution
-            if (await handleCommandPrerequisites(command, message, client)) {
+            if (await handleCommandPrerequisites(command, message, client, guild_data)) {
                 await executeCommand(command, message, args, client);
             }
         } catch (error) {

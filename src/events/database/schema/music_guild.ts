@@ -35,11 +35,13 @@ const djDataSchema = new Schema<IDJUser>({
 
 const musicGuildSchema = new Schema<IMusicGuild>({
     guildId: { type: String, required: true },
+    prefix: { type: String, required: false, default: "!" },
+    musicPannelId: { type: String, required: false },
     songChannelId: { type: String, default: null },
     dj: {
         type: djDataSchema, required: false, default: () => ({
             enabled: false,
-            roleId: "",
+            roleId: null,
             auto: {
                 assign: true,
                 timeout: 86400000, // 24 hours
