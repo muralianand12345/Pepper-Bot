@@ -5,6 +5,7 @@ import { MusicResponseHandler, MusicChannelManager } from "../../../../utils/mus
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import AutoplayManager from "../../../../utils/music/autoplay_manager";
 import music_guild from "../../../database/schema/music_guild";
+import { shouldSendMessageInChannel } from "../../../../utils/music_channel_utility";
 import { LavalinkEvent } from "../../../../types";
 
 /**
@@ -169,10 +170,22 @@ const lavalinkEvent: LavalinkEvent = {
                 }
             }
 
+            // Check if we should send messages in this channel
+            const shouldSendMessage = await shouldSendMessageInChannel(
+                channel.id,
+                player.guildId,
+                client
+            );
+
             // Send queue end message if autoplay didn't add tracks or is disabled
-            await channel.send({
-                embeds: [createQueueEndEmbed(client)],
-            });
+            // AND if we should send messages in this channel
+            if (shouldSendMessage) {
+                await channel.send({
+                    embeds: [createQueueEndEmbed(client)],
+                });
+            } else {
+                client.logger.debug(`[QUEUE_END] Skipping queue end message in music channel ${channel.id}`);
+            }
 
             // Reset the music channel embed
             await resetMusicChannelEmbed(player.guildId, client);

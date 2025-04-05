@@ -3,8 +3,8 @@ import https from "https";
 import { Readable } from "stream";
 import timers from "timers/promises";
 import magmastream from "magmastream";
-import { musicButton } from "./embed_template";
-import { createPlaylistEmbed, createTrackEmbed } from "./embed_template";
+import { shouldSendMessageInChannel } from "../music_channel_utility";
+import { createPlaylistEmbed, createTrackEmbed, musicButton } from "./embed_template";
 
 /**
  * Creates a promise that resolves after the specified milliseconds
@@ -79,6 +79,34 @@ const isMessageContext = (context: CommandContext): context is { type: 'message'
 };
 
 /**
+ * Gets the guild ID from the context
+ * @param context Command context (interaction or message)
+ * @returns Guild ID or undefined if not in a guild
+ */
+const getGuildId = (context: CommandContext): string | undefined => {
+    if (isInteractionContext(context)) {
+        return context.interaction.guildId || undefined;
+    } else if (isMessageContext(context)) {
+        return context.message.guild?.id;
+    }
+    return undefined;
+};
+
+/**
+ * Gets the channel ID from the context
+ * @param context Command context (interaction or message)
+ * @returns Channel ID or undefined if not in a channel
+ */
+const getChannelId = (context: CommandContext): string | undefined => {
+    if (isInteractionContext(context)) {
+        return context.interaction.channelId;
+    } else if (isMessageContext(context)) {
+        return context.message.channel.id;
+    }
+    return undefined;
+};
+
+/**
  * Processes search results and manages music playback
  * @param {magmastream.SearchResult} res - Music search results
  * @param {magmastream.Player} player - Music player instance
@@ -91,12 +119,28 @@ const handleSearchResult = async (
     context: CommandContext,
     client: discord.Client
 ): Promise<void> => {
+    // Get channel ID and guild ID for checking if this is the music panel channel
+    const channelId = getChannelId(context);
+    const guildId = getGuildId(context);
+
+    // Check if we should send messages in this channel
+    let shouldSendMessages = true;
+    if (channelId && guildId) {
+        shouldSendMessages = await shouldSendMessageInChannel(channelId, guildId, client);
+    }
+
     // Helper to handle replies based on context type
     const reply = async (options: {
         embeds: discord.EmbedBuilder[],
         components?: discord.ActionRowBuilder<discord.ButtonBuilder>[],
         flags?: discord.MessageFlags
     }) => {
+        // If we shouldn't send messages in this channel, log it and return
+        if (!shouldSendMessages) {
+            client.logger.debug(`[HANDLE_SEARCH] Skipping message in music channel ${channelId}`);
+            return null;
+        }
+
         if (isInteractionContext(context)) {
             // For interactions, we use followUp
             return await context.interaction.followUp({

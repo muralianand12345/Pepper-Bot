@@ -4,6 +4,7 @@ import { musicEmbed, musicButton, MusicChannelManager } from "../../../../utils/
 import MusicDB from "../../../../utils/music/music_db";
 import music_guild from "../../../database/schema/music_guild";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
+import { shouldSendMessageInChannel } from "../../../../utils/music_channel_utility";
 import { LavalinkEvent, ISongsUser } from "../../../../types";
 
 /**
@@ -109,23 +110,23 @@ const lavalinkEvent: LavalinkEvent = {
 
             if (guild_data?.songChannelId && guild_data?.musicPannelId) {
                 try {
-                    const channel = await client.channels.fetch(
+                    const musicChannel = await client.channels.fetch(
                         guild_data.songChannelId
                     ) as discord.TextChannel;
 
-                    if (channel) {
+                    if (musicChannel) {
                         const musicChannelManager = new MusicChannelManager(client);
                         const message_pannel = await musicChannelManager.updateQueueEmbed(
                             guild_data.musicPannelId,
-                            channel,
+                            musicChannel,
                             player,
                         );
 
                         // Add debug logging
                         if (message_pannel) {
-                            client.logger.info(`[TRACK_START] Successfully updated music panel in ${channel.name}`);
+                            client.logger.info(`[TRACK_START] Successfully updated music panel in ${musicChannel.name}`);
                         } else {
-                            client.logger.warn(`[TRACK_START] Failed to update music panel in ${channel.name}`);
+                            client.logger.warn(`[TRACK_START] Failed to update music panel in ${musicChannel.name}`);
                         }
                     }
                 } catch (error) {
@@ -134,38 +135,49 @@ const lavalinkEvent: LavalinkEvent = {
                 }
             }
 
-            // Only send the now playing message if not repeating
+            // Only send the now playing message if not repeating AND not in the music channel
             if (shouldDisplayEmbed) {
-                // Get the now playing manager for this guild
-                const nowPlayingManager = NowPlayingManager.getInstance(
+                // Check if we should send messages in this channel
+                const shouldSendMessage = await shouldSendMessageInChannel(
+                    channel.id,
                     player.guildId,
-                    player,
                     client
                 );
 
-                // Create initial embed
-                const embed = await musicEmbed(client, track, player);
+                if (shouldSendMessage) {
+                    // Get the now playing manager for this guild
+                    const nowPlayingManager = NowPlayingManager.getInstance(
+                        player.guildId,
+                        player,
+                        client
+                    );
 
-                // Send a new message
-                try {
-                    const message = await channel.send({
-                        embeds: [embed],
-                        components: [musicButton]
-                    });
+                    // Create initial embed
+                    const embed = await musicEmbed(client, track, player);
 
-                    // Register the message with the now playing manager
-                    nowPlayingManager.setMessage(message, false);
-                } catch (error: Error | any) {
-                    if (error.code === 50007) {
+                    // Send a new message
+                    try {
+                        const message = await channel.send({
+                            embeds: [embed],
+                            components: [musicButton]
+                        });
+
+                        // Register the message with the now playing manager
+                        nowPlayingManager.setMessage(message, false);
+                    } catch (error: Error | any) {
+                        if (error.code === 50007) {
+                            client.logger.error(
+                                `[LAVALINK] Missing permissions to send messages in ${channel.name} (${channel.id})`
+                            );
+                            return;
+                        }
                         client.logger.error(
-                            `[LAVALINK] Missing permissions to send messages in ${channel.name} (${channel.id})`
+                            `[LAVALINK] Error sending message in ${channel.name} (${channel.id}): ${error}`
                         );
                         return;
                     }
-                    client.logger.error(
-                        `[LAVALINK] Error sending message in ${channel.name} (${channel.id}): ${error}`
-                    );
-                    return;
+                } else {
+                    client.logger.debug(`[TRACK_START] Skipping Now Playing message in music channel ${channel.id}`);
                 }
             }
 
