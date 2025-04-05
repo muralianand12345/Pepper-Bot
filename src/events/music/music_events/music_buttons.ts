@@ -19,6 +19,7 @@ class MusicButtonHandler {
     private readonly responseHandler: MusicResponseHandler;
     private readonly nowPlayingManager: NowPlayingManager | null;
     private readonly guildId: string | undefined; // Store guild ID for reuse
+    private useEphemeralReplies: boolean = false; // Flag to track if we should use ephemeral replies
 
     constructor(
         interaction: discord.ButtonInteraction,
@@ -57,10 +58,25 @@ class MusicButtonHandler {
      */
     private async validateCommand(): Promise<boolean> {
         try {
+            // Check if this interaction is in the configured song channel
+            let useEphemeralReplies = false;
+            if (this.guildId) {
+                try {
+                    const music_guild = await (await import("../../../events/database/schema/music_guild")).default;
+                    const guildData = await music_guild.findOne({ guildId: this.guildId });
+                    if (guildData?.songChannelId === this.interaction.channelId) {
+                        useEphemeralReplies = true;
+                    }
+                } catch (dbError) {
+                    this.client.logger.error(`[MUSIC_BUTTONS] Error checking song channel: ${dbError}`);
+                }
+            }
+
             // First check if we have a valid player
             if (!this.player) {
                 await this.interaction.reply({
-                    embeds: [this.responseHandler.createErrorEmbed("No music is currently playing")]
+                    embeds: [this.responseHandler.createErrorEmbed("No music is currently playing")],
+                    flags: useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
                 });
                 return false;
             }
@@ -70,7 +86,8 @@ class MusicButtonHandler {
                 await this.playerValidator.validatePlayerState();
             if (!playerValid && playerError) {
                 await this.interaction.reply({
-                    embeds: [playerError]
+                    embeds: [playerError],
+                    flags: useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
                 });
                 return false;
             }
@@ -78,51 +95,59 @@ class MusicButtonHandler {
             // Check if we have a valid guild context
             if (!this.interaction.guild) {
                 await this.interaction.reply({
-                    embeds: [this.responseHandler.createErrorEmbed("This command can only be used in a server")]
+                    embeds: [this.responseHandler.createErrorEmbed("This command can only be used in a server")],
+                    flags: useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
                 });
                 return false;
             }
 
-            // Use a safer approach for voice validator
-            try {
-                // Create voice validator instance with proper type assertion
-                const voiceValidator = new VoiceChannelValidator(
-                    this.client,
-                    this.interaction as unknown as discord.ChatInputCommandInteraction
-                );
-
-                // Validate voice connection
-                const [voiceValid, voiceError] =
-                    await voiceValidator.validateVoiceConnection();
-                if (!voiceValid) {
-                    await this.interaction.reply({
-                        embeds: [voiceError]
-                    });
-                    return false;
-                }
-
-                // Validate same channel
-                const [sameChannelValid, sameChannelError] =
-                    await voiceValidator.validateVoiceSameChannel(this.player);
-                if (!sameChannelValid) {
-                    await this.interaction.reply({
-                        embeds: [sameChannelError]
-                    });
-                    return false;
-                }
-            } catch (validationError) {
-                this.client.logger.error(`[MUSIC_BUTTONS] Validation error: ${validationError}`);
+            // Check if the member is in a voice channel
+            if (!this.interaction.member) {
                 await this.interaction.reply({
-                    embeds: [this.responseHandler.createErrorEmbed("An error occurred while validating your command")]
+                    embeds: [this.responseHandler.createErrorEmbed("Cannot determine your voice channel")],
+                    flags: useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
                 });
                 return false;
             }
 
+            // Get the member's voice channel safely
+            const member = await this.interaction.guild.members.fetch(this.interaction.user.id).catch(() => null);
+            if (!member) {
+                await this.interaction.reply({
+                    embeds: [this.responseHandler.createErrorEmbed("Cannot find your guild member information")],
+                    flags: useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
+                });
+                return false;
+            }
+
+            if (!member.voice.channel) {
+                await this.interaction.reply({
+                    embeds: [this.responseHandler.createErrorEmbed("You need to be in a voice channel")],
+                    flags: useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
+                });
+                return false;
+            }
+
+            // Check if bot is in the same voice channel as the user
+            if (member.voice.channelId !== this.player.voiceChannelId) {
+                await this.interaction.reply({
+                    embeds: [this.responseHandler.createErrorEmbed("You are not in the same voice channel as the bot")],
+                    flags: useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
+                });
+                return false;
+            }
+
+            // Store the ephemeral flag setting for use in other methods
+            this.useEphemeralReplies = useEphemeralReplies;
             return true;
         } catch (error) {
             this.client.logger.error(`[MUSIC_BUTTONS] Error in validateCommand: ${error}`);
             await this.interaction.reply({
-                embeds: [this.responseHandler.createErrorEmbed("An unexpected error occurred")]
+                embeds: [this.responseHandler.createErrorEmbed("An unexpected error occurred")],
+                flags: discord.MessageFlags.Ephemeral // Always use ephemeral for unexpected errors
+            }).catch(() => {
+                // Fallback if replying fails
+                this.client.logger.error(`[MUSIC_BUTTONS] Failed to send error response`);
             });
             return false;
         }
@@ -139,7 +164,8 @@ class MusicButtonHandler {
                 await this.playerValidator.validatePauseState();
             if (!stateValid && stateError) {
                 await this.interaction.reply({
-                    embeds: [stateError]
+                    embeds: [stateError],
+                    flags: this.useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
                 });
                 return;
             }
@@ -154,7 +180,8 @@ class MusicButtonHandler {
             await this.interaction.reply({
                 embeds: [
                     this.responseHandler.createSuccessEmbed("Paused the music!"),
-                ]
+                ],
+                flags: this.useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
             });
         } catch (error) {
             this.client.logger.error(`[MUSIC_BUTTONS] Error in handlePause: ${error}`);
@@ -173,7 +200,8 @@ class MusicButtonHandler {
                 await this.playerValidator.validateResumeState();
             if (!stateValid && stateError) {
                 await this.interaction.reply({
-                    embeds: [stateError]
+                    embeds: [stateError],
+                    flags: this.useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
                 });
                 return;
             }
@@ -188,7 +216,8 @@ class MusicButtonHandler {
             await this.interaction.reply({
                 embeds: [
                     this.responseHandler.createSuccessEmbed("Resumed the music!"),
-                ]
+                ],
+                flags: this.useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
             });
         } catch (error) {
             this.client.logger.error(`[MUSIC_BUTTONS] Error in handleResume: ${error}`);
@@ -207,7 +236,8 @@ class MusicButtonHandler {
                 await this.playerValidator.validateQueueSize(1);
             if (!queueValid && queueError) {
                 await this.interaction.reply({
-                    embeds: [queueError]
+                    embeds: [queueError],
+                    flags: this.useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
                 });
                 return;
             }
@@ -231,7 +261,8 @@ class MusicButtonHandler {
                     this.responseHandler.createSuccessEmbed(
                         "Skipped the current song!"
                     ),
-                ]
+                ],
+                flags: this.useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
             });
         } catch (error) {
             this.client.logger.error(`[MUSIC_BUTTONS] Error in handleSkip: ${error}`);
@@ -250,7 +281,8 @@ class MusicButtonHandler {
                         this.responseHandler.createErrorEmbed(
                             "There is no music playing"
                         ),
-                    ]
+                    ],
+                    flags: this.useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
                 });
                 return;
             }
@@ -272,7 +304,8 @@ class MusicButtonHandler {
             await this.interaction.reply({
                 embeds: [
                     this.responseHandler.createSuccessEmbed("Stopped the music!"),
-                ]
+                ],
+                flags: this.useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
             });
         } catch (error) {
             this.client.logger.error(`[MUSIC_BUTTONS] Error in handleStop: ${error}`);
@@ -291,7 +324,8 @@ class MusicButtonHandler {
                         this.responseHandler.createErrorEmbed(
                             "There is no music playing"
                         ),
-                    ]
+                    ],
+                    flags: this.useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
                 });
                 return;
             }
@@ -305,7 +339,8 @@ class MusicButtonHandler {
                         `Loop mode is now ${this.player.trackRepeat ? "enabled" : "disabled"
                         }!`
                     ),
-                ]
+                ],
+                flags: this.useEphemeralReplies ? discord.MessageFlags.Ephemeral : undefined
             });
         } catch (error) {
             this.client.logger.error(`[MUSIC_BUTTONS] Error in handleLoop: ${error}`);
