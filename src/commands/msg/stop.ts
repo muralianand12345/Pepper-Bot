@@ -1,42 +1,41 @@
 import discord from "discord.js";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { VoiceChannelValidator } from "../../utils/music/music_validations";
-import { SlashCommand } from "../../types";
+import { Command } from "../../types";
 
-const stopcommand: SlashCommand = {
+const command: Command = {
+    name: "stop",
+    description: "Stop all music playback",
     cooldown: 5,
     owner: false,
-    data: new discord.SlashCommandBuilder()
-        .setName("stop")
-        .setDescription("Stop all music playback")
-        .setContexts(discord.InteractionContextType.Guild),
+
     execute: async (
-        interaction: discord.ChatInputCommandInteraction,
-        client: discord.Client
+        client: discord.Client,
+        message: discord.Message,
+        args: Array<string>
     ) => {
         if (!client.config.music.enabled) {
-            return await interaction.reply({
+            return message.reply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
                         "Music is currently disabled"
                     ),
                 ],
-                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
-        const player = client.manager.get(interaction.guild?.id || "");
-        if (!player)
-            return await interaction.reply({
+        const player = client.manager.get(message.guild?.id || "");
+        if (!player) {
+            return message.reply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
                         "No music is currently playing"
                     ),
                 ],
-                flags: discord.MessageFlags.Ephemeral,
             });
+        }
 
-        const validator = new VoiceChannelValidator(client, interaction);
+        const validator = new VoiceChannelValidator(client, message);
         for (const check of [
             validator.validateGuildContext(),
             validator.validateVoiceConnection(),
@@ -44,17 +43,17 @@ const stopcommand: SlashCommand = {
             validator.validateVoiceSameChannel(player),
         ]) {
             const [isValid, embed] = await check;
-            if (!isValid)
-                return await interaction.reply({
-                    embeds: [embed],
-                    flags: discord.MessageFlags.Ephemeral,
-                });
+            if (!isValid) {
+                return message.reply({ embeds: [embed] });
+            }
         }
 
+        // Destroy player which will stop playback
         player.destroy();
-        await interaction.reply({
+
+        return message.reply({
             embeds: [
-                new MusicResponseHandler(client).createErrorEmbed(
+                new MusicResponseHandler(client).createSuccessEmbed(
                     "Music playback has been stopped"
                 ),
             ],
@@ -62,4 +61,4 @@ const stopcommand: SlashCommand = {
     },
 };
 
-export default stopcommand;
+export default command;

@@ -5,13 +5,6 @@ import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { VoiceChannelValidator } from "../../utils/music/music_validations";
 import { SlashCommand } from "../../types";
 
-/**
- * Displays the current music queue with pagination support
- * @param {discord.ChatInputCommandInteraction} interaction - The interaction that triggered the command
- * @param {discord.Client} client - The Discord client instance
- * @param {any} player - The music player instance
- * @returns {Promise<void>}
- */
 const handleShowQueue = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client,
@@ -121,13 +114,6 @@ const handleShowQueue = async (
     });
 };
 
-/**
- * Removes a song from the specified position in the queue
- * @param {discord.ChatInputCommandInteraction} interaction - The interaction that triggered the command
- * @param {discord.Client} client - The Discord client instance
- * @param {any} player - The music player instance
- * @returns {Promise<void>}
- */
 const handleRemoveFromQueue = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client,
@@ -158,13 +144,6 @@ const handleRemoveFromQueue = async (
     });
 };
 
-/**
- * Moves a song from one position to another in the queue
- * @param {discord.ChatInputCommandInteraction} interaction - The interaction that triggered the command
- * @param {discord.Client} client - The Discord client instance
- * @param {any} player - The music player instance
- * @returns {Promise<void>}
- */
 const handleMoveInQueue = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client,
@@ -197,13 +176,6 @@ const handleMoveInQueue = async (
     });
 };
 
-/**
- * Clears all songs from the queue
- * @param {discord.ChatInputCommandInteraction} interaction - The interaction that triggered the command
- * @param {discord.Client} client - The Discord client instance
- * @param {any} player - The music player instance
- * @returns {Promise<void>}
- */
 const handleClearQueue = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client,
@@ -220,13 +192,6 @@ const handleClearQueue = async (
     });
 };
 
-/**
- * Randomly shuffles the current queue
- * @param {discord.ChatInputCommandInteraction} interaction - The interaction that triggered the command
- * @param {discord.Client} client - The Discord client instance
- * @param {any} player - The music player instance
- * @returns {Promise<void>}
- */
 const handleShuffleQueue = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client,
@@ -243,10 +208,6 @@ const handleShuffleQueue = async (
     });
 };
 
-/**
- * Queue command handler with subcommands for managing the music queue
- * Supports showing, removing, moving, clearing, and shuffling queue items
- */
 const queuecommand: SlashCommand = {
     cooldown: 10,
     owner: false,

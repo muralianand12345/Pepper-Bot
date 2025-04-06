@@ -4,21 +4,11 @@ import Formatter from "../../utils/format";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { Command } from "../../types";
 
-/**
- * Message-based ping command to check bot latency and system status
- */
 const command: Command = {
     name: "ping",
     description: "Check bot status and response time",
     cooldown: 120,
     owner: false,
-
-    /**
-     * Executes the ping command and displays detailed system information
-     * @param {discord.Client} client - The Discord client instance
-     * @param {discord.Message} message - The message that triggered the command
-     * @param {Array<string>} args - Command arguments
-     */
     execute: async (
         client: discord.Client,
         message: discord.Message,

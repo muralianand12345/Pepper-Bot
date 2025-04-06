@@ -2,9 +2,6 @@ import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 import { LavalinkEvent } from "../../../../types";
 
-/**
- * Lavalink node disconnect event handler
- */
 const lavalinkEvent: LavalinkEvent = {
     name: ManagerEventTypes.NodeDisconnect,
     execute: async (

@@ -53,6 +53,18 @@
  *           type: string
  *           description: URL to track artwork image
  *
+ *     MusicHistoryWithGuildDto:
+ *       allOf:
+ *         - $ref: '#/components/schemas/MusicHistoryDto'
+ *         - type: object
+ *           properties:
+ *             guildId:
+ *               type: string
+ *               description: ID of the Discord guild where this track was played
+ *             guildName:
+ *               type: string
+ *               description: Name of the Discord guild where this track was played
+ *
  *     PlayerResponse:
  *       type: object
  *       properties:
@@ -165,6 +177,24 @@
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/MusicHistoryDto'
+ *
+ *     MusicHistoryWithGuildResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *         pagination:
+ *           $ref: '#/components/schemas/PaginationInfo'
+ *         sort:
+ *           $ref: '#/components/schemas/SortInfo'
+ *         data:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/MusicHistoryWithGuildDto'
  * 
  *     RecommendationResponse:
  *       type: object
@@ -214,6 +244,7 @@
  *                   artworkUrl:
  *                     type: string
  *                     description: URL to song artwork image
+ *     
  *     NowPlayingResponse:
  *       type: object
  *       properties:

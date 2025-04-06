@@ -1,29 +1,19 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 import { wait } from "../../../../utils/music/music_functions";
-import { MusicResponseHandler } from "../../../../utils/music/embed_template";
+import { MusicResponseHandler, MusicChannelManager } from "../../../../utils/music/embed_template";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import AutoplayManager from "../../../../utils/music/autoplay_manager";
+import music_guild from "../../../database/schema/music_guild";
+import { shouldSendMessageInChannel } from "../../../../utils/music_channel_utility";
 import { LavalinkEvent } from "../../../../types";
 
-/**
- * Creates a queue end notification embed
- * @param client - Discord client instance
- * @returns EmbedBuilder instance
- */
 const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {
     return new MusicResponseHandler(client).createInfoEmbed(
         "🎵 Played all music in queue"
     );
 };
 
-/**
- * Checks if autoplay should keep the player alive
- * @param player - Music player instance
- * @param guildId - Guild ID for the player
- * @param client - Discord client instance
- * @returns Whether autoplay is enabled and active
- */
 const shouldAutoplayKeepAlive = (
     player: magmastream.Player,
     guildId: string,
@@ -42,12 +32,6 @@ const shouldAutoplayKeepAlive = (
     }
 };
 
-/**
- * Handles player cleanup after queue end
- * @param player - Music player instance
- * @param guildId - Guild ID for the player
- * @param client - Discord client instance
- */
 const handlePlayerCleanup = async (
     player: magmastream.Player,
     guildId: string,
@@ -101,10 +85,30 @@ const handlePlayerCleanup = async (
     player.destroy();
 };
 
-/**
- * Lavalink queue end event handler
- * Handles the event when all music in the queue has finished playing
- */
+const resetMusicChannelEmbed = async (
+    guildId: string,
+    client: discord.Client
+): Promise<void> => {
+    try {
+        // Get guild data to check for music channel and panel message
+        const guildData = await music_guild.findOne({ guildId });
+
+        if (!guildData?.songChannelId || !guildData?.musicPannelId) return;
+
+        // Get the channel
+        const channel = await client.channels.fetch(guildData.songChannelId);
+        if (!channel || !channel.isTextBased()) return;
+
+        // Use MusicChannelManager to reset the embed
+        const musicChannelManager = new MusicChannelManager(client);
+        await musicChannelManager.resetEmbed(guildData.musicPannelId, channel as discord.TextChannel);
+
+        client.logger.info(`[QUEUE_END] Reset music channel embed in guild ${guildId}`);
+    } catch (error) {
+        client.logger.error(`[QUEUE_END] Error resetting music channel embed: ${error}`);
+    }
+};
+
 const lavalinkEvent: LavalinkEvent = {
     name: ManagerEventTypes.QueueEnd,
     execute: async (
@@ -139,10 +143,25 @@ const lavalinkEvent: LavalinkEvent = {
                 }
             }
 
+            // Check if we should send messages in this channel
+            const shouldSendMessage = await shouldSendMessageInChannel(
+                channel.id,
+                player.guildId,
+                client
+            );
+
             // Send queue end message if autoplay didn't add tracks or is disabled
-            await channel.send({
-                embeds: [createQueueEndEmbed(client)],
-            });
+            // AND if we should send messages in this channel
+            if (shouldSendMessage) {
+                await channel.send({
+                    embeds: [createQueueEndEmbed(client)],
+                });
+            } else {
+                client.logger.debug(`[QUEUE_END] Skipping queue end message in music channel ${channel.id}`);
+            }
+
+            // Reset the music channel embed
+            await resetMusicChannelEmbed(player.guildId, client);
 
             // Schedule player cleanup if needed
             await handlePlayerCleanup(player, player.guildId, client);

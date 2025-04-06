@@ -3,6 +3,13 @@ import magmastream from "magmastream";
 import { MusicResponseHandler } from "./embed_template";
 
 /**
+ * Command context that can be either an interaction or a message
+ */
+type CommandContext =
+    | { type: 'interaction'; interaction: discord.ChatInputCommandInteraction }
+    | { type: 'message'; message: discord.Message };
+
+/**
  * Validates voice channel states and permissions for Discord music commands.
  * This class provides methods to validate various aspects of voice channel interactions,
  * including permissions, connections, and music playback states.
@@ -11,7 +18,7 @@ import { MusicResponseHandler } from "./embed_template";
  */
 class VoiceChannelValidator {
     private readonly client: discord.Client;
-    private readonly interaction: discord.ChatInputCommandInteraction;
+    private readonly context: CommandContext;
     private readonly requiredPermissions = [
         discord.PermissionsBitField.Flags.Connect,
         discord.PermissionsBitField.Flags.Speak,
@@ -19,17 +26,62 @@ class VoiceChannelValidator {
     private readonly ytLinks = ["youtube", "youtu.be", "youtu"];
 
     /**
-     * Creates an instance of VoiceChannelValidator
+     * Creates an instance of VoiceChannelValidator with interaction support
      * @param {discord.Client} client - Discord client instance used for bot interactions
      * @param {discord.ChatInputCommandInteraction} interaction - Command interaction instance containing the command context
      */
+    constructor(client: discord.Client, interaction: discord.ChatInputCommandInteraction);
+
+    /**
+     * Creates an instance of VoiceChannelValidator with message support
+     * @param {discord.Client} client - Discord client instance used for bot interactions
+     * @param {discord.Message} message - Message instance containing the command context
+     */
+    constructor(client: discord.Client, message: discord.Message);
+
+    /**
+     * Implementation of the constructor
+     * @param {discord.Client} client - Discord client instance used for bot interactions
+     * @param {discord.ChatInputCommandInteraction | discord.Message} contextValue - Command context
+     */
     constructor(
         client: discord.Client,
-        interaction: discord.ChatInputCommandInteraction
+        contextValue: discord.ChatInputCommandInteraction | discord.Message
     ) {
         this.client = client;
-        this.interaction = interaction;
+
+        if (contextValue instanceof discord.ChatInputCommandInteraction) {
+            this.context = { type: 'interaction', interaction: contextValue };
+        } else {
+            this.context = { type: 'message', message: contextValue };
+        }
     }
+
+    /**
+     * Gets the guild from the context
+     * @returns {discord.Guild | null} The guild or null if not found
+     * @private
+     */
+    private getGuild = (): discord.Guild | null => {
+        if (this.context.type === 'interaction') {
+            return this.context.interaction.guild;
+        } else {
+            return this.context.message.guild;
+        }
+    };
+
+    /**
+     * Gets the user ID from the context
+     * @returns {string} The user ID
+     * @private
+     */
+    private getUserId = (): string => {
+        if (this.context.type === 'interaction') {
+            return this.context.interaction.user.id;
+        } else {
+            return this.context.message.author.id;
+        }
+    };
 
     /**
      * Creates an error embed with the specified message
@@ -41,12 +93,25 @@ class VoiceChannelValidator {
         new MusicResponseHandler(this.client).createErrorEmbed(message || " ");
 
     /**
-     * Retrieves the guild member associated with the interaction
-     * @returns {discord.GuildMember | undefined} The guild member or undefined if not found
+     * Retrieves the guild member associated with the context
+     * @returns {Promise<discord.GuildMember | undefined>} The guild member or undefined if not found
      * @private
      */
-    private getGuildMember = (): discord.GuildMember | undefined =>
-        this.interaction.guild?.members.cache.get(this.interaction.user.id);
+    private getGuildMember = async (): Promise<discord.GuildMember | undefined> => {
+        const guild = this.getGuild();
+        const userId = this.getUserId();
+
+        if (!guild) return undefined;
+
+        try {
+            // Try to get from cache first, then fetch if not found
+            const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
+            return member;
+        } catch (error) {
+            this.client.logger.error(`[VALIDATOR] Failed to fetch guild member: ${error}`);
+            return undefined;
+        }
+    };
 
     /**
      * Validates if the user is a member of the guild
@@ -56,7 +121,7 @@ class VoiceChannelValidator {
     private validateGuildMember = async (): Promise<
         [boolean, discord.EmbedBuilder]
     > => {
-        const member = this.getGuildMember();
+        const member = await this.getGuildMember();
         if (!member)
             return [false, this.createErrorEmbed("You are not in the server")];
         return [true, this.createErrorEmbed("")];
@@ -70,13 +135,13 @@ class VoiceChannelValidator {
     public async validateGuildContext(): Promise<
         [boolean, discord.EmbedBuilder]
     > {
-        return !this.interaction.guild
+        return !this.getGuild()
             ? [
-                  false,
-                  this.createErrorEmbed(
-                      "This command can only be used in a server"
-                  ),
-              ]
+                false,
+                this.createErrorEmbed(
+                    "This command can only be used in a server"
+                ),
+            ]
             : [true, this.createErrorEmbed("")];
     }
 
@@ -91,7 +156,14 @@ class VoiceChannelValidator {
         const [isValid, errorEmbed] = await this.validateGuildMember();
         if (!isValid) return [false, errorEmbed];
 
-        const member = this.getGuildMember()!;
+        const member = await this.getGuildMember();
+        if (!member) {
+            return [
+                false,
+                this.createErrorEmbed("Failed to find your guild member information"),
+            ];
+        }
+
         const voiceChannel = member.voice.channel;
 
         if (!voiceChannel) {
@@ -101,7 +173,9 @@ class VoiceChannelValidator {
             ];
         }
 
-        const botMember = this.interaction.guild?.members.me;
+        const guild = this.getGuild()!;
+        const botMember = guild.members.me;
+
         if (!botMember?.permissions.has(this.requiredPermissions)) {
             return [
                 false,
@@ -113,11 +187,11 @@ class VoiceChannelValidator {
 
         return !voiceChannel.joinable
             ? [
-                  false,
-                  this.createErrorEmbed(
-                      `I don't have permission to join <#${voiceChannel.id}>`
-                  ),
-              ]
+                false,
+                this.createErrorEmbed(
+                    `I don't have permission to join <#${voiceChannel.id}>`
+                ),
+            ]
             : [true, this.createErrorEmbed("")];
     }
 
@@ -130,14 +204,21 @@ class VoiceChannelValidator {
     public async validateVoiceSameChannel(
         player: magmastream.Player
     ): Promise<[boolean, discord.EmbedBuilder]> {
-        const member = this.getGuildMember()!;
+        const member = await this.getGuildMember();
+        if (!member) {
+            return [
+                false,
+                this.createErrorEmbed("Failed to find your guild member information"),
+            ];
+        }
+
         return member.voice.channelId !== player.voiceChannelId
             ? [
-                  false,
-                  this.createErrorEmbed(
-                      "You are not in the same voice channel as the bot"
-                  ),
-              ]
+                false,
+                this.createErrorEmbed(
+                    "You are not in the same voice channel as the bot"
+                ),
+            ]
             : [true, this.createErrorEmbed("")];
     }
 
@@ -152,11 +233,11 @@ class VoiceChannelValidator {
     ): Promise<[boolean, discord.EmbedBuilder]> {
         return this.ytLinks.some((link) => query.includes(link))
             ? [
-                  false,
-                  this.createErrorEmbed(
-                      "We do not support YouTube links or music at this time :("
-                  ),
-              ]
+                false,
+                this.createErrorEmbed(
+                    "We do not support YouTube links or music at this time :("
+                ),
+            ]
             : [true, this.createErrorEmbed("")];
     }
 
@@ -172,14 +253,21 @@ class VoiceChannelValidator {
         const [isValid, errorEmbed] = await this.validateGuildMember();
         if (!isValid) return [false, errorEmbed];
 
-        const member = this.getGuildMember()!;
+        const member = await this.getGuildMember();
+        if (!member) {
+            return [
+                false,
+                this.createErrorEmbed("Failed to find your guild member information"),
+            ];
+        }
+
         return member.voice.channelId !== player.voiceChannelId
             ? [
-                  false,
-                  this.createErrorEmbed(
-                      "You are not in the same voice channel as the bot"
-                  ),
-              ]
+                false,
+                this.createErrorEmbed(
+                    "You are not in the same voice channel as the bot"
+                ),
+            ]
             : [true, this.createErrorEmbed("")];
     }
 
@@ -194,9 +282,9 @@ class VoiceChannelValidator {
     ): Promise<[boolean, discord.EmbedBuilder]> {
         return !player.queue.current
             ? [
-                  false,
-                  this.createErrorEmbed("There is no music currently playing"),
-              ]
+                false,
+                this.createErrorEmbed("There is no music currently playing"),
+            ]
             : [true, this.createErrorEmbed("")];
     }
 }

@@ -1,7 +1,8 @@
 import discord from 'discord.js';
 import magmastream from 'magmastream';
-import { PlayerDto, DetailedPlayerDto, MusicHistoryDto } from '../dto/music-dto';
+import { PlayerDto, DetailedPlayerDto, MusicHistoryDto, MusicHistoryWithGuildDto } from '../dto/music-dto';
 import { MusicDBSong, PaginationParams, PaginatedResponse } from '../../../../types';
+import { title } from 'process';
 
 class MusicService {
     private readonly client: discord.Client;
@@ -245,6 +246,120 @@ class MusicService {
     }
 
     /**
+     * Get paginated music history for a user across all shared guilds
+     * @param userId - Discord user ID
+     * @param options - Enhanced pagination parameters with sorting
+     * @returns Promise with paginated music history or null
+     */
+    public async getUserGuildsHistory(
+        userId: string,
+        options: PaginationParams = {
+            page: 1,
+            pageSize: 10,
+            sortBy: 'timestamp',
+            sortDirection: 'desc'
+        }
+    ): Promise<PaginatedResponse<MusicHistoryWithGuildDto> | null> {
+        try {
+            // Get all guilds where both the user and the bot are members
+            const guilds = this.client.guilds.cache.filter(guild => {
+                return guild.members.cache.has(userId) && guild.members.me;
+            });
+            const guildIds = guilds.map(guild => guild.id);
+
+            if (guildIds.length === 0) {
+                return null;
+            }
+
+            // Import MusicDB utility
+            const MusicDB = require('../../../../utils/music/music_db').default;
+
+            // Get all the guild history for each guild
+            const allSongs: Array<MusicDBSong & { guildId: string; guildName: string }> = [];
+
+            // Gather all songs from all guilds
+            for (const guildId of guildIds) {
+                const history = await MusicDB.getGuildMusicHistory(guildId);
+                if (history && history.songs && history.songs.length > 0) {
+                    // Add guild information to each song for context
+                    const guildSongs = history.songs.map((song: MusicDBSong) => {
+                        return {
+                            title: song.title,
+                            author: song.author,
+                            sourceName: song.sourceName,
+                            uri: song.uri,
+                            playCount: song.played_number,
+                            lastPlayed: song.timestamp,
+                            artworkUrl: song.artworkUrl || song.thumbnail,
+                            guildId: guildId,
+                            guildName: guilds.get(guildId)?.name || 'Unknown Guild'
+                        };
+                    });
+
+                    allSongs.push(...guildSongs);
+                }
+            }
+
+            if (allSongs.length === 0) {
+                return null;
+            }
+
+            // Get sort field and direction
+            const sortBy = options.sortBy || 'timestamp';
+            const sortDirection = options.sortDirection || 'desc';
+
+            // Sort songs by the selected field and direction
+            const sortedSongs = [...allSongs].sort((a: MusicDBSong, b: MusicDBSong) => {
+                if (sortBy === 'timestamp') {
+                    const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+                    const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+                    return sortDirection === 'desc' ? dateB - dateA : dateA - dateB;
+                } else {
+                    // Default to playCount (played_number)
+                    return sortDirection === 'desc'
+                        ? (b.played_number || 0) - (a.played_number || 0)
+                        : (a.played_number || 0) - (b.played_number || 0);
+                }
+            });
+
+            // Calculate pagination
+            const totalItems = sortedSongs.length;
+            const totalPages = Math.ceil(totalItems / options.pageSize);
+            const page = Math.min(Math.max(options.page, 1), totalPages || 1); // Ensure page is between 1 and totalPages
+
+            // Get items for current page
+            const startIndex = (page - 1) * options.pageSize;
+            const endIndex = Math.min(startIndex + options.pageSize, totalItems);
+
+            // Format history data for API response
+            const items = sortedSongs
+                .slice(startIndex, endIndex)
+                .map(song => ({
+                    title: song.title,
+                    author: song.author,
+                    sourceName: song.sourceName,
+                    uri: song.uri,
+                    playCount: song.played_number,
+                    lastPlayed: song.timestamp,
+                    artworkUrl: song.artworkUrl || song.thumbnail,
+                    guildId: song.guildId,
+                    guildName: song.guildName
+                }));
+
+            return {
+                items,
+                total: totalItems,
+                page,
+                pageSize: options.pageSize,
+                totalPages
+            };
+        } catch (error) {
+            this.client.logger.error(`[MUSIC_SERVICE] Error getting user guilds history: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
      * Get paginated top songs for a user with sorting options
      * @param userId - Discord user ID
      * @param options - Enhanced pagination parameters with sorting
@@ -320,6 +435,13 @@ class MusicService {
         }
     }
 
+    /**
+     * Get music recommendations based on a user's top song
+     * @param userId - Discord user ID
+     * @param guildId - Discord guild ID
+     * @param count - Number of recommendations to fetch (default is 10)
+     * @returns Promise with recommendations or null if no seed song found
+     */
     public async getRecommendations(userId: string, guildId: string, count: number = 10): Promise<any> {
         try {
             // Import PlaylistSuggestion class

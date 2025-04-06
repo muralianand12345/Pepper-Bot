@@ -3,12 +3,6 @@ import { BotEvent } from "../../../types";
 import music_guild from "../../database/schema/music_guild";
 import DJRoleService from "../../../utils/music/dj_role_service";
 
-/**
- * Tracks Spotify and Discord presence to detect active music listeners
- * Uses this information to help determine DJ role candidates
- * 
- * @type {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.PresenceUpdate,
     execute: async (
@@ -21,6 +15,9 @@ const event: BotEvent = {
 
         // Skip if feature is disabled in config
         if (!client.config.bot.features?.spotify_presence?.enabled) return;
+
+        //check if the user is a bot
+        if (newPresence.user?.bot) return;
 
         try {
             // Check if this guild has DJ role enabled

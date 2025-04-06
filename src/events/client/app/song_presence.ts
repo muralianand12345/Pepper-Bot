@@ -3,12 +3,6 @@ import MusicDB from "../../../utils/music/music_db";
 import music_user from "../../database/schema/music_user";
 import { BotEvent, ISongsUser } from "../../../types";
 
-/**
- * Handles user presence updates to track Spotify activity
- * Captures song details when a user is listening to Spotify and saves them to their music history
- * Uses locking mechanism and atomic operations to prevent race conditions
- * Respects user preferences for tracking/not tracking
- */
 const event: BotEvent = {
     name: discord.Events.PresenceUpdate,
     execute: async (

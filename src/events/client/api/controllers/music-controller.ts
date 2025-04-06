@@ -154,6 +154,55 @@ class MusicController {
         }
     };
 
+    public getUserGuildsHistory = async (req: express.Request, res: express.Response): Promise<void> => {
+        const { userId } = req.params;
+
+        // Extract pagination and sorting parameters from query
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 10;
+        const sortBy = (req.query.sortBy as 'timestamp' | 'playCount') || 'timestamp';
+        const sortDirection = (req.query.sortDirection as 'desc' | 'asc') || 'desc';
+
+        try {
+            const history = await this.musicService.getUserGuildsHistory(userId, {
+                page,
+                pageSize,
+                sortBy,
+                sortDirection
+            });
+
+            if (!history) {
+                res.status(404).json({
+                    status: 'error',
+                    message: 'No music history found for this user across any guilds'
+                });
+                return;
+            }
+
+            res.json({
+                status: 'success',
+                timestamp: new Date().toISOString(),
+                pagination: {
+                    page: history.page,
+                    pageSize: history.pageSize,
+                    total: history.total,
+                    totalPages: history.totalPages
+                },
+                sort: {
+                    by: sortBy,
+                    direction: sortDirection
+                },
+                data: history.items
+            });
+        } catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: 'Failed to retrieve music history across guilds',
+                details: error instanceof Error ? error.message : String(error)
+            });
+        }
+    };
+
     public getUserTopSongs = async (req: express.Request, res: express.Response): Promise<void> => {
         const { userId } = req.params;
 

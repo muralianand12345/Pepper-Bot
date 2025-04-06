@@ -4,48 +4,40 @@ import {
     MusicPlayerValidator,
 } from "../../utils/music/music_validations";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
-import { SlashCommand } from "../../types";
+import { Command } from "../../types";
 
-const skipcommand: SlashCommand = {
+const command: Command = {
+    name: "skip",
+    description: "Skip the current song or skip to a specific time",
     cooldown: 2,
     owner: false,
-    data: new discord.SlashCommandBuilder()
-        .setName("skip")
-        .setDescription("Skip the current song or skip to a specific time")
-        .setContexts(discord.InteractionContextType.Guild)
-        .addIntegerOption((option) =>
-            option
-                .setName("time")
-                .setDescription("Skip to a specific time in seconds")
-                .setRequired(false)
-        ),
     execute: async (
-        interaction: discord.ChatInputCommandInteraction,
-        client: discord.Client
+        client: discord.Client,
+        message: discord.Message,
+        args: Array<string>
     ) => {
         if (!client.config.music.enabled) {
-            return await interaction.reply({
+            return message.reply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
                         "Music is currently disabled"
                     ),
                 ],
-                flags: discord.MessageFlags.Ephemeral,
             });
         }
 
-        const player = client.manager.get(interaction.guild?.id || "");
-        if (!player)
-            return await interaction.reply({
+        const player = client.manager.get(message.guild?.id || "");
+        if (!player) {
+            return message.reply({
                 embeds: [
                     new MusicResponseHandler(client).createErrorEmbed(
                         "No music is currently playing"
                     ),
                 ],
-                flags: discord.MessageFlags.Ephemeral,
             });
+        }
 
-        const validator = new VoiceChannelValidator(client, interaction);
+        const validator = new VoiceChannelValidator(client, message);
         for (const check of [
             validator.validateGuildContext(),
             validator.validateVoiceConnection(),
@@ -53,19 +45,24 @@ const skipcommand: SlashCommand = {
             validator.validateVoiceSameChannel(player),
         ]) {
             const [isValid, embed] = await check;
-            if (!isValid)
-                return await interaction.reply({
-                    embeds: [embed],
-                    flags: discord.MessageFlags.Ephemeral,
-                });
+            if (!isValid) {
+                return message.reply({ embeds: [embed] });
+            }
         }
 
-        await interaction.deferReply();
+        // Check for a specific time to skip to
+        let time = 0;
+        if (args.length > 0) {
+            const parsedTime = parseInt(args[0]);
+            if (!isNaN(parsedTime)) {
+                time = parsedTime;
+            }
+        }
 
-        const time = interaction.options.getInteger("time") || 0;
         if (time > 0) {
+            // Skip to a specific time in the song
             player.seek(time * 1000);
-            return await interaction.editReply({
+            return message.reply({
                 embeds: [
                     new MusicResponseHandler(client).createSuccessEmbed(
                         `Skipped to ${time} seconds`
@@ -73,14 +70,14 @@ const skipcommand: SlashCommand = {
                 ],
             });
         } else {
+            // Skip to the next song
             const music_validator = new MusicPlayerValidator(client, player);
-            const [queueValid, queueError] =
-                await music_validator.validateQueueSize(1);
+            const [queueValid, queueError] = await music_validator.validateQueueSize(1);
+
             if (!queueValid && queueError) {
-                await interaction.editReply({
+                return message.reply({
                     embeds: [queueError],
                 });
-                return;
             }
 
             player.stop(1);
@@ -88,7 +85,7 @@ const skipcommand: SlashCommand = {
                 player.destroy();
             }
 
-            await interaction.editReply({
+            return message.reply({
                 embeds: [
                     new MusicResponseHandler(client).createSuccessEmbed(
                         "Skipped the current song!"
@@ -99,4 +96,4 @@ const skipcommand: SlashCommand = {
     },
 };
 
-export default skipcommand;
+export default command;

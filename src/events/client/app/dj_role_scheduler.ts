@@ -2,12 +2,6 @@ import discord from "discord.js";
 import { BotEvent } from "../../../types";
 import DJRoleService from "../../../utils/music/dj_role_service";
 
-/**
- * Initializes the DJ role scheduler
- * Processes expired DJ roles periodically
- * 
- * @type {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.ClientReady,
     once: true,

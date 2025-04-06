@@ -92,7 +92,8 @@ const playcommand: SlashCommand = {
                     focused.value = focused.value.split("?")[0].split("#")[0];
 
                     const isSpotifyLink = focused.value.match(/^(https:\/\/open\.spotify\.com\/|spotify:)/i);
-                    if (isSpotifyLink) {
+                    const isStringWithoutHttp = focused.value.match(/^(?!https?:\/\/)([a-zA-Z0-9\s]+)$/);
+                    if (isSpotifyLink || isStringWithoutHttp) {
                         suggestions = await new SpotifyAutoComplete(
                             client,
                             configManager.getSpotifyClientId(),
@@ -249,7 +250,13 @@ const playcommand: SlashCommand = {
             const res = await client.manager.search(query, interaction.user);
             if (res.loadType === "error")
                 throw new Error("No results found | loadType: error");
-            await handleSearchResult(res, player, interaction, client);
+
+            const interactionContext = {
+                type: "interaction" as const,
+                interaction: interaction,
+            }
+
+            await handleSearchResult(res, player, interactionContext, client);
         } catch (error) {
             client.logger.error(`[PLAY] Play error: ${error}`);
             await interaction.followUp({

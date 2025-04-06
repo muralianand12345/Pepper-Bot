@@ -262,7 +262,7 @@ class DJRoleService {
             if (!role) {
                 try {
                     role = await guild.roles.create({
-                        name: "DJ",
+                        name: this.client.config.bot.features?.dj_role?.default_role_name || "DJ",
                         color: discord.Colors.Purple,
                         reason: "DJ role for music system",
                         permissions: []

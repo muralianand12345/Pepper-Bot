@@ -3,10 +3,6 @@ import music_user from "../../events/database/schema/music_user";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { SlashCommand } from "../../types";
 
-/**
- * Slash command for Spotify presence tracking configuration
- * Allows users to opt in/out of Spotify presence tracking and provides information about the feature
- */
 const spotifyCommand: SlashCommand = {
     cooldown: 10,
     owner: false,
@@ -72,11 +68,6 @@ const spotifyCommand: SlashCommand = {
     },
 };
 
-/**
- * Handles the config subcommand to update user's Spotify presence tracking preferences
- * @param interaction - Discord interaction
- * @param client - Discord client
- */
 const handleConfigSubcommand = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client
@@ -178,11 +169,6 @@ const handleConfigSubcommand = async (
     }
 };
 
-/**
- * Handles the info subcommand to provide information about Spotify presence tracking
- * @param interaction - Discord interaction
- * @param client - Discord client
- */
 const handleInfoSubcommand = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client

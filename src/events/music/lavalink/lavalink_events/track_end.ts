@@ -3,10 +3,6 @@ import magmastream, { ManagerEventTypes } from "magmastream";
 import AutoplayManager from "../../../../utils/music/autoplay_manager";
 import { LavalinkEvent } from "../../../../types";
 
-/**
- * Lavalink track end event handler
- * Monitors track ends to manage custom autoplay functionality
- */
 const lavalinkEvent: LavalinkEvent = {
     name: ManagerEventTypes.TrackEnd,
     execute: async (

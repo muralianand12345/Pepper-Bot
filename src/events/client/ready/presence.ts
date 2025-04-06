@@ -2,9 +2,6 @@ import discord from "discord.js";
 import { BotEvent, BotPresence } from "../../../types";
 import { version } from "../../../../package.json";
 
-/**
- * Maps activity type strings to Discord.js ActivityType enum
- */
 const ACTIVITY_TYPE_MAP: Record<string, discord.ActivityType> = {
     PLAYING: discord.ActivityType.Playing,
     WATCHING: discord.ActivityType.Watching,
@@ -13,12 +10,6 @@ const ACTIVITY_TYPE_MAP: Record<string, discord.ActivityType> = {
     COMPETING: discord.ActivityType.Competing,
 };
 
-/**
- * Replaces placeholder tokens in activity name with actual values
- * @param name - Activity name with potential placeholders
- * @param client - Discord client instance
- * @returns Processed activity name with replaced placeholders
- */
 const processActivityName = (name: string, client: discord.Client): string => {
     const replacements = {
         "<version>": version,
@@ -39,12 +30,6 @@ const processActivityName = (name: string, client: discord.Client): string => {
     );
 };
 
-/**
- * Creates a list of bot presence activities with processed placeholders
- * @param client - Discord client instance
- * @param activities - Raw activity configurations
- * @returns Processed activity list
- */
 const createActivityList = (
     client: discord.Client,
     activities: BotPresence[]

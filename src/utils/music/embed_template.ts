@@ -1,7 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
 import Formatter from "../format";
-import { IConfig } from "../../types";
+import { IConfig, ISongs } from "../../types";
 
 // Create a function that returns both the adjusted time and progress percentage
 const getTrackProgress = (position: number, duration: number): {
@@ -27,26 +27,6 @@ const getTrackProgress = (position: number, duration: number): {
         formattedPosition,
         formattedDuration
     };
-};
-
-/**
- * Creates a progress bar with emoji indicators
- * @param position Current position in milliseconds
- * @param duration Total duration in milliseconds
- * @param length Number of segments in the bar
- * @returns Formatted progress bar string
- */
-const createProgressBar = (position: number, duration: number, length: number = 15): string => {
-    // Get the track progress data
-    const progress = getTrackProgress(position, duration);
-
-    // Calculate the number of filled blocks based on the actual percentage
-    const filledBlocks = Math.floor(progress.percentage * length);
-
-    // Build the progress bar
-    return "▬".repeat(Math.max(0, filledBlocks)) +
-        "●" +
-        "▬".repeat(Math.max(0, length - filledBlocks - 1));
 };
 
 /**
@@ -298,6 +278,9 @@ const createMusicButtons = (disabled: boolean) => {
     return row;
 };
 
+const disabledMusicButton = createMusicButtons(true);
+const musicButton = createMusicButtons(false);
+
 /**
  * Handles music button interaction responses with modern Discord-style
  * @class MusicResponseHandler
@@ -392,8 +375,171 @@ class MusicResponseHandler {
     }
 }
 
-const disabledMusicButton = createMusicButtons(true);
-const musicButton = createMusicButtons(false);
+/**
+ * Manages the music channel embed display and updates
+ * Handles initial setup, queue updates, and reset functionality
+ */
+class MusicChannelManager {
+    private readonly client: discord.Client;
+    private readonly maxQueueItems: number = 5;
+
+    /**
+     * Creates a new MusicChannelManager instance
+     * @param client Discord client instance
+     */
+    constructor(client: discord.Client) {
+        this.client = client;
+    }
+
+    /**
+     * Creates the initial music channel embed
+     * @returns Discord embed for the music channel
+     */
+    public setupMusicChannelEmbed = (): discord.EmbedBuilder => {
+        return new discord.EmbedBuilder()
+            .setColor('Blurple')
+            .setTitle(`${this.client.user?.username} Music Channel`)
+            .setDescription("Enter a song name or URL to get started!")
+            .setImage(this.client.config.music.image)
+            .setFooter({
+                text: this.client.user?.username || "Music Bot",
+                iconURL: this.client.user?.displayAvatarURL()
+            })
+            .setTimestamp();
+    };
+
+    /**
+     * Updates the music channel embed with current queue information
+     * @param messageId ID of the message to update
+     * @param channel Text channel containing the message
+     * @param player The Magmastream player instance
+     * @returns Promise resolving to the updated message or null if update failed
+     */
+    public updateQueueEmbed = async (
+        messageId: string,
+        channel: discord.TextChannel,
+        player: magmastream.Player
+    ): Promise<discord.Message | null> => {
+        try {
+            // Debug logging
+            this.client.logger.debug(`[MUSIC_CHANNEL] Attempting to update embed message ID: ${messageId} in channel: ${channel.name}`);
+
+            // Fetch the message
+            const message = await channel.messages.fetch(messageId).catch(error => {
+                this.client.logger.error(`[MUSIC_CHANNEL] Failed to fetch message ${messageId}: ${error}`);
+                return null;
+            });
+
+            if (!message) {
+                this.client.logger.warn(`[MUSIC_CHANNEL] Message with ID ${messageId} not found in channel ${channel.name}`);
+                return null;
+            }
+
+            // Get current track and queue from the player
+            const currentTrack = player.queue.current;
+            if (!currentTrack) {
+                // If no track is currently playing, reset to default embed
+                return await this.resetEmbed(messageId, channel);
+            }
+
+            // Create the updated embed with rich information
+            const embed = new discord.EmbedBuilder()
+                .setColor('Blurple')
+                .setTitle(`${this.client.user?.username} Music Queue`)
+                .setDescription(
+                    `**🎵 Now Playing:**\n${Formatter.hyperlink(
+                        Formatter.truncateText(currentTrack.title, 60),
+                        currentTrack.uri
+                    )}\nby **${currentTrack.author || "Unknown Artist"}**`
+                )
+                .setImage(currentTrack.thumbnail || currentTrack.artworkUrl || this.client.config.music.image)
+                .setFooter({
+                    text: `Requested by ${(currentTrack.requester as discord.User)?.tag || "Unknown"}`,
+                    iconURL: this.client.user?.displayAvatarURL()
+                })
+                .setTimestamp();
+
+            // Show queue with more details including requester information
+            if (player.queue && player.queue.length > 0) {
+                const queueList = player.queue
+                    .slice(0, 5)  // Show top 5 songs
+                    .map((track, index) => {
+                        const requester = track.requester as discord.User;
+                        return `**${index + 1}.** ${Formatter.hyperlink(
+                            Formatter.truncateText(track.title, 40),
+                            track.uri
+                        )} - ${track.author || "Unknown Artist"}\n┗ Requested by: ${requester?.tag || "Unknown"}`;
+                    })
+                    .join("\n\n");
+
+                const remainingTracks = player.queue.length > 5
+                    ? `\n\n*+${player.queue.length - 5} more tracks in queue*`
+                    : "";
+
+                embed.addFields({
+                    name: "🎶 Up Next:",
+                    value: queueList + remainingTracks || "No tracks in queue",
+                });
+            }
+
+            // Edit the message with the updated embed
+            await message.edit({ embeds: [embed], components: [musicButton] }).catch(error => {
+                this.client.logger.error(`[MUSIC_CHANNEL] Failed to edit message: ${error}`);
+                return null;
+            });
+
+            this.client.logger.debug(`[MUSIC_CHANNEL] Successfully updated music panel for track: ${currentTrack.title}`);
+            return message;
+        } catch (error) {
+            this.client.logger.error(`[MUSIC_CHANNEL] Failed to update queue embed: ${error}`);
+            return null;
+        }
+    };
+
+    /**
+     * Resets the music channel embed to its initial state
+     * @param messageId ID of the message to reset
+     * @param channel Text channel containing the message
+     * @returns Promise resolving to the reset message or null if reset failed
+     */
+    public resetEmbed = async (
+        messageId: string,
+        channel: discord.TextChannel
+    ): Promise<discord.Message | null> => {
+        try {
+            const message = await channel.messages.fetch(messageId);
+            if (!message) return null;
+
+            // Reset to the initial embed
+            const embed = this.setupMusicChannelEmbed();
+            await message.edit({ embeds: [embed], components: [disabledMusicButton] });
+            return message;
+        } catch (error) {
+            this.client.logger.error(`[MUSIC_CHANNEL] Failed to reset embed: ${error}`);
+            return null;
+        }
+    };
+
+    /**
+     * Creates a new music channel embed message
+     * @param channel Text channel to send the embed to
+     * @returns Promise resolving to the created message or null if creation failed
+     */
+    public createMusicEmbed = async (
+        channel: discord.TextChannel | any
+    ): Promise<discord.Message | null> => {
+        try {
+            const embed = this.setupMusicChannelEmbed();
+            return await channel.send({
+                embeds: [embed],
+                components: [disabledMusicButton]
+            });
+        } catch (error) {
+            this.client.logger.error(`[MUSIC_CHANNEL] Failed to create music embed: ${error}`);
+            return null;
+        }
+    };
+}
 
 export {
     disabledMusicButton,
@@ -402,4 +548,5 @@ export {
     MusicResponseHandler,
     createTrackEmbed,
     createPlaylistEmbed,
+    MusicChannelManager
 };

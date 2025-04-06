@@ -4,11 +4,6 @@ import { MusicResponseHandler } from "../../utils/music/embed_template";
 import AutoplayManager from "../../utils/music/autoplay_manager";
 import { SlashCommand } from "../../types";
 
-/**
- * Slash command for toggling custom autoplay functionality
- * Uses our own recommendation system rather than YouTube's algorithm
- * @type {SlashCommand}
- */
 const autoplaycommand: SlashCommand = {
     cooldown: 5,
     owner: false,
@@ -22,12 +17,6 @@ const autoplaycommand: SlashCommand = {
                 .setDescription("Enable or disable autoplay")
                 .setRequired(true)
         ),
-
-    /**
-     * Executes the autoplay command, toggling the custom autoplay system
-     * @param {discord.ChatInputCommandInteraction} interaction - Command interaction
-     * @param {discord.Client} client - Discord client instance
-     */
     execute: async (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client

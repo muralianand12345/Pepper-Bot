@@ -4,10 +4,6 @@ import { sendTempMessage } from "../../../utils/music/music_functions";
 import { NowPlayingManager } from "../../../utils/music/now_playing_manager";
 import { BotEvent } from "../../../types";
 
-/**
- * Voice state update event handler for music bot
- * Manages music playback based on voice channel member presence
- */
 const event: BotEvent = {
     name: discord.Events.VoiceStateUpdate,
     execute: async (

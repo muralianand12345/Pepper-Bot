@@ -1,39 +1,6 @@
 import discord from "discord.js";
 import { BotEvent } from "../../../types";
 
-/**
- * Handles Discord guild join (server add) events
- * Creates and sends a detailed embed message to the configured log channel
- *
- * @event GuildCreate
- * @implements {BotEvent}
- *
- * Features:
- * - Tracks new server joins
- * - Creates detailed embed with server information
- * - Logs server statistics
- * - Updates total server count
- *
- * @param {discord.Guild} guild - The guild that was joined
- * @param {discord.Client} client - Discord client instance
- *
- * Embed Information:
- * - Server name and ID
- * - Member count
- * - Owner information
- * - Server creation date
- * - Server icon
- * - Updated total server count
- *
- * @example
- * // Guild create event triggered when bot joins a new server
- * client.emit(Events.GuildCreate, guild);
- *
- * @remarks
- * Requires:
- * - Valid log channel configuration in client.config.bot.log.server
- * - Text channel permissions to send embeds
- */
 const event: BotEvent = {
     name: discord.Events.GuildCreate,
     execute: async (

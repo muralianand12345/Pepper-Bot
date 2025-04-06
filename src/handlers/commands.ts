@@ -7,15 +7,6 @@ import { ConfigManager } from "../utils/config";
 // Load environment variables
 const configManager = ConfigManager.getInstance();
 
-/**
- * Loads command files from a specified directory
- * @param directory - The directory path to load commands from
- * @param fileFilter - A function to filter command files (e.g., by extension)
- * @returns Promise resolving to an array of Command or SlashCommand objects
- *
- * @example
- * const commands = await loadCommands('./commands', (file) => file.endsWith('.js'));
- */
 const loadCommands = async (
     directory: string,
     fileFilter: (file: string) => boolean
@@ -35,14 +26,6 @@ const loadCommands = async (
     );
 };
 
-/**
- * Client Ready event handler
- * Responsible for loading and registering both message commands and slash commands
- * based on configuration settings.
- *
- * @event ClientReady
- * @implements {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.ClientReady,
     execute: async (client: discord.Client): Promise<void> => {
@@ -60,10 +43,6 @@ const event: BotEvent = {
         >();
         const slashCommands: discord.SlashCommandBuilder[] = [];
 
-        /**
-         * Load message-based commands if enabled in config
-         * These are traditional prefix commands (e.g., !help)
-         */
         if (!client.config.bot.command.disable_message) {
             const messageCommandsDir = path.join(__dirname, "../commands/msg");
             const messageCommands = (await loadCommands(
@@ -78,20 +57,12 @@ const event: BotEvent = {
             });
         }
 
-        /**
-         * Load and register slash commands
-         * These are Discord's application commands that show up in the UI
-         */
         const slashCommandsDir = path.join(__dirname, "../commands/slash");
         const loadedSlashCommands = (await loadCommands(
             slashCommandsDir,
             (file) => file.endsWith(".js") || file.endsWith(".ts")
         )) as SlashCommand[];
 
-        /**
-         * Filter and register slash commands based on configuration
-         * Allows for selective command registration if specific commands are configured
-         */
         loadedSlashCommands.forEach((command) => {
             const shouldRegister =
                 !client.config.bot.command.register_specific_commands.enabled ||
@@ -114,10 +85,6 @@ const event: BotEvent = {
             `[COMMAND] Loaded ${slashCommands.length} slash commands.`
         );
 
-        /**
-         * Register slash commands with Discord API
-         * This makes the commands available in Discord's UI
-         */
         try {
             const rest = new discord.REST({ version: "10" }).setToken(
                 configManager.getToken() ?? ""

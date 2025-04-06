@@ -1,40 +1,6 @@
 import discord from "discord.js";
 import { BotEvent } from "../../../types";
 
-/**
- * Handles Discord guild leave (server remove) events
- * Creates and sends a detailed embed message to the configured log channel
- *
- * @event GuildDelete
- * @implements {BotEvent}
- *
- * Features:
- * - Tracks server leaves
- * - Creates detailed embed with server information
- * - Logs server statistics
- * - Updates total server count
- *
- * @param {discord.Guild} guild - The guild that was left
- * @param {discord.Client} client - Discord client instance
- *
- * Embed Information:
- * - Server name and ID
- * - Last known member count
- * - Last known owner
- * - Server creation date
- * - Server icon
- * - Updated total server count
- *
- * @example
- * // Guild delete event triggered when bot leaves a server
- * client.emit(Events.GuildDelete, guild);
- *
- * @remarks
- * Requires:
- * - Valid log channel configuration in client.config.bot.log.server
- * - Text channel permissions to send embeds
- * - Guild information might be partial if the bot was kicked/banned
- */
 const event: BotEvent = {
     name: discord.Events.GuildDelete,
     execute: async (

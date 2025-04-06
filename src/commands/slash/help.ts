@@ -1,12 +1,8 @@
 import discord from "discord.js";
 import Formatter from "../../utils/format";
+import music_guild from "../../events/database/schema/music_guild";
 import { SlashCommand, Command, CommandInfo } from "../../types";
 
-/**
- * Creates a formatted section for commands
- * @param commands - Array of command information
- * @returns Formatted string of commands
- */
 const formatCommandSection = (
     commands: CommandInfo[],
     prefix: string
@@ -22,12 +18,6 @@ const helpCommand: SlashCommand = {
     data: new discord.SlashCommandBuilder()
         .setName("help")
         .setDescription("Display a comprehensive list of available commands"),
-
-    /**
-     * Executes the help command and displays a detailed command listing
-     * @param {discord.ChatInputCommandInteraction} interaction - The command interaction
-     * @param {discord.Client} client - The Discord client instance
-     */
     execute: async (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
@@ -36,6 +26,14 @@ const helpCommand: SlashCommand = {
 
         const botUser = client.user;
         if (!botUser) return;
+
+        let prefix = client.config.bot.command.prefix;
+        if (interaction.guild) {
+            const guildData = await music_guild.findOne({ guildId: interaction.guild.id });
+            if (guildData?.prefix) {
+                prefix = guildData.prefix;
+            }
+        }
 
         // Create main embed
         const embed = new discord.EmbedBuilder()
@@ -57,11 +55,7 @@ const helpCommand: SlashCommand = {
                     "🔗 **Quick Links:**",
                     `[Add to Server](https://discord.com/oauth2/authorize?client_id=${botUser.id}&permissions=8&scope=bot%20applications.commands) • [Support Server](https://discord.gg/XzE9hSbsNb) • [Website](https://pepperbot.muralianand.in/)`,
                     "",
-                    `⚡ **Prefix:** \`${
-                        client.config.bot.command.disable_message
-                            ? "/"
-                            : client.config.bot.command.prefix
-                    }\``,
+                    `⚡ **Prefix:** \`${prefix}\``,
                     `⏰ **Uptime:** \`${Formatter.msToTime(
                         client.uptime || 0
                     )}\``,
@@ -101,7 +95,7 @@ const helpCommand: SlashCommand = {
                 name: "Legacy Commands",
                 value: formatCommandSection(
                     msgCommands,
-                    client.config.bot.command.prefix
+                    prefix
                 ),
             });
         }

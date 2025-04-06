@@ -712,7 +712,11 @@ class WebSocketManager {
                     guildId,
                     playing: false,
                     paused: player.paused,
-                    currentTrack: null
+                    volumne: null,
+                    track: null,
+                    progressBar: null,
+                    progressPercent: 0,
+                    queueSize: player.queue.size || 0
                 });
             }
 
@@ -728,7 +732,8 @@ class WebSocketManager {
                 title: player.queue.current.title,
                 author: player.queue.current.author,
                 duration: player.queue.current.duration,
-                position: playbackStatus.position, // Use position from playback status
+                position: player.position,
+                progressBarPosition: playbackStatus.position,
                 uri: player.queue.current.uri,
                 sourceName: player.queue.current.sourceName,
                 isStream: player.queue.current.isStream,

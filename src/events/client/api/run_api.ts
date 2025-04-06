@@ -2,10 +2,6 @@ import discord from 'discord.js';
 import ApiServer from './core/api-server';
 import { BotEvent } from '../../../types';
 
-/**
- * Main API module that integrates with the Discord bot
- * @type {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.ClientReady,
     execute: async (client: discord.Client): Promise<void> => {
