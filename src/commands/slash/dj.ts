@@ -484,7 +484,7 @@ const djRoleCommand: SlashCommand = {
                     option
                         .setName("role")
                         .setDescription("Select an existing role to use as the DJ role")
-                        .setRequired(true)
+                        .setRequired(false)
                 )
                 .addBooleanOption(option =>
                     option
