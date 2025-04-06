@@ -16,6 +16,9 @@ const event: BotEvent = {
         // Skip if feature is disabled in config
         if (!client.config.bot.features?.spotify_presence?.enabled) return;
 
+        //check if the user is a bot
+        if (newPresence.user?.bot) return;
+
         try {
             // Check if this guild has DJ role enabled
             const guildData = await music_guild.findOne({ guildId: newPresence.guild.id });
