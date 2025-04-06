@@ -33,3 +33,8 @@ export interface MusicHistoryDto {
     lastPlayed: Date;
     artworkUrl?: string | null;
 }
+
+export interface MusicHistoryWithGuildDto extends MusicHistoryDto {
+    guildId: string;
+    guildName: string;
+}

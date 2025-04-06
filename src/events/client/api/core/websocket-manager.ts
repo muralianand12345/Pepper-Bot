@@ -732,7 +732,8 @@ class WebSocketManager {
                 title: player.queue.current.title,
                 author: player.queue.current.author,
                 duration: player.queue.current.duration,
-                position: playbackStatus.position, // Use position from playback status
+                position: player.position,
+                progressBarPosition: playbackStatus.position,
                 uri: player.queue.current.uri,
                 sourceName: player.queue.current.sourceName,
                 isStream: player.queue.current.isStream,

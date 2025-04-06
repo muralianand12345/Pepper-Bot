@@ -237,6 +237,64 @@ const musicRouter = (client: discord.Client): express.Router => {
 
     /**
      * @swagger
+     * /music/history/guilds/{userId}:
+     *   get:
+     *     summary: Get music history for a user across all shared guilds
+     *     description: Retrieves the music playback history for a specific user across all guilds where both the user and bot are members, with pagination and sorting options
+     *     tags: [Music]
+     *     security:
+     *       - ApiKeyAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: userId
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Discord user ID
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *           default: 1
+     *         description: Page number
+     *       - in: query
+     *         name: pageSize
+     *         schema:
+     *           type: integer
+     *           default: 10
+     *         description: Number of items per page
+     *       - in: query
+     *         name: sortBy
+     *         schema:
+     *           type: string
+     *           enum: [timestamp, playCount]
+     *           default: timestamp
+     *         description: Field to sort by (timestamp for newest/oldest or playCount for most/least played)
+     *       - in: query
+     *         name: sortDirection
+     *         schema:
+     *           type: string
+     *           enum: [desc, asc]
+     *           default: desc
+     *         description: Sort direction (desc for newest first or most played, asc for oldest first or least played)
+     *     responses:
+     *       200:
+     *         description: Successful operation
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/MusicHistoryWithGuildResponse'
+     *       404:
+     *         description: No music history found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    router.get('/history/guilds/:userId', controller.getUserGuildsHistory);
+
+    /**
+     * @swagger
      * /music/topsongs/{userId}:
      *   get:
      *     summary: Get top songs for a user with pagination
