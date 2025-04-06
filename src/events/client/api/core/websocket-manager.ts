@@ -712,7 +712,11 @@ class WebSocketManager {
                     guildId,
                     playing: false,
                     paused: player.paused,
-                    currentTrack: null
+                    volumne: null,
+                    track: null,
+                    progressBar: null,
+                    progressPercent: 0,
+                    queueSize: player.queue.size || 0
                 });
             }
 
