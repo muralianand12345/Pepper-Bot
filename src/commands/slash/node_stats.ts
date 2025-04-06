@@ -3,22 +3,12 @@ import magmastream from "magmastream";
 import { SlashCommand } from "../../types";
 import Formatter from "../../utils/format";
 
-/**
- * NodeStats command to display Lavalink node statistics
- * @type {SlashCommand}
- */
 const nodestatsCommand: SlashCommand = {
     cooldown: 120,
     owner: false,
     data: new discord.SlashCommandBuilder()
         .setName("node-stats")
         .setDescription("Display Lavalink node statistics"),
-
-    /**
-     * Executes the nodestats command and displays Lavalink node statistics
-     * @param {discord.ChatInputCommandInteraction} interaction - The command interaction
-     * @param {discord.Client} client - The Discord client instance
-     */
     execute: async (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client

@@ -365,10 +365,6 @@ class MusicButtonHandler {
     }
 }
 
-/**
- * Main event handler for button interactions related to music controls
- * @type {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.InteractionCreate,
     execute: async (

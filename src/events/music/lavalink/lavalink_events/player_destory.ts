@@ -6,11 +6,6 @@ import AutoplayManager from "../../../../utils/music/autoplay_manager";
 import music_guild from "../../../database/schema/music_guild";
 import { LavalinkEvent } from "../../../../types";
 
-/**
- * Resets the music channel embed if it exists
- * @param guildId - Guild ID for the player
- * @param client - Discord client instance
- */
 const resetMusicChannelEmbed = async (
     guildId: string,
     client: discord.Client
@@ -35,9 +30,6 @@ const resetMusicChannelEmbed = async (
     }
 };
 
-/**
- * Lavalink player destroy event handler
- */
 const lavalinkEvent: LavalinkEvent = {
     name: ManagerEventTypes.PlayerDestroy,
     execute: async (player: magmastream.Player, client: discord.Client) => {

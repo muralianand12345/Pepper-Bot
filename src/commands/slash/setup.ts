@@ -150,11 +150,6 @@ const setupCommand: SlashCommand = {
     }
 };
 
-/**
- * Shows the current configuration for the guild
- * @param interaction - Discord interaction
- * @param client - Discord client
- */
 const showCurrentConfig = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client

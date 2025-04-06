@@ -3,12 +3,6 @@ import { BotEvent } from "../../../types";
 import music_guild from "../../database/schema/music_guild";
 import DJRoleService from "../../../utils/music/dj_role_service";
 
-/**
- * Tracks Spotify and Discord presence to detect active music listeners
- * Uses this information to help determine DJ role candidates
- * 
- * @type {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.PresenceUpdate,
     execute: async (

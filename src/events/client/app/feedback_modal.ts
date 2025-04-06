@@ -3,26 +3,12 @@ import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { ConfigManager } from "../../../utils/config";
 import { BotEvent } from "../../../types";
 
-/**
- * Handles feedback modal submissions in Discord
- * @param feedback - The feedback message to process
- * @param maxLength - Maximum length for each feedback chunk (default: 1000)
- * @returns Array of processed feedback chunks
- */
 const processFeedback = (
     feedback: string,
     maxLength: number = 1000
 ): string[] =>
     feedback.match(new RegExp(`[\\s\\S]{1,${maxLength}}`, "g")) || [];
 
-/**
- * Creates a feedback embed with user and server information
- * @param interaction - Modal submission interaction
- * @param client - Discord client instance
- * @param username - Username from feedback
- * @param feedback - Feedback message chunks
- * @returns Configured EmbedBuilder
- */
 const createFeedbackEmbed = (
     interaction: discord.ModalSubmitInteraction,
     client: discord.Client,

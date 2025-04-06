@@ -5,22 +5,9 @@ import { VoiceChannelValidator } from "../../../utils/music/music_validations";
 import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { handleSearchResult, sendTempMessage } from "../../../utils/music/music_functions";
 
-/**
- * YouTube URL detection regex pattern
- */
 const YOUTUBE_REGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
-
-/**
- * Delay in milliseconds for deleting messages
- */
 const DELETE_DELAY = 5000; // 5 seconds
 
-/**
- * Message Create Event Handler for the dedicated music channel
- * Processes messages to play songs when users send song names or URLs
- * 
- * @implements {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.MessageCreate,
     execute: async (message: discord.Message, client: discord.Client): Promise<void> => {

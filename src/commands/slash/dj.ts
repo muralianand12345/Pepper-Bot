@@ -3,9 +3,6 @@ import DJRoleService from "../../utils/music/dj_role_service";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { SlashCommand } from "../../types";
 
-/**
- * Handle the setup subcommand to configure DJ role settings
- */
 const handleSetupSubcommand = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client,
@@ -125,9 +122,6 @@ ${role ? `• **Role:** ${role.toString()}` : ""}
     }
 };
 
-/**
- * Handle the assign subcommand to manually assign a DJ
- */
 const handleAssignSubcommand = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client,
@@ -225,9 +219,6 @@ const handleAssignSubcommand = async (
     }
 };
 
-/**
- * Handle the remove subcommand to remove a DJ
- */
 const handleRemoveSubcommand = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client,
@@ -309,9 +300,6 @@ const handleRemoveSubcommand = async (
     }
 };
 
-/**
- * Handle the info subcommand to show DJ information
- */
 const handleInfoSubcommand = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client,
@@ -417,9 +405,6 @@ const handleInfoSubcommand = async (
     }
 };
 
-/**
- * Handle the active subcommand to show most active listeners
- */
 const handleActiveSubcommand = async (
     interaction: discord.ChatInputCommandInteraction,
     client: discord.Client,
@@ -478,10 +463,6 @@ const handleActiveSubcommand = async (
     }
 };
 
-/**
- * Slash command for DJ role management
- * @type {SlashCommand}
- */
 const djRoleCommand: SlashCommand = {
     cooldown: 10,
     owner: false,

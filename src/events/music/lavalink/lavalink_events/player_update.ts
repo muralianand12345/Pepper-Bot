@@ -3,10 +3,6 @@ import magmastream, { ManagerEventTypes } from "magmastream";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import { LavalinkEvent } from "../../../../types";
 
-/**
- * Player state update event handler
- * Triggers when player state changes, including position updates
- */
 const lavalinkEvent: LavalinkEvent = {
     name: ManagerEventTypes.PlayerStateUpdate,
     execute: async (
