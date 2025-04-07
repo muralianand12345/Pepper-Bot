@@ -225,7 +225,7 @@ const playcommand: SlashCommand = {
                     new MusicResponseHandler(client).createSuccessEmbed(
                         `Connected to ${guildMember?.voice.channel?.name}`
                     ).setFooter({
-                        text: `Hey, we have launched ${client.user?.username} dashboard! Check it out...`,
+                        text: `Play, skip, pause, queue tracks & view analytics — all in one place! ${client.user?.username} dashboard.`,
                         iconURL: client.user?.avatarURL() || "",
                     }),
                 ],
