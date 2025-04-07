@@ -1,6 +1,6 @@
 import discord from "discord.js";
-import music_guild from "../../events/database/schema/music_guild";
 import music_user from "../../events/database/schema/music_user";
+import music_guild from "../../events/database/schema/music_guild";
 import { IMusicGuild, IDJUser } from "../../types";
 
 /**

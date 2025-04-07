@@ -1,7 +1,7 @@
 import discord from "discord.js";
-import { VoiceChannelValidator } from "../../utils/music/music_validations";
-import { MusicResponseHandler } from "../../utils/music/embed_template";
 import AutoplayManager from "../../utils/music/autoplay_manager";
+import { MusicResponseHandler } from "../../utils/music/embed_template";
+import { VoiceChannelValidator } from "../../utils/music/music_validations";
 import { SlashCommand } from "../../types";
 
 const autoplaycommand: SlashCommand = {

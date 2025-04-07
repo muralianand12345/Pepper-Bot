@@ -1,24 +1,13 @@
 import ms from "ms";
 import discord from "discord.js";
-import { BotEvent, IMusicGuild } from "../../../types";
-import { sendTempMessage } from "../../../utils/music/music_functions";
 import block_users from "../../database/schema/block_users";
 import music_guild from "../../database/schema/music_guild";
 import premium_users from "../../database/schema/premium_users";
+import { sendTempMessage } from "../../../utils/music/music_functions";
+import { BotEvent, IMusicGuild } from "../../../types";
 
-/**
- * Collection to store active command cooldowns
- * Key format: `${commandName}${userId}`
- * Value: Timestamp when cooldown expires
- * @type {discord.Collection<string, number>}
- */
 const cooldown: discord.Collection<string, number> = new discord.Collection();
 
-/**
- * Checks if a user is blocked from using bot commands
- * @param {string} userId - Discord user ID
- * @returns {Promise<{blocked: boolean, reason?: string}>}
- */
 const checkBlockedStatus = async (
     userId: string
 ): Promise<{ blocked: boolean; reason?: string }> => {
@@ -35,11 +24,6 @@ const checkBlockedStatus = async (
     return { blocked: false };
 };
 
-/**
- * Checks if a user has premium access
- * @param {string} userId - Discord user ID
- * @returns {Promise<boolean>}
- */
 const checkPremiumStatus = async (userId: string): Promise<boolean> => {
     const premiumUser = await premium_users.findOne({ userId: userId });
     if (!premiumUser) return false;
@@ -52,24 +36,12 @@ const checkPremiumStatus = async (userId: string): Promise<boolean> => {
     );
 };
 
-/**
- * Checks if a user is a DJ
- * @param {string} userId - Discord user ID
- * @param {string} guildId - Discord guild ID
- * @returns {Promise<boolean>}
- */
 const checkDJStatus = async (userId: string, music_guild: IMusicGuild | null): Promise<boolean> => {
     if (!music_guild) return false;
     if (!music_guild.dj.enabled) return false;
     return music_guild.dj.users?.currentDJ?.userId === userId;
 };
 
-/**
- * Validates incoming message for command processing
- * @param {discord.Message} message - Discord message object
- * @param {discord.Client} client - Discord client instance
- * @returns {boolean} Whether message passes validation
- */
 const validateMessage = (
     message: discord.Message,
     client: discord.Client
@@ -87,12 +59,6 @@ const validateMessage = (
     return true;
 };
 
-/**
- * Creates and sends an error embed message
- * @param {discord.Message} message - Discord message object
- * @param {string} description - Error description
- * @returns {Promise<discord.Message | undefined>} Sent message or undefined if channel type is not supported
- */
 const sendErrorEmbed = async (
     message: discord.Message,
     description: string
@@ -107,13 +73,6 @@ const sendErrorEmbed = async (
     }
 };
 
-/**
- * Checks command prerequisites including permissions, cooldowns, blocked status, and premium access
- * @param {any} command - Command object
- * @param {discord.Message} message - Discord message object
- * @param {discord.Client} client - Discord client instance
- * @returns {Promise<boolean>} Whether prerequisites are met
- */
 const handleCommandPrerequisites = async (
     command: any,
     message: discord.Message,
@@ -231,13 +190,6 @@ const handleCommandPrerequisites = async (
     return true;
 };
 
-/**
- * Executes command and manages cooldown
- * @param {any} command - Command object
- * @param {Message} message - Discord message object
- * @param {string[]} args - Command arguments
- * @param {discord.Client} client - Discord client instance
- */
 const executeCommand = async (
     command: any,
     message: discord.Message,
@@ -274,22 +226,6 @@ const executeCommand = async (
     }
 };
 
-/**
- * Message Create Event Handler
- * Processes all incoming Discord messages and handles message-based commands
- *
- * Features:
- * - Message validation and prefix checking
- * - Command existence verification
- * - Permission management (user and bot)
- * - Cooldown system implementation
- * - Owner-only command handling
- * - Blocked user handling
- * - Premium user handling
- * - Error management and logging
- *
- * @implements {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.MessageCreate,
     execute: async (

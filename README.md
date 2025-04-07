@@ -1,6 +1,6 @@
 # 🎵 Pepper Music Bot
 
-![Version](https://img.shields.io/badge/version-4.11.3-blue)
+![Version](https://img.shields.io/badge/version-4.11.4-blue)
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
 ![Discord.js](https://img.shields.io/badge/discord.js-v14-7289da)
 ![TypeScript](https://img.shields.io/badge/typescript-v5.2.2-blue)
@@ -36,35 +36,41 @@ A modern, feature-rich music bot for Discord with advanced queue management, mus
 ### Installation
 
 1. Clone the repository
+
 ```bash
 git clone https://github.com/muralianand12345/Pepper-Bot.git
 cd Pepper-Bot
 ```
 
 2. Install dependencies
+
 ```bash
 npm i -g yarn
 yarn
 ```
 
 3. Configure environment variables
+
 ```bash
 cp .example.env .env.prod
 # Edit .env.prod with your configuration
 ```
 
 4. Configure the bot settings
+
 ```bash
 cp config/config.example.yml config/config.yml
 # Edit config.yml with your configuration
 ```
 
 5. Build the TypeScript code
+
 ```bash
 yarn build
 ```
 
 6. Run the bot
+
 ```bash
 yarn start
 ```
@@ -103,6 +109,7 @@ To securely expose your API, you can use Cloudflare Tunnels:
 1. Install `cloudflared`: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
 
 2. Create a config file:
+
 ```yml
 tunnel: tunnel-id
 credentials-file: /Users/username/.cloudflared/tunnel-id.json
@@ -114,6 +121,7 @@ ingress:
 ```
 
 3. Execute in terminal/cmd:
+
 ```bash
 # One Time Local only
 cloudflared tunnel login
@@ -132,8 +140,7 @@ Configure Lavalink nodes in `config.yml`:
 music:
   lavalink:
     default_search: spsearch
-    nodes:
-      [
+    nodes: [
         {
           "identifier": "Node 1",
           "host": "lavalink.example.com",
@@ -154,13 +161,13 @@ The bot includes a full RESTful API for programmatic control:
 
 ```javascript
 // Example API request to get active players
-fetch('https://pepper.domain.in/api/v1/music/players', {
+fetch("https://pepper.domain.in/api/v1/music/players", {
   headers: {
-    'x-api-key': 'your-api-key'
-  }
+    "x-api-key": "your-api-key",
+  },
 })
-.then(response => response.json())
-.then(data => console.log(data));
+  .then((response) => response.json())
+  .then((data) => console.log(data));
 ```
 
 ### WebSocket
@@ -169,25 +176,29 @@ For real-time control and events:
 
 ```javascript
 // Connect to WebSocket
-const ws = new WebSocket('wss://pepper.domain.in/api/v1/music/ws');
+const ws = new WebSocket("wss://pepper.domain.in/api/v1/music/ws");
 
 // Authenticate
 ws.onopen = () => {
-  ws.send(JSON.stringify({
-    type: 'auth',
-    data: { apiKey: 'your-api-key' }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: "auth",
+      data: { apiKey: "your-api-key" },
+    })
+  );
 };
 
 // Play a song
-ws.send(JSON.stringify({
-  type: 'play',
-  data: {
-    guildId: '123456789012345678',
-    query: 'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT',
-    userId: '987654321098765432'
-  }
-}));
+ws.send(
+  JSON.stringify({
+    type: "play",
+    data: {
+      guildId: "123456789012345678",
+      query: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",
+      userId: "987654321098765432",
+    },
+  })
+);
 
 // Listen for events
 ws.onmessage = (event) => {

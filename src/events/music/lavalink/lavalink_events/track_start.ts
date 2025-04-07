@@ -1,11 +1,11 @@
 import discord from "discord.js";
-import magmastream, { ManagerEventTypes } from "magmastream";
-import { musicEmbed, musicButton, MusicChannelManager } from "../../../../utils/music/embed_template";
 import MusicDB from "../../../../utils/music/music_db";
+import magmastream, { ManagerEventTypes } from "magmastream";
+import { wait } from "../../../../utils/music/music_functions";
 import music_guild from "../../../database/schema/music_guild";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import { shouldSendMessageInChannel } from "../../../../utils/music_channel_utility";
-import { wait } from "../../../../utils/music/music_functions";
+import { musicEmbed, musicButton, MusicChannelManager } from "../../../../utils/music/embed_template";
 import { LavalinkEvent, ISongsUser } from "../../../../types";
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;

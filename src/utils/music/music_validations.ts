@@ -23,7 +23,6 @@ class VoiceChannelValidator {
         discord.PermissionsBitField.Flags.Connect,
         discord.PermissionsBitField.Flags.Speak,
     ];
-    private readonly ytRegex: RegExp = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 
     /**
      * Creates an instance of VoiceChannelValidator with interaction support
@@ -223,26 +222,6 @@ class VoiceChannelValidator {
     }
 
     /**
-     * Validates if the music source is supported (currently excludes YouTube)
-     * @param {string} query - The music source URL or query
-     * @returns {Promise<[boolean, discord.EmbedBuilder]>} Tuple containing validation result and error embed if applicable
-     * @public
-     */
-    public async validateMusicSource(
-        query: string
-    ): Promise<[boolean, discord.EmbedBuilder]> {
-        if (this.ytRegex.test(query)) {
-            return [
-                false,
-                this.createErrorEmbed(
-                    "We do not support YouTube links or music at this time :("
-                ),
-            ];
-        }
-        return [true, this.createErrorEmbed("")];
-    }
-
-    /**
      * Validates if the player is properly connected and user is in the same channel
      * @param {magmastream.Player} player - The music player instance
      * @returns {Promise<[boolean, discord.EmbedBuilder]>} Tuple containing validation result and error embed if applicable
@@ -297,6 +276,7 @@ class VoiceChannelValidator {
 class MusicPlayerValidator {
     private readonly client: discord.Client;
     private readonly player: any;
+    private readonly ytRegex: RegExp = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 
     constructor(
         client: discord.Client,
@@ -387,6 +367,25 @@ class MusicPlayerValidator {
             ];
         }
         return [true, null];
+    }
+
+    /**
+     * Validates if the music source is supported (currently excludes YouTube)
+     * @param {string} query - The music source URL or query
+     * @returns {Promise<[boolean, discord.EmbedBuilder]>} Validation result and error if any
+     */
+    public async validateMusicSource(
+        query: string
+    ): Promise<[boolean, discord.EmbedBuilder]> {
+        if (this.ytRegex.test(query)) {
+            return [
+                false,
+                this.createErrorEmbed(
+                    "We do not support YouTube links or music at this time :("
+                ),
+            ];
+        }
+        return [true, this.createErrorEmbed("")];
     }
 }
 

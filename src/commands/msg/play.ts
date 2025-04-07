@@ -1,7 +1,7 @@
 import discord from "discord.js";
-import { VoiceChannelValidator } from "../../utils/music/music_validations";
-import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { handleSearchResult } from "../../utils/music/music_functions";
+import { MusicResponseHandler } from "../../utils/music/embed_template";
+import { VoiceChannelValidator, MusicPlayerValidator } from "../../utils/music/music_validations";
 import { Command } from "../../types";
 
 const command: Command = {
@@ -42,7 +42,6 @@ const command: Command = {
         // Validate voice and music requirements
         const validator = new VoiceChannelValidator(client, message);
         for (const check of [
-            validator.validateMusicSource(query),
             validator.validateGuildContext(),
             validator.validateVoiceConnection(),
         ]) {
@@ -75,6 +74,14 @@ const command: Command = {
                 textChannelId: chan.id,
                 volume: 50,
                 selfDeafen: true,
+            });
+        }
+
+        const musicValidator = new MusicPlayerValidator(client, player);
+        const [queueValid, queueError] = await musicValidator.validateMusicSource(query);
+        if (!queueValid && queueError) {
+            return message.reply({
+                embeds: [queueError],
             });
         }
 

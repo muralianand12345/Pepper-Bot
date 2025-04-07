@@ -1,6 +1,6 @@
 import discord from "discord.js";
-import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { ConfigManager } from "../../../utils/config";
+import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { BotEvent } from "../../../types";
 
 const processFeedback = (
@@ -23,8 +23,7 @@ const createFeedbackEmbed = (
         })
         .setTitle("📝 New Feedback Received")
         .setDescription(
-            `> 🔍 From: ${interaction.user.tag}\n> 📍 Channel: ${
-                interaction.channel?.toString() || "DM"
+            `> 🔍 From: ${interaction.user.tag}\n> 📍 Channel: ${interaction.channel?.toString() || "DM"
             }`
         )
         .addFields(
@@ -43,10 +42,10 @@ const createFeedbackEmbed = (
                 name: "🌐 Server Details",
                 value: interaction.guild
                     ? [
-                          `• **ID:** \`${interaction.guild.id}\``,
-                          `• **Name:** ${interaction.guild.name}`,
-                          `• **Members:** ${interaction.guild.memberCount}`,
-                      ].join("\n")
+                        `• **ID:** \`${interaction.guild.id}\``,
+                        `• **Name:** ${interaction.guild.name}`,
+                        `• **Members:** ${interaction.guild.memberCount}`,
+                    ].join("\n")
                     : "• Direct Message",
                 inline: true,
             }

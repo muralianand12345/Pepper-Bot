@@ -2,7 +2,7 @@ import discord from 'discord.js';
 import magmastream from 'magmastream';
 import { PlayerDto, DetailedPlayerDto, MusicHistoryDto, MusicHistoryWithGuildDto } from '../dto/music-dto';
 import { MusicDBSong, PaginationParams, PaginatedResponse } from '../../../../types';
-import { title } from 'process';
+import { time } from 'console';
 
 class MusicService {
     private readonly client: discord.Client;
@@ -152,8 +152,8 @@ class MusicService {
                     author: song.author,
                     sourceName: song.sourceName,
                     uri: song.uri,
-                    playCount: song.played_number,
-                    lastPlayed: song.timestamp,
+                    played_number: song.played_number,
+                    timestamp: song.timestamp,
                     artworkUrl: song.artworkUrl || song.thumbnail
                 }));
 
@@ -228,8 +228,8 @@ class MusicService {
                     author: song.author,
                     sourceName: song.sourceName,
                     uri: song.uri,
-                    playCount: song.played_number,
-                    lastPlayed: song.timestamp,
+                    played_number: song.played_number,
+                    timestamp: song.timestamp,
                     artworkUrl: song.artworkUrl || song.thumbnail
                 }));
 
@@ -288,8 +288,8 @@ class MusicService {
                             author: song.author,
                             sourceName: song.sourceName,
                             uri: song.uri,
-                            playCount: song.played_number,
-                            lastPlayed: song.timestamp,
+                            played_number: song.played_number,
+                            timestamp: song.timestamp,
                             artworkUrl: song.artworkUrl || song.thumbnail,
                             guildId: guildId,
                             guildName: guilds.get(guildId)?.name || 'Unknown Guild'
@@ -309,7 +309,7 @@ class MusicService {
             const sortDirection = options.sortDirection || 'desc';
 
             // Sort songs by the selected field and direction
-            const sortedSongs = [...allSongs].sort((a: MusicDBSong, b: MusicDBSong) => {
+            const sortedSongs = [...allSongs].sort((a, b) => {
                 if (sortBy === 'timestamp') {
                     const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
                     const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
@@ -339,8 +339,8 @@ class MusicService {
                     author: song.author,
                     sourceName: song.sourceName,
                     uri: song.uri,
-                    playCount: song.played_number,
-                    lastPlayed: song.timestamp,
+                    played_number: song.played_number,
+                    timestamp: song.timestamp,
                     artworkUrl: song.artworkUrl || song.thumbnail,
                     guildId: song.guildId,
                     guildName: song.guildName
@@ -418,8 +418,8 @@ class MusicService {
                     author: song.author,
                     sourceName: song.sourceName,
                     uri: song.uri,
-                    playCount: song.played_number,
-                    lastPlayed: song.timestamp,
+                    played_number: song.played_number,
+                    timestamp: song.timestamp,
                     artworkUrl: song.artworkUrl || song.thumbnail
                 }));
 

@@ -1,15 +1,15 @@
 import discord from "discord.js";
-import { BotEvent } from "../../../types";
 import music_guild from "../../database/schema/music_guild";
-import { VoiceChannelValidator } from "../../../utils/music/music_validations";
 import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { handleSearchResult, sendTempMessage } from "../../../utils/music/music_functions";
+import { VoiceChannelValidator, MusicPlayerValidator } from "../../../utils/music/music_validations";
+import { BotEvent } from "../../../types";
 
 const DELETE_DELAY = 5000; // 5 seconds
 
 const event: BotEvent = {
     name: discord.Events.MessageCreate,
-    execute: async (message: discord.Message, client: discord.Client): Promise<void> => {
+    execute: async (message: discord.Message, client: discord.Client): Promise<void | any> => {
         try {
             // Skip if message is from a bot or not in a guild
             if (message.author.bot || !message.guild) return;
@@ -54,7 +54,6 @@ const event: BotEvent = {
 
             // Run validations
             for (const check of [
-                validator.validateMusicSource(query),
                 validator.validateGuildContext(),
                 validator.validateVoiceConnection()
             ]) {
@@ -102,6 +101,14 @@ const event: BotEvent = {
                         DELETE_DELAY
                     );
                 }
+            }
+
+            const musicValidator = new MusicPlayerValidator(client, player);
+            const [queueValid, queueError] = await musicValidator.validateMusicSource(query);
+            if (!queueValid && queueError) {
+                return message.reply({
+                    embeds: [queueError],
+                });
             }
 
             // Connect to voice channel if not already connected

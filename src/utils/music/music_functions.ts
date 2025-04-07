@@ -1,5 +1,5 @@
-import discord from "discord.js";
 import https from "https";
+import discord from "discord.js";
 import { Readable } from "stream";
 import timers from "timers/promises";
 import magmastream from "magmastream";

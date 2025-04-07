@@ -39,9 +39,8 @@ const handleShowQueue = async (
             .setFooter({
                 text:
                     pagination.getMaxPages() > 1
-                        ? `( ${
-                              pagination.getCurrentPage() + 1
-                          } / ${pagination.getMaxPages()} Pages )\n+${pagination.getRemainingItems()} Songs`
+                        ? `( ${pagination.getCurrentPage() + 1
+                        } / ${pagination.getMaxPages()} Pages )\n+${pagination.getRemainingItems()} Songs`
                         : " ",
             })
             .addFields(

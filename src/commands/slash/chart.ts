@@ -72,12 +72,10 @@ const musicChartCommand: SlashCommand = {
                     data = await MusicDB.getGuildMusicHistory(
                         interaction.guildId
                     );
-                    title = `${
-                        interaction.guild?.name || "Server"
-                    }'s Musical Adventure`;
-                    description = `Explore the musical tastes of ${
-                        interaction.guild?.name || "this server"
-                    }!`;
+                    title = `${interaction.guild?.name || "Server"
+                        }'s Musical Adventure`;
+                    description = `Explore the musical tastes of ${interaction.guild?.name || "this server"
+                        }!`;
                     break;
 
                 case "user":
@@ -104,10 +102,9 @@ const musicChartCommand: SlashCommand = {
                 return await interaction.editReply({
                     embeds: [
                         new MusicResponseHandler(client).createInfoEmbed(
-                            `🎵 No music history found for ${
-                                subcommand === "global"
-                                    ? "any servers"
-                                    : subcommand === "guild"
+                            `🎵 No music history found for ${subcommand === "global"
+                                ? "any servers"
+                                : subcommand === "guild"
                                     ? interaction.guild?.name || "this server"
                                     : targetUser.username
                             }!`
@@ -125,10 +122,9 @@ const musicChartCommand: SlashCommand = {
                 return await interaction.editReply({
                     embeds: [
                         new MusicResponseHandler(client).createInfoEmbed(
-                            `🎵 No valid music history found for ${
-                                subcommand === "global"
-                                    ? "any servers"
-                                    : subcommand === "guild"
+                            `🎵 No valid music history found for ${subcommand === "global"
+                                ? "any servers"
+                                : subcommand === "guild"
                                     ? interaction.guild?.name || "this server"
                                     : targetUser.username
                             }! Start listening to see your stats!`
@@ -191,11 +187,10 @@ const musicChartCommand: SlashCommand = {
                             2,
                             "0"
                         )}\` ${barDisplay} **${Formatter.truncateText(
-                        song.title || "Unknown Title",
-                        30
-                    )}**\n┗ by *${
-                        song.author || "Unknown Artist"
-                    }* • \`${plays}\` plays • ${percentage}%`;
+                            song.title || "Unknown Title",
+                            30
+                        )}**\n┗ by *${song.author || "Unknown Artist"
+                        }* • \`${plays}\` plays • ${percentage}%`;
                 })
                 .join("\n\n");
 
@@ -208,27 +203,26 @@ const musicChartCommand: SlashCommand = {
                 })
                 .setDescription(
                     `${description}\n\n` +
-                        `**📊 Overview Statistics**\n` +
-                        `• Total Plays: \`${totalPlays}\` tracks played\n` +
-                        `• Unique Songs: \`${uniqueSongs}\` different tracks\n` +
-                        `• Total Listening Time: \`${Formatter.msToTime(
-                            totalDuration
-                        )}\`\n` +
-                        `• Average Plays per Song: \`${(
-                            totalPlays / Math.max(uniqueSongs, 1)
-                        ).toFixed(1)}\`\n\n` +
-                        `**👑 Top Artists**\n` +
-                        (topArtists.length > 0
-                            ? topArtists
-                                  .map(
-                                      (artist, i) =>
-                                          `${["🥇", "🥈", "🥉"][i]} ${artist}`
-                                  )
-                                  .join("\n")
-                            : "No artists found yet!") +
-                        `\n\n**📈 Top 10 Most Played Tracks**\n\n${
-                            songList || "No tracks played yet!"
-                        }`
+                    `**📊 Overview Statistics**\n` +
+                    `• Total Plays: \`${totalPlays}\` tracks played\n` +
+                    `• Unique Songs: \`${uniqueSongs}\` different tracks\n` +
+                    `• Total Listening Time: \`${Formatter.msToTime(
+                        totalDuration
+                    )}\`\n` +
+                    `• Average Plays per Song: \`${(
+                        totalPlays / Math.max(uniqueSongs, 1)
+                    ).toFixed(1)}\`\n\n` +
+                    `**👑 Top Artists**\n` +
+                    (topArtists.length > 0
+                        ? topArtists
+                            .map(
+                                (artist, i) =>
+                                    `${["🥇", "🥈", "🥉"][i]} ${artist}`
+                            )
+                            .join("\n")
+                        : "No artists found yet!") +
+                    `\n\n**📈 Top 10 Most Played Tracks**\n\n${songList || "No tracks played yet!"
+                    }`
                 )
                 .setFooter({
                     text: `Stats generated • ${new Date().toLocaleDateString()}`,

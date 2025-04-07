@@ -39,13 +39,11 @@ const nodestatsCommand: SlashCommand = {
             const embed = new discord.EmbedBuilder()
                 .setColor("#FF0000")
                 .setTitle(
-                    `📊 Node Statistics: ${
-                        node.options.identifier || "Unknown Node"
+                    `📊 Node Statistics: ${node.options.identifier || "Unknown Node"
                     }`
                 )
                 .setDescription(
-                    `Current status: ${
-                        node.connected ? "🟢 Connected" : "🔴 Disconnected"
+                    `Current status: ${node.connected ? "🟢 Connected" : "🔴 Disconnected"
                     }`
                 )
                 .addFields([

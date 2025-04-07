@@ -1,8 +1,8 @@
 import path from "path";
 import fs from "fs/promises";
 import discord from "discord.js";
-import { BotEvent, Command, SlashCommand } from "../types";
 import { ConfigManager } from "../utils/config";
+import { BotEvent, Command, SlashCommand } from "../types";
 
 // Load environment variables
 const configManager = ConfigManager.getInstance();

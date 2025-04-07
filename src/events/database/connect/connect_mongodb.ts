@@ -1,7 +1,8 @@
-import { connect, set } from "mongoose";
 import discord from "discord.js";
-import { BotEvent } from "../../../types";
+import { connect, set } from "mongoose";
 import { ConfigManager } from "../../../utils/config";
+import { BotEvent } from "../../../types";
+
 
 // Load environment variables
 const configManager = ConfigManager.getInstance();

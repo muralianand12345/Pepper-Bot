@@ -1,9 +1,6 @@
 import discord from "discord.js";
-import {
-    VoiceChannelValidator,
-    MusicPlayerValidator,
-} from "../../utils/music/music_validations";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
+import { VoiceChannelValidator, MusicPlayerValidator } from "../../utils/music/music_validations";
 import { SlashCommand } from "../../types";
 
 const skipcommand: SlashCommand = {

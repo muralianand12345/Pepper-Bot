@@ -1,7 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
 import Formatter from "../format";
-import { IConfig, ISongs } from "../../types";
+import { IConfig } from "../../types";
 
 // Create a function that returns both the adjusted time and progress percentage
 const getTrackProgress = (position: number, duration: number): {

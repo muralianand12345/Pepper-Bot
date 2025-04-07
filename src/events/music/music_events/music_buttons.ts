@@ -1,11 +1,8 @@
 import discord from "discord.js";
-import { BotEvent } from "../../../types";
-import {
-    MusicPlayerValidator,
-    VoiceChannelValidator,
-} from "../../../utils/music/music_validations";
 import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { NowPlayingManager } from "../../../utils/music/now_playing_manager";
+import { MusicPlayerValidator } from "../../../utils/music/music_validations";
+import { BotEvent } from "../../../types";
 
 /**
  * Handles music commands through button interactions

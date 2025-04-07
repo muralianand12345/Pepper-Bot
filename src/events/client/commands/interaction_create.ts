@@ -1,23 +1,12 @@
 import ms from "ms";
 import discord from "discord.js";
-import { BotEvent } from "../../../types";
 import block_users from "../../database/schema/block_users";
 import music_guild from "../../database/schema/music_guild";
 import premium_users from "../../database/schema/premium_users";
+import { BotEvent, IMusicGuild } from "../../../types";
 
-/**
- * Collection to store active command cooldowns
- * Key format: `${commandName}${userId}`
- * Value: Timestamp when cooldown expires
- * @type {discord.Collection<string, number>}
- */
 const cooldown: discord.Collection<string, number> = new discord.Collection();
 
-/**
- * Checks if a user is blocked from using bot commands
- * @param {string} userId - Discord user ID
- * @returns {Promise<{blocked: boolean, reason?: string}>}
- */
 const checkBlockedStatus = async (
     userId: string
 ): Promise<{ blocked: boolean; reason?: string }> => {
@@ -34,11 +23,6 @@ const checkBlockedStatus = async (
     return { blocked: false };
 };
 
-/**
- * Checks if a user has premium access
- * @param {string} userId - Discord user ID
- * @returns {Promise<boolean>}
- */
 const checkPremiumStatus = async (userId: string): Promise<boolean> => {
     const premiumUser = await premium_users.findOne({ userId: userId });
     if (!premiumUser) return false;
@@ -51,25 +35,12 @@ const checkPremiumStatus = async (userId: string): Promise<boolean> => {
     );
 };
 
-/**
- * Checks if a user is a DJ
- * @param {string} userId - Discord user ID
- * @param {string} guildId - Discord guild ID
- * @returns {Promise<boolean>}
- */
-const checkDJStatus = async (userId: string, guildId: string): Promise<boolean> => {
-    const djGuild = await music_guild.findOne({ guildId: guildId });
-    if (!djGuild) return false;
-    if (!djGuild.dj.enabled) return false;
-    return djGuild.dj.users?.currentDJ?.userId === userId;
+const checkDJStatus = async (userId: string, music_guild: IMusicGuild | null): Promise<boolean> => {
+    if (!music_guild) return false;
+    if (!music_guild.dj.enabled) return false;
+    return music_guild.dj.users?.currentDJ?.userId === userId;
 };
 
-/**
- * Validates incoming interaction for command processing
- * @param {discord.Interaction} interaction - Discord interaction object
- * @param {discord.Client} client - Discord client instance
- * @returns {boolean} Whether interaction passes validation
- */
 const validateInteraction = (
     interaction: discord.Interaction,
     client: discord.Client
@@ -84,12 +55,6 @@ const validateInteraction = (
     return true;
 };
 
-/**
- * Sends an error reply to the interaction
- * @param {discord.Interaction} interaction - Discord interaction object
- * @param {string} description - Error description
- * @returns {Promise<void>}
- */
 const sendErrorReply = async (
     interaction: discord.Interaction,
     description: string
@@ -102,17 +67,11 @@ const sendErrorReply = async (
     }
 };
 
-/**
- * Checks command prerequisites including permissions, cooldowns, blocked status, and premium access
- * @param {any} command - Command object
- * @param {discord.Interaction} interaction - Discord interaction object
- * @param {discord.Client} client - Discord client instance
- * @returns {Promise<boolean>} Whether prerequisites are met
- */
 const handleCommandPrerequisites = async (
     command: any,
     interaction: discord.Interaction,
-    client: discord.Client
+    client: discord.Client,
+    music_guild: IMusicGuild | null
 ): Promise<boolean> => {
     if (!interaction.isChatInputCommand()) return false;
 
@@ -142,7 +101,7 @@ const handleCommandPrerequisites = async (
     if (command.dj) {
         const isDJ = await checkDJStatus(
             interaction.user.id,
-            interaction.guild?.id || ""
+            music_guild
         );
         if (!isDJ) {
             const member = await interaction.guild?.members.fetch(
@@ -230,12 +189,6 @@ const handleCommandPrerequisites = async (
     return true;
 };
 
-/**
- * Executes command and manages cooldown
- * @param {any} command - Command object
- * @param {discord.Interaction} interaction - Discord interaction object
- * @param {discord.Client} client - Discord client instance
- */
 const executeCommand = async (
     command: any,
     interaction: discord.Interaction,
@@ -273,21 +226,6 @@ const executeCommand = async (
     }
 };
 
-/**
- * Interaction Create Event Handler
- * Processes all incoming Discord interactions and handles slash commands
- *
- * Features:
- * - Interaction validation and command verification
- * - Permission management (user and bot)
- * - Cooldown system implementation
- * - Owner-only command handling
- * - Blocked user handling
- * - Premium user access
- * - Error management and logging
- *
- * @implements {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.InteractionCreate,
     execute: async (
@@ -323,9 +261,13 @@ const event: BotEvent = {
                 return;
             }
 
+            const guild_data = await music_guild.findOne({
+                guildId: interaction.guild?.id,
+            });
+
             // Handle permissions and execution
             if (
-                await handleCommandPrerequisites(command, interaction, client)
+                await handleCommandPrerequisites(command, interaction, client, guild_data)
             ) {
                 await executeCommand(command, interaction, client);
             }

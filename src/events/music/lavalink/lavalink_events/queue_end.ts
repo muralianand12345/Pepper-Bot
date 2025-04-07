@@ -1,11 +1,11 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 import { wait } from "../../../../utils/music/music_functions";
-import { MusicResponseHandler, MusicChannelManager } from "../../../../utils/music/embed_template";
-import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
-import AutoplayManager from "../../../../utils/music/autoplay_manager";
 import music_guild from "../../../database/schema/music_guild";
+import AutoplayManager from "../../../../utils/music/autoplay_manager";
+import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import { shouldSendMessageInChannel } from "../../../../utils/music_channel_utility";
+import { MusicResponseHandler, MusicChannelManager } from "../../../../utils/music/embed_template";
 import { LavalinkEvent } from "../../../../types";
 
 const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {

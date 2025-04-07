@@ -6,9 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeWebSocketDemo();
 });
 
-/**
- * Initialize tab switching functionality
- */
 const initializeTabs = () => {
     const tabs = document.querySelectorAll('.tab');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -28,9 +25,6 @@ const initializeTabs = () => {
     });
 };
 
-/**
- * Initialize WebSocket demo console
- */
 const initializeWebSocketDemo = () => {
     let ws = null;
     const consoleOutput = document.getElementById('console-output');
@@ -202,9 +196,6 @@ const initializeWebSocketDemo = () => {
     };
 };
 
-/**
- * Utility function to copy code blocks to clipboard when clicked
- */
 const setupCodeCopyFeature = () => {
     document.querySelectorAll('pre code').forEach(block => {
         block.addEventListener('click', () => {

@@ -42,10 +42,10 @@
  *         uri:
  *           type: string
  *           description: Track URI
- *         playCount:
+ *         played_number:
  *           type: integer
  *           description: Number of times the track was played
- *         lastPlayed:
+ *         timestamp:
  *           type: string
  *           format: date-time
  *           description: Last time the track was played
