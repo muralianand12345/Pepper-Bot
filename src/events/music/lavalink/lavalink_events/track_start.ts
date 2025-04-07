@@ -5,7 +5,10 @@ import MusicDB from "../../../../utils/music/music_db";
 import music_guild from "../../../database/schema/music_guild";
 import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
 import { shouldSendMessageInChannel } from "../../../../utils/music_channel_utility";
+import { wait } from "../../../../utils/music/music_functions";
 import { LavalinkEvent, ISongsUser } from "../../../../types";
+
+const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 
 const logTrackStart = (
     track: magmastream.Track,
@@ -54,12 +57,37 @@ const lavalinkEvent: LavalinkEvent = {
     ) => {
         if (!player?.textChannelId || !client?.channels) return;
 
-        try {
-            const channel = (await client.channels.fetch(
-                player.textChannelId
-            )) as discord.TextChannel;
-            if (!channel?.isTextBased()) return;
+        const channel = (await client.channels.fetch(
+            player.textChannelId
+        )) as discord.TextChannel;
+        if (!channel?.isTextBased()) return;
 
+        // Check if the track is a YouTube URL, if so, skip the event
+        if (YTREGEX.test(track.uri)) {
+            player.stop(1);
+
+            client.logger.warn(`[LAVALINK] Skipping track start event for YouTube URL: ${track.uri}`);
+
+            const embed = new discord.EmbedBuilder()
+                .setColor("Red")
+                .setDescription(`⚠️ Skipping song! Youtube source detected.`)
+                .setFooter({
+                    text: "We do not support Youtube links due to YouTube's TOS.",
+                    iconURL: client.user?.displayAvatarURL() || "",
+                });
+
+            return await channel.send({
+                embeds: [embed]
+            }).then((msg) => {
+                wait(5000).then(() => {
+                    msg.delete().catch((err) => {
+                        client.logger.error(`[LAVALINK] Failed to delete message: ${err}`);
+                    });
+                });
+            })
+        }
+
+        try {
             // Skip displaying the embed if track is repeating, but still log data
             const shouldDisplayEmbed = !player.trackRepeat;
 

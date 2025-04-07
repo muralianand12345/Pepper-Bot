@@ -109,8 +109,7 @@ class SpotifyAutoComplete {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 throw new Error(
-                    `Token refresh failed: ${
-                        error.response?.data?.error || error.message
+                    `Token refresh failed: ${error.response?.data?.error || error.message
                     }`
                 );
             }

@@ -23,7 +23,7 @@ class VoiceChannelValidator {
         discord.PermissionsBitField.Flags.Connect,
         discord.PermissionsBitField.Flags.Speak,
     ];
-    private readonly ytLinks = ["youtube", "youtu.be", "youtu"];
+    private readonly ytRegex: RegExp = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 
     /**
      * Creates an instance of VoiceChannelValidator with interaction support
@@ -231,14 +231,15 @@ class VoiceChannelValidator {
     public async validateMusicSource(
         query: string
     ): Promise<[boolean, discord.EmbedBuilder]> {
-        return this.ytLinks.some((link) => query.includes(link))
-            ? [
+        if (this.ytRegex.test(query)) {
+            return [
                 false,
                 this.createErrorEmbed(
                     "We do not support YouTube links or music at this time :("
                 ),
-            ]
-            : [true, this.createErrorEmbed("")];
+            ];
+        }
+        return [true, this.createErrorEmbed("")];
     }
 
     /**

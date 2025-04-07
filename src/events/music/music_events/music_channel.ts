@@ -5,7 +5,6 @@ import { VoiceChannelValidator } from "../../../utils/music/music_validations";
 import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { handleSearchResult, sendTempMessage } from "../../../utils/music/music_functions";
 
-const YOUTUBE_REGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 const DELETE_DELAY = 5000; // 5 seconds
 
 const event: BotEvent = {
@@ -50,15 +49,6 @@ const event: BotEvent = {
                 );
             }
 
-            // Check if query is a YouTube link
-            if (YOUTUBE_REGEX.test(query)) {
-                return sendTempMessage(
-                    chan,
-                    new MusicResponseHandler(client).createErrorEmbed("YouTube links are not supported at this time"),
-                    DELETE_DELAY
-                );
-            }
-
             // Validate voice channel requirements
             const validator = new VoiceChannelValidator(client, message);
 
@@ -66,7 +56,7 @@ const event: BotEvent = {
             for (const check of [
                 validator.validateMusicSource(query),
                 validator.validateGuildContext(),
-                validator.validateVoiceConnection(),
+                validator.validateVoiceConnection()
             ]) {
                 const [isValid, embed] = await check;
                 if (!isValid) {
