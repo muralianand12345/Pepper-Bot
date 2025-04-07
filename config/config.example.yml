@@ -1,100 +1,101 @@
 bot:
-  owners: ["1234567890"]
-  presence:
-    enabled: true
-    status: dnd # online, idle, dnd, invisible
-    interval: 10000
-    activity: # PLAYING, LISTENING, WATCHING, STREAMING
-      [
-        { "name": "your Favorite Songs", "type": "PLAYING" },
-        { "name": "<clientname> Radio!", "type": "LISTENING" },
-        { "name": "<usersize> Users!", "type": "LISTENING" },
-        { "name": "version <version>", "type": "PLAYING" },
-        { "name": "with <guildsize> Servers!", "type": "PLAYING" },
-        { "name": "<channelsize> Channels!", "type": "WATCHING" },
-      ]
-  command:
-    prefix: "!"
-    disable_message: true
-    cooldown_message: You are on `<duration>` cooldown!
-    register_specific_commands:
-      enabled: true
-      commands: ["node"]
-  log:
-    command: "1234567890" # Command Log Channel ID
-    server: "1234567890" # New/Left Server Log Channel ID
-  features:
-    spotify_presence:
-      enabled: false
-    dj_role:
-      enabled: false
-      default_timeout: 86400000
-      default_role_name: DJ
+    owners: ["1234567890"]
+    presence:
+        enabled: true
+        status: dnd # online, idle, dnd, invisible
+        interval: 10000
+        activity: # PLAYING, LISTENING, WATCHING, STREAMING
+            [
+                { "name": "your Favorite Songs", "type": "PLAYING" },
+                { "name": "<clientname> Radio!", "type": "LISTENING" },
+                { "name": "<usersize> Users!", "type": "LISTENING" },
+                { "name": "version <version>", "type": "PLAYING" },
+                { "name": "with <guildsize> Servers!", "type": "PLAYING" },
+                { "name": "<channelsize> Channels!", "type": "WATCHING" },
+            ]
+    command:
+        prefix: "!"
+        disable_message: true
+        cooldown_message: You are on `<duration>` cooldown!
+        register_specific_commands:
+            enabled: true
+            commands: ["node"]
+    log:
+        command: "1234567890" # Command Log Channel ID
+        server: "1234567890" # New/Left Server Log Channel ID
+    features:
+        spotify_presence:
+            enabled: false
+        dj_role:
+            enabled: false
+            default_timeout: 86400000
+            default_role_name: DJ
 
 music:
-  enabled: true
-  dashboard_url: "https://pepper.mrbotz.com/dashboard/server/<guildId>"
-  image: "https://localhost:8080/assets/music.gif"
-  lavalink:
-    default_search: spsearch # amsearch, bcsearch, dzsearch, jssearch, scsearch, spsearch, tdsearch, ytsearch, vksearch, ytmsearch
-    nodes:
-      [
-        {
-          "identifier": "Pepper 1",
-          "host": "lavalink.muralianand.in",
-          "port": 25773,
-          "password": "4Vzm^mZw2CJG@P7pMM5$",
-          "priority": 1,
-          "secure": true,
-          "retryAmount": 1000,
-          "retrydelay": 10000,
-          "resumeStatus": false,
-          "resumeTimeout": 1000,
-          "requestTimeout": 10000,
-        },
-        {
-          "identifier": "Pepper 2",
-          "host": "lavalink.jirayu.net",
-          "port": 13592,
-          "password": "youshallnotpass",
-          "priority": 2,
-          "secure": false,
-          "retryAmount": 1000,
-          "retrydelay": 10000,
-          "resumeStatus": false,
-          "resumeTimeout": 1000,
-          "requestTimeout": 10000,
-        },
-      ]
+    enabled: true
+    dashboard_url: "https://pepper.mrbotz.com/dashboard/server/<guildId>"
+    image: "https://localhost:8080/assets/music.gif"
+    lavalink:
+        default_search: spsearch # amsearch, bcsearch, dzsearch, jssearch, scsearch, spsearch, tdsearch, ytsearch, vksearch, ytmsearch
+        nodes:
+            [
+                {
+                    "identifier": "Pepper 1",
+                    "host": "lavalink.muralianand.in",
+                    "port": 25773,
+                    "password": "4Vzm^mZw2CJG@P7pMM5$",
+                    "priority": 1,
+                    "secure": true,
+                    "retryAmount": 1000,
+                    "retrydelay": 10000,
+                    "resumeStatus": false,
+                    "resumeTimeout": 1000,
+                    "requestTimeout": 10000,
+                },
+                {
+                    "identifier": "Pepper 2",
+                    "host": "lavalink.jirayu.net",
+                    "port": 13592,
+                    "password": "youshallnotpass",
+                    "priority": 2,
+                    "secure": false,
+                    "retryAmount": 1000,
+                    "retrydelay": 10000,
+                    "resumeStatus": false,
+                    "resumeTimeout": 1000,
+                    "requestTimeout": 10000,
+                },
+            ]
 
 content:
-  text:
-    no_music_playing: No Music Playing Right Now 😔
-  embed:
-    color:
-      default: Purple
-      success: Green
-      error: Red
-      info: Blue
-      warning: Yellow
-    no_music_playing:
-      author:
-        name: "No song playing currently"
-        icon_url: https://media.discordapp.net/attachments/1100136924305440829/1118029575755145277/image.png?ex=67950cee&is=6793bb6e&hm=d6a106740f477165d7ffb529920436f29051152b8642c566689ae4eacc52b857&=&format=webp&quality=lossless&width=1232&height=806
-      image: https://media.discordapp.net/attachments/1100136924305440829/1118029575755145277/image.png?ex=67950cee&is=6793bb6e&hm=d6a106740f477165d7ffb529920436f29051152b8642c566689ae4eacc52b857&=&format=webp&quality=lossless&width=1232&height=806
+    text:
+        no_music_playing: No Music Playing Right Now 😔
+    embed:
+        color:
+            default: Purple
+            success: Green
+            error: Red
+            info: Blue
+            warning: Yellow
+        no_music_playing:
+            author:
+                name: "No song playing currently"
+                icon_url: https://media.discordapp.net/attachments/1100136924305440829/1118029575755145277/image.png?ex=67950cee&is=6793bb6e&hm=d6a106740f477165d7ffb529920436f29051152b8642c566689ae4eacc52b857&=&format=webp&quality=lossless&width=1232&height=806
+            image: https://media.discordapp.net/attachments/1100136924305440829/1118029575755145277/image.png?ex=67950cee&is=6793bb6e&hm=d6a106740f477165d7ffb529920436f29051152b8642c566689ae4eacc52b857&=&format=webp&quality=lossless&width=1232&height=806
 
 api:
-  enabled: true
-  port: 3000
-  origin:
-    [
-      "https://domain.in",
-      "https://pepper.domain.in",
-      "https://peppermusic.domain.in",
-    ]
-  auth:
     enabled: true
-    apiKey: "your-secure-api-key-here"
-  rateLimit:
-    windowMs: 900000 # 15 minutes in milliseconds
-    max: 100 # Maximum 100 requests per windowMs
+    webhook: https://discord.com/api/webhooks/123123123123123123123/gdfgfdzgdzsffdsdfsesr32532efdfs
+    port: 3000
+    origin:
+        [
+            "https://domain.in",
+            "https://pepper.domain.in",
+            "https://peppermusic.domain.in",
+        ]
+    auth:
+        enabled: true
+        apiKey: "your-secure-api-key-here"
+    rateLimit:
+        windowMs: 900000 # 15 minutes in milliseconds
+        max: 100 # Maximum 100 requests per windowMs

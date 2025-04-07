@@ -165,6 +165,7 @@ export interface IConfig {
     };
     api?: {
         enabled: boolean;
+        webhook: string | null;
         port: number;
         origin: Array<string>;
         auth: {
