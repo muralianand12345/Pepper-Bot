@@ -373,6 +373,20 @@ class MusicResponseHandler {
                 .setEmoji("🔧")
         );
     }
+
+    /**
+     * Gets music dashboard button
+     * @returns {discord.ActionRowBuilder<discord.ButtonBuilder>} Support button component
+     */
+    public getDashboardButton(guildId: string | null): discord.ActionRowBuilder<discord.ButtonBuilder> {
+        return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
+            new discord.ButtonBuilder()
+                .setLabel("Dashboard")
+                .setStyle(discord.ButtonStyle.Link)
+                .setURL(this.client.config.music.dashboard_url.replace("<guildId>", guildId || ""))
+                .setEmoji("🖥️")
+        );
+    }
 }
 
 /**

@@ -124,6 +124,7 @@ export interface IConfig {
     };
     music: {
         enabled: boolean;
+        dashboard_url: string;
         image: string;
         lavalink: {
             default_search: string;

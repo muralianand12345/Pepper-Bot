@@ -224,7 +224,13 @@ const playcommand: SlashCommand = {
                 embeds: [
                     new MusicResponseHandler(client).createSuccessEmbed(
                         `Connected to ${guildMember?.voice.channel?.name}`
-                    ),
+                    ).setFooter({
+                        text: `Hey, we have launched ${client.user?.username} dashboard! Check it out...`,
+                        iconURL: client.user?.avatarURL() || "",
+                    }),
+                ],
+                components: [
+                    new MusicResponseHandler(client).getDashboardButton(interaction.guildId),
                 ],
             });
         }
