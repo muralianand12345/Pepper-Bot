@@ -1,6 +1,7 @@
-import WebSocket from 'ws';
 import http from 'http';
+import WebSocket from 'ws';
 import discord from 'discord.js';
+import magmastream from 'magmastream';
 import { ILogger, WebSocketMessage } from '../../../../types';
 import PlaylistSuggestion from '../../../../utils/music/playlist_suggestion';
 
@@ -579,7 +580,7 @@ class WebSocketManager {
      * @private
      */
     private async handlePlay(ws: WebSocket, message: WebSocketMessage): Promise<void> {
-        const { guildId, query, userId } = message.data;
+        const { guildId, query, userId, node } = message.data;
         const metadata = this.clientsMetadata.get(ws);
 
         if (!guildId) {
@@ -598,6 +599,22 @@ class WebSocketManager {
             this.sendError(ws, 'userId is required');
             this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'userId is required', metadata);
             return;
+        }
+
+        if (node) {
+            const validNode = this.client.manager.nodes.find(
+                (n: magmastream.Node) => n.options.identifier === node
+            );
+            if (!validNode) {
+                this.sendError(ws, 'Invalid node identifier', 400);
+                this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'Invalid node identifier', metadata);
+                return;
+            }
+            if (!validNode.connected) {
+                this.sendError(ws, 'Node is not connected', 503);
+                this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'Node is not connected', metadata);
+                return;
+            }
         }
 
         try {
@@ -678,6 +695,7 @@ class WebSocketManager {
                     guildId: guild.id,
                     voiceChannelId: voiceChannelId,
                     textChannelId: textChannelId,
+                    node: node,
                     selfDeafen: true,
                     volume: 50,
                 });

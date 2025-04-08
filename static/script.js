@@ -1,31 +1,56 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Tab functionality
-    initializeTabs();
+document.addEventListener('DOMContentLoaded', async () => {
+    const version = await fetch('../version').then(response => response.json());
+    const versionElement = document.getElementById('version-tag');
+    if (versionElement) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        versionElement.textContent = `v${version.version}`;
+    }
 
-    // WebSocket demo functionality
-    initializeWebSocketDemo();
-});
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
 
-const initializeTabs = () => {
-    const tabs = document.querySelectorAll('.tab');
-    const tabContents = document.querySelectorAll('.tab-content');
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth'
+                });
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabName = tab.getAttribute('data-tab');
-
-            // Deactivate all tabs
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
-
-            // Activate selected tab
-            tab.classList.add('active');
-            document.querySelector(`.tab-content[data-tab="${tabName}"]`).classList.add('active');
+                // Update active class
+                document.querySelectorAll('.nav-item a').forEach(link => {
+                    link.classList.remove('active');
+                });
+                this.classList.add('active');
+            }
         });
     });
-};
 
-const initializeWebSocketDemo = () => {
+    // Active link on scroll
+    window.addEventListener('scroll', () => {
+        const sections = document.querySelectorAll('section');
+        const navItems = document.querySelectorAll('.nav-item a');
+
+        let currentSection = '';
+
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+
+            if (window.pageYOffset >= (sectionTop - 200)) {
+                currentSection = section.getAttribute('id');
+            }
+        });
+
+        navItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('href') === `#${currentSection}`) {
+                item.classList.add('active');
+            }
+        });
+    });
+
+    // WebSocket console functionality
     let ws = null;
     const consoleOutput = document.getElementById('console-output');
     const messageInput = document.getElementById('message-input');
@@ -93,7 +118,7 @@ const initializeWebSocketDemo = () => {
 
             // Connection message
             ws.addEventListener('message', (event) => {
-                logToConsole(`<< ${formatJson(event.data)}`, 'info');
+                logToConsole(`⬅️ ${formatJson(event.data)}`, 'info');
             });
 
             // Connection error
@@ -134,7 +159,7 @@ const initializeWebSocketDemo = () => {
 
             // Send message
             ws.send(message);
-            logToConsole(`>> ${formatJson(message)}`, 'success');
+            logToConsole(`➡️ ${formatJson(message)}`, 'success');
 
         } catch (error) {
             logToConsole(`Invalid JSON: ${error.message}`, 'error');
@@ -148,75 +173,25 @@ const initializeWebSocketDemo = () => {
         }
     });
 
-    // Example commands menu (Optional enhancement)
-    const addExampleCommands = () => {
-        const exampleCommands = [
-            {
-                name: 'Authentication',
-                command: {
-                    type: 'auth',
-                    data: {
-                        apiKey: 'your-api-key-here'
-                    }
-                }
-            },
-            {
-                name: 'Play song',
-                command: {
-                    type: 'play',
-                    data: {
-                        guildId: '1234567890',
-                        query: 'bohemian rhapsody',
-                        userId: '9876543210'
-                    }
-                }
-            },
-            {
-                name: 'Now playing',
-                command: {
-                    type: 'now_playing',
-                    data: {
-                        guildId: '1234567890'
-                    }
-                }
-            },
-            {
-                name: 'Pause playback',
-                command: {
-                    type: 'pause',
-                    data: {
-                        guildId: '1234567890'
-                    }
-                }
-            }
-        ];
-
-        // Create example commands dropdown or buttons
-        // Implementation left for future enhancement
-    };
-};
-
-const setupCodeCopyFeature = () => {
-    document.querySelectorAll('pre code').forEach(block => {
+    // Example command copy functionality
+    document.querySelectorAll('.example-command-body pre').forEach(block => {
         block.addEventListener('click', () => {
-            const text = block.textContent;
-            navigator.clipboard.writeText(text).then(
-                () => {
-                    // Visual feedback on successful copy
-                    const originalBackground = block.parentElement.style.background;
-                    block.parentElement.style.background = '#3A3D44';
-                    setTimeout(() => {
-                        block.parentElement.style.background = originalBackground;
-                    }, 200);
-                },
-                () => console.error('Failed to copy code')
-            );
-        });
-        // Add title as hint
-        block.parentElement.title = 'Click to copy';
-        block.parentElement.style.cursor = 'pointer';
-    });
-};
+            const code = block.textContent;
+            navigator.clipboard.writeText(code);
 
-// Call the code copy feature setup
-setupCodeCopyFeature();
+            // Visual feedback
+            block.style.opacity = '0.7';
+            setTimeout(() => {
+                block.style.opacity = '1';
+            }, 200);
+
+            if (messageInput) {
+                messageInput.value = code;
+            }
+        });
+
+        // Add title as hint
+        block.title = 'Click to copy to clipboard and console';
+        block.style.cursor = 'pointer';
+    });
+});

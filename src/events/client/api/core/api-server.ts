@@ -90,6 +90,14 @@ class ApiServer {
             }
         });
 
+        //Version
+        this.app.get('/version', (req, res) => {
+            res.json({
+                version: version,
+                timestamp: new Date().toISOString()
+            });
+        });
+
         this.app.use('/static', express.static(path.join(__dirname, '../../../../../static/')));
 
         // Root route for API status (no auth required)
