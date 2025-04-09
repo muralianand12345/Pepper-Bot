@@ -435,7 +435,7 @@ class WebSocketManager {
 
         // Authentication required for all messages except AUTH
         if (message.type !== MessageType.AUTH && !(metadata && metadata.authenticated)) {
-            this.sendError(ws, 'Not authenticated', 401);
+            this.sendError(ws, 'Not authenticated', 401, message.data.guildId);
 
             // Send webhook notification for authentication failure
             this.sendWebhookNotification(
@@ -495,7 +495,7 @@ class WebSocketManager {
                 break;
 
             default:
-                this.sendError(ws, `Unknown message type: ${message.type}`);
+                this.sendError(ws, `Unknown message type: ${message.type}`, 400, message.data.guildId);
 
                 // Send webhook notification for unknown message type
                 this.sendWebhookNotification(
@@ -520,7 +520,7 @@ class WebSocketManager {
 
         if (!this.apiKey) {
             this.logger.warn('[WEBSOCKET] API key not configured but authentication attempted');
-            this.sendError(ws, 'Authentication is misconfigured on the server', 500);
+            this.sendError(ws, 'Authentication is misconfigured on the server', 500, message.data.guildId);
 
             // Send webhook notification for authentication error
             this.sendWebhookNotification(
@@ -534,7 +534,7 @@ class WebSocketManager {
         }
 
         if (!providedKey) {
-            this.sendError(ws, 'API key is required', 401);
+            this.sendError(ws, 'API key is required', 401, message.data.guildId);
 
             // Send webhook notification for missing API key
             this.sendWebhookNotification(
@@ -548,7 +548,7 @@ class WebSocketManager {
         }
 
         if (providedKey !== this.apiKey) {
-            this.sendError(ws, 'Invalid API key', 401);
+            this.sendError(ws, 'Invalid API key', 401, message.data.guildId);
 
             // Send webhook notification for invalid API key
             this.sendWebhookNotification(
@@ -589,19 +589,19 @@ class WebSocketManager {
         const metadata = this.clientsMetadata.get(ws);
 
         if (!guildId) {
-            this.sendError(ws, 'guildId is required');
+            this.sendError(ws, 'guildId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'guildId is required', metadata);
             return;
         }
 
         if (!query) {
-            this.sendError(ws, 'query is required');
+            this.sendError(ws, 'query is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'query is required', metadata);
             return;
         }
 
         if (!userId) {
-            this.sendError(ws, 'userId is required');
+            this.sendError(ws, 'userId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'userId is required', metadata);
             return;
         }
@@ -611,12 +611,12 @@ class WebSocketManager {
                 (n: magmastream.Node) => n.options.identifier === node
             );
             if (!validNode) {
-                this.sendError(ws, 'Invalid node identifier', 400);
+                this.sendError(ws, 'Invalid node identifier', 400, message.data.guildId);
                 this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'Invalid node identifier', metadata);
                 return;
             }
             if (!validNode.connected) {
-                this.sendError(ws, 'Node is not connected', 503);
+                this.sendError(ws, 'Node is not connected', 503, message.data.guildId);
                 this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'Node is not connected', metadata);
                 return;
             }
@@ -631,7 +631,7 @@ class WebSocketManager {
             // Get guild instance
             const guild = this.client.guilds.cache.get(guildId);
             if (!guild) {
-                this.sendError(ws, `Guild not found: ${guildId}`, 404);
+                this.sendError(ws, `Guild not found: ${guildId}`, 404, message.data.guildId);
                 this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', `Guild not found: ${guildId}`, metadata);
                 return;
             }
@@ -646,7 +646,7 @@ class WebSocketManager {
             const textChannelId = await MusicDB.getSongTextChannelId(this.client, guildId, userId);
 
             if (!textChannelId) {
-                this.sendError(ws, 'Could not find a suitable text channel');
+                this.sendError(ws, 'Could not find a suitable text channel', 404, message.data.guildId);
                 this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'Could not find a suitable text channel', metadata);
                 return;
             }
@@ -676,7 +676,7 @@ class WebSocketManager {
                         );
 
                         if (voiceChannels.size === 0) {
-                            this.sendError(ws, 'No active voice channels found and user is not in a voice channel');
+                            this.sendError(ws, 'No active voice channels found and user is not in a voice channel', 404, message.data.guildId);
                             this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'No active voice channels found and user is not in a voice channel', metadata);
                             return;
                         }
@@ -684,13 +684,13 @@ class WebSocketManager {
                         voiceChannelId = voiceChannels.first()?.id;
                     }
                 } catch (error) {
-                    this.sendError(ws, `Could not find a suitable voice channel: ${error}`);
+                    this.sendError(ws, `Could not find a suitable voice channel: ${error}`, 404, message.data.guildId);
                     this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', `Could not find a suitable voice channel: ${error}`, metadata);
                     return;
                 }
 
                 if (!voiceChannelId) {
-                    this.sendError(ws, 'Could not find a suitable voice channel');
+                    this.sendError(ws, 'Could not find a suitable voice channel', 404, message.data.guildId);
                     this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'Could not find a suitable voice channel', metadata);
                     return;
                 }
@@ -726,7 +726,7 @@ class WebSocketManager {
             const searchResult = await this.client.manager.search(query, requester);
 
             if (searchResult.loadType === "empty" || !searchResult.tracks || searchResult.tracks.length === 0) {
-                this.sendError(ws, `No results found for query: ${query}`);
+                this.sendError(ws, `No results found for query: ${query}`, 404, message.data.guildId);
                 this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', `No results found for query: ${query}`, metadata);
                 return;
             }
@@ -784,7 +784,7 @@ class WebSocketManager {
                 case "playlist": {
                     // Add playlist tracks
                     if (!searchResult.playlist) {
-                        this.sendError(ws, 'Playlist data is missing');
+                        this.sendError(ws, 'Playlist data is missing', 400, message.data.guildId);
                         this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'Playlist data is missing', metadata);
                         return;
                     }
@@ -843,7 +843,7 @@ class WebSocketManager {
                 }
 
                 default:
-                    this.sendError(ws, `Unsupported load type: ${searchResult.loadType}`);
+                    this.sendError(ws, `Unsupported load type: ${searchResult.loadType}`, 400, message.data.guildId);
                     this.sendWebhookNotification(
                         MessageType.PLAY,
                         message.data,
@@ -854,7 +854,7 @@ class WebSocketManager {
             }
 
         } catch (error) {
-            this.sendError(ws, `Error playing song: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendError(ws, `Error playing song: ${error instanceof Error ? error.message : String(error)}`, 500, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.PLAY,
                 message.data,
@@ -875,7 +875,7 @@ class WebSocketManager {
         const { guildId } = message.data;
 
         if (!guildId) {
-            this.sendError(ws, 'guildId is required');
+            this.sendError(ws, 'guildId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.PAUSE, message.data, 'error', 'guildId is required');
             return;
         }
@@ -884,7 +884,7 @@ class WebSocketManager {
             const player = this.client.manager.get(guildId);
 
             if (!player) {
-                this.sendError(ws, 'No active player found for this guild', 404);
+                this.sendError(ws, 'No active player found for this guild', 404, message.data.guildId);
                 this.sendWebhookNotification(MessageType.PAUSE, message.data, 'error', 'No active player found for this guild');
                 return;
             }
@@ -917,7 +917,7 @@ class WebSocketManager {
             );
 
         } catch (error) {
-            this.sendError(ws, `Error pausing playback: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendError(ws, `Error pausing playback: ${error instanceof Error ? error.message : String(error)}`, 500, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.PAUSE,
                 message.data,
@@ -937,7 +937,7 @@ class WebSocketManager {
         const { guildId } = message.data;
 
         if (!guildId) {
-            this.sendError(ws, 'guildId is required');
+            this.sendError(ws, 'guildId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.RESUME, message.data, 'error', 'guildId is required');
             return;
         }
@@ -946,7 +946,7 @@ class WebSocketManager {
             const player = this.client.manager.get(guildId);
 
             if (!player) {
-                this.sendError(ws, 'No active player found for this guild', 404);
+                this.sendError(ws, 'No active player found for this guild', 404, message.data.guildId);
                 this.sendWebhookNotification(MessageType.RESUME, message.data, 'error', 'No active player found for this guild');
                 return;
             }
@@ -979,7 +979,7 @@ class WebSocketManager {
             );
 
         } catch (error) {
-            this.sendError(ws, `Error resuming playback: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendError(ws, `Error resuming playback: ${error instanceof Error ? error.message : String(error)}`, 500, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.RESUME,
                 message.data,
@@ -999,7 +999,7 @@ class WebSocketManager {
         const { guildId } = message.data;
 
         if (!guildId) {
-            this.sendError(ws, 'guildId is required');
+            this.sendError(ws, 'guildId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.STOP, message.data, 'error', 'guildId is required');
             return;
         }
@@ -1008,7 +1008,7 @@ class WebSocketManager {
             const player = this.client.manager.get(guildId);
 
             if (!player) {
-                this.sendError(ws, 'No active player found for this guild', 404);
+                this.sendError(ws, 'No active player found for this guild', 404, message.data.guildId);
                 this.sendWebhookNotification(MessageType.STOP, message.data, 'error', 'No active player found for this guild');
                 return;
             }
@@ -1038,7 +1038,7 @@ class WebSocketManager {
             );
 
         } catch (error) {
-            this.sendError(ws, `Error stopping playback: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendError(ws, `Error stopping playback: ${error instanceof Error ? error.message : String(error)}`, 500, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.STOP,
                 message.data,
@@ -1058,7 +1058,7 @@ class WebSocketManager {
         const { guildId } = message.data;
 
         if (!guildId) {
-            this.sendError(ws, 'guildId is required');
+            this.sendError(ws, 'guildId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.SKIP, message.data, 'error', 'guildId is required');
             return;
         }
@@ -1067,13 +1067,13 @@ class WebSocketManager {
             const player = this.client.manager.get(guildId);
 
             if (!player) {
-                this.sendError(ws, 'No active player found for this guild', 404);
+                this.sendError(ws, 'No active player found for this guild', 404, message.data.guildId);
                 this.sendWebhookNotification(MessageType.SKIP, message.data, 'error', 'No active player found for this guild');
                 return;
             }
 
             if (!player.queue.current) {
-                this.sendError(ws, 'No song is currently playing');
+                this.sendError(ws, 'No song is currently playing', 404, message.data.guildId);
                 this.sendWebhookNotification(MessageType.SKIP, message.data, 'error', 'No song is currently playing');
                 return;
             }
@@ -1118,7 +1118,7 @@ class WebSocketManager {
             );
 
         } catch (error) {
-            this.sendError(ws, `Error skipping song: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendError(ws, `Error skipping song: ${error instanceof Error ? error.message : String(error)}`, 500, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.SKIP,
                 message.data,
@@ -1138,7 +1138,7 @@ class WebSocketManager {
         const { guildId, volume } = message.data;
 
         if (!guildId) {
-            this.sendError(ws, 'guildId is required');
+            this.sendError(ws, 'guildId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.VOLUME, message.data, 'error', 'guildId is required');
             return;
         }
@@ -1146,7 +1146,7 @@ class WebSocketManager {
         const player = this.client.manager.get(guildId);
 
         if (!player) {
-            this.sendError(ws, 'No active player found for this guild', 404);
+            this.sendError(ws, 'No active player found for this guild', 404, message.data.guildId);
             this.sendWebhookNotification(MessageType.VOLUME, message.data, 'error', 'No active player found for this guild');
             return;
         }
@@ -1168,7 +1168,7 @@ class WebSocketManager {
         }
 
         if (typeof volume !== 'number' || volume < 0 || volume > 100) {
-            this.sendError(ws, 'volume must be a number between 0 and 100');
+            this.sendError(ws, 'volume must be a number between 0 and 100', 400, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.VOLUME,
                 message.data,
@@ -1196,7 +1196,7 @@ class WebSocketManager {
             );
 
         } catch (error) {
-            this.sendError(ws, `Error setting volume: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendError(ws, `Error setting volume: ${error instanceof Error ? error.message : String(error)}`, 500, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.VOLUME,
                 message.data,
@@ -1216,7 +1216,7 @@ class WebSocketManager {
         const { guildId } = message.data;
 
         if (!guildId) {
-            this.sendError(ws, 'guildId is required');
+            this.sendError(ws, 'guildId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.QUEUE, message.data, 'error', 'guildId is required');
             return;
         }
@@ -1225,7 +1225,7 @@ class WebSocketManager {
             const player = this.client.manager.get(guildId);
 
             if (!player) {
-                this.sendError(ws, 'No active player found for this guild', 404);
+                this.sendError(ws, 'No active player found for this guild', 404, message.data.guildId);
                 this.sendWebhookNotification(MessageType.QUEUE, message.data, 'error', 'No active player found for this guild');
                 return;
             }
@@ -1282,7 +1282,7 @@ class WebSocketManager {
             );
 
         } catch (error) {
-            this.sendError(ws, `Error getting queue: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendError(ws, `Error getting queue: ${error instanceof Error ? error.message : String(error)}`, 500, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.QUEUE,
                 message.data,
@@ -1302,13 +1302,13 @@ class WebSocketManager {
         const { guildId, userId, count = 10 } = message.data;
 
         if (!guildId) {
-            this.sendError(ws, 'guildId is required');
+            this.sendError(ws, 'guildId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.RECOMMEND, message.data, 'error', 'guildId is required');
             return;
         }
 
         if (!userId) {
-            this.sendError(ws, 'userId is required');
+            this.sendError(ws, 'userId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.RECOMMEND, message.data, 'error', 'userId is required');
             return;
         }
@@ -1324,7 +1324,7 @@ class WebSocketManager {
             );
 
             if (!recommendations.seedSong) {
-                this.sendError(ws, 'No listening history found for recommendation generation', 404);
+                this.sendError(ws, 'No listening history found for recommendation generation', 404, message.data.guildId);
                 this.sendWebhookNotification(
                     MessageType.RECOMMEND,
                     message.data,
@@ -1370,7 +1370,7 @@ class WebSocketManager {
             );
 
         } catch (error) {
-            this.sendError(ws, `Error getting recommendations: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendError(ws, `Error getting recommendations: ${error instanceof Error ? error.message : String(error)}`, 500, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.RECOMMEND,
                 message.data,
@@ -1390,7 +1390,7 @@ class WebSocketManager {
         const { guildId } = message.data;
 
         if (!guildId) {
-            this.sendError(ws, 'guildId is required');
+            this.sendError(ws, 'guildId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.NOW_PLAYING, message.data, 'error', 'guildId is required');
             return;
         }
@@ -1399,7 +1399,7 @@ class WebSocketManager {
             const player = this.client.manager.get(guildId);
 
             if (!player) {
-                this.sendError(ws, 'No active player found for this guild', 404);
+                this.sendError(ws, 'No active player found for this guild', 404, message.data.guildId);
                 this.sendWebhookNotification(
                     MessageType.NOW_PLAYING,
                     message.data,
@@ -1461,6 +1461,13 @@ class WebSocketManager {
                 }
             });
 
+            const AutoplayManager = require('../../../../utils/music/autoplay_manager').default;
+            const autoplayManager = AutoplayManager.getInstance(
+                guildId,
+                player,
+                this.client
+            );
+
             // Calculate progress percent
             const progressPercent = Math.min(100, Math.floor((playbackStatus.position / Math.max(1, playbackStatus.duration)) * 100));
 
@@ -1470,6 +1477,7 @@ class WebSocketManager {
                 playing: player.playing,
                 paused: player.paused,
                 volume: player.volume,
+                autoplay: autoplayManager.isEnabled(),
                 track: currentTrack,
                 progressBar: progressBar,
                 progressPercent: progressPercent,
@@ -1500,7 +1508,7 @@ class WebSocketManager {
             );
 
         } catch (error) {
-            this.sendError(ws, `Error getting now playing info: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendError(ws, `Error getting now playing info: ${error instanceof Error ? error.message : String(error)}`, 500, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.NOW_PLAYING,
                 message.data,
@@ -1521,13 +1529,13 @@ class WebSocketManager {
         const metadata = this.clientsMetadata.get(ws);
 
         if (!guildId) {
-            this.sendError(ws, 'guildId is required');
+            this.sendError(ws, 'guildId is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.AUTOPLAY, message.data, 'error', 'guildId is required', metadata);
             return;
         }
 
         if (enabled === undefined) {
-            this.sendError(ws, 'enabled parameter is required');
+            this.sendError(ws, 'enabled parameter is required', 400, message.data.guildId);
             this.sendWebhookNotification(MessageType.AUTOPLAY, message.data, 'error', 'enabled parameter is required', metadata);
             return;
         }
@@ -1536,7 +1544,7 @@ class WebSocketManager {
             const player = this.client.manager.get(guildId);
 
             if (!player) {
-                this.sendError(ws, 'No active player found for this guild', 404);
+                this.sendError(ws, 'No active player found for this guild', 404, message.data.guildId);
                 this.sendWebhookNotification(MessageType.AUTOPLAY, message.data, 'error', 'No active player found for this guild', metadata);
                 return;
             }
@@ -1600,7 +1608,7 @@ class WebSocketManager {
                 );
             }
         } catch (error) {
-            this.sendError(ws, `Error toggling autoplay: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendError(ws, `Error toggling autoplay: ${error instanceof Error ? error.message : String(error)}`, 500, message.data.guildId);
             this.sendWebhookNotification(
                 MessageType.AUTOPLAY,
                 message.data,
@@ -1631,8 +1639,8 @@ class WebSocketManager {
      * @param code - Error code
      * @private
      */
-    private sendError(ws: WebSocket, message: string, code: number = 400): void {
-        this.sendMessage(ws, 'error', { message, code });
+    private sendError(ws: WebSocket, message: string, code: number = 400, guildId?: string | null): void {
+        this.sendMessage(ws, 'error', { guildId, message, code });
     }
 
     /**
