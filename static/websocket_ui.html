@@ -227,6 +227,17 @@
     "guildId": "1234567890"
   }
 }</code></pre>
+                    <h3>Toggle Autoplay</h3>
+                    <p>Enables or disables smart autoplay that adds songs based on listening history</p>
+
+                    <pre><code>{
+  "type": "autoplay",
+  "data": {
+    "guildId": "1234567890",
+    "enabled": true,
+    "userId": "9876543210" // Optional
+  }
+}</code></pre>
                 </section>
 
                 <section id="server-events">
@@ -438,6 +449,19 @@
 }</code></pre>
                             </div>
                         </div>
+                        <div class="success-card">
+                            <div class="success-card-header">Autoplay State</div>
+                            <div class="success-card-body">
+                                <pre><code>{
+  "type": "autoplay_state",
+  "data": {
+      "guildId": "1234567890",
+      "enabled": true,
+      "userId": "9876543210"
+  }
+}</code></pre>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -500,9 +524,9 @@
                         <div class="console-header">WebSocket Terminal</div>
                         <div class="console-output" id="console-output">
                             <div class="console-log log-info">
-Connect to the WebSocket server using the URL provided above.
-Localhost: <code>ws://localhost:3000/api/v1/music/ws</code>
-API: <code>wss://api.pepper.mrbotz.com/api/v1/music/ws</code>
+                                Connect to the WebSocket server using the URL provided above.
+                                Localhost: <code>ws://localhost:3000/api/v1/music/ws</code>
+                                API: <code>wss://api.pepper.mrbotz.com/api/v1/music/ws</code>
                             </div>
                         </div>
                         <div class="console-input">
@@ -540,9 +564,9 @@ API: <code>wss://api.pepper.mrbotz.com/api/v1/music/ws</code>
 
                     <div class="two-column-grid">
                         <div class="example-command">
-                            <div class="example-command-header">Stop Song</div>
+                            <div class="example-command-header">Enable Autoplay</div>
                             <div class="example-command-body">
-                                <pre><code>{ "type": "stop", "data": { "guildId": "1234567890" } }</code></pre>
+                                <pre><code>{ "type": "autoplay", "data": { "guildId": "1234567890", "enabled": true, "userId": "9876543210" } }</code></pre>
                             </div>
                         </div>
 

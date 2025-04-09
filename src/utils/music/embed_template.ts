@@ -555,6 +555,11 @@ class MusicChannelManager {
     };
 }
 
+const randomTips = (client: discord.Client): string => {
+    const tips: string[] = client.config.content.text.random_tips;
+    return tips[Math.floor(Math.random() * tips.length)];
+}
+
 export {
     disabledMusicButton,
     musicButton,
@@ -562,5 +567,6 @@ export {
     MusicResponseHandler,
     createTrackEmbed,
     createPlaylistEmbed,
-    MusicChannelManager
+    MusicChannelManager,
+    randomTips
 };

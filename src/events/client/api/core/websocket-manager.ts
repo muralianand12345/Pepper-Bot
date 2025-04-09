@@ -18,7 +18,8 @@ enum MessageType {
     QUEUE = 'queue',
     RECOMMEND = 'recommend',
     AUTH = 'auth',
-    NOW_PLAYING = 'now_playing'
+    NOW_PLAYING = 'now_playing',
+    AUTOPLAY = 'autoplay',
 }
 
 /**
@@ -487,6 +488,10 @@ class WebSocketManager {
 
             case MessageType.NOW_PLAYING:
                 this.handleNowPlaying(ws, message);
+                break;
+
+            case MessageType.AUTOPLAY:
+                this.handleAutoplay(ws, message);
                 break;
 
             default:
@@ -1417,16 +1422,6 @@ class WebSocketManager {
                 };
 
                 this.sendMessage(ws, 'now_playing', responseData);
-
-                this.sendWebhookNotification(
-                    MessageType.NOW_PLAYING,
-                    {
-                        ...message.data,
-                        playing: false
-                    },
-                    'info',
-                    'No track currently playing'
-                );
                 return;
             }
 
@@ -1511,6 +1506,107 @@ class WebSocketManager {
                 message.data,
                 'error',
                 `Error getting now playing info: ${error instanceof Error ? error.message : String(error)}`
+            );
+        }
+    }
+
+    /**
+     * Handle autoplay message
+     * @param ws - WebSocket connection
+     * @param message - Message with autoplay data
+     * @private
+     */
+    private handleAutoplay(ws: WebSocket, message: WebSocketMessage): void {
+        const { guildId, enabled, userId } = message.data;
+        const metadata = this.clientsMetadata.get(ws);
+
+        if (!guildId) {
+            this.sendError(ws, 'guildId is required');
+            this.sendWebhookNotification(MessageType.AUTOPLAY, message.data, 'error', 'guildId is required', metadata);
+            return;
+        }
+
+        if (enabled === undefined) {
+            this.sendError(ws, 'enabled parameter is required');
+            this.sendWebhookNotification(MessageType.AUTOPLAY, message.data, 'error', 'enabled parameter is required', metadata);
+            return;
+        }
+
+        try {
+            const player = this.client.manager.get(guildId);
+
+            if (!player) {
+                this.sendError(ws, 'No active player found for this guild', 404);
+                this.sendWebhookNotification(MessageType.AUTOPLAY, message.data, 'error', 'No active player found for this guild', metadata);
+                return;
+            }
+
+            // Save guild association
+            if (metadata) {
+                metadata.guilds.add(guildId);
+            }
+
+            // Get the AutoplayManager for this guild
+            const AutoplayManager = require('../../../../utils/music/autoplay_manager').default;
+            const autoplayManager = AutoplayManager.getInstance(
+                guildId,
+                player,
+                this.client
+            );
+
+            // Determine user ID to use for autoplay context
+            // Use provided userId, if available, or fall back to the last requester's ID
+            const effectiveUserId = userId ||
+                (player.queue.current?.requester as discord.User)?.id ||
+                this.client.user?.id || null;
+
+            if (enabled) {
+                // Enable autoplay
+                autoplayManager.enable(effectiveUserId);
+
+                this.sendMessage(ws, 'autoplay_state', {
+                    guildId,
+                    enabled: true,
+                    userId: effectiveUserId
+                });
+
+                // Send webhook notification
+                this.sendWebhookNotification(
+                    MessageType.AUTOPLAY,
+                    {
+                        ...message.data,
+                        userId: effectiveUserId
+                    },
+                    'success',
+                    'Autoplay enabled successfully'
+                );
+            } else {
+                // Disable autoplay
+                autoplayManager.disable();
+
+                this.sendMessage(ws, 'autoplay_state', {
+                    guildId,
+                    enabled: false
+                });
+
+                // Send webhook notification
+                this.sendWebhookNotification(
+                    MessageType.AUTOPLAY,
+                    {
+                        ...message.data
+                    },
+                    'success',
+                    'Autoplay disabled successfully'
+                );
+            }
+        } catch (error) {
+            this.sendError(ws, `Error toggling autoplay: ${error instanceof Error ? error.message : String(error)}`);
+            this.sendWebhookNotification(
+                MessageType.AUTOPLAY,
+                message.data,
+                'error',
+                `Error toggling autoplay: ${error instanceof Error ? error.message : String(error)}`,
+                metadata
             );
         }
     }

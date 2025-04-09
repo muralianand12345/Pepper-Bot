@@ -3,7 +3,7 @@ import magmastream from "magmastream";
 import { ConfigManager } from "../../utils/config";
 import { SpotifyAutoComplete } from "../../utils/auto_search";
 import { handleSearchResult } from "../../utils/music/music_functions";
-import { MusicResponseHandler } from "../../utils/music/embed_template";
+import { MusicResponseHandler, randomTips } from "../../utils/music/embed_template";
 import { VoiceChannelValidator, MusicPlayerValidator } from "../../utils/music/music_validations";
 import { SlashCommand, INodeOption } from "../../types";
 
@@ -225,7 +225,7 @@ const playcommand: SlashCommand = {
                     new MusicResponseHandler(client).createSuccessEmbed(
                         `Connected to ${guildMember?.voice.channel?.name}`
                     ).setFooter({
-                        text: `Play, skip, pause, queue tracks & view analytics — all in one place! ${client.user?.username} dashboard.`,
+                        text: randomTips(client) || client.user?.username || "",
                         iconURL: client.user?.avatarURL() || "",
                     }),
                 ],

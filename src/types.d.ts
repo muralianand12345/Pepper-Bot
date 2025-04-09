@@ -144,6 +144,7 @@ export interface IConfig {
     content: {
         text: {
             no_music_playing: string;
+            random_tips: Array<string>;
         };
         embed: {
             color: {
