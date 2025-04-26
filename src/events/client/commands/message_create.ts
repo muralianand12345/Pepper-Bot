@@ -53,8 +53,6 @@ const validateMessage = (
 
     if (client.config.bot.command.disable_message) return false;
     if (message.author.bot) return false;
-    if (!message.content.startsWith(client.config.bot.command.prefix))
-        return false;
 
     return true;
 };
@@ -247,6 +245,8 @@ const event: BotEvent = {
             } else {
                 prefix = client.config.bot.command.prefix;
             }
+
+            if (!message.content.startsWith(prefix)) return;
 
             const args = message.content
                 .slice(prefix.length)
