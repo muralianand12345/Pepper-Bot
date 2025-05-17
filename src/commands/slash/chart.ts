@@ -4,6 +4,47 @@ import MusicDB from "../../utils/music/music_db";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { SlashCommand, ISongs } from "../../types";
 
+/**
+ * Formats milliseconds into a human-readable duration string
+ * @param milliseconds Total duration in milliseconds
+ * @returns Formatted duration string (e.g., "5 days, 3 hours, 45 minutes")
+ */
+const formatDuration = (milliseconds: number): string => {
+    // Guard against extremely large numbers
+    if (milliseconds <= 0 || !isFinite(milliseconds)) {
+        return "0 minutes";
+    }
+
+    // Calculate time units
+    const seconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    // Format parts
+    const parts = [];
+
+    if (days > 0) {
+        parts.push(`${days} ${days === 1 ? 'day' : 'days'}`);
+    }
+
+    if (hours % 24 > 0) {
+        parts.push(`${hours % 24} ${hours % 24 === 1 ? 'hour' : 'hours'}`);
+    }
+
+    if (minutes % 60 > 0) {
+        parts.push(`${minutes % 60} ${minutes % 60 === 1 ? 'minute' : 'minutes'}`);
+    }
+
+    // Handle edge cases
+    if (parts.length === 0) {
+        return "less than a minute";
+    }
+
+    // Limit to 3 most significant units for readability
+    return parts.slice(0, 3).join(", ");
+};
+
 const musicChartCommand: SlashCommand = {
     cooldown: 10,
     owner: false,
@@ -60,7 +101,7 @@ const musicChartCommand: SlashCommand = {
                     );
                     title = `${interaction.user.username}'s Music Journey`;
                     description =
-                        "Your personal music listening journey with Pepper!";
+                        `Your personal music listening journey with ${client.user?.username}!`;
                     break;
 
                 case "guild":
@@ -156,12 +197,38 @@ const musicChartCommand: SlashCommand = {
                 .slice(0, 3)
                 .map(([artist, plays]) => `${artist} (\`${plays}\` plays)`);
 
-            // Calculate total listening time
+            // Find a representative song to link for each top artist
+            const artistRepresentativeSongs = new Map<string, string>();
+            topArtists.forEach(artistEntry => {
+                const artistName = artistEntry.split(' (')[0];
+                const representativeSong = validSongs.find(song =>
+                    song.author === artistName && song.uri);
+
+                if (representativeSong && representativeSong.uri) {
+                    artistRepresentativeSongs.set(artistName, representativeSong.uri);
+                }
+            });
+
+            // Calculate total listening time with better handling of large numbers
             const totalDuration = validSongs.reduce(
-                (sum, song) =>
-                    sum + (song.duration || 0) * (song.played_number || 0),
+                (sum, song) => {
+                    // Apply safeguards against invalid values
+                    const duration = isFinite(song.duration) ? song.duration : 0;
+                    const playCount = isFinite(song.played_number) ? song.played_number : 0;
+
+                    // Check for potential overflow
+                    if (duration > 0 && playCount > 0 &&
+                        duration < Number.MAX_SAFE_INTEGER / playCount) {
+                        return sum + duration * playCount;
+                    }
+
+                    return sum;
+                },
                 0
             );
+
+            // Format the total duration in a human-readable way
+            const formattedDuration = formatDuration(totalDuration);
 
             // Create the chart visualization
             const maxPlays =
@@ -181,15 +248,18 @@ const musicChartCommand: SlashCommand = {
                         100
                     ).toFixed(1);
 
+                    // Create a hyperlink to the song if it has a valid URL
+                    const songTitle = Formatter.truncateText(song.title || "Unknown Title", 30);
+                    const formattedTitle = song.uri ?
+                        Formatter.hyperlink(songTitle, song.uri) :
+                        `**${songTitle}**`;
+
                     return `\`${(index + 1)
                         .toString()
                         .padStart(
                             2,
                             "0"
-                        )}\` ${barDisplay} **${Formatter.truncateText(
-                            song.title || "Unknown Title",
-                            30
-                        )}**\n┗ by *${song.author || "Unknown Artist"
+                        )}\` ${barDisplay} ${formattedTitle}\n┗ by *${song.author || "Unknown Artist"
                         }* • \`${plays}\` plays • ${percentage}%`;
                 })
                 .join("\n\n");
@@ -206,9 +276,7 @@ const musicChartCommand: SlashCommand = {
                     `**📊 Overview Statistics**\n` +
                     `• Total Plays: \`${totalPlays}\` tracks played\n` +
                     `• Unique Songs: \`${uniqueSongs}\` different tracks\n` +
-                    `• Total Listening Time: \`${Formatter.msToTime(
-                        totalDuration
-                    )}\`\n` +
+                    `• Total Listening Time: \`${formattedDuration}\`\n` +
                     `• Average Plays per Song: \`${(
                         totalPlays / Math.max(uniqueSongs, 1)
                     ).toFixed(1)}\`\n\n` +
@@ -216,8 +284,18 @@ const musicChartCommand: SlashCommand = {
                     (topArtists.length > 0
                         ? topArtists
                             .map(
-                                (artist, i) =>
-                                    `${["🥇", "🥈", "🥉"][i]} ${artist}`
+                                (artist, i) => {
+                                    const artistEmoji = ["🥇", "🥈", "🥉"][i];
+                                    const artistName = artist.split(' (')[0];
+                                    const playsInfo = artist.split(artistName)[1];
+
+                                    // Create a hyperlink if we have a representative song for this artist
+                                    if (artistRepresentativeSongs.has(artistName)) {
+                                        return `${artistEmoji} ${Formatter.hyperlink(artistName, artistRepresentativeSongs.get(artistName)!)}${playsInfo}`;
+                                    }
+
+                                    return `${artistEmoji} ${artist}`;
+                                }
                             )
                             .join("\n")
                         : "No artists found yet!") +
