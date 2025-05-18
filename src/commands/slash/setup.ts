@@ -22,7 +22,6 @@ const setupCommand: SlashCommand = {
                 .addChannelTypes(discord.ChannelType.GuildText)
         ),
     execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client) => {
-        // Check if music is enabled
         if (!client.config.music.enabled) {
             return await interaction.reply({
                 embeds: [
@@ -45,7 +44,6 @@ const setupCommand: SlashCommand = {
             });
         }
 
-        // Validate guild context
         if (!interaction.guild) {
             return await interaction.reply({
                 embeds: [
@@ -57,11 +55,9 @@ const setupCommand: SlashCommand = {
             });
         }
 
-        // Get input options
         const prefix = interaction.options.getString("prefix");
         const musicChannel = interaction.options.getChannel("music_channel");
 
-        // If no options provided, show current configuration
         if (!prefix && !musicChannel) {
             return await showCurrentConfig(interaction, client);
         }
@@ -69,11 +65,9 @@ const setupCommand: SlashCommand = {
         await interaction.deferReply();
 
         try {
-            // Find or create guild data
             let guildData = await music_guild.findOne({ guildId: interaction.guild.id });
 
             if (!guildData) {
-                // Create new guild entry if it doesn't exist
                 guildData = new music_guild({
                     guildId: interaction.guild.id,
                     prefix: client.config.bot.command.prefix,
@@ -82,15 +76,12 @@ const setupCommand: SlashCommand = {
                 });
             }
 
-            // Update prefix if provided
             if (prefix) {
                 guildData.prefix = prefix;
             }
 
-            // Update music channel if provided
             if (musicChannel) {
                 guildData.songChannelId = musicChannel.id;
-                // Create music channel embed
                 const musicChannelManager = new MusicChannelManager(client);
                 const music_pannel_message = await musicChannelManager.createMusicEmbed(musicChannel);
                 guildData.musicPannelId = music_pannel_message?.id || null;
@@ -99,12 +90,10 @@ const setupCommand: SlashCommand = {
                 );
             }
 
-            // Save changes to database
             await guildData.save();
 
-            // Create success embed
             const embed = new discord.EmbedBuilder()
-                .setColor("#43b581") // Discord green
+                .setColor("#43b581")
                 .setTitle("✅ Bot Configuration Updated")
                 .setDescription("Setup completed successfully!")
                 .addFields([
@@ -127,7 +116,6 @@ const setupCommand: SlashCommand = {
 
             await interaction.editReply({ embeds: [embed] });
 
-            // Log the setup action
             client.logger.info(
                 `[SETUP] Updated configuration for guild ${interaction.guild.name} (${interaction.guild.id}): ` +
                 `Prefix: ${guildData.prefix}, Music Channel: ${guildData.songChannelId}`
@@ -157,16 +145,12 @@ const showCurrentConfig = async (
     await interaction.deferReply();
 
     try {
-        // Get guild data
         const guildData = await music_guild.findOne({ guildId: interaction.guild?.id });
-
-        // Default config if no guild data found
         const prefix = guildData?.prefix || client.config.bot.command.prefix;
         const songChannelId = guildData?.songChannelId || null;
 
-        // Create info embed
         const embed = new discord.EmbedBuilder()
-            .setColor("#5865f2") // Discord blurple
+            .setColor("#5865f2")
             .setTitle("⚙️ Current Bot Configuration")
             .addFields([
                 {

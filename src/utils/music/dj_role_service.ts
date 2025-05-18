@@ -24,17 +24,15 @@ class DJRoleService {
      */
     public async getConfig(guildId: string): Promise<IMusicGuild | null> {
         try {
-            // Get guild data or create if it doesn't exist
             let guildData = await music_guild.findOne({ guildId });
 
             if (!guildData) {
-                // Create default DJ configuration
                 const defaultDJConfig: IDJUser = {
                     enabled: false,
                     roleId: null,
                     auto: {
                         assign: true,
-                        timeout: 86400000, // 24 hours
+                        timeout: 86400000,
                     },
                     users: {
                         currentDJ: null,
@@ -42,7 +40,6 @@ class DJRoleService {
                     }
                 };
 
-                // Create new guild document with default DJ config
                 guildData = new music_guild({
                     guildId,
                     songChannelId: null,
@@ -52,13 +49,12 @@ class DJRoleService {
 
                 await guildData.save();
             } else if (!guildData.dj) {
-                // If guild exists but DJ config doesn't, add default DJ config
                 guildData.dj = {
                     enabled: false,
                     roleId: null,
                     auto: {
                         assign: true,
-                        timeout: 86400000, // 24 hours
+                        timeout: 86400000,
                     },
                     users: {
                         currentDJ: null,
@@ -90,17 +86,13 @@ class DJRoleService {
                 return null;
             }
 
-            // Update DJ configuration fields with provided values
             if (updateData.enabled !== undefined) guildData.dj.enabled = updateData.enabled;
             if (updateData.roleId) guildData.dj.roleId = updateData.roleId;
-
-            // Update nested properties if provided
             if (updateData.auto) {
                 if (updateData.auto.assign !== undefined) guildData.dj.auto.assign = updateData.auto.assign;
                 if (updateData.auto.timeout !== undefined) guildData.dj.auto.timeout = updateData.auto.timeout;
             }
 
-            // Update user data if provided
             if (updateData.users) {
                 if (updateData.users.currentDJ) {
                     if (!guildData.dj.users.currentDJ) {
@@ -144,27 +136,21 @@ class DJRoleService {
      */
     public async getMostActiveUsers(
         guildId: string,
-        timeWindow: number = 604800000, // 7 days default
+        timeWindow: number = 604800000,
         minimumSongs: number = 5
     ): Promise<Array<{ userId: string, username: string, activity: number }>> {
         try {
-            // Calculate cutoff timestamp
             const cutoffTime = new Date(Date.now() - timeWindow);
-
-            // Get guild's music history
             const guildData = await music_guild.findOne({ guildId });
             if (!guildData || !guildData.songs || guildData.songs.length === 0) {
                 return [];
             }
 
-            // Count songs per user within the time window
             const userActivity = new Map<string, { count: number, username: string }>();
 
             for (const song of guildData.songs) {
-                // Skip songs without requester or timestamp
                 if (!song.requester || !song.timestamp) continue;
 
-                // Skip songs outside time window
                 const songTime = new Date(song.timestamp);
                 if (songTime < cutoffTime) continue;
 
@@ -178,15 +164,12 @@ class DJRoleService {
                 }
             }
 
-            // Add Spotify presence data from music_user
             const spotifyPresencePromises = Array.from(userActivity.keys()).map(async (userId) => {
                 try {
                     const userData = await music_user.findOne({ userId });
                     if (!userData || !userData.songs) return;
 
                     let spotifyCount = 0;
-
-                    // Count Spotify songs within time window
                     userData.songs.forEach(song => {
                         if (song.timestamp && new Date(song.timestamp) >= cutoffTime) {
                             if (song.sourceName === "Spotify") {
@@ -195,7 +178,6 @@ class DJRoleService {
                         }
                     });
 
-                    // Add Spotify activity to total count
                     if (userActivity.has(userId)) {
                         userActivity.get(userId)!.count += spotifyCount;
                     }
@@ -204,10 +186,7 @@ class DJRoleService {
                 }
             });
 
-            // Wait for all promises to resolve
             await Promise.all(spotifyPresencePromises);
-
-            // Convert to array, filter by minimum requirement, and sort by activity
             return Array.from(userActivity.entries())
                 .map(([userId, data]) => ({
                     userId,
@@ -238,27 +217,22 @@ class DJRoleService {
         durationMs: number | null = null
     ): Promise<boolean> {
         try {
-            // Get guild data with DJ configuration
             const guildData = await this.getConfig(guildId);
             if (!guildData || !guildData.dj || !guildData.dj.enabled) {
                 return false;
             }
 
-            // Get the Discord guild
             const guild = this.client.guilds.cache.get(guildId);
             if (!guild) {
                 this.client.logger.error(`[DJ_ROLE] Guild ${guildId} not found for DJ role assignment`);
                 return false;
             }
 
-            // Get or create the DJ role
             let role: discord.Role | null = null;
-
             if (guildData.dj.roleId) {
                 role = guild.roles.cache.get(guildData.dj.roleId) || null;
             }
 
-            // Create role if it doesn't exist or if the existing role ID is invalid
             if (!role) {
                 try {
                     role = await guild.roles.create({
@@ -268,7 +242,6 @@ class DJRoleService {
                         permissions: []
                     });
 
-                    // Update role ID in configuration
                     guildData.dj.roleId = role.id;
                     await guildData.save();
                 } catch (error) {
@@ -277,13 +250,11 @@ class DJRoleService {
                 }
             }
 
-            // If there's a current DJ, move them to previous DJs
             if (guildData.dj.users.currentDJ &&
                 guildData.dj.users.currentDJ.userId &&
                 guildData.dj.users.currentDJ.userId !== userId &&
                 this.isValidSnowflake(guildData.dj.users.currentDJ.userId)) {
 
-                // Add current DJ to previous DJs list
                 guildData.dj.users.previousDJs.push({
                     userId: guildData.dj.users.currentDJ.userId,
                     username: guildData.dj.users.currentDJ.username || "Unknown",
@@ -291,12 +262,10 @@ class DJRoleService {
                     expiresAt: guildData.dj.users.currentDJ.expiresAt || new Date()
                 });
 
-                // Limit previous DJs list to last 10
                 if (guildData.dj.users.previousDJs.length > 10) {
                     guildData.dj.users.previousDJs = guildData.dj.users.previousDJs.slice(-10);
                 }
 
-                // Try to remove role from previous DJ
                 try {
                     const previousMember = await guild.members.fetch(guildData.dj.users.currentDJ.userId);
                     if (previousMember && role) {
@@ -304,11 +273,9 @@ class DJRoleService {
                     }
                 } catch (error) {
                     this.client.logger.warn(`[DJ_ROLE] Failed to remove DJ role from previous DJ: ${error}`);
-                    // Continue despite this error
                 }
             }
 
-            // Set the new DJ
             const now = new Date();
             const duration = durationMs || guildData.dj.auto.timeout;
             const expiresAt = new Date(now.getTime() + duration);
@@ -329,7 +296,6 @@ class DJRoleService {
 
             await guildData.save();
 
-            // Assign role to the new DJ
             try {
                 const member = await guild.members.fetch(userId);
                 if (member && role) {
@@ -356,27 +322,21 @@ class DJRoleService {
      */
     public async removeDJRole(guildId: string, userId: string | null = null): Promise<boolean> {
         try {
-            // Get guild data with DJ configuration
             const guildData = await this.getConfig(guildId);
             if (!guildData || !guildData.dj || !guildData.dj.enabled || !guildData.dj.roleId) {
                 return false;
             }
 
-            // Determine which user to remove the role from
             if (!userId && (!guildData.dj.users.currentDJ || !guildData.dj.users.currentDJ.userId)) {
-                // No user specified and no current DJ
                 return false;
             }
 
             const targetUserId = userId || (guildData.dj.users.currentDJ?.userId || null);
 
-            // Validate the user ID is a valid snowflake
             if (!targetUserId || !this.isValidSnowflake(targetUserId)) {
                 this.client.logger.warn(`[DJ_ROLE] Invalid user ID for role removal: ${targetUserId}`);
 
-                // Still update the database to remove invalid current DJ
                 if (!userId && guildData.dj.users.currentDJ) {
-                    // Move to previous DJs list if it's a valid entry
                     if (guildData.dj.users.currentDJ.userId &&
                         guildData.dj.users.currentDJ.username &&
                         guildData.dj.users.currentDJ.assignedAt &&
@@ -389,45 +349,38 @@ class DJRoleService {
                             expiresAt: guildData.dj.users.currentDJ.expiresAt
                         });
 
-                        // Limit previous DJs list
                         if (guildData.dj.users.previousDJs.length > 10) {
                             guildData.dj.users.previousDJs = guildData.dj.users.previousDJs.slice(-10);
                         }
                     }
 
-                    // Clear current DJ
                     guildData.dj.users.currentDJ = null;
                     await guildData.save();
                 }
 
-                return true; // Return true because we've cleaned up the database
+                return true;
             }
 
-            // Get the Discord guild
             const guild = this.client.guilds.cache.get(guildId);
             if (!guild) {
                 this.client.logger.error(`[DJ_ROLE] Guild ${guildId} not found for DJ role removal`);
                 return false;
             }
 
-            // Get the role
             const role = guild.roles.cache.get(guildData.dj.roleId);
             if (!role) {
                 this.client.logger.error(`[DJ_ROLE] Role ${guildData.dj.roleId} not found in guild ${guildId}`);
 
-                // Update the configuration anyway
                 if (!userId && guildData.dj.users.currentDJ) {
                     guildData.dj.users.currentDJ = null;
                     await guildData.save();
                 }
 
-                return true; // Return true because we've cleaned up the database
+                return true;
             }
 
-            // If removing the current DJ, update the configuration
             if (!userId || (guildData.dj.users.currentDJ && guildData.dj.users.currentDJ.userId === targetUserId)) {
                 if (guildData.dj.users.currentDJ && guildData.dj.users.currentDJ.userId) {
-                    // Move to previous DJs list
                     guildData.dj.users.previousDJs.push({
                         userId: guildData.dj.users.currentDJ.userId,
                         username: guildData.dj.users.currentDJ.username || "Unknown",
@@ -435,18 +388,15 @@ class DJRoleService {
                         expiresAt: guildData.dj.users.currentDJ.expiresAt || new Date()
                     });
 
-                    // Limit previous DJs list to last 10
                     if (guildData.dj.users.previousDJs.length > 10) {
                         guildData.dj.users.previousDJs = guildData.dj.users.previousDJs.slice(-10);
                     }
                 }
 
-                // Clear current DJ
                 guildData.dj.users.currentDJ = null;
                 await guildData.save();
             }
 
-            // Remove the role from the member
             try {
                 const member = await guild.members.fetch(targetUserId);
                 if (member) {
@@ -455,8 +405,6 @@ class DJRoleService {
                 }
             } catch (error) {
                 this.client.logger.error(`[DJ_ROLE] Failed to remove DJ role from user ${targetUserId}: ${error}`);
-
-                // Still return true if we updated the database successfully
                 return true;
             }
 
@@ -473,7 +421,6 @@ class DJRoleService {
      * @returns Boolean indicating if the ID is a valid snowflake
      */
     private isValidSnowflake(id: string): boolean {
-        // Discord snowflakes are 17-20 digit numbers
         return /^\d{17,20}$/.test(id);
     }
 
@@ -483,7 +430,6 @@ class DJRoleService {
      */
     public async processExpiredDJs(): Promise<void> {
         try {
-            // Find all guilds with DJ role enabled
             const now = new Date();
             const guilds = await music_guild.find({
                 "dj.enabled": true,
@@ -491,31 +437,22 @@ class DJRoleService {
                 "dj.users.currentDJ.expiresAt": { $lt: now }
             });
 
-            // Process each expired DJ
             for (const guildData of guilds) {
                 try {
-                    // Remove the DJ role
                     await this.removeDJRole(guildData.guildId);
-
-                    // If auto-assign is enabled, find a new DJ
                     if (guildData.dj.auto.assign) {
-                        // Find most active users
                         const activeUsers = await this.getMostActiveUsers(
                             guildData.guildId,
-                            604800000, // 7 days in milliseconds
-                            5 // Minimum 5 songs
+                            604800000,
+                            5
                         );
 
-                        // If we found active users, assign the top one
                         if (activeUsers.length > 0) {
                             const nextDJ = activeUsers[0];
-
-                            // Skip if this user was the previous DJ to avoid immediate reassignment
                             if (guildData.dj.users.previousDJs &&
                                 guildData.dj.users.previousDJs.length > 0 &&
                                 guildData.dj.users.previousDJs[guildData.dj.users.previousDJs.length - 1].userId === nextDJ.userId) {
 
-                                // If we have more than one active user, use the second most active
                                 if (activeUsers.length > 1) {
                                     const alternativeDJ = activeUsers[1];
                                     await this.assignDJRole(
@@ -525,7 +462,6 @@ class DJRoleService {
                                     );
                                 }
                             } else {
-                                // Assign the most active user as DJ
                                 await this.assignDJRole(
                                     guildData.guildId,
                                     nextDJ.userId,

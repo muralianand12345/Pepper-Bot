@@ -1,33 +1,22 @@
 import discord from 'discord.js';
-import magmastream, { ManagerEventTypes } from 'magmastream';
+import { ManagerEventTypes } from 'magmastream';
 import WebSocketManager from './core/websocket-manager';
 import { BotEvent } from '../../../types';
 
-/**
- * Broadcast a player event to all WebSocket clients subscribed to a guild
- * @param client - Discord client
- * @param guildId - Guild ID
- * @param eventType - Event type
- * @param data - Event data
- */
+
 const broadcastPlayerEvent = (client: discord.Client, guildId: string, eventType: string, data: any): void => {
     try {
-        // Safety check for guildId
         if (!guildId) {
             client.logger.warn('[WEBSOCKET] Attempted to broadcast event without guildId');
             return;
         }
 
-        // Get HTTP server from client (if available)
         const server = (client as any).httpServer;
         if (!server) {
             return;
         }
 
-        // Get WebSocket manager instance
         const wsManager = WebSocketManager.getInstance(client, server, client.logger);
-
-        // Broadcast event
         wsManager.broadcastToGuild(guildId, eventType, {
             guildId,
             timestamp: new Date().toISOString(),
@@ -38,22 +27,15 @@ const broadcastPlayerEvent = (client: discord.Client, guildId: string, eventType
     }
 };
 
-/**
- * WebSocket events for music player state changes
- * @type {BotEvent}
- */
 const event: BotEvent = {
     name: discord.Events.ClientReady,
     execute: async (client: discord.Client): Promise<void> => {
-        // Check if API and WebSocket are enabled
         if (!client.config.api?.enabled) {
             return;
         }
 
         try {
-            // Add event listeners to the manager
             client.manager.on(ManagerEventTypes.TrackStart, (player, track) => {
-                // Check if track is null or undefined
                 if (!track || !player) {
                     client.logger.warn('[WEBSOCKET] TrackStart event received with null track or player');
                     return;
@@ -78,7 +60,6 @@ const event: BotEvent = {
             });
 
             client.manager.on(ManagerEventTypes.TrackEnd, (player, track) => {
-                // Check if track is null or undefined
                 if (!track || !player) {
                     client.logger.warn('[WEBSOCKET] TrackEnd event received with null track or player');
                     return;
@@ -147,21 +128,18 @@ const event: BotEvent = {
                     return;
                 }
 
-                // Use the player that exists for the guild ID
                 const player = newPlayer || oldPlayer;
                 if (!player) {
                     return;
                 }
 
                 try {
-                    // Check if pause state changed
                     if (oldPlayer.paused !== newPlayer.paused) {
                         broadcastPlayerEvent(client, newPlayer.guildId, newPlayer.paused ? 'player_paused' : 'player_resumed', {
                             position: newPlayer.position || 0
                         });
                     }
 
-                    // Check if volume changed
                     if (oldPlayer.volume !== newPlayer.volume) {
                         broadcastPlayerEvent(client, newPlayer.guildId, 'player_volume_changed', {
                             volume: newPlayer.volume || 0

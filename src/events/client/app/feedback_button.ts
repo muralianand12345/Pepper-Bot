@@ -7,21 +7,17 @@ const event: BotEvent = {
         interaction: discord.Interaction,
         client: discord.Client
     ): Promise<void> => {
-        // Only handle button interactions for feedback requests
         if (!interaction.isButton() || !interaction.customId.startsWith('feedback_request_')) {
             return;
         }
 
         try {
-            // Extract guild ID from the custom ID
             const guildId = interaction.customId.replace('feedback_request_', '');
 
-            // Create the modal
             const modal = new discord.ModalBuilder()
                 .setCustomId(`feedback_modal_${guildId}`)
                 .setTitle(`${client.user?.username || "Pepper"} Feedback`);
 
-            // Create the text inputs
             const qualityInput = new discord.TextInputBuilder()
                 .setCustomId('feedback_quality')
                 .setLabel('How would you rate the audio quality? (1-5)')
@@ -64,7 +60,6 @@ const event: BotEvent = {
                 .setRequired(true)
                 .setMaxLength(1000);
 
-            // Add inputs to the modal
             modal.addComponents(
                 new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(qualityInput),
                 new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(usabilityInput),
@@ -73,13 +68,11 @@ const event: BotEvent = {
                 new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(reasonInput),
             );
 
-            // Show the modal
             await interaction.showModal(modal);
             client.logger.debug(`[FEEDBACK] Showed server leave feedback modal to ${interaction.user.tag} (${interaction.user.id})`);
         } catch (error) {
             client.logger.error(`[FEEDBACK] Error showing feedback modal: ${error}`);
 
-            // If there's an error, inform the user
             try {
                 if (interaction.isRepliable()) {
                     await interaction.reply({

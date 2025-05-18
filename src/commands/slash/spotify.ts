@@ -31,7 +31,6 @@ const spotifyCommand: SlashCommand = {
         client: discord.Client
     ) => {
         try {
-            // Check if feature is enabled in config
             if (!client.config.bot.features?.spotify_presence?.enabled) {
                 return await interaction.reply({
                     embeds: [
@@ -78,9 +77,8 @@ const handleConfigSubcommand = async (
     await interaction.deferReply({ flags: discord.MessageFlags.Ephemeral });
 
     try {
-        // Find or create user document
         let userDoc = await music_user.findOne({ userId });
-        let previousSetting = true; // Default is enabled
+        let previousSetting = true;
 
         if (!userDoc) {
             userDoc = new music_user({
@@ -95,10 +93,9 @@ const handleConfigSubcommand = async (
 
         await userDoc.save();
 
-        // If the setting hasn't changed, inform the user
         if (previousSetting === enabled) {
             const embed = new discord.EmbedBuilder()
-                .setColor(enabled ? "#1DB954" : "#747f8d") // Spotify green or Discord grey
+                .setColor(enabled ? "#1DB954" : "#747f8d")
                 .setTitle("Spotify Presence Settings")
                 .setDescription(
                     enabled
@@ -122,9 +119,8 @@ const handleConfigSubcommand = async (
             return;
         }
 
-        // Create embed for changed setting
         const embed = new discord.EmbedBuilder()
-            .setColor(enabled ? "#1DB954" : "#747f8d") // Spotify green or Discord grey
+            .setColor(enabled ? "#1DB954" : "#747f8d")
             .setTitle("Spotify Presence Settings Updated")
             .setDescription(
                 enabled
@@ -150,7 +146,6 @@ const handleConfigSubcommand = async (
 
         await interaction.editReply({ embeds: [embed] });
 
-        // Log the change
         client.logger.info(`[SPOTIFY_CONFIG] User ${interaction.user.tag} (${userId}) ${enabled ? 'enabled' : 'disabled'} Spotify presence tracking`);
 
     } catch (error) {
@@ -179,7 +174,7 @@ const handleInfoSubcommand = async (
         const currentSetting = userDoc?.spotify_presence ?? true;
 
         const embed = new discord.EmbedBuilder()
-            .setColor("#1DB954") // Spotify green
+            .setColor("#1DB954")
             .setTitle("Spotify Presence Tracking")
             .setDescription(
                 "Spotify presence tracking enhances your music experience by automatically adding songs you listen to on Spotify to your personal music history."

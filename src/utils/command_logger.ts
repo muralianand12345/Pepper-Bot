@@ -94,7 +94,6 @@ class CommandLogger {
                 { name: "Command", value: commandName || "N/A" }
             );
 
-        // Add guild information
         if (!guild) {
             embed.addFields({ name: "Guild", value: "DM" });
         } else {
@@ -112,7 +111,6 @@ class CommandLogger {
             );
         }
 
-        // Add channel information
         if (!channel) {
             embed.addFields({ name: "Channel", value: "DM" });
         } else {
@@ -165,7 +163,6 @@ class CommandLogger {
             return;
         }
 
-        // Check for undefined user
         if (!user) {
             client.logger.error(
                 `[COMMAND_LOG] User is undefined! ${commandName}`
@@ -183,11 +180,8 @@ class CommandLogger {
             return;
         }
 
-        // Create and write log message to file
         const logMessage = this.createLogMessage(options);
         this.writeToLogFile(logMessage);
-
-        // Send embed to log channel
         const embed = await this.createLogEmbed(options);
         logChannel
             .send({ embeds: [embed] })

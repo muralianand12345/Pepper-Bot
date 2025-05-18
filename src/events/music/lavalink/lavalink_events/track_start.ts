@@ -57,39 +57,40 @@ const lavalinkEvent: LavalinkEvent = {
     ) => {
         if (!player?.textChannelId || !client?.channels) return;
 
-        const channel = (await client.channels.fetch(
-            player.textChannelId
-        )) as discord.TextChannel;
-        if (!channel?.isTextBased()) return;
-
-        // Check if the track is a YouTube URL, if so, skip the event
-        if (YTREGEX.test(track.uri)) {
-            player.stop(1);
-
-            client.logger.warn(`[LAVALINK] Skipping track start event for YouTube URL: ${track.uri}`);
-
-            const embed = new discord.EmbedBuilder()
-                .setColor("Red")
-                .setDescription(`⚠️ Skipping song! Youtube source detected.`)
-                .setFooter({
-                    text: "We do not support Youtube links due to YouTube's TOS.",
-                    iconURL: client.user?.displayAvatarURL() || "",
-                });
-
-            return await channel.send({
-                embeds: [embed]
-            }).then((msg) => {
-                wait(5000).then(() => {
-                    msg.delete().catch((err) => {
-                        client.logger.error(`[LAVALINK] Failed to delete message: ${err}`);
-                    });
-                });
-            })
-        }
-
         try {
-            // Skip displaying the embed if track is repeating, but still log data
-            const shouldDisplayEmbed = !player.trackRepeat;
+            const channel = (await client.channels.fetch(
+                player.textChannelId
+            )) as discord.TextChannel;
+            if (!channel?.isTextBased()) return;
+
+            if (YTREGEX.test(track.uri)) {
+                const isFromPlaylist = player.queue && player.queue.size > 0;
+
+                if (!isFromPlaylist) {
+                    player.stop(1);
+                    client.logger.warn(`[LAVALINK] Skipping YouTube track: ${track.uri}`);
+
+                    const embed = new discord.EmbedBuilder()
+                        .setColor("Red")
+                        .setDescription(`⚠️ Skipping song! Youtube source detected.`)
+                        .setFooter({
+                            text: "We do not support Youtube links due to YouTube's TOS.",
+                            iconURL: client.user?.displayAvatarURL() || "",
+                        });
+
+                    return await channel.send({
+                        embeds: [embed]
+                    }).then((msg) => {
+                        wait(5000).then(() => {
+                            msg.delete().catch((err) => {
+                                client.logger.error(`[LAVALINK] Failed to delete message: ${err}`);
+                            });
+                        });
+                    });
+                } else {
+                    client.logger.info(`[LAVALINK] Playing YouTube track from playlist: ${track.title}`);
+                }
+            }
 
             const requesterData = track.requester
                 ? convertUserToUserData(track.requester as discord.User)
@@ -113,7 +114,6 @@ const lavalinkEvent: LavalinkEvent = {
                 timestamp: new Date(),
             };
 
-            // Save song data for analytics regardless of repeat status
             await MusicDB.addMusicUserData(
                 track.requester?.id || null,
                 songData
@@ -132,74 +132,89 @@ const lavalinkEvent: LavalinkEvent = {
 
                     if (musicChannel) {
                         const musicChannelManager = new MusicChannelManager(client);
-                        const message_pannel = await musicChannelManager.updateQueueEmbed(
-                            guild_data.musicPannelId,
-                            musicChannel,
-                            player,
-                        );
+                        try {
+                            const message_pannel = await musicChannelManager.updateQueueEmbed(
+                                guild_data.musicPannelId,
+                                musicChannel,
+                                player
+                            );
 
-                        // Add debug logging
-                        if (message_pannel) {
-                            client.logger.info(`[TRACK_START] Successfully updated music panel in ${musicChannel.name}`);
-                        } else {
-                            client.logger.warn(`[TRACK_START] Failed to update music panel in ${musicChannel.name}`);
+                            if (message_pannel) {
+                                client.logger.info(`[TRACK_START] Successfully updated music panel in ${musicChannel.name}`);
+                            } else {
+                                client.logger.warn(`[TRACK_START] Failed to update music panel in ${musicChannel.name}`);
+                            }
+                        } catch (error) {
+                            client.logger.error(`[TRACK_START] Error updating music panel: ${error}`);
+                            await musicChannelManager.createMusicEmbed(musicChannel);
                         }
                     }
                 } catch (error) {
-                    // Log the full error for debugging
-                    client.logger.error(`[TRACK_START] Error updating music channel: ${error}`);
+                    client.logger.error(`[TRACK_START] Error handling music channel: ${error}`);
                 }
             }
 
-            // Only send the now playing message if not repeating AND not in the music channel
-            if (shouldDisplayEmbed) {
-                // Check if we should send messages in this channel
-                const shouldSendMessage = await shouldSendMessageInChannel(
-                    channel.id,
+            const shouldSendMessage = await shouldSendMessageInChannel(
+                channel.id,
+                player.guildId,
+                client
+            );
+
+            if (shouldSendMessage) {
+                const nowPlayingManager = NowPlayingManager.getInstance(
                     player.guildId,
+                    player,
                     client
                 );
 
-                if (shouldSendMessage) {
-                    // Get the now playing manager for this guild
-                    const nowPlayingManager = NowPlayingManager.getInstance(
-                        player.guildId,
-                        player,
-                        client
-                    );
+                if (nowPlayingManager.hasMessage()) {
+                    try {
+                        nowPlayingManager.forceUpdate();
+                        client.logger.debug(`[TRACK_START] Updated existing Now Playing message for ${track.title}`);
+                    } catch (error) {
+                        client.logger.warn(`[TRACK_START] Failed to update Now Playing message: ${error}`);
+                        nowPlayingManager.destroy();
 
-                    // Create initial embed
+                        const embed = await musicEmbed(client, track, player);
+                        try {
+                            const message = await channel.send({
+                                embeds: [embed],
+                                components: [musicButton]
+                            });
+
+                            nowPlayingManager.setMessage(message, false);
+                            client.logger.debug(`[TRACK_START] Created new Now Playing message for ${track.title}`);
+                        } catch (error) {
+                            client.logger.error(`[TRACK_START] Error sending Now Playing message: ${error}`);
+                        }
+                    }
+                } else {
                     const embed = await musicEmbed(client, track, player);
 
-                    // Send a new message
                     try {
                         const message = await channel.send({
                             embeds: [embed],
                             components: [musicButton]
                         });
 
-                        // Register the message with the now playing manager
                         nowPlayingManager.setMessage(message, false);
+                        client.logger.debug(`[TRACK_START] Created initial Now Playing message for ${track.title}`);
                     } catch (error: Error | any) {
                         if (error.code === 50007) {
-                            client.logger.error(
-                                `[LAVALINK] Missing permissions to send messages in ${channel.name} (${channel.id})`
-                            );
-                            return;
+                            client.logger.error(`[TRACK_START] Missing permissions to send messages in ${channel.name} (${channel.id})`);
+                        } else {
+                            client.logger.error(`[TRACK_START] Error sending message in ${channel.name} (${channel.id}): ${error}`);
                         }
-                        client.logger.error(
-                            `[LAVALINK] Error sending message in ${channel.name} (${channel.id}): ${error}`
-                        );
-                        return;
                     }
-                } else {
-                    client.logger.debug(`[TRACK_START] Skipping Now Playing message in music channel ${channel.id}`);
                 }
+            } else {
+                client.logger.debug(`[TRACK_START] Skipping Now Playing message in music channel ${channel.id}`);
             }
 
             logTrackStart(track, player, client);
+
         } catch (error) {
-            client.logger?.error(`Error in trackStart event: ${error}`);
+            client.logger.error(`[TRACK_START] Error in trackStart event: ${error}`);
         }
     },
 };

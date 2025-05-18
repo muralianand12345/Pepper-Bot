@@ -14,27 +14,18 @@ const lavalinkEvent: LavalinkEvent = {
         try {
             if (!player?.guildId) return;
 
-            // Log track end
             client.logger.debug(
                 `[LAVALINK] Track ${track.title} ended in guild ${player.guildId} with reason: ${payload.reason}`
             );
 
-            // Check if this is a "finished" event (not skipped, replaced, etc.)
-            // Only process autoplay for tracks that finished naturally
             const finishedNaturally = payload.reason === "finished";
-
-            // Check if the queue is nearly empty
             const queueIsNearlyEmpty = player.queue.size < 2;
-
-            // Handle autoplay only if the track finished naturally and the queue is nearly empty
             if (finishedNaturally && queueIsNearlyEmpty) {
                 const autoplayManager = AutoplayManager.getInstance(
                     player.guildId,
                     player,
                     client
                 );
-
-                // Process the ended track for autoplay if autoplay is enabled
                 if (autoplayManager.isEnabled()) {
                     await autoplayManager.processTrack(track);
                 }

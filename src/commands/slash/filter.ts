@@ -44,7 +44,6 @@ const filterCommand: SlashCommand = {
         ),
 
     execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client) => {
-        // Check if music is enabled
         if (!client.config.music.enabled) {
             return await interaction.reply({
                 embeds: [
@@ -56,7 +55,6 @@ const filterCommand: SlashCommand = {
             });
         }
 
-        // Check if DJ role feature is enabled
         if (!client.config.bot.features?.dj_role?.enabled) {
             return await interaction.reply({
                 embeds: [
@@ -68,7 +66,6 @@ const filterCommand: SlashCommand = {
             });
         }
 
-        // Get the player instance
         const player = client.manager.get(interaction.guild?.id || "");
         if (!player) {
             return await interaction.reply({
@@ -81,7 +78,6 @@ const filterCommand: SlashCommand = {
             });
         }
 
-        // Run validation checks
         const validator = new VoiceChannelValidator(client, interaction);
         for (const check of [
             validator.validateGuildContext(),
@@ -103,7 +99,6 @@ const filterCommand: SlashCommand = {
         try {
             const filterName = interaction.options.getString("preset", true);
 
-            // Validate the filter name
             if (!isValidFilterName(filterName)) {
                 return await interaction.editReply({
                     embeds: [
@@ -114,12 +109,10 @@ const filterCommand: SlashCommand = {
                 });
             }
 
-            // Create filters instance if it doesn't exist
             if (!player.filters) {
                 player.filters = new magmastream.Filters(player);
             }
 
-            // Apply the selected filter using the appropriate filter method
             let success = false;
 
             switch (filterName) {
@@ -128,7 +121,7 @@ const filterCommand: SlashCommand = {
                     success = true;
                     break;
                 case "bassboost":
-                    await player.filters.bassBoost(2); // Medium bass boost level
+                    await player.filters.bassBoost(2);
                     success = true;
                     break;
                 case "nightcore":

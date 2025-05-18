@@ -25,11 +25,11 @@ export class NowPlayingManager {
      * @param client Discord client
      * @returns NowPlayingManager instance
      */
-    public static getInstance(
+    public static getInstance = (
         guildId: string,
         player: magmastream.Player,
         client: discord.Client
-    ): NowPlayingManager {
+    ): NowPlayingManager => {
         if (!this.instances.has(guildId)) {
             this.instances.set(guildId, new NowPlayingManager(player, client));
         }
@@ -40,74 +40,12 @@ export class NowPlayingManager {
      * Remove an instance for a guild (cleanup)
      * @param guildId Guild ID to remove instance for
      */
-    public static removeInstance(guildId: string): void {
+    public static removeInstance = (guildId: string): void => {
         const instance = this.instances.get(guildId);
         if (instance) {
-            // instance.destroy();
+            instance.destroy();
             this.instances.delete(guildId);
         }
-    }
-
-    /**
-     * Creates an adapter for the player format that works with formatters
-     * @returns A player adapter object compatible with formatters
-     * @private
-     */
-    private createPlayerAdapter(): any {
-        // This creates a simple adapter that the progress bar formatter can use
-        return {
-            position: this.player.position,
-            queue: {
-                current: {
-                    duration: this.player.queue.current?.duration || 0
-                }
-            }
-        };
-    }
-
-    /**
- * Get the player with an adjusted position getter
- * @returns Player with adjusted position getter
- * @private
- */
-    private getAdjustedPlayer(): magmastream.Player {
-        // Create a proper proxy that extends the original player
-        const playerProxy = Object.create(Object.getPrototypeOf(this.player));
-
-        // Copy all properties
-        for (const prop of Object.getOwnPropertyNames(this.player)) {
-            if (prop !== 'position') {
-                Object.defineProperty(playerProxy, prop,
-                    Object.getOwnPropertyDescriptor(this.player, prop)!);
-            }
-        }
-
-        // Add the adjusted position getter
-        Object.defineProperty(playerProxy, 'position', {
-            get: () => {
-                const position = this.player.position;
-                const duration = this.player.queue.current?.duration || 0;
-                const remainingTime = duration - position;
-
-                // If remaining time is less than 10 seconds, adjust more aggressively
-                if (remainingTime <= 10000) {
-                    // Create a "scaling factor" that accelerates as we get closer to the end
-                    // For tracks almost completed (less than 2 seconds left), show at 99%
-                    if (remainingTime < 2000) {
-                        return duration - 100; // Almost at end (99.9%)
-                    }
-
-                    // For tracks between 2-10 seconds from completion, scale progressively
-                    const scalingFactor = 1 + ((10000 - remainingTime) / 10000);
-                    return Math.min(position * scalingFactor, duration - 100);
-                }
-
-                // Normal position with small adjustment for latency
-                return Math.min(position + 300, duration);
-            }
-        });
-
-        return playerProxy;
     }
 
     /**
@@ -126,7 +64,12 @@ export class NowPlayingManager {
      * @param message Discord message to update
      * @param forceUpdate Force an immediate update
      */
-    public setMessage(message: discord.Message, forceUpdate: boolean = false): void {
+    public setMessage = (message: discord.Message, forceUpdate: boolean = false): void => {
+        if (message.author.id !== this.client.user?.id) {
+            this.client.logger?.warn(`[NowPlayingManager] Attempted to set message not authored by bot`);
+            return;
+        }
+
         this.message = message;
 
         if (forceUpdate) {
@@ -139,7 +82,7 @@ export class NowPlayingManager {
     /**
      * Called when track playback is paused
      */
-    public onPause(): void {
+    public onPause = (): void => {
         this.paused = true;
         this.updateNowPlaying().catch(err => {
             this.client.logger?.error(`[NowPlayingManager] Failed to update after pause: ${err}`);
@@ -149,7 +92,7 @@ export class NowPlayingManager {
     /**
      * Called when track playback is resumed
      */
-    public onResume(): void {
+    public onResume = (): void => {
         this.paused = false;
         this.updateNowPlaying().catch(err => {
             this.client.logger?.error(`[NowPlayingManager] Failed to update after resume: ${err}`);
@@ -160,31 +103,24 @@ export class NowPlayingManager {
      * Start the automatic update interval
      * @private
      */
-    private startUpdateInterval(): void {
-        // Cancel any existing interval
+    private startUpdateInterval = (): void => {
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
         }
 
-        // Create new update interval
         this.updateInterval = setInterval(() => {
             if (this.destroyed) return;
-
-            // Skip updates if player is paused or not playing
             if (!this.player || !this.player.playing || this.paused) return;
 
-            // Check if we're near the end of a track - if so, update more frequently
             const position = this.player.position;
             const duration = this.player.queue.current?.duration || 0;
             const remainingTime = duration - position;
 
-            // If we're very close to the end (< 15 seconds), force an update immediately
             if (remainingTime > 0 && remainingTime < 15000) {
                 this.updateNowPlaying().catch(err => {
                     this.client.logger?.error(`[NowPlayingManager] End-of-track update error: ${err}`);
                 });
             } else {
-                // Regular update
                 this.updateNowPlaying().catch(err => {
                     this.client.logger?.error(`[NowPlayingManager] Regular update error: ${err}`);
                 });
@@ -193,71 +129,162 @@ export class NowPlayingManager {
     }
 
     /**
+     * Get the player with adjusted position for smoother progress bar
+     * @returns Player with adjusted position getter
+     * @private
+     */
+    private getAdjustedPlayer = (): magmastream.Player => {
+        const playerProxy = Object.create(Object.getPrototypeOf(this.player));
+
+        for (const prop of Object.getOwnPropertyNames(this.player)) {
+            if (prop !== 'position') {
+                Object.defineProperty(playerProxy, prop,
+                    Object.getOwnPropertyDescriptor(this.player, prop)!);
+            }
+        }
+
+        Object.defineProperty(playerProxy, 'position', {
+            get: () => {
+                const position = this.player.position;
+                const duration = this.player.queue.current?.duration || 0;
+                const remainingTime = duration - position;
+
+                if (remainingTime <= 10000) {
+                    if (remainingTime < 2000) {
+                        return duration - 100;
+                    }
+
+                    const scalingFactor = 1 + ((10000 - remainingTime) / 10000);
+                    return Math.min(position * scalingFactor, duration - 100);
+                }
+
+                return Math.min(position + 300, duration);
+            }
+        });
+
+        return playerProxy;
+    }
+
+    /**
      * Update the "Now Playing" message with current progress
      * @private
      */
-    private async updateNowPlaying(): Promise<void> {
-        // Respect rate limits
+    private updateNowPlaying = async (): Promise<void> => {
         const now = Date.now();
         if (now - this.lastUpdateTime < this.MIN_UPDATE_INTERVAL) {
             return;
         }
 
-        // Make sure we have a message and player is active
         if (!this.message || !this.player || !this.player.queue?.current) {
             return;
         }
 
         try {
-            // Use our helper to get an adjusted player
-            const adjustedPlayer = this.getAdjustedPlayer();
+            if (!this.message.editable) {
+                this.client.logger?.warn(`[NowPlayingManager] Message is no longer editable, clearing reference`);
+                this.message = null;
+                return;
+            }
 
-            // Create the embed with the adjusted player
+            const adjustedPlayer = this.getAdjustedPlayer();
             const embed = await musicEmbed(
                 this.client,
                 this.player.queue.current,
                 adjustedPlayer
             );
 
-            // Check if the message is still valid before attempting to edit
-            if (this.message.editable) {
-                await this.message.edit({
-                    embeds: [embed],
-                    components: [musicButton]
-                });
-            } else {
-                // Message is no longer editable, clear reference
-                this.message = null;
-            }
+            await this.message.edit({
+                embeds: [embed],
+                components: [musicButton]
+            });
 
-            // Update last update timestamp
             this.lastUpdateTime = Date.now();
         } catch (error) {
-            // Handle specific known errors
             if (error instanceof Error) {
                 const errorMessage = error.message.toLowerCase();
 
-                // Check for common Discord API errors
                 if (errorMessage.includes("unknown message") ||
                     errorMessage.includes("missing access") ||
-                    errorMessage.includes("cannot edit a deleted message")) {
-                    // Message was deleted or bot lost permissions, clear reference
+                    errorMessage.includes("cannot edit a deleted message") ||
+                    errorMessage.includes("cannot edit a message authored by another user")) {
+                    this.client.logger?.warn(`[NowPlayingManager] Message error: ${errorMessage}, clearing reference`);
                     this.message = null;
                 } else if (errorMessage.includes("rate limited")) {
-                    // Handle rate limiting by backing off
-                    this.lastUpdateTime = Date.now() + 30000; // Add 30 seconds to back off
+                    this.lastUpdateTime = Date.now() + 30000;
+                    this.client.logger?.warn(`[NowPlayingManager] Rate limited, backing off for 30 seconds`);
+                } else {
+                    this.client.logger?.error(`[NowPlayingManager] Update error: ${error}`);
+                }
+            } else {
+                this.client.logger?.error(`[NowPlayingManager] Unknown update error`);
+            }
+        }
+    }
+
+    /**
+     * Update or create a "Now Playing" message
+     * @param channel Text channel to send/update the message in
+     * @param track Currently playing track
+     */
+    public updateOrCreateMessage = async (channel: discord.TextChannel, track: magmastream.Track): Promise<void> => {
+        try {
+            const embed = await musicEmbed(this.client, track, this.player);
+
+            if (this.message && this.message.editable) {
+                await this.message.edit({
+                    embeds: [embed],
+                    components: [musicButton]
+                }).then(() => {
+                    this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`);
+                }).catch(async (error) => {
+                    this.client.logger?.warn(`[NowPlayingManager] Failed to edit message: ${error}, creating new one`);
+                    this.message = null;
+                    const newMessage = await channel.send({
+                        embeds: [embed],
+                        components: [musicButton]
+                    });
+
+                    this.setMessage(newMessage, false);
+                });
+            } else {
+                try {
+                    const messages = await channel.messages.fetch({ limit: 10 });
+                    const botMessages = messages.filter(m =>
+                        m.author.id === this.client.user?.id &&
+                        m.embeds.length > 0 &&
+                        m.embeds[0].title === "Now Playing"
+                    );
+
+                    const deletePromises = [];
+                    for (const [_, msg] of botMessages) {
+                        deletePromises.push(msg.delete().catch(() => { }));
+                    }
+                    await Promise.all(deletePromises);
+                } catch (error) {
+                    this.client.logger?.warn(`[NowPlayingManager] Error cleaning up old messages: ${error}`);
+                }
+
+                try {
+                    const newMessage = await channel.send({
+                        embeds: [embed],
+                        components: [musicButton]
+                    });
+
+                    this.setMessage(newMessage, false);
+                    this.client.logger?.debug(`[NowPlayingManager] Created new message in ${channel.name}`);
+                } catch (error) {
+                    this.client.logger?.error(`[NowPlayingManager] Failed to create new message: ${error}`);
                 }
             }
-
-            // Don't re-throw the error as it's not critical
-            this.client.logger?.warn(`[NowPlayingManager] Update error: ${error}`);
+        } catch (error) {
+            this.client.logger?.error(`[NowPlayingManager] Error in updateOrCreateMessage: ${error}`);
         }
     }
 
     /**
      * Clean up resources
      */
-    public destroy(): void {
+    public destroy = (): void => {
         this.destroyed = true;
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
@@ -269,14 +296,14 @@ export class NowPlayingManager {
     /**
      * Whether this manager has an active message
      */
-    public hasMessage(): boolean {
-        return this.message !== null;
+    public hasMessage = (): boolean => {
+        return this.message !== null && this.message.editable;
     }
 
     /**
      * Force an immediate update if conditions allow
      */
-    public forceUpdate(): void {
+    public forceUpdate = (): void => {
         this.updateNowPlaying().catch(err => {
             this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`);
         });
@@ -286,13 +313,13 @@ export class NowPlayingManager {
      * Gets the current playback status of the managed player
      * @returns Object containing current position, duration, isPlaying, isPaused
      */
-    public getPlaybackStatus(): {
+    public getPlaybackStatus = (): {
         position: number;
         duration: number;
         isPlaying: boolean;
         isPaused: boolean;
         track: magmastream.Track | null;
-    } {
+    } => {
         return {
             position: this.player?.position || 0,
             duration: this.player?.queue?.current?.duration || 0,

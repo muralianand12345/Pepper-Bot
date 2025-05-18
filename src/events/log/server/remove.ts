@@ -8,10 +8,8 @@ const event: BotEvent = {
         client: discord.Client
     ): Promise<void> => {
         try {
-            // Log server leave event
             client.logger.info(`[SERVER_LEAVE] Left ${guild.name} (${guild.id})`);
 
-            // Create detailed embed for server leave (existing functionality)
             const leaveEmbed = new discord.EmbedBuilder()
                 .setTitle("Server Left")
                 .setAuthor({ name: guild.name, iconURL: guild.iconURL() || "" })
@@ -42,7 +40,6 @@ const event: BotEvent = {
                 .setFooter({ text: `Now in ${client.guilds.cache.size} servers` })
                 .setTimestamp();
 
-            // Get and validate log channel
             const logChannel = client.channels.cache.get(
                 client.config.bot.log.server
             ) as discord.TextChannel;
@@ -50,7 +47,6 @@ const event: BotEvent = {
                 await logChannel.send({ embeds: [leaveEmbed] });
             }
 
-            // Send feedback request DM to server owner
             await sendFeedbackRequestDM(guild, client);
         } catch (error) {
             client.logger.error(`[SERVER_LEAVE] Error handling guild delete event: ${error}`);
@@ -58,23 +54,16 @@ const event: BotEvent = {
     },
 };
 
-/**
- * Sends a feedback request DM to the server owner when the bot is kicked from a server
- * @param guild The guild that removed the bot
- * @param client Discord client instance
- */
 const sendFeedbackRequestDM = async (
     guild: discord.Guild,
     client: discord.Client
 ): Promise<void> => {
     try {
-        // Skip if there's no owner ID
         if (!guild.ownerId) {
             client.logger.warn(`[FEEDBACK] Cannot send feedback DM - no owner ID for guild ${guild.id}`);
             return;
         }
 
-        // Try to fetch the guild owner
         const owner = await client.users.fetch(guild.ownerId).catch((error) => {
             client.logger.error(`[FEEDBACK] Failed to fetch guild owner: ${error}`);
             return null;
@@ -85,9 +74,8 @@ const sendFeedbackRequestDM = async (
             return;
         }
 
-        // Create the feedback request embed
         const feedbackEmbed = new discord.EmbedBuilder()
-            .setColor("#5865F2") // Discord blurple
+            .setColor("#5865F2")
             .setTitle("Your Feedback Matters!")
             .setThumbnail(client.user?.displayAvatarURL() || null)
             .setDescription(
@@ -99,7 +87,6 @@ const sendFeedbackRequestDM = async (
                 iconURL: client.user?.displayAvatarURL() || undefined,
             });
 
-        // Create feedback button
         const actionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>()
             .addComponents(
                 new discord.ButtonBuilder()
@@ -119,7 +106,6 @@ const sendFeedbackRequestDM = async (
                     .setEmoji("🔧")
             );
 
-        // Send DM with feedback request
         await owner.send({
             content: `Hello! This is **${client.user?.username}**, the music bot that was recently removed from **${guild.name}**.`,
             embeds: [feedbackEmbed],

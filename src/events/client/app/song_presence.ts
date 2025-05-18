@@ -11,12 +11,10 @@ const event: BotEvent = {
         client: discord.Client
     ): Promise<void> => {
         try {
-            // Skip if presence update is invalid or feature is disabled
             if (!newPresence?.user || !client.config.bot.features?.spotify_presence?.enabled) {
                 return;
             }
 
-            // Get Spotify activity if available
             const spotifyActivity = newPresence.activities.find(
                 (activity) => activity.type === discord.ActivityType.Listening &&
                     activity.name === "Spotify" &&
@@ -26,19 +24,14 @@ const event: BotEvent = {
             if (!spotifyActivity || !spotifyActivity.assets) return;
 
             const userId = newPresence.user.id;
-
-            // Check if user has opted out of tracking
             const userSettings = await music_user.findOne({ userId });
             if (userSettings && userSettings.spotify_presence === false) {
-                // User has explicitly opted out of tracking
                 client.logger.debug(`[SPOTIFY_PRESENCE] User ${userId} has opted out of tracking`);
                 return;
             }
 
-            // Create Spotify URL from sync ID
             const spotifyUrl = `https://open.spotify.com/track/${spotifyActivity.syncId}`;
 
-            // Initialize trackers if needed
             if (!(client as any).presenceTracker) {
                 (client as any).presenceTracker = new Map();
             }
@@ -47,24 +40,20 @@ const event: BotEvent = {
                 (client as any).presenceLocks = new Map();
             }
 
-            // Check if there's an active lock for this user - prevent concurrent processing
             const userLockKey = `lock:${userId}`;
             if ((client as any).presenceLocks.get(userLockKey)) {
-                return; // Skip processing if another update for this user is in progress
+                return;
             }
 
-            // Check for recent duplicate entries (within 5 minutes)
             const lastAddedSongKey = `presence:${userId}:${spotifyActivity.syncId}`;
             const lastAdded = (client as any).presenceTracker.get(lastAddedSongKey);
             if (lastAdded && (Date.now() - lastAdded) < 5 * 60 * 1000) {
                 return;
             }
 
-            // Acquire lock for this user
             (client as any).presenceLocks.set(userLockKey, true);
 
             try {
-                // Create requester data
                 const requesterData: ISongsUser = {
                     id: userId,
                     username: newPresence.user.username,
@@ -72,18 +61,12 @@ const event: BotEvent = {
                     avatar: newPresence.user.avatar || undefined
                 };
 
-                // Search for track using Lavalink manager with direct Spotify URL
                 const searchResult = await client.manager.search(spotifyUrl, newPresence.user);
-
-                // Skip if no results
                 if (searchResult.loadType === "empty" || !searchResult.tracks?.length) {
                     return;
                 }
 
-                // Use search result data
                 const track = searchResult.tracks[0];
-
-                // Create song data object with enhanced metadata
                 const songData = {
                     track: track.title,
                     artworkUrl: track.artworkUrl,
@@ -102,10 +85,7 @@ const event: BotEvent = {
                     timestamp: new Date()
                 };
 
-                // Use atomic update to add or update the song - prevents race conditions
                 await MusicDB.atomicAddMusicUserData(userId, songData);
-
-                // Update tracker to prevent processing the same song again for 5 minutes
                 (client as any).presenceTracker.set(lastAddedSongKey, Date.now());
 
                 client.logger.debug(
@@ -114,13 +94,10 @@ const event: BotEvent = {
             } catch (error) {
                 client.logger.warn(`[SPOTIFY_PRESENCE] Error processing song: ${error}`);
             } finally {
-                // Always release the lock, even if an error occurred
                 (client as any).presenceLocks.delete(userLockKey);
             }
         } catch (error) {
             client.logger.error(`[SPOTIFY_PRESENCE] Error tracking presence: ${error}`);
-
-            // Make sure we don't leave locks hanging in case of errors
             if (newPresence?.user) {
                 const userLockKey = `lock:${newPresence.user.id}`;
                 (client as any).presenceLocks?.delete(userLockKey);

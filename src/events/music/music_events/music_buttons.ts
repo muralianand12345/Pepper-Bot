@@ -15,8 +15,8 @@ class MusicButtonHandler {
     private readonly playerValidator: MusicPlayerValidator;
     private readonly responseHandler: MusicResponseHandler;
     private readonly nowPlayingManager: NowPlayingManager | null;
-    private readonly guildId: string | undefined; // Store guild ID for reuse
-    private useEphemeralReplies: boolean = false; // Flag to track if we should use ephemeral replies
+    private readonly guildId: string | undefined;
+    private useEphemeralReplies: boolean = false;
 
     constructor(
         interaction: discord.ButtonInteraction,
@@ -25,20 +25,13 @@ class MusicButtonHandler {
         this.interaction = interaction;
         this.client = client;
         this.guildId = interaction.guild?.id;
-
-        // Debug the guild ID
         client.logger.debug(`[MUSIC_BUTTONS] Guild ID in constructor: ${this.guildId}`);
-
-        // Only try to get player if we have a guild ID
         this.player = this.guildId ? client.manager.get(this.guildId) : null;
-
         this.playerValidator = new MusicPlayerValidator(
             client,
             this.player
         );
         this.responseHandler = new MusicResponseHandler(client);
-
-        // Only create NowPlayingManager if needed
         this.nowPlayingManager = null;
         try {
             if (this.player && this.guildId) {
@@ -55,7 +48,6 @@ class MusicButtonHandler {
      */
     private async validateCommand(): Promise<boolean> {
         try {
-            // Check if this interaction is in the configured song channel
             let useEphemeralReplies = false;
             if (this.guildId) {
                 try {
@@ -69,7 +61,6 @@ class MusicButtonHandler {
                 }
             }
 
-            // First check if we have a valid player
             if (!this.player) {
                 await this.interaction.reply({
                     embeds: [this.responseHandler.createErrorEmbed("No music is currently playing")],
@@ -78,7 +69,6 @@ class MusicButtonHandler {
                 return false;
             }
 
-            // Check if player exists and is playing
             const [playerValid, playerError] =
                 await this.playerValidator.validatePlayerState();
             if (!playerValid && playerError) {
@@ -89,7 +79,6 @@ class MusicButtonHandler {
                 return false;
             }
 
-            // Check if we have a valid guild context
             if (!this.interaction.guild) {
                 await this.interaction.reply({
                     embeds: [this.responseHandler.createErrorEmbed("This command can only be used in a server")],
@@ -98,7 +87,6 @@ class MusicButtonHandler {
                 return false;
             }
 
-            // Check if the member is in a voice channel
             if (!this.interaction.member) {
                 await this.interaction.reply({
                     embeds: [this.responseHandler.createErrorEmbed("Cannot determine your voice channel")],
@@ -107,7 +95,6 @@ class MusicButtonHandler {
                 return false;
             }
 
-            // Get the member's voice channel safely
             const member = await this.interaction.guild.members.fetch(this.interaction.user.id).catch(() => null);
             if (!member) {
                 await this.interaction.reply({
@@ -125,7 +112,6 @@ class MusicButtonHandler {
                 return false;
             }
 
-            // Check if bot is in the same voice channel as the user
             if (member.voice.channelId !== this.player.voiceChannelId) {
                 await this.interaction.reply({
                     embeds: [this.responseHandler.createErrorEmbed("You are not in the same voice channel as the bot")],
@@ -134,16 +120,14 @@ class MusicButtonHandler {
                 return false;
             }
 
-            // Store the ephemeral flag setting for use in other methods
             this.useEphemeralReplies = useEphemeralReplies;
             return true;
         } catch (error) {
             this.client.logger.error(`[MUSIC_BUTTONS] Error in validateCommand: ${error}`);
             await this.interaction.reply({
                 embeds: [this.responseHandler.createErrorEmbed("An unexpected error occurred")],
-                flags: discord.MessageFlags.Ephemeral // Always use ephemeral for unexpected errors
+                flags: discord.MessageFlags.Ephemeral
             }).catch(() => {
-                // Fallback if replying fails
                 this.client.logger.error(`[MUSIC_BUTTONS] Failed to send error response`);
             });
             return false;
@@ -169,7 +153,6 @@ class MusicButtonHandler {
 
             this.player.pause(true);
 
-            // Update now playing manager with pause state
             if (this.nowPlayingManager) {
                 this.nowPlayingManager.onPause();
             }
@@ -205,7 +188,6 @@ class MusicButtonHandler {
 
             this.player.pause(false);
 
-            // Update now playing manager with resume state
             if (this.nowPlayingManager) {
                 this.nowPlayingManager.onResume();
             }
@@ -241,11 +223,8 @@ class MusicButtonHandler {
 
             this.player.stop(1);
 
-            // Use the stored guild ID to avoid accessing undefined
             if (this.player.queue.size === 0 && this.guildId) {
                 this.player.destroy();
-
-                // Clean up the now playing manager when player is destroyed
                 try {
                     NowPlayingManager.removeInstance(this.guildId);
                 } catch (cleanupError) {
@@ -285,11 +264,8 @@ class MusicButtonHandler {
             }
 
             if (!(await this.validateCommand())) return;
-
-            // Use the stored guild ID to avoid accessing undefined
             this.player.destroy();
 
-            // Clean up the now playing manager when player is destroyed
             if (this.guildId) {
                 try {
                     NowPlayingManager.removeInstance(this.guildId);
@@ -370,15 +346,12 @@ const event: BotEvent = {
     ): Promise<void> => {
         if (!interaction.isButton()) return;
 
-        // Filter music button interactions
         const musicButtonIds = ["pause-music", "resume-music", "skip-music", "stop-music", "loop-music"];
         if (!musicButtonIds.includes(interaction.customId)) return;
 
-        // Log more detailed information
         client.logger.debug(`[MUSIC_BUTTONS] Processing button: ${interaction.customId}`);
         client.logger.debug(`[MUSIC_BUTTONS] Interaction has guild: ${!!interaction.guild}`);
 
-        // Skip music button interactions if they don't have a guild context
         if (!interaction.guild) {
             client.logger.warn(`[MUSIC_BUTTONS] Button interaction without guild context: ${interaction.customId}`);
             try {
@@ -410,10 +383,8 @@ const event: BotEvent = {
                 await command();
             }
         } catch (error) {
-            // Add error handling
             client.logger.error(`[MUSIC_BUTTONS] Error handling button ${interaction.customId}: ${error}`);
 
-            // Try to respond to the user if possible
             try {
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.reply({

@@ -37,15 +37,12 @@ const handlePlayerCleanup = async (
     guildId: string,
     client: discord.Client
 ): Promise<void> => {
-    // Check if autoplay is enabled and should keep the player alive
     if (shouldAutoplayKeepAlive(player, guildId, client)) {
         client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
-        // Don't schedule cleanup when autoplay is enabled
         return;
     }
 
-    // Wait 5 minutes before destroying the player
-    const CLEANUP_DELAY = 300000; // 5 minutes in milliseconds
+    const CLEANUP_DELAY = 300000;
     const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
 
     const scheduledAt = Date.now();
@@ -61,27 +58,21 @@ const handlePlayerCleanup = async (
         return;
     }
 
-    // Check if this cleanup task is still valid (not superseded by a newer one)
     if (currentPlayer.cleanupScheduledAt !== scheduledAt) {
         client.logger.debug(`[QUEUE_END] Cleanup task for guild ${guildId} has been superseded, skipping`);
         return;
     }
 
-    // Check if player is still inactive (no tracks playing)
     if (currentPlayer.playing || currentPlayer.queue.current) {
         client.logger.debug(`[QUEUE_END] Player for guild ${guildId} is active again, skipping cleanup`);
         return;
     }
 
-    // Clean up the now playing manager
     NowPlayingManager.removeInstance(guildId);
-
-    // Clean up the autoplay manager
     AutoplayManager.removeInstance(guildId);
 
     client.logger.info(`[QUEUE_END] Performing cleanup for guild ${guildId} after ${CLEANUP_DELAY_MINS} minutes of inactivity`);
 
-    // Destroy the player
     player.destroy();
 };
 
@@ -90,16 +81,12 @@ const resetMusicChannelEmbed = async (
     client: discord.Client
 ): Promise<void> => {
     try {
-        // Get guild data to check for music channel and panel message
         const guildData = await music_guild.findOne({ guildId });
-
         if (!guildData?.songChannelId || !guildData?.musicPannelId) return;
 
-        // Get the channel
         const channel = await client.channels.fetch(guildData.songChannelId);
         if (!channel || !channel.isTextBased()) return;
 
-        // Use MusicChannelManager to reset the embed
         const musicChannelManager = new MusicChannelManager(client);
         await musicChannelManager.resetEmbed(guildData.musicPannelId, channel as discord.TextChannel);
 
@@ -125,33 +112,26 @@ const lavalinkEvent: LavalinkEvent = {
             )) as discord.TextChannel;
             if (!channel?.isTextBased()) return;
 
-            // Get autoplay manager
             const autoplayManager = AutoplayManager.getInstance(
                 player.guildId,
                 player,
                 client
             );
 
-            // Process the track for autoplay if enabled
             if (autoplayManager.isEnabled() && track) {
                 const processed = await autoplayManager.processTrack(track);
-
-                // If autoplay successfully added tracks, don't send queue end message
                 if (processed) {
                     client.logger.info(`[QUEUE_END] Autoplay added tracks for guild ${player.guildId}`);
                     return;
                 }
             }
 
-            // Check if we should send messages in this channel
             const shouldSendMessage = await shouldSendMessageInChannel(
                 channel.id,
                 player.guildId,
                 client
             );
 
-            // Send queue end message if autoplay didn't add tracks or is disabled
-            // AND if we should send messages in this channel
             if (shouldSendMessage) {
                 await channel.send({
                     embeds: [createQueueEndEmbed(client)],
@@ -160,10 +140,7 @@ const lavalinkEvent: LavalinkEvent = {
                 client.logger.debug(`[QUEUE_END] Skipping queue end message in music channel ${channel.id}`);
             }
 
-            // Reset the music channel embed
             await resetMusicChannelEmbed(player.guildId, client);
-
-            // Schedule player cleanup if needed
             await handlePlayerCleanup(player, player.guildId, client);
         } catch (error) {
             client.logger.error(`[QUEUE_END] Error in queue end event: ${error}`);

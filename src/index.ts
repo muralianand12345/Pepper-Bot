@@ -10,12 +10,10 @@ const manager = new discord.ShardingManager(botPath, {
     token: configManager.getToken(),
 });
 
-// Log when a shard is created
 manager.on("shardCreate", (shard) => {
     logger.info(`[INDEX] Launched shard ${shard.id}`);
 });
 
-// Log when a shard is ready
 manager
     .spawn()
     .then((shards) => {

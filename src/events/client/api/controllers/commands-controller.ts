@@ -3,27 +3,15 @@ import discord from 'discord.js';
 import CommandService from '../services/command-service';
 import { CommandsResponseDto } from '../dto/commands-dto';
 
-/**
- * Controller for handling command-related API endpoints
- */
 class CommandsController {
     private readonly client: discord.Client;
     private readonly commandService: CommandService;
 
-    /**
-     * Create a new commands controller
-     * @param client - Discord client
-     */
     constructor(client: discord.Client) {
         this.client = client;
         this.commandService = new CommandService(client);
     }
 
-    /**
-     * Get all commands
-     * @param req - Express request
-     * @param res - Express response
-     */
     public getAllCommands = (req: express.Request, res: express.Response): void => {
         const slashCommands = this.commandService.getSlashCommands();
         const messageCommands = this.commandService.getMessageCommands();
@@ -41,11 +29,6 @@ class CommandsController {
         res.json(response);
     };
 
-    /**
-     * Get slash commands
-     * @param req - Express request
-     * @param res - Express response
-     */
     public getSlashCommands = (req: express.Request, res: express.Response): void => {
         const commands = this.commandService.getSlashCommands();
 
@@ -57,11 +40,6 @@ class CommandsController {
         });
     };
 
-    /**
-     * Get message commands
-     * @param req - Express request
-     * @param res - Express response
-     */
     public getMessageCommands = (req: express.Request, res: express.Response): void => {
         const commands = this.commandService.getMessageCommands();
 
@@ -73,11 +51,6 @@ class CommandsController {
         });
     };
 
-    /**
-     * Get a specific command by name
-     * @param req - Express request
-     * @param res - Express response
-     */
     public getCommandByName = (req: express.Request, res: express.Response): void => {
         const { name } = req.params;
         const type = (req.query.type as string || 'SLASH').toUpperCase() as 'SLASH' | 'MESSAGE';

@@ -108,14 +108,12 @@ class MusicDB {
         }
 
         try {
-            // Check if the song already exists for this user
             const user = await music_user.findOne({
                 userId,
                 "songs.uri": songData.uri
             });
 
             if (user) {
-                // Song exists, update its play count and timestamp
                 await music_user.updateOne(
                     {
                         userId,
@@ -127,17 +125,14 @@ class MusicDB {
                     }
                 );
             } else {
-                // Check if user exists but song doesn't
                 const userExists = await this.userExists(userId);
 
                 if (userExists) {
-                    // User exists but song doesn't, push the new song
                     await music_user.updateOne(
                         { userId },
                         { $push: { songs: songData } }
                     );
                 } else {
-                    // User doesn't exist, create new document with the song
                     await music_user.create({
                         userId,
                         songs: [songData],
@@ -250,7 +245,6 @@ class MusicDB {
         try {
             const allGuilds = await music_guild.find();
 
-            // Edge case: no guild data found
             if (!allGuilds || allGuilds.length === 0) {
                 return { songs: [] };
             }
@@ -258,24 +252,18 @@ class MusicDB {
             const combinedSongs: Record<string, ISongs> = {};
 
             allGuilds.forEach((guild) => {
-                // Add null check for guild.songs
                 if (!guild.songs || !Array.isArray(guild.songs)) return;
 
                 guild.songs.forEach((song) => {
-                    // Skip songs with missing essential data
                     if (!song.uri || !song.title || !song.author) return;
-
-                    // Make sure played_number is a number greater than 0
                     if (!song.played_number || song.played_number <= 0) return;
 
                     const key = song.uri;
                     if (combinedSongs[key]) {
                         combinedSongs[key].played_number += song.played_number;
                     } else {
-                        // Create a clean copy with all required fields
                         combinedSongs[key] = {
                             ...song,
-                            // Ensure these fields exist
                             title: song.title || "Unknown Title",
                             author: song.author || "Unknown Artist",
                             played_number: song.played_number || 0,
@@ -286,14 +274,12 @@ class MusicDB {
                 });
             });
 
-            // Convert to array and sort by play count
             const globalSongs = Object.values(combinedSongs)
-                .filter((song) => song.played_number > 0) // Extra safeguard
+                .filter((song) => song.played_number > 0)
                 .sort((a, b) => b.played_number - a.played_number);
 
             return { songs: globalSongs };
         } catch (err) {
-            // Return empty songs array rather than throwing
             return { songs: [] };
         }
     }
@@ -510,7 +496,6 @@ class MusicDB {
                 return guildData.songChannelId;
             }
 
-            //check which guild vc user is in
             const guild = client.guilds.cache.get(guildId);
             if (!guild) {
                 throw new Error("Guild not found");

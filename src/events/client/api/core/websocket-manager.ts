@@ -5,9 +5,6 @@ import magmastream from 'magmastream';
 import { ILogger, WebSocketMessage } from '../../../../types';
 import PlaylistSuggestion from '../../../../utils/music/playlist_suggestion';
 
-/**
- * Supported WebSocket message types
- */
 enum MessageType {
     PLAY = 'play',
     PAUSE = 'pause',
@@ -22,9 +19,6 @@ enum MessageType {
     AUTOPLAY = 'autoplay',
 }
 
-/**
- * Interface for storing client metadata
- */
 interface ClientMetadata {
     ip: string;
     authenticated: boolean;
@@ -80,37 +74,29 @@ class WebSocketManager {
      * @returns IP address string
      */
     private getClientIp(req: http.IncomingMessage): string {
-        // Try different headers that might contain the IP
         const forwardedFor = req.headers['x-forwarded-for'];
         if (forwardedFor) {
-            // X-Forwarded-For can be a comma-separated list, take the first one
             const ips = Array.isArray(forwardedFor)
                 ? forwardedFor[0]
                 : forwardedFor.split(',')[0].trim();
             return ips || 'unknown';
         }
 
-        // Try Cloudflare-specific headers
         const cfConnectingIp = req.headers['cf-connecting-ip'];
         if (cfConnectingIp) {
             return Array.isArray(cfConnectingIp) ? cfConnectingIp[0] : cfConnectingIp;
         }
 
-        // Try other common proxy headers
         const realIp = req.headers['x-real-ip'];
         if (realIp) {
             return Array.isArray(realIp) ? realIp[0] : realIp;
         }
 
-        // Fall back to socket remote address
         const remoteAddress = req.socket.remoteAddress;
-
-        // Format IPv6 addresses (like ::1) to be more readable
         if (remoteAddress && remoteAddress.includes(':')) {
             if (remoteAddress === '::1') {
                 return 'localhost';
             }
-            // IPv6 address formatting
             return remoteAddress;
         }
 
@@ -142,17 +128,15 @@ class WebSocketManager {
             const webhookClient = new discord.WebhookClient({ url: this.webhookUrl });
             const timestamp = new Date();
 
-            // Set color based on status
             let color: number;
             switch (status) {
-                case 'success': color = 0x43b581; // Discord green
+                case 'success': color = 0x43b581;
                     break;
-                case 'error': color = 0xf04747; // Discord red
+                case 'error': color = 0xf04747;
                     break;
-                default: color = 0x7289da; // Discord blurple
+                default: color = 0x7289da;
             }
 
-            // Format guild information if available
             let guildInfo = '';
             if (data?.guildId) {
                 const guild = this.client.guilds.cache.get(data.guildId);
@@ -163,7 +147,6 @@ class WebSocketManager {
                 }
             }
 
-            // Format user information if available
             let userInfo = '';
             if (data?.userId) {
                 try {
@@ -180,7 +163,6 @@ class WebSocketManager {
                 }
             }
 
-            // Format client information if available
             let clientInfo = '';
             if (clientMetadata) {
                 clientInfo = `**IP Address:** ${clientMetadata.ip}\n`;
@@ -189,14 +171,12 @@ class WebSocketManager {
                 clientInfo += `**Subscribed Guilds:** ${clientMetadata.guilds.size}`;
             }
 
-            // Format event specific details
             let eventDetails = '';
             let thumbnailUrl = null;
 
             switch (type) {
                 case MessageType.PLAY:
                     eventDetails = `**Query:** ${data.query || 'N/A'}`;
-                    // Add track information if available
                     if (data.trackInfo) {
                         eventDetails += `\n**Track:** ${data.trackInfo.title || 'Unknown'} by ${data.trackInfo.author || 'Unknown Artist'}`;
                         thumbnailUrl = data.trackInfo.artworkUrl;
@@ -246,7 +226,6 @@ class WebSocketManager {
                     }
                     break;
                 case MessageType.AUTH:
-                    // Don't show API key, just status
                     eventDetails = `**Authentication:** ${status === 'success' ? 'Successful' : 'Failed'}`;
                     break;
                 case MessageType.NOW_PLAYING:
@@ -278,32 +257,27 @@ class WebSocketManager {
                     break;
             }
 
-            // Create embed for the webhook
             const embed = new discord.EmbedBuilder()
                 .setColor(color)
                 .setTitle(`WebSocket Action: ${type.toUpperCase()}`)
                 .setDescription(`A WebSocket client performed the \`${type}\` action`)
                 .setTimestamp(timestamp);
 
-            // Add thumbnail if available
             if (thumbnailUrl) {
                 embed.setThumbnail(thumbnailUrl);
             }
 
-            // Add fields conditionally
             if (guildInfo) embed.addFields({ name: '🏠 Server', value: guildInfo, inline: true });
             if (userInfo) embed.addFields({ name: '👤 User', value: userInfo, inline: true });
             if (clientInfo) embed.addFields({ name: '🖥️ Client Information', value: clientInfo, inline: false });
             if (eventDetails) embed.addFields({ name: '📝 Details', value: eventDetails, inline: false });
             if (details) embed.addFields({ name: status === 'error' ? '❌ Error' : 'ℹ️ Additional Info', value: details, inline: false });
 
-            // Add bot branding
             embed.setFooter({
                 text: `${this.client.user?.username || 'Bot'} WebSocket API`,
                 iconURL: this.client.user?.displayAvatarURL()
             });
 
-            // Send the webhook
             webhookClient.send({
                 username: `${this.client.user?.username || 'Music Bot'} WebSocket`,
                 avatarURL: this.client.user?.displayAvatarURL(),
@@ -346,12 +320,10 @@ class WebSocketManager {
      * @private
      */
     private handleConnection(ws: WebSocket, req: http.IncomingMessage): void {
-        // Get client IP address
-        const clientIp = this.getClientIp(req);
 
+        const clientIp = this.getClientIp(req);
         this.logger.info(`[WEBSOCKET] New connection established from IP: ${clientIp}`);
 
-        // Initialize client metadata
         const metadata: ClientMetadata = {
             ip: clientIp,
             authenticated: false,
@@ -360,14 +332,12 @@ class WebSocketManager {
         };
         this.clientsMetadata.set(ws, metadata);
 
-        // Setup message handler
         ws.on('message', async (message) => {
             try {
                 const parsedMessage = JSON.parse(message.toString()) as WebSocketMessage;
                 await this.handleMessage(ws, parsedMessage);
             } catch (error) {
                 this.sendError(ws, 'Invalid message format');
-                // Send webhook notification for parse error
                 this.sendWebhookNotification(
                     'parse_error',
                     { message: message.toString().substring(0, 100) + '...' },
@@ -378,12 +348,9 @@ class WebSocketManager {
             }
         });
 
-        // Setup close handler
         ws.on('close', () => {
             const metadata = this.clientsMetadata.get(ws);
             this.logger.info(`[WEBSOCKET] Connection closed from IP: ${metadata?.ip || 'unknown'}`);
-
-            // Send webhook notification for connection close
             this.sendWebhookNotification(
                 'connection_closed',
                 {},
@@ -391,17 +358,13 @@ class WebSocketManager {
                 'WebSocket connection closed',
                 metadata
             );
-
-            // Clean up metadata
             this.clientsMetadata.delete(ws);
         });
 
-        // Setup error handler
         ws.on('error', (error) => {
             const metadata = this.clientsMetadata.get(ws);
             this.logger.error(`[WEBSOCKET] Connection error from IP ${metadata?.ip || 'unknown'}: ${error.message}`);
 
-            // Send webhook notification for connection error
             this.sendWebhookNotification(
                 'connection_error',
                 {},
@@ -411,10 +374,7 @@ class WebSocketManager {
             );
         });
 
-        // Send welcome message
         this.sendMessage(ws, 'system', { message: 'Connected to Pepper Music WebSocket. Please authenticate with type: "auth", data: { apiKey: "your-api-key" }' });
-
-        // Send webhook notification for new connection
         this.sendWebhookNotification(
             'connection_established',
             {},
@@ -433,11 +393,8 @@ class WebSocketManager {
     private async handleMessage(ws: WebSocket, message: WebSocketMessage): Promise<void> {
         const metadata = this.clientsMetadata.get(ws);
 
-        // Authentication required for all messages except AUTH
         if (message.type !== MessageType.AUTH && !(metadata && metadata.authenticated)) {
             this.sendError(ws, 'Not authenticated', 401, message.data.guildId);
-
-            // Send webhook notification for authentication failure
             this.sendWebhookNotification(
                 'authentication_required',
                 {},
@@ -448,7 +405,6 @@ class WebSocketManager {
             return;
         }
 
-        // Handle message based on type
         switch (message.type) {
             case MessageType.AUTH:
                 this.handleAuth(ws, message);
@@ -496,8 +452,6 @@ class WebSocketManager {
 
             default:
                 this.sendError(ws, `Unknown message type: ${message.type}`, 400, message.data.guildId);
-
-                // Send webhook notification for unknown message type
                 this.sendWebhookNotification(
                     'unknown_message_type',
                     { type: message.type },
@@ -521,8 +475,6 @@ class WebSocketManager {
         if (!this.apiKey) {
             this.logger.warn('[WEBSOCKET] API key not configured but authentication attempted');
             this.sendError(ws, 'Authentication is misconfigured on the server', 500, message.data.guildId);
-
-            // Send webhook notification for authentication error
             this.sendWebhookNotification(
                 MessageType.AUTH,
                 {},
@@ -535,8 +487,6 @@ class WebSocketManager {
 
         if (!providedKey) {
             this.sendError(ws, 'API key is required', 401, message.data.guildId);
-
-            // Send webhook notification for missing API key
             this.sendWebhookNotification(
                 MessageType.AUTH,
                 {},
@@ -549,8 +499,6 @@ class WebSocketManager {
 
         if (providedKey !== this.apiKey) {
             this.sendError(ws, 'Invalid API key', 401, message.data.guildId);
-
-            // Send webhook notification for invalid API key
             this.sendWebhookNotification(
                 MessageType.AUTH,
                 {},
@@ -561,14 +509,11 @@ class WebSocketManager {
             return;
         }
 
-        // Mark client as authenticated
         if (metadata) {
             metadata.authenticated = true;
         }
 
         this.sendMessage(ws, 'auth_success', { message: 'Successfully authenticated' });
-
-        // Send webhook notification for successful authentication
         this.sendWebhookNotification(
             MessageType.AUTH,
             {},
@@ -623,12 +568,10 @@ class WebSocketManager {
         }
 
         try {
-            // Save guild association
             if (metadata) {
                 metadata.guilds.add(guildId);
             }
 
-            // Get guild instance
             const guild = this.client.guilds.cache.get(guildId);
             if (!guild) {
                 this.sendError(ws, `Guild not found: ${guildId}`, 404, message.data.guildId);
@@ -636,13 +579,8 @@ class WebSocketManager {
                 return;
             }
 
-            // Find active voice channel if no player exists
             let player = this.client.manager.get(guildId);
-
-            // Load the music guild data to check for songChannelId
             const MusicDB = require('../../../../utils/music/music_db').default;
-
-            // Get songChannelId from database
             const textChannelId = await MusicDB.getSongTextChannelId(this.client, guildId, userId);
 
             if (!textChannelId) {
@@ -651,14 +589,11 @@ class WebSocketManager {
                 return;
             }
 
-            // If player exists but is not connected, destroy it
             if (player && !player.voiceChannelId) {
-                player = undefined; // Use undefined instead of null
+                player = undefined;
             }
 
-            // Create new player if needed
             if (!player) {
-                // Find a voice channel with members
                 let voiceChannelId;
 
                 try {
@@ -668,7 +603,6 @@ class WebSocketManager {
                     if (member.voice.channel) {
                         voiceChannelId = member.voice.channel.id;
                     } else {
-                        // If user is not in a voice channel, find any active voice channel
                         const voiceChannels = guild.channels.cache.filter(
                             channel => (channel.type === discord.ChannelType.GuildVoice ||
                                 channel.type === discord.ChannelType.GuildStageVoice) &&
@@ -695,7 +629,6 @@ class WebSocketManager {
                     return;
                 }
 
-                // Create player with the determined textChannelId
                 player = this.client.manager.create({
                     guildId: guild.id,
                     voiceChannelId: voiceChannelId,
@@ -705,11 +638,9 @@ class WebSocketManager {
                     volume: 50,
                 });
 
-                // Connect to voice channel
                 player.connect();
             }
 
-            // Get user as requester
             let requester: discord.User | discord.ClientUser | undefined;
             try {
                 requester = await this.client.users.fetch(userId);
@@ -717,12 +648,10 @@ class WebSocketManager {
                 requester = this.client.user || undefined;
             }
 
-            // Ensure requester is never null
             if (!requester && this.client.user) {
                 requester = this.client.user;
             }
 
-            // Search for the song
             const searchResult = await this.client.manager.search(query, requester);
 
             if (searchResult.loadType === "empty" || !searchResult.tracks || searchResult.tracks.length === 0) {
@@ -731,20 +660,16 @@ class WebSocketManager {
                 return;
             }
 
-            // Process results based on load type
             switch (searchResult.loadType) {
                 case "track":
                 case "search": {
-                    // Add single track
                     const track = searchResult.tracks[0];
                     player.queue.add(track);
 
-                    // Start playing if not already
                     if (!player.playing && !player.paused && !player.queue.size) {
                         player.play();
                     }
 
-                    // Prepare response data
                     const responseData = {
                         track: {
                             title: track.title,
@@ -759,10 +684,7 @@ class WebSocketManager {
                         voiceChannelId: player.voiceChannelId
                     };
 
-                    // Send response to client
                     this.sendMessage(ws, 'track_added', responseData);
-
-                    // Send webhook notification
                     this.sendWebhookNotification(
                         MessageType.PLAY,
                         {
@@ -782,7 +704,6 @@ class WebSocketManager {
                 }
 
                 case "playlist": {
-                    // Add playlist tracks
                     if (!searchResult.playlist) {
                         this.sendError(ws, 'Playlist data is missing', 400, message.data.guildId);
                         this.sendWebhookNotification(MessageType.PLAY, message.data, 'error', 'Playlist data is missing', metadata);
@@ -795,12 +716,10 @@ class WebSocketManager {
                         player.queue.add(track);
                     });
 
-                    // Start playing if not already
                     if (!player.playing && !player.paused && player.queue.totalSize === tracks.length) {
                         player.play();
                     }
 
-                    // Prepare response data
                     const responseData = {
                         playlist: {
                             name: playlist.name,
@@ -817,10 +736,7 @@ class WebSocketManager {
                         voiceChannelId: player.voiceChannelId
                     };
 
-                    // Send response to client
                     this.sendMessage(ws, 'playlist_added', responseData);
-
-                    // Send webhook notification
                     this.sendWebhookNotification(
                         MessageType.PLAY,
                         {
@@ -895,7 +811,6 @@ class WebSocketManager {
                 return;
             }
 
-            // Get current track info for the webhook
             const trackInfo = player.queue.current ? {
                 title: player.queue.current.title,
                 author: player.queue.current.author,
@@ -904,8 +819,6 @@ class WebSocketManager {
 
             player.pause(true);
             this.sendMessage(ws, 'paused', { guildId });
-
-            // Send webhook notification
             this.sendWebhookNotification(
                 MessageType.PAUSE,
                 {
@@ -957,7 +870,6 @@ class WebSocketManager {
                 return;
             }
 
-            // Get current track info for the webhook
             const trackInfo = player.queue.current ? {
                 title: player.queue.current.title,
                 author: player.queue.current.author,
@@ -966,8 +878,6 @@ class WebSocketManager {
 
             player.pause(false);
             this.sendMessage(ws, 'resumed', { guildId });
-
-            // Send webhook notification
             this.sendWebhookNotification(
                 MessageType.RESUME,
                 {
@@ -1013,7 +923,6 @@ class WebSocketManager {
                 return;
             }
 
-            // Get current track info for the webhook before destroying the player
             const trackInfo = player.queue.current ? {
                 title: player.queue.current.title,
                 author: player.queue.current.author,
@@ -1024,8 +933,6 @@ class WebSocketManager {
 
             player.destroy();
             this.sendMessage(ws, 'stopped', { guildId });
-
-            // Send webhook notification
             this.sendWebhookNotification(
                 MessageType.STOP,
                 {
@@ -1084,7 +991,6 @@ class WebSocketManager {
                 artworkUrl: player.queue.current.artworkUrl || player.queue.current.thumbnail
             };
 
-            // Check what the next song will be
             const nextTrack = player.queue.size > 0 ? player.queue[0] : null;
             const nextSong = nextTrack ? {
                 title: nextTrack.title,
@@ -1104,8 +1010,6 @@ class WebSocketManager {
             };
 
             this.sendMessage(ws, 'skipped', responseData);
-
-            // Send webhook notification
             this.sendWebhookNotification(
                 MessageType.SKIP,
                 {
@@ -1153,8 +1057,6 @@ class WebSocketManager {
 
         if (volume === undefined || volume === null) {
             this.sendMessage(ws, 'current_volume', { guildId, volume: player.volume });
-
-            // Send webhook notification for volume query
             this.sendWebhookNotification(
                 MessageType.VOLUME,
                 {
@@ -1182,8 +1084,6 @@ class WebSocketManager {
             const oldVolume = player.volume;
             player.setVolume(volume);
             this.sendMessage(ws, 'volume_set', { guildId, volume });
-
-            // Send webhook notification for volume change
             this.sendWebhookNotification(
                 MessageType.VOLUME,
                 {
@@ -1230,7 +1130,6 @@ class WebSocketManager {
                 return;
             }
 
-            // Get current song
             const currentSong = player.queue.current ? {
                 title: player.queue.current.title,
                 author: player.queue.current.author,
@@ -1241,7 +1140,6 @@ class WebSocketManager {
                 artworkUrl: player.queue.current.artworkUrl || player.queue.current.thumbnail
             } : null;
 
-            // Get queue songs
             const queueSongs = player.queue.map(track => ({
                 title: track.title,
                 author: track.author,
@@ -1251,7 +1149,6 @@ class WebSocketManager {
                 artworkUrl: track.artworkUrl || track.thumbnail
             }));
 
-            // Prepare response data
             const responseData = {
                 guildId,
                 playing: player.playing,
@@ -1263,10 +1160,7 @@ class WebSocketManager {
                 queue: queueSongs
             };
 
-            // Send response
             this.sendMessage(ws, 'queue', responseData);
-
-            // Send webhook notification
             this.sendWebhookNotification(
                 MessageType.QUEUE,
                 {
@@ -1275,7 +1169,7 @@ class WebSocketManager {
                     queueSize: player.queue.size,
                     playing: player.playing,
                     paused: player.paused,
-                    sampleQueueTracks: queueSongs.slice(0, 3) // Just include first 3 for webhook
+                    sampleQueueTracks: queueSongs.slice(0, 3)
                 },
                 'success',
                 `Retrieved queue with ${player.queue.size} tracks`
@@ -1315,8 +1209,6 @@ class WebSocketManager {
 
         try {
             const suggestionEngine = new PlaylistSuggestion(this.client);
-
-            // Get recommendations
             const recommendations = await suggestionEngine.getSuggestionsFromUserTopSong(
                 userId,
                 guildId,
@@ -1334,7 +1226,6 @@ class WebSocketManager {
                 return;
             }
 
-            // Format the response
             const responseData = {
                 guildId,
                 userId,
@@ -1353,17 +1244,14 @@ class WebSocketManager {
                 }))
             };
 
-            // Send the response
             this.sendMessage(ws, 'recommendations', responseData);
-
-            // Send webhook notification
             this.sendWebhookNotification(
                 MessageType.RECOMMEND,
                 {
                     ...message.data,
                     seedSong: responseData.seedSong,
                     recommendationCount: responseData.recommendations.length,
-                    sampleRecommendations: responseData.recommendations.slice(0, 3) // Just include first 3 for webhook
+                    sampleRecommendations: responseData.recommendations.slice(0, 3)
                 },
                 'success',
                 `Generated ${responseData.recommendations.length} recommendations based on "${responseData.seedSong.title}"`
@@ -1425,14 +1313,10 @@ class WebSocketManager {
                 return;
             }
 
-            // Get the NowPlayingManager for this guild to get accurate position
             const NowPlayingManager = require('../../../../utils/music/now_playing_manager').NowPlayingManager;
             const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, this.client);
-
-            // Get playback status including adjusted position
             const playbackStatus = nowPlayingManager.getPlaybackStatus();
 
-            // Current track details
             const currentTrack = {
                 title: player.queue.current.title,
                 author: player.queue.current.author,
@@ -1450,7 +1334,6 @@ class WebSocketManager {
                 } : null
             };
 
-            // Format progress bar
             const Formatter = require('../../../../utils/format').default;
             const progressBar = Formatter.createProgressBar({
                 position: playbackStatus.position,
@@ -1468,10 +1351,7 @@ class WebSocketManager {
                 this.client
             );
 
-            // Calculate progress percent
             const progressPercent = Math.min(100, Math.floor((playbackStatus.position / Math.max(1, playbackStatus.duration)) * 100));
-
-            // Prepare response data
             const responseData = {
                 guildId,
                 playing: player.playing,
@@ -1484,10 +1364,7 @@ class WebSocketManager {
                 queueSize: player.queue.size
             };
 
-            // Send response
             this.sendMessage(ws, 'now_playing', responseData);
-
-            // Send webhook notification
             this.sendWebhookNotification(
                 MessageType.NOW_PLAYING,
                 {
@@ -1549,12 +1426,10 @@ class WebSocketManager {
                 return;
             }
 
-            // Save guild association
             if (metadata) {
                 metadata.guilds.add(guildId);
             }
 
-            // Get the AutoplayManager for this guild
             const AutoplayManager = require('../../../../utils/music/autoplay_manager').default;
             const autoplayManager = AutoplayManager.getInstance(
                 guildId,
@@ -1562,14 +1437,11 @@ class WebSocketManager {
                 this.client
             );
 
-            // Determine user ID to use for autoplay context
-            // Use provided userId, if available, or fall back to the last requester's ID
             const effectiveUserId = userId ||
                 (player.queue.current?.requester as discord.User)?.id ||
                 this.client.user?.id || null;
 
             if (enabled) {
-                // Enable autoplay
                 autoplayManager.enable(effectiveUserId);
 
                 this.sendMessage(ws, 'autoplay_state', {
@@ -1577,8 +1449,6 @@ class WebSocketManager {
                     enabled: true,
                     userId: effectiveUserId
                 });
-
-                // Send webhook notification
                 this.sendWebhookNotification(
                     MessageType.AUTOPLAY,
                     {
@@ -1589,7 +1459,6 @@ class WebSocketManager {
                     'Autoplay enabled successfully'
                 );
             } else {
-                // Disable autoplay
                 autoplayManager.disable();
 
                 this.sendMessage(ws, 'autoplay_state', {
@@ -1597,7 +1466,6 @@ class WebSocketManager {
                     enabled: false
                 });
 
-                // Send webhook notification
                 this.sendWebhookNotification(
                     MessageType.AUTOPLAY,
                     {

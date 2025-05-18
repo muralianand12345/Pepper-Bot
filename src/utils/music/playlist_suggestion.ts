@@ -39,7 +39,6 @@ class PlaylistSuggestion {
             };
         }
 
-        // Ensure all fields have default values to prevent undefined errors
         return {
             track: track.title || "Unknown Track",
             artworkUrl: track.artworkUrl || "",
@@ -48,7 +47,7 @@ class PlaylistSuggestion {
             identifier: track.identifier || `unknown_${Date.now()}`,
             author: track.author || "Unknown Artist",
             duration: track.duration || 0,
-            isrc: track.isrc || "", // Add fallback empty string
+            isrc: track.isrc || "",
             isSeekable: track.isSeekable !== undefined ? track.isSeekable : true,
             isStream: track.isStream !== undefined ? track.isStream : false,
             uri: track.uri || "",
@@ -73,10 +72,7 @@ class PlaylistSuggestion {
         limit: number = this.defaultLimit
     ): Promise<{ seedSong: ISongs | null; recommendations: ISongs[] }> {
         try {
-            // Start tracking time for performance logging
             const startTime = Date.now();
-
-            // 1. Get the user's top listened song as seed
             const userTopSongs = await MusicDB.getUserTopSongs(userId, 1);
             const seedSong =
                 userTopSongs && userTopSongs.length > 0
@@ -94,7 +90,6 @@ class PlaylistSuggestion {
                 `[PLAYLIST_SUGGESTION] Using top song "${seedSong.title}" by ${seedSong.author} as seed`
             );
 
-            // 2. Get recommendations based on the seed song
             const recommendations = await this.getSuggestions(
                 userId,
                 guildId,
@@ -108,7 +103,6 @@ class PlaylistSuggestion {
                 } suggestions in ${endTime - startTime}ms`
             );
 
-            // 3. Convert non-Spotify links to Spotify
             const enhancedRecommendations = await this.convertToSpotifyLinks(
                 recommendations
             );
@@ -144,7 +138,6 @@ class PlaylistSuggestion {
             const suggestions: ISongs[] = [];
             let remainingSlots = limit;
 
-            // Strategy 1: Get recommendations based on the seed track
             if (remainingSlots > 0) {
                 this.client.logger.debug(
                     `[PLAYLIST_SUGGESTION] Getting track-based recommendations for ${seedTrack.title}`
@@ -154,7 +147,7 @@ class PlaylistSuggestion {
                         seedTrack,
                         userId,
                         guildId,
-                        Math.ceil(remainingSlots * 0.5) // 50% of slots for track-based
+                        Math.ceil(remainingSlots * 0.5)
                     );
 
                 suggestions.push(...trackBasedSuggestions);
@@ -164,14 +157,13 @@ class PlaylistSuggestion {
                 );
             }
 
-            // Strategy 2: Get recommendations based on user history (excluding the seed track)
             if (remainingSlots > 0) {
                 this.client.logger.debug(
                     `[PLAYLIST_SUGGESTION] Getting user history recommendations for ${userId}`
                 );
                 const userSuggestions = await this.getUserTopRecommendations(
                     userId,
-                    Math.ceil(remainingSlots * 0.3), // 30% of remaining slots
+                    Math.ceil(remainingSlots * 0.3),
                     [seedTrack, ...suggestions]
                 );
 
@@ -182,14 +174,13 @@ class PlaylistSuggestion {
                 );
             }
 
-            // Strategy 3: Get recommendations based on guild history
             if (remainingSlots > 0) {
                 this.client.logger.debug(
                     `[PLAYLIST_SUGGESTION] Getting guild recommendations for ${guildId}`
                 );
                 const guildSuggestions = await this.getGuildRecommendations(
                     guildId,
-                    Math.ceil(remainingSlots * 0.5), // 50% of remaining slots
+                    Math.ceil(remainingSlots * 0.5),
                     [seedTrack, ...suggestions]
                 );
 
@@ -200,7 +191,6 @@ class PlaylistSuggestion {
                 );
             }
 
-            // Strategy 4: Get global popular tracks if still need more recommendations
             if (remainingSlots > 0) {
                 this.client.logger.debug(
                     `[PLAYLIST_SUGGESTION] Getting global recommendations`
@@ -217,7 +207,6 @@ class PlaylistSuggestion {
                 );
             }
 
-            // Strategy 5: Use Magmastream recommendations if we still don't have enough
             if (remainingSlots > 0) {
                 this.client.logger.debug(
                     `[PLAYLIST_SUGGESTION] Getting Magmastream recommendations`
@@ -235,12 +224,10 @@ class PlaylistSuggestion {
                 );
             }
 
-            // Filter out any tracks with missing/invalid URIs
             const validSuggestions = suggestions.filter(
                 (track) => track && track.uri && track.uri.trim() !== ""
             );
 
-            // Shuffle and limit the results
             return this.shuffleArray(validSuggestions).slice(0, limit);
         } catch (error) {
             this.client.logger.error(
@@ -266,33 +253,25 @@ class PlaylistSuggestion {
                 throw new Error("Manager not available for link conversion");
             }
 
-            // Process tracks in parallel for efficiency
             const enhancedTracks = await Promise.all(
                 tracks.map(async (track) => {
                     if (!track) return null;
 
-                    // Skip if already a Spotify link or URI is undefined
                     if (!track.uri || track.uri.includes("spotify.com")) {
                         return track;
                     }
 
                     try {
-                        // Create search query from track title and author
                         const searchQuery = `${track.author || ""} - ${track.title || ""
                             }`.trim();
                         if (!searchQuery) return track;
 
-                        // Search for the track on Spotify
                         const spotifySearch = await manager.search(
                             `spsearch:${searchQuery}`
                         );
 
-                        // If found a Spotify version, convert the track
                         if (spotifySearch?.tracks?.length > 0) {
-                            // Use the first result
                             const spotifyTrack = spotifySearch.tracks[0];
-
-                            // Create a new track with Spotify info but preserve play count and timestamp
                             return {
                                 ...this.convertTrackToISongs(spotifyTrack),
                                 played_number: track.played_number || 1,
@@ -306,17 +285,14 @@ class PlaylistSuggestion {
                         );
                     }
 
-                    // Return original if conversion failed
                     return track;
                 })
             );
 
-            // Filter out null values and validate URIs
             const validTracks = enhancedTracks.filter(
                 (track) => track !== null && track.uri
             ) as ISongs[];
 
-            // Count how many were successfully converted to Spotify
             const spotifyCount = validTracks.filter(
                 (track) => track.uri && track.uri.includes("spotify.com")
             ).length;
@@ -331,7 +307,6 @@ class PlaylistSuggestion {
                 `[PLAYLIST_SUGGESTION] Error converting to Spotify links: ${error}`
             );
 
-            // Return original tracks filtered for valid URIs
             return tracks.filter((track) => track && track.uri);
         }
     }
@@ -365,7 +340,6 @@ class PlaylistSuggestion {
                 throw new Error("Manager not available");
             }
 
-            // Get a player instance to access getRecommendedTracks
             const guildIds = Array.from(manager.players.keys());
             if (guildIds.length === 0) {
                 throw new Error("No active players available");
@@ -376,14 +350,10 @@ class PlaylistSuggestion {
                 throw new Error("Player doesn't support recommendations");
             }
 
-            // Search for the track to get a MagmaStream track instance
             const searchQuery = `${track.author} - ${track.title}`;
             let searchResult;
-
-            // Try Spotify search first
             searchResult = await manager.search(`spsearch:${searchQuery}`);
 
-            // If no results with Spotify, try default search
             if (!searchResult?.tracks?.length) {
                 searchResult = await manager.search(searchQuery);
             }
@@ -392,10 +362,7 @@ class PlaylistSuggestion {
                 throw new Error("No searchable track found");
             }
 
-            // Use the first track as seed
             const seedTrack = searchResult.tracks[0];
-
-            // Get recommendations
             const recommendations = await player.getRecommendedTracks(
                 seedTrack
             );
@@ -404,7 +371,6 @@ class PlaylistSuggestion {
                 return [];
             }
 
-            // Filter out existing tracks and convert to ISongs
             return recommendations
                 .filter((t) => t && t.uri && !existingUris.has(t.uri))
                 .map((t) => this.convertTrackToISongs(t))
@@ -434,7 +400,6 @@ class PlaylistSuggestion {
         limit: number
     ): Promise<ISongs[]> {
         try {
-            // Safety check for track
             if (!track || !track.title || !track.author) {
                 this.client.logger.warn(
                     `[PLAYLIST_SUGGESTION] Invalid track provided for recommendations`
@@ -442,14 +407,12 @@ class PlaylistSuggestion {
                 return [];
             }
 
-            // Get tracks from both user and guild history using MusicDB
             let userTracks: ISongs[] = [];
             let guildTracks: ISongs[] = [];
 
             if (userId) {
                 const userData = await MusicDB.getUserMusicHistory(userId);
                 if (userData && userData.songs) {
-                    // Filter out invalid tracks and the seed track
                     userTracks = userData.songs.filter(
                         (s) =>
                             s &&
@@ -464,7 +427,6 @@ class PlaylistSuggestion {
             if (guildId) {
                 const guildData = await MusicDB.getGuildMusicHistory(guildId);
                 if (guildData && guildData.songs) {
-                    // Filter out invalid tracks and the seed track
                     guildTracks = guildData.songs.filter(
                         (s) =>
                             s &&
@@ -476,13 +438,11 @@ class PlaylistSuggestion {
                 }
             }
 
-            // Combine tracks and filter
             const combinedTracks = [...userTracks, ...guildTracks];
             if (combinedTracks.length === 0) {
                 return [];
             }
 
-            // Filter by similarity with safety checks
             const similarTracks = combinedTracks.filter((s) => {
                 if (!s || !s.title || !s.author) return false;
 
@@ -500,10 +460,8 @@ class PlaylistSuggestion {
                 );
             });
 
-            // Remove duplicates
             const uniqueTracks = this.removeDuplicates(similarTracks);
 
-            // If we don't have enough tracks, get some from global data
             if (uniqueTracks.length < limit) {
                 const globalSimilarTracks = await this.getGlobalSimilarTracks(
                     track,
@@ -536,16 +494,12 @@ class PlaylistSuggestion {
         limit: number
     ): Promise<ISongs[]> {
         try {
-            // Safety check for input track
             if (!track || !track.title || !track.author) {
                 return [];
             }
 
-            // Get global music history
             const globalData = await MusicDB.getGlobalMusicHistory();
             if (!globalData?.songs?.length) return [];
-
-            // Filter out the current track and invalid tracks
             const filteredSongs = globalData.songs.filter(
                 (song) =>
                     song &&
@@ -559,18 +513,15 @@ class PlaylistSuggestion {
                 return [];
             }
 
-            // Find tracks by same author
             const sameAuthorTracks = filteredSongs.filter(
                 (song) =>
                     this.calculateSimilarity(song.author, track.author) > 0.7
             );
 
-            // Find tracks with similar titles
             const titleKeywords = this.extractKeywords(track.title);
             const similarTitleTracks = filteredSongs.filter((song) => {
                 if (!song.title) return false;
                 const songKeywords = this.extractKeywords(song.title);
-                // Check if any keywords match
                 return titleKeywords.some((keyword) =>
                     songKeywords.some(
                         (songKeyword) =>
@@ -580,11 +531,8 @@ class PlaylistSuggestion {
                 );
             });
 
-            // Combine and sort by similarity score
             const combinedTracks = [...sameAuthorTracks, ...similarTitleTracks];
             const dedupedTracks = this.removeDuplicates(combinedTracks);
-
-            // Sort by relevance (weighted similarity)
             return dedupedTracks
                 .sort((a, b) => {
                     const aAuthorScore = this.calculateSimilarity(
@@ -604,7 +552,6 @@ class PlaylistSuggestion {
                         track.title
                     );
 
-                    // Weight: 70% author match, 30% title match
                     const aScore = aAuthorScore * 0.7 + aTitleScore * 0.3;
                     const bScore = bAuthorScore * 0.7 + bTitleScore * 0.3;
 
@@ -638,22 +585,17 @@ class PlaylistSuggestion {
                 return [];
             }
 
-            // Get user's top songs using MusicDB
             const userSongs = await MusicDB.getUserTopSongs(userId, limit * 2);
             if (!userSongs?.length) return [];
 
-            // Create set of URIs to exclude
             const existingUris = new Set(
                 existingTracks.filter((t) => t && t.uri).map((t) => t.uri)
             );
 
-            // Filter user's songs to avoid recommending already suggested tracks
-            // and ensure all songs have valid URIs
             const filteredSongs = userSongs.filter(
                 (song) => song && song.uri && !existingUris.has(song.uri)
             );
 
-            // Songs are already sorted by played_number in MusicDB.getUserTopSongs
             return filteredSongs.slice(0, limit);
         } catch (error) {
             this.client.logger.error(
@@ -682,19 +624,16 @@ class PlaylistSuggestion {
                 return [];
             }
 
-            // Get guild's top songs using MusicDB
             const guildSongs = await MusicDB.getGuildTopSongs(
                 guildId,
                 limit * 2
             );
             if (!guildSongs?.length) return [];
 
-            // Create set of URIs to exclude
             const existingUris = new Set(
                 existingTracks.filter((t) => t && t.uri).map((t) => t.uri)
             );
 
-            // Filter guild songs to avoid duplicates and ensure all fields are valid
             const filteredSongs = guildSongs.filter(
                 (song) =>
                     song &&
@@ -707,11 +646,9 @@ class PlaylistSuggestion {
                 return [];
             }
 
-            // Add recency weighting to already sorted songs
             return filteredSongs
                 .sort((a, b) => {
                     try {
-                        // Weighted formula: 70% by play count, 30% by recency
                         const recencyScore =
                             new Date(b.timestamp).getTime() -
                             new Date(a.timestamp).getTime();
@@ -722,7 +659,6 @@ class PlaylistSuggestion {
                             0.3 * recencyScore
                         );
                     } catch (err) {
-                        // Fall back to play count only if timestamp comparison fails
                         return (b.played_number || 0) - (a.played_number || 0);
                     }
                 })
@@ -748,16 +684,13 @@ class PlaylistSuggestion {
         existingTracks: ISongs[] = []
     ): Promise<ISongs[]> {
         try {
-            // Create set of URIs to exclude
             const existingUris = new Set(
                 existingTracks.filter((t) => t && t.uri).map((t) => t.uri)
             );
 
-            // Get global music history using MusicDB
             const globalData = await MusicDB.getGlobalMusicHistory();
             if (!globalData?.songs?.length) return [];
 
-            // Filter out already suggested tracks and ensure valid URIs
             return globalData.songs
                 .filter(
                     (song) => song && song.uri && !existingUris.has(song.uri)
@@ -781,7 +714,6 @@ class PlaylistSuggestion {
     private getTopArtists(songs: ISongs[]): Map<string, number> {
         const artistCounts = new Map<string, number>();
 
-        // Process only valid songs
         songs
             .filter((song) => song && song.author)
             .forEach((song) => {
@@ -803,17 +735,14 @@ class PlaylistSuggestion {
      * @private
      */
     private calculateSimilarity(str1: string, str2: string): number {
-        // Handle null/undefined inputs
         if (!str1 || !str2) return 0;
 
         const s1 = str1.toLowerCase();
         const s2 = str2.toLowerCase();
 
-        // Handle empty strings
         if (s1.length === 0 || s2.length === 0) return 0;
         if (s1 === s2) return 1;
 
-        // Calculate Levenshtein distance
         const len1 = s1.length;
         const len2 = s2.length;
         const matrix: number[][] = Array(len1 + 1)
@@ -827,14 +756,13 @@ class PlaylistSuggestion {
             for (let j = 1; j <= len2; j++) {
                 const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
                 matrix[i][j] = Math.min(
-                    matrix[i - 1][j] + 1, // deletion
-                    matrix[i][j - 1] + 1, // insertion
-                    matrix[i - 1][j - 1] + cost // substitution
+                    matrix[i - 1][j] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j - 1] + cost
                 );
             }
         }
 
-        // Convert distance to similarity score
         const maxLen = Math.max(len1, len2);
         return 1 - matrix[len1][len2] / maxLen;
     }
@@ -847,7 +775,6 @@ class PlaylistSuggestion {
      * @private
      */
     private extractKeywords(title: string): string[] {
-        // Handle null/undefined input
         if (!title) return [];
 
         const stopWords = new Set([
@@ -875,28 +802,15 @@ class PlaylistSuggestion {
 
         return title
             .toLowerCase()
-            .replace(/\([^)]*\)|\[[^\]]*\]/g, "") // Remove text in parentheses or brackets
-            .replace(/[^\w\s]/g, "") // Remove special characters
-            .split(/\s+/) // Split by whitespace
+            .replace(/\([^)]*\)|\[[^\]]*\]/g, "")
+            .replace(/[^\w\s]/g, "")
+            .split(/\s+/)
             .filter(
                 (word) =>
-                    word.length > 2 && // Only words longer than 2 chars
-                    !stopWords.has(word) && // Not a stop word
-                    !/^\d+$/.test(word) // Not just a number
+                    word.length > 2 &&
+                    !stopWords.has(word) &&
+                    !/^\d+$/.test(word)
             );
-    }
-
-    /**
-     * Escape special characters in a string for use in regex
-     *
-     * @param string - String to escape
-     * @returns Escaped string safe for regex usage
-     * @private
-     */
-    private escapeRegExp(string: string): string {
-        // Handle null/undefined input
-        if (!string) return "";
-        return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     }
 
     /**
@@ -909,13 +823,8 @@ class PlaylistSuggestion {
     private removeDuplicates(tracks: ISongs[]): ISongs[] {
         const seen = new Set<string>();
         return tracks.filter((track) => {
-            // Skip invalid tracks
             if (!track || !track.uri) return false;
-
-            // Check if we've seen this URI already
             if (seen.has(track.uri)) return false;
-
-            // Mark as seen and include in results
             seen.add(track.uri);
             return true;
         });

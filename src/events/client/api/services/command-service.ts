@@ -70,8 +70,8 @@ class CommandService {
             cooldown: command.cooldown,
             ownerOnly: command.owner || false,
             premiumOnly: command.premium || false,
-            guildOnly: false, // Default value as it's not in the Command interface
-            arguments: [] // Default value as Command interface doesn't specify arguments
+            guildOnly: false, 
+            arguments: [] 
         };
     }
 
@@ -82,7 +82,6 @@ class CommandService {
      * @private
      */
     private mapSlashCommandToDto(command: SlashCommand): CommandDto {
-        // Extract options from slash command data if available
         let options: SlashCommandOptionDto[] = [];
 
         if (command.data && 'options' in command.data) {
@@ -96,7 +95,7 @@ class CommandService {
             cooldown: command.cooldown,
             ownerOnly: command.owner || false,
             premiumOnly: command.premium || false,
-            guildOnly: false, // Default value or determine from command data
+            guildOnly: false,
             options
         };
     }
@@ -113,13 +112,11 @@ class CommandService {
         }
 
         try {
-            // For slash commands built with SlashCommandBuilder
             if (typeof data.toJSON === 'function') {
                 const jsonData = data.toJSON();
                 return jsonData.options || [];
             }
 
-            // For directly defined options
             return data.options.map((option: any) => {
                 const optionDto: SlashCommandOptionDto = {
                     name: option.name,

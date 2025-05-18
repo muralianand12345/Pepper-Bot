@@ -26,13 +26,11 @@ class AuthMiddleware {
         res: express.Response,
         next: express.NextFunction
     ): void => {
-        // Skip authentication if disabled
         if (!this.config.enabled) {
             next();
             return;
         }
 
-        // Make sure we have a valid API key configured
         if (!this.config.apiKey || this.config.apiKey.trim() === '') {
             console.warn('[AUTH] Auth is enabled but no API key is configured');
             res.status(500).json({
@@ -42,10 +40,8 @@ class AuthMiddleware {
             return;
         }
 
-        // Get the API key from request headers
         const apiKey = req.headers['x-api-key'] as string;
 
-        // Check if API key is provided
         if (!apiKey) {
             res.status(401).json({
                 status: 'error',
@@ -54,7 +50,6 @@ class AuthMiddleware {
             return;
         }
 
-        // Check if API key is valid
         if (apiKey !== this.config.apiKey) {
             res.status(401).json({
                 status: 'error',
@@ -62,8 +57,7 @@ class AuthMiddleware {
             });
             return;
         }
-
-        // Authentication successful
+        
         next();
     };
 }

@@ -77,7 +77,6 @@ const handleCommandPrerequisites = async (
     client: discord.Client,
     music_guild: IMusicGuild | null
 ): Promise<boolean> => {
-    // Check if user is blocked
     const blockStatus = await checkBlockedStatus(message.author.id);
     if (blockStatus.blocked) {
         await sendErrorEmbed(
@@ -87,7 +86,6 @@ const handleCommandPrerequisites = async (
         return false;
     }
 
-    // Check premium requirements
     if (command.premium) {
         const isPremium = await checkPremiumStatus(message.author.id);
         if (!isPremium) {
@@ -99,7 +97,6 @@ const handleCommandPrerequisites = async (
         }
     }
 
-    // Check cooldown
     if (command.cooldown) {
         const cooldownKey = `${command.name}${message.author.id}`;
         if (cooldown.has(cooldownKey)) {
@@ -118,7 +115,6 @@ const handleCommandPrerequisites = async (
         }
     }
 
-    // Check if user is a DJ
     if (command.dj) {
 
         const isDJ = await checkDJStatus(
@@ -143,7 +139,6 @@ const handleCommandPrerequisites = async (
         }
     }
 
-    // Check owner permission
     if (
         command.owner &&
         !client.config.bot.owners.includes(message.author.id)
@@ -155,7 +150,6 @@ const handleCommandPrerequisites = async (
         return false;
     }
 
-    // Check user permissions
     if (
         command.userPerms &&
         !message.member?.permissions.has(
@@ -169,7 +163,6 @@ const handleCommandPrerequisites = async (
         return false;
     }
 
-    // Check bot permissions
     if (
         command.botPerms &&
         !message.guild?.members.cache
@@ -231,7 +224,6 @@ const event: BotEvent = {
         client: discord.Client
     ): Promise<void> => {
         try {
-            // Early validation checks
             if (!validateMessage(message, client)) return;
 
             let prefix;
@@ -255,11 +247,7 @@ const event: BotEvent = {
             const commandName = args.shift()?.toLowerCase();
 
             if (!commandName || commandName.length === 0) return;
-
-            // Get command from commands collection
             let command = client.commands.get(commandName);
-
-            // If command not found directly, check aliases (if they exist)
             if (!command && "aliases" in client) {
                 const alias = (client as any).aliases?.get(commandName);
                 if (alias) {
@@ -268,8 +256,6 @@ const event: BotEvent = {
             }
 
             if (!command) return;
-
-            // Handle permissions and execution
             if (await handleCommandPrerequisites(command, message, client, guild_data)) {
                 await executeCommand(command, message, args, client);
             }

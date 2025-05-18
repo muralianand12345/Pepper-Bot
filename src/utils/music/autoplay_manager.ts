@@ -17,11 +17,10 @@ class AutoplayManager {
     private lastProcessedTrackUri: string | null = null;
     private processing: boolean = false;
     private autoplayOwnerId: string | null = null;
-    private readonly recommendationCount: number = 3; // Number of tracks to add at once
+    private readonly recommendationCount: number = 3;
 
-    // Track history to prevent repeating songs
     private recentlyPlayedTracks: Set<string> = new Set();
-    private readonly maxHistorySize: number = 20; // Maximum number of tracks to remember
+    private readonly maxHistorySize: number = 20;
 
     /**
      * Private constructor - use getInstance() instead
@@ -38,8 +37,6 @@ class AutoplayManager {
         this.player = player;
         this.client = client;
         this.recommendationEngine = new PlaylistSuggestion(client);
-
-        // Setup listener for when track ends
         this.setupListeners();
     }
 
@@ -78,7 +75,6 @@ class AutoplayManager {
      * @private
      */
     private setupListeners(): void {
-        // The manager is directly registered to player events in the trackEnd event handler
         this.client.logger.debug(`[AUTOPLAY] Setup listeners for guild ${this.guildId}`);
     }
 
@@ -121,12 +117,9 @@ class AutoplayManager {
     private addToRecentlyPlayed(track: magmastream.Track | ISongs): void {
         if (!track || !track.uri) return;
 
-        // Add current track to recently played
         this.recentlyPlayedTracks.add(track.uri);
 
-        // If we've exceeded our history limit, remove oldest entries
         if (this.recentlyPlayedTracks.size > this.maxHistorySize) {
-            // Convert to array to remove oldest (first) entry
             const trackArray = Array.from(this.recentlyPlayedTracks);
             this.recentlyPlayedTracks = new Set(trackArray.slice(1));
         }
@@ -138,12 +131,10 @@ class AutoplayManager {
      * @returns Promise<boolean> - Whether processing was successful
      */
     public async processTrack(finishedTrack: magmastream.Track): Promise<boolean> {
-        // Skip if autoplay is disabled or already processing
         if (!this.enabled || this.processing) {
             return false;
         }
 
-        // Check if we have a valid track
         if (!finishedTrack || !finishedTrack.uri) {
             this.client.logger.warn(
                 `[AUTOPLAY] Cannot process autoplay for guild ${this.guildId}: Invalid track`
@@ -151,23 +142,16 @@ class AutoplayManager {
             return false;
         }
 
-        // Skip if we've already processed this track
         if (this.lastProcessedTrackUri === finishedTrack.uri) {
             return false;
         }
 
-        // Mark as processing to prevent multiple concurrent operations
         this.processing = true;
         this.lastProcessedTrackUri = finishedTrack.uri;
-
-        // Add the finished track to our recently played list
         this.addToRecentlyPlayed(finishedTrack);
 
         try {
-            // Get the current queue size
             const queueSize = this.player.queue.size;
-
-            // Only add recommendations if the queue is nearly empty
             if (queueSize < 2) {
                 await this.addRecommendationsToQueue(finishedTrack);
             }
@@ -189,7 +173,6 @@ class AutoplayManager {
      */
     private async addRecommendationsToQueue(seedTrack: magmastream.Track): Promise<number> {
         try {
-            // Convert track to ISongs format for the recommendation engine
             const seedSong: ISongs = {
                 track: seedTrack.title || "Unknown",
                 artworkUrl: seedTrack.artworkUrl || "",
@@ -208,16 +191,14 @@ class AutoplayManager {
                 timestamp: new Date()
             };
 
-            // Determine whose recommendations to use
             const userId = this.autoplayOwnerId ||
                 (seedTrack.requester as discord.User)?.id ||
                 this.client.user?.id || null;
 
-            // Get recommendations using the PlaylistSuggestion engine
             const { recommendations } = await this.recommendationEngine.getSuggestionsFromUserTopSong(
                 userId || "",
                 this.guildId,
-                this.recommendationCount * 2 // Request more recommendations than needed to account for filtering
+                this.recommendationCount * 2
             );
 
             if (!recommendations || recommendations.length === 0) {
@@ -227,7 +208,6 @@ class AutoplayManager {
                 return 0;
             }
 
-            // Filter out recently played tracks and the seed track
             const validRecommendations = recommendations.filter(
                 (rec) => {
                     return rec &&
@@ -244,20 +224,17 @@ class AutoplayManager {
                 return 0;
             }
 
-            // Create a requester object - use the bot as requester for autoplay tracks
             let requester: discord.User | discord.ClientUser | undefined = this.client.user || undefined;
             if (!requester) {
                 this.client.logger.warn(`[AUTOPLAY] No client user available`);
                 requester = seedTrack.requester as discord.User;
             }
 
-            // Add recommendations to the queue (limit to recommendationCount)
             let addedCount = 0;
             const recommendationsToAdd = validRecommendations.slice(0, this.recommendationCount);
 
             for (const recommendation of recommendationsToAdd) {
                 try {
-                    // Search for the track using its URI through the manager
                     const searchResult = await this.client.manager.search(
                         recommendation.uri,
                         requester
@@ -268,13 +245,11 @@ class AutoplayManager {
                         searchResult.tracks &&
                         searchResult.tracks.length > 0
                     ) {
-                        // Add the first track to the queue
                         const track = searchResult.tracks[0];
 
-                        // Double-check we haven't already added this
                         if (!this.recentlyPlayedTracks.has(track.uri)) {
                             this.player.queue.add(track);
-                            this.addToRecentlyPlayed(track); // Add to history so we don't recommend it again soon
+                            this.addToRecentlyPlayed(track);
                             addedCount++;
 
                             this.client.logger.info(
@@ -282,7 +257,6 @@ class AutoplayManager {
                             );
                         }
                     } else {
-                        // Try a more general search as fallback (using title and author)
                         const searchQuery = `${recommendation.author} - ${recommendation.title}`;
                         const fallbackResults = await this.client.manager.search(
                             searchQuery,
@@ -296,7 +270,6 @@ class AutoplayManager {
                         ) {
                             const track = fallbackResults.tracks[0];
 
-                            // Make sure this track isn't in recently played
                             if (!this.recentlyPlayedTracks.has(track.uri)) {
                                 this.player.queue.add(track);
                                 this.addToRecentlyPlayed(track);
@@ -315,7 +288,6 @@ class AutoplayManager {
                 }
             }
 
-            // If not already playing, start playback
             if (addedCount > 0 && !this.player.playing && !this.player.paused) {
                 this.player.play();
             }

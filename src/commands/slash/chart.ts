@@ -138,7 +138,6 @@ const musicChartCommand: SlashCommand = {
                     break;
             }
 
-            // Handle the case when no data is found or songs array is empty/undefined
             if (!data || !data.songs || data.songs.length === 0) {
                 return await interaction.editReply({
                     embeds: [
@@ -154,7 +153,6 @@ const musicChartCommand: SlashCommand = {
                 });
             }
 
-            // Filter out invalid songs (songs with 0 plays or missing essential data)
             const validSongs = data.songs.filter(
                 (song) => song.played_number > 0 && song.title && song.author
             );
@@ -174,7 +172,6 @@ const musicChartCommand: SlashCommand = {
                 });
             }
 
-            // Advanced statistics calculations
             const totalPlays = validSongs.reduce(
                 (sum, song) => sum + (song.played_number || 0),
                 0
@@ -184,7 +181,6 @@ const musicChartCommand: SlashCommand = {
                 .sort((a, b) => (b.played_number || 0) - (a.played_number || 0))
                 .slice(0, 10);
 
-            // Calculate favorite artists
             const artistStats: Record<string, number> = {};
             validSongs.forEach((song) => {
                 const author = song.author || "Unknown Artist";
@@ -197,7 +193,6 @@ const musicChartCommand: SlashCommand = {
                 .slice(0, 3)
                 .map(([artist, plays]) => `${artist} (\`${plays}\` plays)`);
 
-            // Find a representative song to link for each top artist
             const artistRepresentativeSongs = new Map<string, string>();
             topArtists.forEach(artistEntry => {
                 const artistName = artistEntry.split(' (')[0];
@@ -209,14 +204,11 @@ const musicChartCommand: SlashCommand = {
                 }
             });
 
-            // Calculate total listening time with better handling of large numbers
             const totalDuration = validSongs.reduce(
                 (sum, song) => {
-                    // Apply safeguards against invalid values
                     const duration = isFinite(song.duration) ? song.duration : 0;
                     const playCount = isFinite(song.played_number) ? song.played_number : 0;
 
-                    // Check for potential overflow
                     if (duration > 0 && playCount > 0 &&
                         duration < Number.MAX_SAFE_INTEGER / playCount) {
                         return sum + duration * playCount;
@@ -227,10 +219,8 @@ const musicChartCommand: SlashCommand = {
                 0
             );
 
-            // Format the total duration in a human-readable way
             const formattedDuration = formatDuration(totalDuration);
 
-            // Create the chart visualization
             const maxPlays =
                 topSongs.length > 0 ? topSongs[0].played_number || 0 : 0;
             const barLength = 15;
@@ -248,7 +238,6 @@ const musicChartCommand: SlashCommand = {
                         100
                     ).toFixed(1);
 
-                    // Create a hyperlink to the song if it has a valid URL
                     const songTitle = Formatter.truncateText(song.title || "Unknown Title", 30);
                     const formattedTitle = song.uri ?
                         Formatter.hyperlink(songTitle, song.uri) :
@@ -289,7 +278,6 @@ const musicChartCommand: SlashCommand = {
                                     const artistName = artist.split(' (')[0];
                                     const playsInfo = artist.split(artistName)[1];
 
-                                    // Create a hyperlink if we have a representative song for this artist
                                     if (artistRepresentativeSongs.has(artistName)) {
                                         return `${artistEmoji} ${Formatter.hyperlink(artistName, artistRepresentativeSongs.get(artistName)!)}${playsInfo}`;
                                     }

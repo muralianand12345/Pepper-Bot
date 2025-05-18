@@ -27,7 +27,6 @@ const command: Command = {
             const botUser = client.user;
             if (!botUser) return;
 
-            // Get guild-specific prefix if available
             let prefix = client.config.bot.command.prefix;
             if (message.guild) {
                 const guildData = await music_guild.findOne({ guildId: message.guild.id });
@@ -36,9 +35,8 @@ const command: Command = {
                 }
             }
 
-            // Create main embed for all commands
             const embed = new discord.EmbedBuilder()
-                .setColor("#5865F2") // Discord blurple color
+                .setColor("#5865F2")
                 .setAuthor({
                     name: `${botUser.username} Command Guide`,
                     iconURL: botUser.displayAvatarURL(),
@@ -70,7 +68,6 @@ const command: Command = {
                 })
                 .setTimestamp();
 
-            // Process slash commands
             const slashCommands: CommandInfo[] = client.slashCommands.map(
                 (command: SlashCommand) => ({
                     name: command.data.name,
@@ -83,7 +80,6 @@ const command: Command = {
                 value: formatCommandSection(slashCommands, "/"),
             });
 
-            // Process message commands if enabled
             if (!client.config.bot.command.disable_message) {
                 const msgCommands: CommandInfo[] = client.commands.map(
                     (command: Command) => ({
@@ -101,7 +97,6 @@ const command: Command = {
                 });
             }
 
-            // Add tips field
             embed.addFields({
                 name: "Pro Tips",
                 value: [

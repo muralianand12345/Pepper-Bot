@@ -7,12 +7,8 @@ const event: BotEvent = {
     once: true,
     execute: async (client: discord.Client) => {
         client.logger.info("[DJ_ROLE] Initializing DJ role scheduler");
-
-        // Set up the DJ role service
         const djService = new DJRoleService(client);
-
-        // Check for expired DJs every 5 minutes
-        const SCHEDULER_INTERVAL = 5 * 60 * 1000; // 5 minutes
+        const SCHEDULER_INTERVAL = 5 * 60 * 1000;
 
         const processExpiredDJs = async () => {
             try {
@@ -22,10 +18,7 @@ const event: BotEvent = {
             }
         };
 
-        // Initial processing
-        setTimeout(processExpiredDJs, 30000); // Wait 30 seconds after startup
-
-        // Set up interval for periodic checks
+        setTimeout(processExpiredDJs, 30000);
         setInterval(processExpiredDJs, SCHEDULER_INTERVAL);
 
         client.logger.success("[DJ_ROLE] DJ role scheduler initialized");

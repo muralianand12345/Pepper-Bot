@@ -69,7 +69,6 @@ type CommandContext =
     | { type: 'interaction'; interaction: discord.ChatInputCommandInteraction }
     | { type: 'message'; message: discord.Message };
 
-// Type guard functions to check context type
 const isInteractionContext = (context: CommandContext): context is { type: 'interaction'; interaction: discord.ChatInputCommandInteraction } => {
     return context.type === 'interaction';
 };
@@ -119,38 +118,30 @@ const handleSearchResult = async (
     context: CommandContext,
     client: discord.Client
 ): Promise<void> => {
-    // Get channel ID and guild ID for checking if this is the music panel channel
     const channelId = getChannelId(context);
     const guildId = getGuildId(context);
-
-    // Check if we should send messages in this channel
     let shouldSendMessages = true;
     if (channelId && guildId) {
         shouldSendMessages = await shouldSendMessageInChannel(channelId, guildId, client);
     }
 
-    // Helper to handle replies based on context type
     const reply = async (options: {
         embeds: discord.EmbedBuilder[],
         components?: discord.ActionRowBuilder<discord.ButtonBuilder>[],
         flags?: discord.MessageFlags
     }) => {
-        // If we shouldn't send messages in this channel, log it and return
         if (!shouldSendMessages) {
             client.logger.debug(`[HANDLE_SEARCH] Skipping message in music channel ${channelId}`);
             return null;
         }
 
         if (isInteractionContext(context)) {
-            // For interactions, we use followUp
             return await context.interaction.followUp({
                 embeds: options.embeds,
                 components: options.components,
                 ephemeral: options.flags ? (options.flags === discord.MessageFlags.Ephemeral) : false
             });
         } else if (isMessageContext(context)) {
-            // For messages, we send to the channel
-            // Ensure the channel is a text-based channel
             const chan = context.message.channel as discord.TextChannel;
             if (chan.isTextBased()) {
                 return await chan.send({
@@ -162,7 +153,6 @@ const handleSearchResult = async (
         return null;
     };
 
-    // Get search query based on context
     const searchQuery = isInteractionContext(context)
         ? context.interaction.options.getString("song", true)
         : context.message.content.trim();
@@ -210,7 +200,6 @@ const handleSearchResult = async (
                 player.play();
             }
 
-            // Get user tag based on context
             const userTag = isInteractionContext(context)
                 ? context.interaction.user.tag
                 : context.message.author.tag;
@@ -242,12 +231,10 @@ const sendTempMessage = async (
     embed: discord.EmbedBuilder,
     duration: number = 10000
 ): Promise<void> => {
-    // Ensure the channel is text-based before sending
     if (!channel.isTextBased()) {
         throw new Error("Channel is not text-based");
     }
 
-    // Send the message with error handling
     const message = await channel.send({ embeds: [embed] }).catch((error: Error | any) => {
         if (error.code === 50001) {
             console.error("Unable to send message: Missing access");
@@ -259,10 +246,8 @@ const sendTempMessage = async (
 
     if (!message) return;
 
-    // Set up auto-deletion after the specified duration
     setTimeout(() => {
         message.delete().catch((deleteError: Error | any) => {
-            // Silently fail if message was already deleted
             if (deleteError.code !== 10008) {
                 console.error(`Error deleting message: ${deleteError.message}`);
             }

@@ -17,7 +17,6 @@ const handleSetupSubcommand = async (
         const timeout = interaction.options.getInteger("timeout");
         const role = interaction.options.getRole("role");
 
-        // Get current configuration
         const guildData = await djService.getConfig(guildId);
         if (!guildData) {
             return await interaction.editReply({
@@ -29,12 +28,10 @@ const handleSetupSubcommand = async (
             });
         }
 
-        // Build update object with specified options
         const updateData: any = {
             enabled: enabled
         };
 
-        // Only add the fields that were specified
         if (autoAssign !== null) {
             updateData.auto = {
                 ...guildData.dj.auto,
@@ -45,7 +42,7 @@ const handleSetupSubcommand = async (
         if (timeout) {
             updateData.auto = {
                 ...updateData.auto || guildData.dj.auto,
-                timeout: timeout * 3600000 // Convert hours to milliseconds
+                timeout: timeout * 3600000
             };
         }
 
@@ -53,7 +50,6 @@ const handleSetupSubcommand = async (
             updateData.roleId = role.id;
         }
 
-        // Update configuration
         const result = await djService.updateConfig(guildId, updateData);
         if (!result) {
             return await interaction.editReply({
@@ -65,7 +61,6 @@ const handleSetupSubcommand = async (
             });
         }
 
-        // Send success response
         const embed = new discord.EmbedBuilder()
             .setColor(discord.Colors.Green)
             .setTitle("🎧 DJ Role Setup Updated")
@@ -85,9 +80,7 @@ ${role ? `• **Role:** ${role.toString()}` : ""}
 
         await interaction.editReply({ embeds: [embed] });
 
-        // If enabled, try to assign a DJ if none exists
         if (enabled && (!guildData.dj.users.currentDJ || !guildData.dj.users.currentDJ.userId)) {
-            // Find active users
             const activeUsers = await djService.getMostActiveUsers(guildId);
 
             if (activeUsers.length > 0) {
@@ -134,7 +127,6 @@ const handleAssignSubcommand = async (
         const user = interaction.options.getUser("user", true);
         const duration = interaction.options.getInteger("duration");
 
-        // Get guild configuration
         const guildData = await djService.getConfig(guildId);
         if (!guildData) {
             return await interaction.editReply({
@@ -146,7 +138,6 @@ const handleAssignSubcommand = async (
             });
         }
 
-        // Check if DJ role system is enabled
         if (!guildData.dj.enabled) {
             return await interaction.editReply({
                 embeds: [
@@ -157,10 +148,8 @@ const handleAssignSubcommand = async (
             });
         }
 
-        // Convert duration to milliseconds or use default
-        const durationMs = duration ? duration * 3600000 : null; // Convert hours to ms
+        const durationMs = duration ? duration * 3600000 : null;
 
-        // Assign the DJ role
         const success = await djService.assignDJRole(
             guildId,
             user.id,
@@ -178,7 +167,6 @@ const handleAssignSubcommand = async (
             });
         }
 
-        // Recalculate expiry time based on updated guild data
         const updatedGuildData = await djService.getConfig(guildId);
         if (!updatedGuildData || !updatedGuildData.dj.users.currentDJ || !updatedGuildData.dj.users.currentDJ.expiresAt) {
             return await interaction.editReply({
@@ -192,7 +180,6 @@ const handleAssignSubcommand = async (
 
         const expiryTime = Math.floor(updatedGuildData.dj.users.currentDJ.expiresAt.getTime() / 1000);
 
-        // Send success message
         await interaction.editReply({
             embeds: [
                 new discord.EmbedBuilder()
@@ -230,7 +217,6 @@ const handleRemoveSubcommand = async (
         const guildId = interaction.guildId!;
         const user = interaction.options.getUser("user");
 
-        // Get guild configuration
         const guildData = await djService.getConfig(guildId);
         if (!guildData) {
             return await interaction.editReply({
@@ -242,7 +228,6 @@ const handleRemoveSubcommand = async (
             });
         }
 
-        // Check if DJ role system is enabled
         if (!guildData.dj.enabled) {
             return await interaction.editReply({
                 embeds: [
@@ -253,7 +238,6 @@ const handleRemoveSubcommand = async (
             });
         }
 
-        // If no user specified, check if there is a current DJ
         if (!user && (!guildData.dj.users.currentDJ || !guildData.dj.users.currentDJ.userId)) {
             return await interaction.editReply({
                 embeds: [
@@ -264,7 +248,6 @@ const handleRemoveSubcommand = async (
             });
         }
 
-        // Remove the DJ role
         const success = await djService.removeDJRole(guildId, user?.id || null);
 
         if (!success) {
@@ -277,7 +260,6 @@ const handleRemoveSubcommand = async (
             });
         }
 
-        // Send success message
         await interaction.editReply({
             embeds: [
                 new discord.EmbedBuilder()
@@ -309,9 +291,8 @@ const handleInfoSubcommand = async (
 
     try {
         const guildId = interaction.guildId!;
-
-        // Get guild configuration
         const guildData = await djService.getConfig(guildId);
+
         if (!guildData) {
             return await interaction.editReply({
                 embeds: [
@@ -322,7 +303,6 @@ const handleInfoSubcommand = async (
             });
         }
 
-        // Create embed with DJ information
         const embed = new discord.EmbedBuilder()
             .setTitle("🎧 DJ Role Information")
             .setColor(discord.Colors.Purple)
@@ -331,7 +311,6 @@ const handleInfoSubcommand = async (
                 value: guildData.dj.enabled ? "Enabled" : "Disabled"
             });
 
-        // Add role information if enabled
         if (guildData.dj.enabled) {
             if (!guildData.dj.roleId) {
                 return await interaction.editReply({
@@ -355,7 +334,6 @@ const handleInfoSubcommand = async (
 • Role duration: ${Math.floor(guildData.dj.auto.timeout / 3600000)} hours`
             });
 
-            // Add current DJ information
             if (guildData.dj.users.currentDJ &&
                 guildData.dj.users.currentDJ.userId &&
                 guildData.dj.users.currentDJ.assignedAt &&
@@ -377,11 +355,10 @@ const handleInfoSubcommand = async (
                 });
             }
 
-            // Add previous DJs if available
             if (guildData.dj.users.previousDJs && guildData.dj.users.previousDJs.length > 0) {
                 const previousDJs = guildData.dj.users.previousDJs
-                    .slice(-3) // Get the last 3
-                    .reverse() // Most recent first
+                    .slice(-3)
+                    .reverse()
                     .map(dj => `• <@${dj.userId}> (${new Date(dj.assignedAt).toLocaleDateString()} - ${new Date(dj.expiresAt).toLocaleDateString()})`)
                     .join('\n');
 
@@ -415,8 +392,6 @@ const handleActiveSubcommand = async (
     try {
         const guildId = interaction.guildId!;
         const limit = interaction.options.getInteger("limit") || 5;
-
-        // Get most active users
         const activeUsers = await djService.getMostActiveUsers(guildId);
 
         if (!activeUsers || activeUsers.length === 0) {
@@ -430,7 +405,6 @@ const handleActiveSubcommand = async (
             });
         }
 
-        // Format active users list
         const userList = activeUsers
             .slice(0, limit)
             .map((user, index) =>
@@ -438,7 +412,6 @@ const handleActiveSubcommand = async (
             )
             .join('\n');
 
-        // Create and send embed
         await interaction.editReply({
             embeds: [
                 new discord.EmbedBuilder()
@@ -497,7 +470,7 @@ const djRoleCommand: SlashCommand = {
                         .setName("timeout")
                         .setDescription("How long a DJ role should last (in hours)")
                         .setMinValue(1)
-                        .setMaxValue(168) // 1 week
+                        .setMaxValue(168)
                         .setRequired(false)
                 )
         )
@@ -516,7 +489,7 @@ const djRoleCommand: SlashCommand = {
                         .setName("duration")
                         .setDescription("Duration of the role in hours")
                         .setMinValue(1)
-                        .setMaxValue(168) // 1 week
+                        .setMaxValue(168)
                         .setRequired(false)
                 )
         )
@@ -577,7 +550,6 @@ const djRoleCommand: SlashCommand = {
             });
         }
 
-        // Check if the interaction is in a guild
         if (!interaction.guild) {
             return await interaction.reply({
                 embeds: [
@@ -592,9 +564,7 @@ const djRoleCommand: SlashCommand = {
         const subcommand = interaction.options.getSubcommand();
         const djService = new DJRoleService(client);
 
-        // Check for required permissions for admin commands
         if (subcommand === "setup" || subcommand === "assign" || subcommand === "remove") {
-            // For configuration commands, check for admin or manage roles permission
             const member = await interaction.guild.members.fetch(interaction.user.id);
             const hasPermission =
                 member.permissions.has(discord.PermissionFlagsBits.Administrator) ||

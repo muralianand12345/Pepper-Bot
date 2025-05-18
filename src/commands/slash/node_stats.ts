@@ -23,9 +23,8 @@ const nodestatsCommand: SlashCommand = {
         }
 
         try {
-            // Create a single embed for all nodes
             const embed = new discord.EmbedBuilder()
-                .setColor("#5865F2") // Discord blurple
+                .setColor("#5865F2")
                 .setTitle("🎵 Lavalink Nodes Overview")
                 .setDescription(`Monitoring ${nodes.size} audio node${nodes.size > 1 ? 's' : ''}`)
                 .setTimestamp()
@@ -34,7 +33,6 @@ const nodestatsCommand: SlashCommand = {
                     iconURL: interaction.user.displayAvatarURL(),
                 });
 
-            // Sort nodes by priority (if available) or identifier
             const sortedNodes = Array.from(nodes.values()).sort((a, b) => {
                 if (a.options.priority && b.options.priority) {
                     return a.options.priority - b.options.priority;
@@ -42,21 +40,15 @@ const nodestatsCommand: SlashCommand = {
                 return (a.options.identifier || "").localeCompare(b.options.identifier || "");
             });
 
-            // Process each node
             sortedNodes.forEach((node: magmastream.Node, index) => {
                 const nodeStats: magmastream.NodeStats = node.stats;
                 const memoryUsagePercent = Math.round((nodeStats.memory.used / nodeStats.memory.allocated) * 100);
                 const cpuLoadPercent = Math.round(nodeStats.cpu.systemLoad * 100);
-
-                // Create status indicator based on health
                 const isHealthy = node.connected && cpuLoadPercent < 80 && memoryUsagePercent < 80;
                 const statusIndicator = isHealthy ? "🟢" : node.connected ? "🟡" : "🔴";
-
-                // Format memory values for better readability
                 const usedMemory = Formatter.formatBytes(nodeStats.memory.used);
                 const totalMemory = Formatter.formatBytes(nodeStats.memory.allocated);
 
-                // Add field for this node
                 embed.addFields({
                     name: `${statusIndicator} Node ${index + 1}: ${node.options.identifier || "Unknown"}`,
                     value: [
@@ -70,7 +62,6 @@ const nodestatsCommand: SlashCommand = {
                 });
             });
 
-            // Add summary field with quick overview
             const totalPlayers = sortedNodes.reduce((total, node) => total + node.stats.players, 0);
             const activePlayers = sortedNodes.reduce((total, node) => total + node.stats.playingPlayers, 0);
             const healthyNodes = sortedNodes.filter(node => node.connected).length;

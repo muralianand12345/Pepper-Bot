@@ -4,7 +4,6 @@ import chalk from "chalk";
 import { ILogger } from "../types";
 import { ConfigManager } from "./config";
 
-// Load environment variables
 const configManager = ConfigManager.getInstance();
 
 /**

@@ -3,26 +3,12 @@ import { ConfigManager } from "../../../utils/config";
 import { MusicResponseHandler } from "../../../utils/music/embed_template";
 import { BotEvent } from "../../../types";
 
-/**
- * Processes feedback text into chunks for embedding
- * @param feedback The feedback text to process
- * @param maxLength Maximum length for each chunk
- * @returns Array of feedback chunks
- */
 const processFeedback = (
     feedback: string,
     maxLength: number = 1000
 ): string[] =>
     feedback.match(new RegExp(`[\\s\\S]{1,${maxLength}}`, "g")) || [];
 
-/**
- * Creates a feedback embed for regular feedback submissions
- * @param interaction Modal submit interaction with feedback
- * @param client Discord client instance
- * @param username Username to display 
- * @param feedback Array of feedback text chunks
- * @returns Configured embed for regular feedback
- */
 const createFeedbackEmbed = (
     interaction: discord.ModalSubmitInteraction,
     client: discord.Client,
@@ -85,14 +71,6 @@ const createFeedbackEmbed = (
     return embed;
 };
 
-/**
- * Creates a feedback embed for server leave feedback
- * @param interaction Modal submit interaction with feedback
- * @param client Discord client instance 
- * @param guildId ID of the guild the bot was removed from
- * @param feedbackData Structured feedback data from the modal
- * @returns Configured embed for server leave feedback
- */
 const createServerLeaveFeedbackEmbed = (
     interaction: discord.ModalSubmitInteraction,
     client: discord.Client,
@@ -106,7 +84,7 @@ const createServerLeaveFeedbackEmbed = (
     }
 ): discord.EmbedBuilder => {
     return new discord.EmbedBuilder()
-        .setColor("#ED4245") // Discord red for server leave feedback
+        .setColor("#ED4245")
         .setTitle("📝 Server Leave Feedback")
         .setAuthor({
             name: interaction.user.tag,
@@ -158,7 +136,6 @@ const event: BotEvent = {
         interaction: discord.Interaction,
         client: discord.Client
     ): Promise<void> => {
-        // Handle only modal submit interactions
         if (!interaction.isModalSubmit()) return;
 
         try {
@@ -183,7 +160,6 @@ const event: BotEvent = {
 
             const webhookClient = new discord.WebhookClient({ url: webhookUrl });
 
-            // Handle regular feedback modal
             if (interaction.customId === "feedback-modal") {
                 const username = interaction.fields.getTextInputValue("feedback-modal-username") || "Anonymous";
                 const feedback = interaction.fields.getTextInputValue("feedback-modal-message") || "No message provided";
@@ -200,20 +176,16 @@ const event: BotEvent = {
                 });
 
                 client.logger.info(`[FEEDBACK] Received feedback from ${interaction.user.tag} (${interaction.user.id})`);
-            }
-            // Handle server leave feedback modal
-            else if (interaction.customId.startsWith("feedback_modal_")) {
-                // Extract guild ID from the custom ID
+
+            } else if (interaction.customId.startsWith("feedback_modal_")) {
                 const guildId = interaction.customId.replace("feedback_modal_", "");
 
-                // Get values from the modal
                 const audioQuality = interaction.fields.getTextInputValue("feedback_quality");
                 const usability = interaction.fields.getTextInputValue("feedback_usability");
                 const features = interaction.fields.getTextInputValue("feedback_features");
                 const issues = interaction.fields.getTextInputValue("feedback_issues");
                 const reason = interaction.fields.getTextInputValue("feedback_reason");
 
-                // Create feedback data object
                 const feedbackData = {
                     audioQuality,
                     usability,
@@ -222,7 +194,6 @@ const event: BotEvent = {
                     reason
                 };
 
-                // Create and send feedback embed
                 const feedbackEmbed = createServerLeaveFeedbackEmbed(
                     interaction,
                     client,
@@ -232,7 +203,6 @@ const event: BotEvent = {
 
                 await webhookClient.send({ embeds: [feedbackEmbed] });
 
-                // Thank the user for their feedback
                 await interaction.reply({
                     content: `Thank you for your valuable feedback! We'll use it to improve ${client.user?.username} Music Bot for everyone.`,
                     flags: discord.MessageFlags.Ephemeral,
@@ -243,7 +213,6 @@ const event: BotEvent = {
         } catch (error) {
             client.logger.error(`[FEEDBACK_MODAL] Failed to process feedback: ${error}`);
 
-            // Reply if not already replied to
             if (!interaction.replied) {
                 await interaction.reply({
                     embeds: [

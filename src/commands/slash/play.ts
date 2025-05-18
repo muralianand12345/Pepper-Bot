@@ -7,7 +7,6 @@ import { MusicResponseHandler, randomTips } from "../../utils/music/embed_templa
 import { VoiceChannelValidator, MusicPlayerValidator } from "../../utils/music/music_validations";
 import { SlashCommand, INodeOption } from "../../types";
 
-// Load environment variables
 const configManager = ConfigManager.getInstance();
 
 const CONFIG = {
@@ -175,7 +174,6 @@ const playcommand: SlashCommand = {
             `[PLAY] Play | User ${interaction.user.tag} | Query: ${query} | Guild: ${interaction.guildId}`
         );
 
-        // Validate voice and music requirements
         const validator = new VoiceChannelValidator(client, interaction);
         for (const check of [
             validator.validateGuildContext(),

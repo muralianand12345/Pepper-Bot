@@ -3,8 +3,6 @@ import { connect, set } from "mongoose";
 import { ConfigManager } from "../../../utils/config";
 import { BotEvent } from "../../../types";
 
-
-// Load environment variables
 const configManager = ConfigManager.getInstance();
 
 const event: BotEvent = {

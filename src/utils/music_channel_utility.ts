@@ -18,7 +18,6 @@ export const isMusicPanelChannel = async (
         const guildData = await music_guild.findOne({ guildId });
         if (!guildData || !guildData.songChannelId) return false;
 
-        // Return true if this channel matches the configured music channel
         return guildData.songChannelId === channelId;
     } catch (error) {
         client.logger.error(`[MUSIC_CHANNEL] Error checking music panel channel: ${error}`);
@@ -55,7 +54,6 @@ export const shouldSendMessageInChannel = async (
     guildId: string,
     client: discord.Client
 ): Promise<boolean> => {
-    // Only prevent messages in the dedicated music channel
     const isMusicChannel = await isMusicPanelChannel(channelId, guildId, client);
     return !isMusicChannel;
 };

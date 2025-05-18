@@ -48,7 +48,6 @@ const command: Command = {
             }
         }
 
-        // Destroy player which will stop playback
         player.destroy();
 
         return message.reply({

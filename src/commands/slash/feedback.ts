@@ -44,7 +44,7 @@ const feedbackCommand: SlashCommand = {
                 "Leave blank to be anonymous",
                 discord.TextInputStyle.Short,
                 false
-            ); //actually it's not anonymous
+            );
 
             const feedbackInput = createTextInput(
                 "feedback-modal-message",

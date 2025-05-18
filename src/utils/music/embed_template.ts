@@ -3,21 +3,14 @@ import magmastream from "magmastream";
 import Formatter from "../format";
 import { IConfig } from "../../types";
 
-// Create a function that returns both the adjusted time and progress percentage
 const getTrackProgress = (position: number, duration: number): {
     displayPosition: number;
     percentage: number;
     formattedPosition: string;
     formattedDuration: string;
 } => {
-    // Ensure position doesn't exceed duration
     const normalizedPosition = Math.min(position, duration);
-
-    // Calculate percentage for progress bar without any artificial adjustments
-    // This ensures the progress bar accurately reflects the actual playback position
     const percentage = normalizedPosition / duration;
-
-    // Format times for display (use the original position for time display)
     const formattedPosition = Formatter.msToTime(normalizedPosition);
     const formattedDuration = Formatter.msToTime(duration);
 
@@ -43,34 +36,21 @@ const musicEmbed = async (
 ) => {
     const trackImg = track.thumbnail || track.artworkUrl || client.config.music.image;
 
-    // Format track title and author for display
     const trackTitle = Formatter.truncateText(track.title, 60);
     const trackAuthor = track.author || "Unknown";
     const trackUri = track.uri || "https://google.com"
-
-    const defaultColor: discord.ColorResolvable = "#2b2d31"; // Modern discord dark
-
-    // Create progress information if player is available
+    const defaultColor: discord.ColorResolvable = "#2b2d31";
     let progressText = "";
 
     if (player && player.queue && player.queue.current) {
         try {
-            // Get time values
             const position = Math.max(0, player.position);
             const duration = track.duration || 0;
-
-            // Use the getTrackProgress function instead of separate calculations
             const progress = getTrackProgress(position, duration);
-
-            // Create progress bar using the adjusted percentage
-            const length = 15; // Number of segments
             const filledBlocks = Math.floor(progress.percentage * length);
             const progressBar = "▬".repeat(filledBlocks) + "●" + "▬".repeat(Math.max(0, length - filledBlocks - 1));
-
-            // Use the formatted times from the progress calculation
             progressText = `${progressBar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
         } catch (error) {
-            // Fallback if progress calculation fails
             progressText = "";
         }
     }
@@ -84,7 +64,6 @@ const musicEmbed = async (
         .setDescription(`**${Formatter.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`)
         .setThumbnail(trackImg);
 
-    // Add progress field if we have progress info
     if (progressText) {
         embed.addFields([{
             name: "Progress",
@@ -93,7 +72,6 @@ const musicEmbed = async (
         }]);
     }
 
-    // Add source and requester info in footer
     embed.setFooter({
         text: `${track.sourceName || 'Unknown'} • ${track.requester?.tag || 'Unknown'}`,
         iconURL: client.user?.displayAvatarURL()
@@ -115,13 +93,11 @@ const createTrackEmbed = (
     client: discord.Client,
     position?: number | null
 ): discord.EmbedBuilder => {
-    // Format track info
     const title = Formatter.truncateText(track.title, 60);
     const url = track.uri || "https://google.com";
     const author = track.author || "Unknown";
     const duration = track.isStream ? "LIVE" : Formatter.msToTime(track.duration);
 
-    // Position info
     let queueInfo = "";
     if (position === 0) {
         queueInfo = "Playing next";
@@ -129,7 +105,6 @@ const createTrackEmbed = (
         queueInfo = `Position #${position + 1}`;
     }
 
-    // Create fields
     const fields = [
         {
             name: "Duration",
@@ -148,7 +123,6 @@ const createTrackEmbed = (
         }
     ];
 
-    // Add queue info field if available
     if (queueInfo) {
         fields.push({
             name: "Queue Info",
@@ -158,7 +132,7 @@ const createTrackEmbed = (
     }
 
     return new discord.EmbedBuilder()
-        .setColor("#5865f2") // Discord blurple
+        .setColor("#5865f2")
         .setTitle(`Track Added to Queue`)
         .setDescription(`**${Formatter.hyperlink(title, url)}**\nby ${author}`)
         .setThumbnail(track.artworkUrl || track.thumbnail || null)
@@ -184,10 +158,7 @@ const createPlaylistEmbed = (
     requester: string,
     client: discord.Client
 ): discord.EmbedBuilder => {
-    // Format playlist name
     const playlistName = Formatter.truncateText(playlist.name || "Untitled Playlist", 50);
-
-    // Format track previews
     const trackPreview = playlist.tracks
         .slice(0, 5)
         .map((track, i) => {
@@ -195,16 +166,10 @@ const createPlaylistEmbed = (
             return `**${i + 1}.** ${title}`;
         })
         .join("\n");
-
-    // Text for more tracks
     const moreTracksText = playlist.tracks.length > 5
         ? `\n*...and ${playlist.tracks.length - 5} more tracks*`
         : "";
-
-    // Format duration
     const totalDuration = Formatter.msToTime(playlist.duration || 0);
-
-    // Calculate average duration
     let avgDuration = "0:00:00";
     if (playlist.tracks.length > 0) {
         const avgMs = Math.floor(playlist.duration / playlist.tracks.length);
@@ -212,7 +177,7 @@ const createPlaylistEmbed = (
     }
 
     return new discord.EmbedBuilder()
-        .setColor("#43b581") // Discord green
+        .setColor("#43b581")
         .setTitle("Playlist Added to Queue")
         .setDescription(`**${playlistName}**\n\n**Preview:**\n${trackPreview}${moreTracksText}`)
         .setThumbnail(playlist.tracks[0]?.artworkUrl || playlist.tracks[0]?.thumbnail || null)
@@ -299,7 +264,7 @@ class MusicResponseHandler {
      */
     public createSuccessEmbed(message: string): discord.EmbedBuilder {
         return new discord.EmbedBuilder()
-            .setColor("#43b581") // Discord green
+            .setColor("#43b581")
             .setDescription(`✓ ${message}`)
             .setFooter({
                 text: this.client.user?.username || "Music Bot",
@@ -318,7 +283,7 @@ class MusicResponseHandler {
         contact_dev: boolean = false
     ): discord.EmbedBuilder {
         const embed = new discord.EmbedBuilder()
-            .setColor("#f04747") // Discord red
+            .setColor("#f04747")
             .setDescription(`❌ ${message}`)
             .setFooter({
                 text: contact_dev
@@ -337,7 +302,7 @@ class MusicResponseHandler {
      */
     public createInfoEmbed(message: string): discord.EmbedBuilder {
         return new discord.EmbedBuilder()
-            .setColor("#5865f2") // Discord blurple
+            .setColor("#5865f2")
             .setDescription(`ℹ️ ${message}`)
             .setFooter({
                 text: this.client.user?.username || "Music Bot",
@@ -352,7 +317,7 @@ class MusicResponseHandler {
      */
     public createWarningEmbed(message: string): discord.EmbedBuilder {
         return new discord.EmbedBuilder()
-            .setColor("#faa61a") // Discord yellow
+            .setColor("#faa61a")
             .setDescription(`⚠️ ${message}`)
             .setFooter({
                 text: this.client.user?.username || "Music Bot",
@@ -435,10 +400,8 @@ class MusicChannelManager {
         player: magmastream.Player
     ): Promise<discord.Message | null> => {
         try {
-            // Debug logging
             this.client.logger.debug(`[MUSIC_CHANNEL] Attempting to update embed message ID: ${messageId} in channel: ${channel.name}`);
 
-            // Fetch the message
             const message = await channel.messages.fetch(messageId).catch(error => {
                 this.client.logger.error(`[MUSIC_CHANNEL] Failed to fetch message ${messageId}: ${error}`);
                 return null;
@@ -449,14 +412,11 @@ class MusicChannelManager {
                 return null;
             }
 
-            // Get current track and queue from the player
             const currentTrack = player.queue.current;
             if (!currentTrack) {
-                // If no track is currently playing, reset to default embed
                 return await this.resetEmbed(messageId, channel);
             }
 
-            // Create the updated embed with rich information
             const embed = new discord.EmbedBuilder()
                 .setColor('Blurple')
                 .setTitle(`${this.client.user?.username} Music Queue`)
@@ -473,10 +433,9 @@ class MusicChannelManager {
                 })
                 .setTimestamp();
 
-            // Show queue with more details including requester information
             if (player.queue && player.queue.length > 0) {
                 const queueList = player.queue
-                    .slice(0, 5)  // Show top 5 songs
+                    .slice(0, 5)
                     .map((track, index) => {
                         const requester = track.requester as discord.User;
                         return `**${index + 1}.** ${Formatter.hyperlink(
@@ -496,7 +455,6 @@ class MusicChannelManager {
                 });
             }
 
-            // Edit the message with the updated embed
             await message.edit({ embeds: [embed], components: [musicButton] }).catch(error => {
                 this.client.logger.error(`[MUSIC_CHANNEL] Failed to edit message: ${error}`);
                 return null;
@@ -523,8 +481,6 @@ class MusicChannelManager {
         try {
             const message = await channel.messages.fetch(messageId);
             if (!message) return null;
-
-            // Reset to the initial embed
             const embed = this.setupMusicChannelEmbed();
             await message.edit({ embeds: [embed], components: [disabledMusicButton] });
             return message;

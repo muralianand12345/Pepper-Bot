@@ -103,7 +103,6 @@ class VoiceChannelValidator {
         if (!guild) return undefined;
 
         try {
-            // Try to get from cache first, then fetch if not found
             const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
             return member;
         } catch (error) {

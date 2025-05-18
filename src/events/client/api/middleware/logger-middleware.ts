@@ -32,7 +32,6 @@ class LoggerMiddleware {
 
         this.logger.debug(`[API] ${req.method} ${req.originalUrl} - IP: ${ip} - API Key: ${hasApiKey}`);
 
-        // Add response logging
         const originalSend = res.send;
         res.send = function (body) {
             return originalSend.call(this, body);

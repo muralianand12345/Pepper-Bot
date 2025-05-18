@@ -81,12 +81,11 @@ const handleShowQueue = async (
             player.queue.size > pagination.itemsPerPage ? [paginationRow] : [],
     });
 
-    // Set up the collector for button interactions
     const collector = replyMessage.createMessageComponentCollector({
         filter: (i: any) =>
             i.customId === "previous-music-queue" ||
             i.customId === "next-music-queue",
-        time: 120 * 1000, // 2 minutes
+        time: 120 * 1000,
     });
 
     collector.on("collect", async (i) => {
@@ -265,7 +264,6 @@ const queuecommand: SlashCommand = {
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
     ) => {
-        // Validation checks...
         if (!client.config.music.enabled) {
             return await interaction.reply({
                 embeds: [
@@ -289,7 +287,6 @@ const queuecommand: SlashCommand = {
             });
         }
 
-        // Voice channel validation
         const validator = new VoiceChannelValidator(client, interaction);
         for (const check of [
             validator.validateGuildContext(),
@@ -306,7 +303,6 @@ const queuecommand: SlashCommand = {
             }
         }
 
-        // Execute the appropriate subcommand
         const subcommand = interaction.options.getSubcommand();
         const handlers = {
             show: handleShowQueue,

@@ -12,14 +12,8 @@ class InfoService {
 
     public getBotStats(): BotStatsDto {
         const { user, guilds } = this.client;
-
-        // Get number of active players
         const activePlayers = this.client.manager?.players?.size || 0;
-
-        // Calculate uptime
         const uptime = Math.floor((Date.now() - this.startTime) / 1000);
-
-        // Calculate total users across all guilds
         const totalUsers = guilds.cache.reduce((acc, guild) =>
             acc + (guild.memberCount || 0), 0);
 

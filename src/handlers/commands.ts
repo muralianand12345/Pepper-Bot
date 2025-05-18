@@ -4,18 +4,15 @@ import discord from "discord.js";
 import { ConfigManager } from "../utils/config";
 import { BotEvent, Command, SlashCommand } from "../types";
 
-// Load environment variables
 const configManager = ConfigManager.getInstance();
 
 const loadCommands = async (
     directory: string,
     fileFilter: (file: string) => boolean
 ): Promise<Command[] | SlashCommand[]> => {
-    // Read all files from the specified directory
     const files = await fs.readdir(directory);
     const commandFiles = files.filter(fileFilter);
 
-    // Load and return command modules
     return await Promise.all(
         commandFiles.map(async (file) => {
             const { default: command } = await import(
@@ -29,14 +26,13 @@ const loadCommands = async (
 const event: BotEvent = {
     name: discord.Events.ClientReady,
     execute: async (client: discord.Client): Promise<void> => {
-        // Validate client ID
+
         const clientID = client.user?.id;
         if (!clientID) {
             client.logger.error("[COMMAND] Client ID is undefined");
             return;
         }
 
-        // Initialize collections for commands
         const commands = new discord.Collection<
             string,
             Command | SlashCommand
@@ -50,7 +46,6 @@ const event: BotEvent = {
                 (file) => file.endsWith(".js") || file.endsWith(".ts")
             )) as Command[];
 
-            // Register message commands to both collections
             messageCommands.forEach((command) => {
                 client.commands.set(command.name, command);
                 commands.set(command.name, command);
@@ -77,7 +72,6 @@ const event: BotEvent = {
             }
         });
 
-        // Log command registration statistics
         client.logger.info(
             `[COMMAND] Loaded ${client.commands.size} message commands.`
         );
@@ -100,8 +94,6 @@ const event: BotEvent = {
                 `[COMMAND] Failed to register application commands: ${error}`
             );
         }
-
-        //return commands;
     },
 };
 

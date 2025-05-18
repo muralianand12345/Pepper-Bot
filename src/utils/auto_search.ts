@@ -38,7 +38,6 @@ class SpotifyAutoComplete {
             language: "en",
         };
 
-        // Create axios instance for Spotify API
         this.spotifyApi = axios.create({
             baseURL: "https://api.spotify.com/v1",
             timeout: 10000,
@@ -47,7 +46,6 @@ class SpotifyAutoComplete {
             },
         });
 
-        // Create axios instance for authentication
         this.authApi = axios.create({
             baseURL: "https://accounts.spotify.com/api",
             timeout: 10000,
@@ -56,13 +54,11 @@ class SpotifyAutoComplete {
             },
         });
 
-        // Add response interceptor for error handling
         this.spotifyApi.interceptors.response.use(
             (response) => response,
             (error) => {
                 if (axios.isAxiosError(error)) {
                     if (error.response?.status === 401) {
-                        // Token expired, refresh it
                         return this.refreshToken().then(() => {
                             const originalRequest = error.config;
                             if (originalRequest && originalRequest.headers) {
@@ -101,8 +97,6 @@ class SpotifyAutoComplete {
 
             this.token = data.access_token;
             this.tokenExpiry = Date.now() + data.expires_in * 1000;
-
-            // Update the default Authorization header
             this.spotifyApi.defaults.headers.common[
                 "Authorization"
             ] = `Bearer ${this.token}`;

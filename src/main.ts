@@ -4,7 +4,6 @@ import discord from "discord.js";
 import client from "./pepper";
 import { ConfigManager } from "./utils/config";
 
-// Load environment variables
 const configManager = ConfigManager.getInstance();
 
 /**
@@ -82,7 +81,6 @@ const loadEvents = async (
                         const event = require(filePath).default;
 
                         if (!event?.name || !event?.execute) {
-                            //check if the folder name ends with schema
                             if (!subDirPath.endsWith("schema")) {
                                 client.logger.warn(
                                     `[MAIN] Invalid event file structure: ${file}`
@@ -167,7 +165,6 @@ const initializeBot = async (client: discord.Client): Promise<void> => {
     }
 };
 
-// Initialize the bot
 initializeBot(client).catch((error) => {
     client.logger.error(`[MAIN] Fatal error during initialization: ${error}`);
     process.exit(1);

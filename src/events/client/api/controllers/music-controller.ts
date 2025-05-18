@@ -59,7 +59,6 @@ class MusicController {
     public getGuildMusicHistory = async (req: express.Request, res: express.Response): Promise<void> => {
         const { guildId } = req.params;
 
-        // Extract pagination and sorting parameters from query
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
         const sortBy = (req.query.sortBy as 'timestamp' | 'playCount') || 'timestamp';
@@ -107,8 +106,6 @@ class MusicController {
 
     public getUserMusicHistory = async (req: express.Request, res: express.Response): Promise<void> => {
         const { userId } = req.params;
-
-        // Extract pagination and sorting parameters from query
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
         const sortBy = (req.query.sortBy as 'timestamp' | 'playCount') || 'timestamp';
@@ -156,8 +153,6 @@ class MusicController {
 
     public getUserGuildsHistory = async (req: express.Request, res: express.Response): Promise<void> => {
         const { userId } = req.params;
-
-        // Extract pagination and sorting parameters from query
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
         const sortBy = (req.query.sortBy as 'timestamp' | 'playCount') || 'timestamp';
@@ -205,8 +200,6 @@ class MusicController {
 
     public getUserTopSongs = async (req: express.Request, res: express.Response): Promise<void> => {
         const { userId } = req.params;
-
-        // Extract pagination and sorting parameters from query
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
         const sortBy = (req.query.sortBy as 'timestamp' | 'playCount') || 'playCount';

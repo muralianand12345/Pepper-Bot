@@ -47,7 +47,6 @@ const command: Command = {
             }
         }
 
-        // Check for a specific time to skip to
         let time = 0;
         if (args.length > 0) {
             const parsedTime = parseInt(args[0]);
@@ -57,7 +56,6 @@ const command: Command = {
         }
 
         if (time > 0) {
-            // Skip to a specific time in the song
             player.seek(time * 1000);
             return message.reply({
                 embeds: [
@@ -67,7 +65,6 @@ const command: Command = {
                 ],
             });
         } else {
-            // Skip to the next song
             const music_validator = new MusicPlayerValidator(client, player);
             const [queueValid, queueError] = await music_validator.validateQueueSize(1);
 

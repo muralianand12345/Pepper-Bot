@@ -26,7 +26,6 @@ const spotifyRecommendCommand: SlashCommand = {
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
     ) => {
-        // Check if music system is enabled
         if (!client.config.music.enabled) {
             return await interaction.reply({
                 embeds: [
@@ -38,7 +37,6 @@ const spotifyRecommendCommand: SlashCommand = {
             });
         }
 
-        // Validate guild context
         if (!interaction.guild) {
             return await interaction.reply({
                 embeds: [
@@ -52,14 +50,11 @@ const spotifyRecommendCommand: SlashCommand = {
 
         const count = interaction.options.getInteger("count") || 10;
 
-        // Show loading indicator
         await interaction.deferReply();
 
         try {
-            // Create recommendation engine
             const suggestionEngine = new PlaylistSuggestion(client);
 
-            // Get recommendations based on user's top song
             const { seedSong, recommendations } =
                 await suggestionEngine.getSuggestionsFromUserTopSong(
                     interaction.user.id,
@@ -67,7 +62,6 @@ const spotifyRecommendCommand: SlashCommand = {
                     count
                 );
 
-            // Handle case where user has no listening history
             if (!seedSong) {
                 return await interaction.editReply({
                     embeds: [
@@ -78,7 +72,6 @@ const spotifyRecommendCommand: SlashCommand = {
                 });
             }
 
-            // Handle case where we couldn't find recommendations
             if (!recommendations || recommendations.length === 0) {
                 return await interaction.editReply({
                     embeds: [
@@ -89,13 +82,11 @@ const spotifyRecommendCommand: SlashCommand = {
                 });
             }
 
-            // Count Spotify vs non-Spotify links with safety check
             const spotifyCount = recommendations.filter(
                 (track) =>
                     track && track.uri && track.uri.includes("spotify.com")
             ).length;
 
-            // Format function for track display
             const formatRecommendation = (
                 track: ISongs,
                 index: number
@@ -109,8 +100,6 @@ const spotifyRecommendCommand: SlashCommand = {
                 const isSpotify =
                     track.uri && track.uri.includes("spotify.com");
                 const icon = isSpotify ? "🟢" : "🎵";
-
-                // Safety check for URI
                 const trackUri = track.uri || "#";
 
                 return `${icon} **${index + 1}.** ${Formatter.hyperlink(
@@ -119,7 +108,6 @@ const spotifyRecommendCommand: SlashCommand = {
                 )} - **${author}**`;
             };
 
-            // Create an embed to display the recommendations
             const embed = new discord.EmbedBuilder()
                 .setColor("#1DB954") // Spotify green
                 .setTitle("🎵 Spotify Recommendations")
@@ -128,7 +116,7 @@ const spotifyRecommendCommand: SlashCommand = {
                         seedSong.title || "Unknown Title",
                         40
                     )}** by **${seedSong.author || "Unknown Artist"}**\n\n` +
-                        `Found ${spotifyCount} Spotify tracks out of ${recommendations.length} recommendations`
+                    `Found ${spotifyCount} Spotify tracks out of ${recommendations.length} recommendations`
                 )
                 .setFooter({
                     text: `Requested by ${interaction.user.tag}`,
@@ -136,14 +124,12 @@ const spotifyRecommendCommand: SlashCommand = {
                 })
                 .setTimestamp();
 
-            // Add thumbnail with safety check
             if (seedSong.thumbnail || seedSong.artworkUrl) {
                 embed.setThumbnail(
                     seedSong.thumbnail || seedSong.artworkUrl || null
                 );
             }
 
-            // Split recommendations into groups
             if (recommendations.length > 0) {
                 const firstGroup = recommendations
                     .slice(0, 5)
@@ -184,7 +170,6 @@ const spotifyRecommendCommand: SlashCommand = {
                 }
             }
 
-            // Create action buttons
             const row =
                 new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
                     new discord.ButtonBuilder()
@@ -204,34 +189,27 @@ const spotifyRecommendCommand: SlashCommand = {
                         .setEmoji("🔄")
                 );
 
-            // Get manager for player access
             const player = client.manager.get(interaction.guild.id);
-
-            // Send the embed with buttons (show buttons only if a player exists)
             const message = await interaction.editReply({
                 embeds: [embed],
                 components: player ? [row] : [],
             });
 
-            // Set up collector for button interactions
             if (player) {
                 const collector = message.createMessageComponentCollector({
                     filter: (i) => i.user.id === interaction.user.id,
-                    time: 60000, // 1 minute timeout
+                    time: 60000,
                 });
 
-                // Button actions
                 collector.on("collect", async (i) => {
                     try {
                         if (
                             i.customId === "play-recommendation-first" &&
                             recommendations.length > 0
                         ) {
-                            // Play the first recommendation
                             await i.deferUpdate();
 
                             const topPick = recommendations[0];
-                            // Safety check for URI
                             if (!topPick || !topPick.uri) {
                                 await i.followUp({
                                     embeds: [
@@ -262,18 +240,16 @@ const spotifyRecommendCommand: SlashCommand = {
                                 searchResult.tracks.length > 0
                             ) {
                                 player.queue.unshift(searchResult.tracks[0]);
-                                player.stop(); // Skips to the newly added track
+                                player.stop();
 
                                 await i.followUp({
                                     embeds: [
                                         new MusicResponseHandler(
                                             client
                                         ).createSuccessEmbed(
-                                            `Now playing: **${
-                                                topPick.title || "Unknown Track"
-                                            }** by **${
-                                                topPick.author ||
-                                                "Unknown Artist"
+                                            `Now playing: **${topPick.title || "Unknown Track"
+                                            }** by **${topPick.author ||
+                                            "Unknown Artist"
                                             }**`
                                         ),
                                     ],
@@ -281,13 +257,11 @@ const spotifyRecommendCommand: SlashCommand = {
                                 });
                             }
                         } else if (i.customId === "add-recommendation-queue") {
-                            // Add all recommendations to queue
                             await i.deferUpdate();
 
                             let addedCount = 0;
                             for (const rec of recommendations) {
                                 try {
-                                    // Safety check for URI
                                     if (!rec || !rec.uri) continue;
 
                                     const searchResult =
@@ -330,10 +304,7 @@ const spotifyRecommendCommand: SlashCommand = {
                                 flags: discord.MessageFlags.Ephemeral,
                             });
                         } else if (i.customId === "refresh-recommendation") {
-                            // Get new recommendations
                             await i.deferUpdate();
-
-                            // Get fresh recommendations
                             const {
                                 seedSong: newSeedSong,
                                 recommendations: newRecommendations,
@@ -362,7 +333,6 @@ const spotifyRecommendCommand: SlashCommand = {
                                 return;
                             }
 
-                            // Count Spotify vs non-Spotify links with safety check
                             const newSpotifyCount = newRecommendations.filter(
                                 (track) =>
                                     track &&
@@ -370,7 +340,6 @@ const spotifyRecommendCommand: SlashCommand = {
                                     track.uri.includes("spotify.com")
                             ).length;
 
-                            // Create updated embed
                             const updatedEmbed = new discord.EmbedBuilder()
                                 .setColor("#1DB954")
                                 .setTitle("🎵 Fresh Spotify Recommendations")
@@ -378,10 +347,9 @@ const spotifyRecommendCommand: SlashCommand = {
                                     `Based on your top song: **${Formatter.truncateText(
                                         newSeedSong.title || "Unknown Title",
                                         40
-                                    )}** by **${
-                                        newSeedSong.author || "Unknown Artist"
+                                    )}** by **${newSeedSong.author || "Unknown Artist"
                                     }**\n\n` +
-                                        `Found ${newSpotifyCount} Spotify tracks out of ${newRecommendations.length} recommendations`
+                                    `Found ${newSpotifyCount} Spotify tracks out of ${newRecommendations.length} recommendations`
                                 )
                                 .setFooter({
                                     text: `Refreshed by ${interaction.user.tag}`,
@@ -390,19 +358,17 @@ const spotifyRecommendCommand: SlashCommand = {
                                 })
                                 .setTimestamp();
 
-                            // Add thumbnail with safety check
                             if (
                                 newSeedSong.thumbnail ||
                                 newSeedSong.artworkUrl
                             ) {
                                 updatedEmbed.setThumbnail(
                                     newSeedSong.thumbnail ||
-                                        newSeedSong.artworkUrl ||
-                                        null
+                                    newSeedSong.artworkUrl ||
+                                    null
                                 );
                             }
 
-                            // Format new recommendations
                             if (newRecommendations.length > 0) {
                                 const firstGroup = newRecommendations
                                     .slice(0, 5)
@@ -463,7 +429,6 @@ const spotifyRecommendCommand: SlashCommand = {
                                 }
                             }
 
-                            // Update message with new recommendations
                             await interaction.editReply({
                                 embeds: [updatedEmbed],
                                 components: [row],
@@ -492,7 +457,6 @@ const spotifyRecommendCommand: SlashCommand = {
                     }
                 });
 
-                // When collector expires, disable the buttons
                 collector.on("end", async () => {
                     row.components.forEach((button) =>
                         button.setDisabled(true)
@@ -501,7 +465,7 @@ const spotifyRecommendCommand: SlashCommand = {
                         .editReply({
                             components: [row],
                         })
-                        .catch(() => {});
+                        .catch(() => { });
                 });
             }
         } catch (error) {

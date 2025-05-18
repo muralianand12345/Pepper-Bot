@@ -1,10 +1,3 @@
-/**
- * Data Transfer Objects for Command API
- */
-
-/**
- * Interface representing the command argument
- */
 export interface CommandArgumentDto {
     name: string;
     description: string;
@@ -16,9 +9,6 @@ export interface CommandArgumentDto {
     }>;
 }
 
-/**
- * Interface representing a slash command option (subcommand or argument)
- */
 export interface SlashCommandOptionDto {
     name: string;
     description: string;
@@ -31,9 +21,6 @@ export interface SlashCommandOptionDto {
     }>;
 }
 
-/**
- * Interface representing a Discord command
- */
 export interface CommandDto {
     name: string;
     description: string;
@@ -44,13 +31,10 @@ export interface CommandDto {
     ownerOnly?: boolean;
     premiumOnly?: boolean;
     arguments?: CommandArgumentDto[];
-    options?: SlashCommandOptionDto[]; // For slash commands
+    options?: SlashCommandOptionDto[];
     example?: string;
 }
 
-/**
- * Response format for commands list
- */
 export interface CommandsResponseDto {
     status: string;
     timestamp: string;

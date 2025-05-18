@@ -75,7 +75,6 @@ const handleCommandPrerequisites = async (
 ): Promise<boolean> => {
     if (!interaction.isChatInputCommand()) return false;
 
-    // Check if user is blocked
     const blockStatus = await checkBlockedStatus(interaction.user.id);
     if (blockStatus.blocked) {
         await sendErrorReply(
@@ -85,7 +84,6 @@ const handleCommandPrerequisites = async (
         return false;
     }
 
-    // Check premium requirements
     if (command.premium) {
         const isPremium = await checkPremiumStatus(interaction.user.id);
         if (!isPremium) {
@@ -97,7 +95,6 @@ const handleCommandPrerequisites = async (
         }
     }
 
-    // Check if user is a DJ
     if (command.dj) {
         const isDJ = await checkDJStatus(
             interaction.user.id,
@@ -122,7 +119,6 @@ const handleCommandPrerequisites = async (
         }
     }
 
-    // Check cooldown
     if (command.cooldown) {
         const cooldownKey = `${command.data.name}${interaction.user.id}`;
 
@@ -142,7 +138,6 @@ const handleCommandPrerequisites = async (
         }
     }
 
-    // Check owner permission
     if (
         command.owner &&
         !client.config.bot.owners.includes(interaction.user.id)
@@ -154,7 +149,6 @@ const handleCommandPrerequisites = async (
         return false;
     }
 
-    // Check user permissions
     if (command.userPerms && interaction.guild) {
         const member = await interaction.guild.members.fetch(
             interaction.user.id
@@ -170,7 +164,6 @@ const handleCommandPrerequisites = async (
         }
     }
 
-    // Check bot permissions
     if (command.botPerms && interaction.guild) {
         const botMember = await interaction.guild.members.fetch(
             client.user!.id
@@ -249,7 +242,6 @@ const event: BotEvent = {
                 return;
             }
 
-            // Early validation checks
             if (!validateInteraction(interaction, client)) return;
 
             if (!interaction.isChatInputCommand()) return;
@@ -265,7 +257,6 @@ const event: BotEvent = {
                 guildId: interaction.guild?.id,
             });
 
-            // Handle permissions and execution
             if (
                 await handleCommandPrerequisites(command, interaction, client, guild_data)
             ) {

@@ -36,10 +36,7 @@ const command: Command = {
             });
         }
 
-        // Combine args to get the full query
         const query = args.join(" ");
-
-        // Validate voice and music requirements
         const validator = new VoiceChannelValidator(client, message);
         for (const check of [
             validator.validateGuildContext(),
@@ -62,9 +59,7 @@ const command: Command = {
             });
         }
 
-        // Get or create player
         let player = client.manager.get(message.guild?.id || "");
-
         const chan = message.channel as discord.TextChannel;
 
         if (!player) {
@@ -85,7 +80,6 @@ const command: Command = {
             });
         }
 
-        // Check if user is in the same voice channel as the bot
         if (player.voiceChannelId) {
             const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
             if (!playerValid) {
@@ -93,7 +87,6 @@ const command: Command = {
             }
         }
 
-        // Send loading message
         const loadingMsg = await message.reply({
             embeds: [
                 new MusicResponseHandler(client).createInfoEmbed(
@@ -102,7 +95,6 @@ const command: Command = {
             ],
         });
 
-        // Connect to voice channel if not already connected
         if (!["CONNECTING", "CONNECTED"].includes(player.state)) {
             player.connect();
             await chan.send({
@@ -116,8 +108,6 @@ const command: Command = {
 
         try {
             const res = await client.manager.search(query, message.author);
-
-            // Remove loading message
             await loadingMsg.delete().catch(() => { });
 
             if (res.loadType === "error") {
@@ -140,13 +130,11 @@ const command: Command = {
                 });
             }
 
-            // Create message context for handleSearchResult
             const messageContext = {
                 type: 'message' as const,
                 message: message
             };
 
-            // Process search results and play
             await handleSearchResult(res, player, messageContext, client);
         } catch (error) {
             client.logger.error(`[MSG_PLAY] Play error: ${error}`);

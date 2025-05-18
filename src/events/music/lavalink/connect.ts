@@ -25,7 +25,6 @@ const loadLavalinkEvents = async (
                     continue;
                 }
 
-                // Using keyof ManagerEvents to ensure type safety
                 client.manager.on(
                     event.name as keyof magmastream.ManagerEvents,
                     (...args) => event.execute(...args, client)

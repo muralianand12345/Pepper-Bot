@@ -1,37 +1,23 @@
 import discord from 'discord.js';
 import { ILogger } from '../../../../types';
 
-/**
- * Utility class for diagnosing API configuration issues
- */
 class ApiDiagnostic {
     private readonly client: discord.Client;
     private readonly logger: ILogger;
 
-    /**
-     * Create a new API diagnostic utility
-     * @param client - Discord client
-     * @param logger - Logger instance
-     */
     constructor(client: discord.Client, logger: ILogger) {
         this.client = client;
         this.logger = logger;
     }
 
-    /**
-     * Run diagnostic checks on the API configuration
-     * Logs warnings for common issues
-     */
     public runDiagnostics(): void {
         this.logger.info('[API] Running API configuration diagnostics...');
 
-        // Check if API is enabled
         if (!this.client.config.api?.enabled) {
             this.logger.warn('[API] API is disabled in configuration');
             return;
         }
 
-        // Check port configuration
         const port = this.client.config.api?.port;
         if (!port) {
             this.logger.warn('[API] No port specified in configuration, defaulting to 3000');
@@ -41,7 +27,6 @@ class ApiDiagnostic {
             this.logger.error(`[API] Invalid port number: ${port}`);
         }
 
-        // Check authentication configuration
         const authEnabled = this.client.config.api?.auth?.enabled;
         const apiKey = this.client.config.api?.auth?.apiKey;
 
@@ -59,7 +44,6 @@ class ApiDiagnostic {
             this.logger.warn('[API] Authentication is disabled - API endpoints are publicly accessible');
         }
 
-        // Check rate limiting configuration
         const rateLimitWindow = this.client.config.api?.rateLimit?.windowMs;
         const rateLimitMax = this.client.config.api?.rateLimit?.max;
 
