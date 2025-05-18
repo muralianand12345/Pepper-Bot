@@ -47,8 +47,10 @@ const musicEmbed = async (
             const position = Math.max(0, player.position);
             const duration = track.duration || 0;
             const progress = getTrackProgress(position, duration);
+            const length = 15;
             const filledBlocks = Math.floor(progress.percentage * length);
             const progressBar = "▬".repeat(filledBlocks) + "●" + "▬".repeat(Math.max(0, length - filledBlocks - 1));
+            
             progressText = `${progressBar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
         } catch (error) {
             progressText = "";
