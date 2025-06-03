@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import { BotEvent, BotPresence } from "../../../types";
+import { BotEvent, IBotPresence } from "../../../types";
 import { version } from "../../../../package.json";
 
 const ACTIVITY_TYPE_MAP: Record<string, discord.ActivityType> = {
@@ -32,8 +32,8 @@ const processActivityName = (name: string, client: discord.Client): string => {
 
 const createActivityList = (
     client: discord.Client,
-    activities: BotPresence[]
-): BotPresence[] =>
+    activities: IBotPresence[]
+): IBotPresence[] =>
     activities.map((activity) => ({
         name: processActivityName(activity.name, client),
         type: ACTIVITY_TYPE_MAP[activity.type] || discord.ActivityType.Playing,

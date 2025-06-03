@@ -197,7 +197,7 @@ const executeCommand = async (
             commandName: `/${interaction.commandName}`,
             guild: interaction.guild,
             user: interaction.user,
-            channel: interaction.channel,
+            channel: interaction.channel?.isTextBased() && 'guild' in interaction.channel ? interaction.channel as discord.TextChannel : null,
         });
 
         if (command.cooldown) {

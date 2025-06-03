@@ -195,7 +195,7 @@ const executeCommand = async (
             commandName: `${client.config.bot.command.prefix}${command.name}`,
             guild: message.guild,
             user: message.author,
-            channel: message.channel,
+            channel: message.channel instanceof discord.TextChannel ? message.channel : null,
         });
 
         if (command.cooldown) {

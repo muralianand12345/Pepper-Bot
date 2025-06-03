@@ -37,7 +37,7 @@ const event: BotEvent = {
             string,
             Command | SlashCommand
         >();
-        const slashCommands: discord.SlashCommandBuilder[] = [];
+        const slashCommands: (discord.SlashCommandBuilder | discord.SlashCommandSubcommandsOnlyBuilder | discord.SlashCommandOptionsOnlyBuilder)[] = [];
 
         if (!client.config.bot.command.disable_message) {
             const messageCommandsDir = path.join(__dirname, "../commands/msg");

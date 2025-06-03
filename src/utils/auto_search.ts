@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import axios, { AxiosInstance } from "axios";
-import { IAutoCompleteOptions, SpotifySearchResult } from "../types";
+import { IAutoCompleteOptions, ISpotifySearchResult } from "../types";
 
 /**
  * SpotifyAutoComplete class provides functionality for searching Spotify tracks
@@ -232,7 +232,7 @@ class SpotifyAutoComplete {
                 return [metadata];
             }
 
-            const { data } = await this.spotifyApi.get<SpotifySearchResult>(
+            const { data } = await this.spotifyApi.get<ISpotifySearchResult>(
                 "/search",
                 {
                     params: {

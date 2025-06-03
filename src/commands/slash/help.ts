@@ -1,10 +1,10 @@
 import discord from "discord.js";
 import Formatter from "../../utils/format";
 import music_guild from "../../events/database/schema/music_guild";
-import { SlashCommand, Command, CommandInfo } from "../../types";
+import { SlashCommand, Command, ICommandInfo } from "../../types";
 
 const formatCommandSection = (
-    commands: CommandInfo[],
+    commands: ICommandInfo[],
     prefix: string
 ): string => {
     return commands
@@ -68,7 +68,7 @@ const helpCommand: SlashCommand = {
             })
             .setTimestamp();
 
-        const slashCommands: CommandInfo[] = client.slashCommands.map(
+        const slashCommands: ICommandInfo[] = client.slashCommands.map(
             (command: SlashCommand) => ({
                 name: command.data.name,
                 description: command.data.description,
@@ -81,7 +81,7 @@ const helpCommand: SlashCommand = {
         });
 
         if (!client.config.bot.command.disable_message) {
-            const msgCommands: CommandInfo[] = client.commands.map(
+            const msgCommands: ICommandInfo[] = client.commands.map(
                 (command: Command) => ({
                     name: command.name,
                     description: command.description,

@@ -3,9 +3,9 @@ import magmastream from "magmastream";
 import Formatter from "../../utils/format";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { VoiceChannelValidator } from "../../utils/music/music_validations";
-import { SlashCommand, FilterPreset } from "../../types";
+import { SlashCommand, IFilterPreset } from "../../types";
 
-const FILTER_PRESETS: Record<string, FilterPreset> = {
+const FILTER_PRESETS: Record<string, IFilterPreset> = {
     clear: { name: "Clear", emoji: "🔄", description: "Remove all filters" },
     bassboost: { name: "Bass Boost", emoji: "🔊", description: "Enhance the bass frequencies" },
     nightcore: { name: "Nightcore", emoji: "🎵", description: "Speed up and pitch the audio" },
