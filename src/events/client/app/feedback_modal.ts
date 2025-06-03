@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import { ConfigManager } from "../../../utils/config";
-import { MusicResponseHandler } from "../../../utils/music/embed_template";
+import { MusicResponseHandler } from "../../../core/music";
 import { BotEvent } from "../../../types";
 
 const processFeedback = (

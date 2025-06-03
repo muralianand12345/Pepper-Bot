@@ -1,7 +1,5 @@
 import discord from "discord.js";
-import { sendTempMessage } from "../../../utils/music/music_functions";
-import { MusicResponseHandler } from "../../../utils/music/embed_template";
-import { NowPlayingManager } from "../../../utils/music/now_playing_manager";
+import { sendTempMessage, MusicResponseHandler, NowPlayingManager } from "../../../core/music";
 import { BotEvent } from "../../../types";
 
 const event: BotEvent = {

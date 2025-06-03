@@ -1,6 +1,5 @@
 import discord from "discord.js";
-import DJRoleService from "../../../utils/music/dj_role_service";
-import { MusicResponseHandler } from "../../../utils/music/embed_template";
+import { MusicResponseHandler, DJRoleService } from "../../../core/music";
 
 export const handleRemoveSubcommand = async (
     interaction: discord.ChatInputCommandInteraction,

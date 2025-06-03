@@ -3,7 +3,7 @@ import discord from "discord.js";
 import block_users from "../../database/schema/block_users";
 import music_guild from "../../database/schema/music_guild";
 import premium_users from "../../database/schema/premium_users";
-import { sendTempMessage } from "../../../utils/music/music_functions";
+import { sendTempMessage } from "../../../core/music";
 import { BotEvent, IMusicGuild } from "../../../types";
 
 const cooldown: discord.Collection<string, number> = new discord.Collection();

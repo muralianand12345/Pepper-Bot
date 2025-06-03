@@ -1,13 +1,13 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
-import MusicDB from "../../utils/music/music_db";
+import { MusicDB } from "./db";
 import { ISongs, ISongsUser } from "../../types";
 
 /**
  * Playlist suggestion class that builds recommendations based on user history
  * Uses the user's top song as a seed for recommendations
  */
-class PlaylistSuggestion {
+export class PlaylistSuggestion {
     private client: discord.Client;
     private readonly defaultLimit: number = 20;
     private readonly similarityThreshold: number = 0.4;
@@ -847,6 +847,4 @@ class PlaylistSuggestion {
         }
         return result;
     }
-}
-
-export default PlaylistSuggestion;
+};

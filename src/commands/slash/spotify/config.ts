@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import music_user from "../../../events/database/schema/music_user";
-import { MusicResponseHandler } from "../../../utils/music/embed_template";
+import { MusicResponseHandler } from "../../../core/music";
 
 
 export const handleConfigSubcommand = async (

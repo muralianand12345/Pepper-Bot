@@ -1,7 +1,7 @@
 import os from "os";
 import discord from "discord.js";
 import Formatter from "../../utils/format";
-import { MusicResponseHandler } from "../../utils/music/embed_template";
+import { MusicResponseHandler } from "../../core/music";
 import { SlashCommand } from "../../types";
 
 const pingCommand: SlashCommand = {

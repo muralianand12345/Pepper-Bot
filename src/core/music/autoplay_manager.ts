@@ -1,13 +1,13 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
-import PlaylistSuggestion from "./playlist_suggestion";
+import { PlaylistSuggestion } from "./playlist_suggestion";
 import { ISongs } from "../../types";
 
 /**
  * Manages custom autoplay functionality independent of YouTube's autoplay system
  * Uses PlaylistSuggestion to generate recommendations based on user listening habits
  */
-class AutoplayManager {
+export class AutoplayManager {
     private static instances: Map<string, AutoplayManager> = new Map();
     private client: discord.Client;
     private player: magmastream.Player;
@@ -323,5 +323,3 @@ class AutoplayManager {
         this.client.logger.info(`[AUTOPLAY] Cleared play history for guild ${this.guildId}`);
     }
 }
-
-export default AutoplayManager;

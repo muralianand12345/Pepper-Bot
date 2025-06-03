@@ -1,10 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
 import { ConfigManager } from "../../utils/config";
-import { SpotifyAutoComplete } from "../../utils/auto_search";
-import { handleSearchResult } from "../../utils/music/music_functions";
-import { MusicResponseHandler, randomTips } from "../../utils/music/embed_template";
-import { VoiceChannelValidator, MusicPlayerValidator } from "../../utils/music/music_validations";
+import { VoiceChannelValidator, MusicPlayerValidator, MusicResponseHandler, randomTips, SpotifyAutoComplete, handleSearchResult } from "../../core/music";
 import { SlashCommand, INodeOption } from "../../types";
 
 const configManager = ConfigManager.getInstance();

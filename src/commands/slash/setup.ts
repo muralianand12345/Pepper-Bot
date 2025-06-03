@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import music_guild from "../../events/database/schema/music_guild";
-import { MusicResponseHandler, MusicChannelManager } from "../../utils/music/embed_template";
+import { MusicResponseHandler, MusicChannelManager } from "../../core/music";
 import { SlashCommand } from "../../types";
 
 const setupCommand: SlashCommand = {

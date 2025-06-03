@@ -1,9 +1,7 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 import music_guild from "../../../database/schema/music_guild";
-import AutoplayManager from "../../../../utils/music/autoplay_manager";
-import { MusicChannelManager } from "../../../../utils/music/embed_template";
-import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
+import { MusicChannelManager, AutoplayManager, NowPlayingManager } from "../../../../core/music";
 import { LavalinkEvent } from "../../../../types";
 
 const resetMusicChannelEmbed = async (

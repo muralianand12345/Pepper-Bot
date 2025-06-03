@@ -1,8 +1,6 @@
 import discord from "discord.js";
 import music_guild from "../../database/schema/music_guild";
-import { MusicResponseHandler } from "../../../utils/music/embed_template";
-import { handleSearchResult, sendTempMessage } from "../../../utils/music/music_functions";
-import { VoiceChannelValidator, MusicPlayerValidator } from "../../../utils/music/music_validations";
+import { MusicResponseHandler, handleSearchResult, sendTempMessage, VoiceChannelValidator, MusicPlayerValidator } from "../../../core/music";
 import { BotEvent } from "../../../types";
 
 const DELETE_DELAY = 5000;

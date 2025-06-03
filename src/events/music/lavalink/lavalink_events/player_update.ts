@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
-import { NowPlayingManager } from "../../../../utils/music/now_playing_manager";
+import { NowPlayingManager } from "../../../../core/music";
 import { LavalinkEvent } from "../../../../types";
 
 const lavalinkEvent: LavalinkEvent = {

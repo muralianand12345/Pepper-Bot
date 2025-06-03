@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import Formatter from "../../../utils/format";
-import { QueuePagination } from "../../../utils/music/music_functions";
+import { QueuePagination } from "../../../core/music";
 
 
 export const handleShowQueue = async (

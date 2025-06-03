@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import { BotEvent } from "../../../types";
-import DJRoleService from "../../../utils/music/dj_role_service";
+import { DJRoleService } from "../../../core/music";
 
 const event: BotEvent = {
     name: discord.Events.ClientReady,

@@ -6,7 +6,7 @@ import { IMusicGuild, IDJUser } from "../../types";
 /**
  * Service for managing DJ role assignment and configuration
  */
-class DJRoleService {
+export class DJRoleService {
     private client: discord.Client;
 
     /**
@@ -479,5 +479,3 @@ class DJRoleService {
         }
     }
 }
-
-export default DJRoleService;

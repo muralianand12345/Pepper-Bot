@@ -3,7 +3,7 @@ import discord from "discord.js";
 import { Readable } from "stream";
 import timers from "timers/promises";
 import magmastream from "magmastream";
-import { shouldSendMessageInChannel } from "../music_channel_utility";
+import { shouldSendMessageInChannel } from "./music_channel_utility";
 import { createPlaylistEmbed, createTrackEmbed, musicButton } from "./embed_template";
 
 /**

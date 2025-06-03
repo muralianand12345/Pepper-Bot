@@ -1,8 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
 import Formatter from "../../utils/format";
-import { MusicResponseHandler } from "../../utils/music/embed_template";
-import { VoiceChannelValidator } from "../../utils/music/music_validations";
+import { VoiceChannelValidator, MusicResponseHandler } from "../../core/music";
 import { SlashCommand, IFilterPreset } from "../../types";
 
 const FILTER_PRESETS: Record<string, IFilterPreset> = {

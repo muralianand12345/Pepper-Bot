@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import { MusicResponseHandler } from "../../../utils/music/embed_template";
+import { MusicResponseHandler } from "../../../core/music";
 
 export const handleMoveInQueue = async (
     interaction: discord.ChatInputCommandInteraction,

@@ -1,7 +1,5 @@
 import discord from "discord.js";
-import { MusicResponseHandler } from "../../../utils/music/embed_template";
-import { NowPlayingManager } from "../../../utils/music/now_playing_manager";
-import { MusicPlayerValidator } from "../../../utils/music/music_validations";
+import { MusicResponseHandler, NowPlayingManager, MusicPlayerValidator } from "../../../core/music";
 import { BotEvent } from "../../../types";
 
 /**

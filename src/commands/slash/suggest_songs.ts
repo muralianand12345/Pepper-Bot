@@ -1,7 +1,6 @@
 import discord from "discord.js";
 import Formatter from "../../utils/format";
-import { MusicResponseHandler } from "../../utils/music/embed_template";
-import PlaylistSuggestion from "../../utils/music/playlist_suggestion";
+import { MusicResponseHandler, PlaylistSuggestion } from "../../core/music";
 import { SlashCommand, ISongs } from "../../types";
 
 const spotifyRecommendCommand: SlashCommand = {

@@ -1,7 +1,7 @@
 import discord from "discord.js";
 import { BotEvent } from "../../../types";
 import music_guild from "../../database/schema/music_guild";
-import DJRoleService from "../../../utils/music/dj_role_service";
+import { DJRoleService } from "../../../core/music";
 
 const event: BotEvent = {
     name: discord.Events.PresenceUpdate,

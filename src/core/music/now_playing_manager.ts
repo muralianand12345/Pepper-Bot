@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
-import { musicEmbed, musicButton } from "./embed_template";
+import { musicEmbed, musicButton } from "./utils";
 
 /**
  * Class to manage "Now Playing" messages with automatic updates

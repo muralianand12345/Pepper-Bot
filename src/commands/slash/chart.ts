@@ -1,7 +1,6 @@
 import discord from "discord.js";
 import Formatter from "../../utils/format";
-import MusicDB from "../../utils/music/music_db";
-import { MusicResponseHandler } from "../../utils/music/embed_template";
+import { MusicResponseHandler, MusicDB } from "../../core/music";
 import { SlashCommand, ISongs } from "../../types";
 
 

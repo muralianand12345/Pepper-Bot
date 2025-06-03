@@ -1,13 +1,13 @@
 import discord from "discord.js";
-import music_user from "../../events/database/schema/music_user";
-import music_guild from "../../events/database/schema/music_guild";
-import { IMusicUser, IMusicGuild, ISongs } from "../../types";
+import music_user from "../../../events/database/schema/music_user";
+import music_guild from "../../../events/database/schema/music_guild";
+import { IMusicUser, IMusicGuild, ISongs } from "../../../types";
 
 /**
  * Class handling music database operations for both users and guilds
  * @class MusicDB
  */
-class MusicDB {
+export class MusicDB {
     /**
      * Updates or adds a song to a document's music data
      * @param data - Music data document (user or guild)
@@ -525,6 +525,4 @@ class MusicDB {
             throw new Error(`Failed to get song text channel ID: ${err}`);
         }
     }
-}
-
-export default MusicDB;
+};

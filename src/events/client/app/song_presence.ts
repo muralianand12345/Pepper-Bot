@@ -1,5 +1,5 @@
 import discord from "discord.js";
-import MusicDB from "../../../utils/music/music_db";
+import { MusicDB } from "../../../core/music";
 import music_user from "../../database/schema/music_user";
 import { BotEvent, ISongsUser } from "../../../types";
 

@@ -1,7 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
-import Formatter from "../format";
-import { IConfig } from "../../types";
+import Formatter from "../../../utils/format";
+import { IConfig } from "../../../types";
 
 const getTrackProgress = (position: number, duration: number): {
     displayPosition: number;

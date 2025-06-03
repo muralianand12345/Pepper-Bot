@@ -1,7 +1,5 @@
 import discord from "discord.js";
-import { handleSearchResult } from "../../utils/music/music_functions";
-import { MusicResponseHandler } from "../../utils/music/embed_template";
-import { VoiceChannelValidator, MusicPlayerValidator } from "../../utils/music/music_validations";
+import { MusicResponseHandler, handleSearchResult, VoiceChannelValidator, MusicPlayerValidator } from "../../core/music";
 import { Command } from "../../types";
 
 const command: Command = {

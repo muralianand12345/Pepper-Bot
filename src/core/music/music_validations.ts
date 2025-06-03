@@ -1,6 +1,6 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
-import { MusicResponseHandler } from "./embed_template";
+import { MusicResponseHandler } from "./utils";
 
 /**
  * Command context that can be either an interaction or a message

@@ -1,6 +1,5 @@
 import discord from "discord.js";
-import { MusicResponseHandler } from "../../../utils/music/embed_template";
-import { VoiceChannelValidator } from "../../../utils/music/music_validations";
+import { MusicResponseHandler, VoiceChannelValidator } from "../../../core/music";
 import { SlashCommand } from "../../../types";
 
 import { handleShowQueue } from "./show";
