@@ -5,7 +5,7 @@ import { MusicResponseHandler } from "./utils";
 /**
  * Command context that can be either an interaction or a message
  */
-type CommandContext =
+export type CommandContext =
     | { type: 'interaction'; interaction: discord.ChatInputCommandInteraction }
     | { type: 'message'; message: discord.Message };
 
@@ -16,7 +16,7 @@ type CommandContext =
  *
  * @class VoiceChannelValidator
  */
-class VoiceChannelValidator {
+export class VoiceChannelValidator {
     private readonly client: discord.Client;
     private readonly context: CommandContext;
     private readonly requiredPermissions = [
@@ -272,7 +272,7 @@ class VoiceChannelValidator {
  * Validates music player state and queue operations
  * @class MusicPlayerValidator
  */
-class MusicPlayerValidator {
+export class MusicPlayerValidator {
     private readonly client: discord.Client;
     private readonly player: any;
     private readonly ytRegex: RegExp = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
@@ -387,5 +387,3 @@ class MusicPlayerValidator {
         return [true, this.createErrorEmbed("")];
     }
 }
-
-export { VoiceChannelValidator, MusicPlayerValidator };

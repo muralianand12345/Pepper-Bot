@@ -11,7 +11,7 @@ import { createPlaylistEmbed, createTrackEmbed, musicButton } from "./embed_temp
  * @param ms - Number of milliseconds to wait
  * @returns Promise that resolves after the specified delay
  */
-const wait = async (ms: number): Promise<void> => {
+export const wait = async (ms: number): Promise<void> => {
     await timers.setTimeout(ms);
 };
 
@@ -20,7 +20,7 @@ const wait = async (ms: number): Promise<void> => {
  * @param player - Music player instance
  * @returns Formatted queue message string
  */
-const formatQueueMessage = (player: magmastream.Player): string => {
+export const formatQueueMessage = (player: magmastream.Player): string => {
     const queueList = player.queue
         .map((track, i) => `**${i + 1}** - [${track.title}](${track.uri})`)
         .slice(0, 5)
@@ -40,7 +40,7 @@ const formatQueueMessage = (player: magmastream.Player): string => {
  * @returns Promise resolving to a Readable stream
  * @throws Error if the stream cannot be fetched
  */
-const fetchAudioStream = (url: string): Promise<Readable> => {
+export const fetchAudioStream = (url: string): Promise<Readable> => {
     return new Promise<Readable>((resolve, reject) => {
         https
             .get(url, { rejectUnauthorized: false }, (response) => {
@@ -65,15 +65,15 @@ const fetchAudioStream = (url: string): Promise<Readable> => {
 /**
  * Command context that can be either an interaction or a message
  */
-type CommandContext =
+export type CommandContext =
     | { type: 'interaction'; interaction: discord.ChatInputCommandInteraction }
     | { type: 'message'; message: discord.Message };
 
-const isInteractionContext = (context: CommandContext): context is { type: 'interaction'; interaction: discord.ChatInputCommandInteraction } => {
+export const isInteractionContext = (context: CommandContext): context is { type: 'interaction'; interaction: discord.ChatInputCommandInteraction } => {
     return context.type === 'interaction';
 };
 
-const isMessageContext = (context: CommandContext): context is { type: 'message'; message: discord.Message } => {
+export const isMessageContext = (context: CommandContext): context is { type: 'message'; message: discord.Message } => {
     return context.type === 'message';
 };
 
@@ -82,7 +82,7 @@ const isMessageContext = (context: CommandContext): context is { type: 'message'
  * @param context Command context (interaction or message)
  * @returns Guild ID or undefined if not in a guild
  */
-const getGuildId = (context: CommandContext): string | undefined => {
+export const getGuildId = (context: CommandContext): string | undefined => {
     if (isInteractionContext(context)) {
         return context.interaction.guildId || undefined;
     } else if (isMessageContext(context)) {
@@ -96,7 +96,7 @@ const getGuildId = (context: CommandContext): string | undefined => {
  * @param context Command context (interaction or message)
  * @returns Channel ID or undefined if not in a channel
  */
-const getChannelId = (context: CommandContext): string | undefined => {
+export const getChannelId = (context: CommandContext): string | undefined => {
     if (isInteractionContext(context)) {
         return context.interaction.channelId;
     } else if (isMessageContext(context)) {
@@ -112,7 +112,7 @@ const getChannelId = (context: CommandContext): string | undefined => {
  * @param {CommandContext} context - Command context (interaction or message)
  * @param {discord.Client} client - Discord client instance
  */
-const handleSearchResult = async (
+export const handleSearchResult = async (
     res: magmastream.SearchResult,
     player: magmastream.Player,
     context: CommandContext,
@@ -226,7 +226,7 @@ const handleSearchResult = async (
  * @param embed - Embed message to send
  * @param duration - Duration in ms before deletion
  */
-const sendTempMessage = async (
+export const sendTempMessage = async (
     channel: discord.TextChannel,
     embed: discord.EmbedBuilder,
     duration: number = 10000
@@ -262,7 +262,7 @@ const sendTempMessage = async (
  * @property {any[]} queueList - List of items to paginate
  * @property {number} itemsPerPage - Number of items per page
  */
-class QueuePagination {
+export class QueuePagination {
     private currentPage: number = 0;
     private queueList: any[];
     public readonly itemsPerPage: number = 10;
@@ -302,13 +302,4 @@ class QueuePagination {
     };
 
     getCurrentPage = () => this.currentPage;
-}
-
-export {
-    wait,
-    fetchAudioStream,
-    handleSearchResult,
-    sendTempMessage,
-    formatQueueMessage,
-    QueuePagination,
 };

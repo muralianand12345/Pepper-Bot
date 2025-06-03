@@ -10,7 +10,7 @@ import { IAutoCompleteOptions, ISpotifySearchResult } from "../../types";
  * @description Handles Spotify API authentication, search, and URL metadata retrieval
  * for Discord autocomplete suggestions. Supports tracks, albums, playlists, and artists.
  */
-class SpotifyAutoComplete {
+export class SpotifyAutoComplete {
     private client: discord.Client;
     private token: string | null = null;
     private tokenExpiry: number = 0;
@@ -254,6 +254,4 @@ class SpotifyAutoComplete {
             return [];
         }
     };
-}
-
-export { SpotifyAutoComplete };
+};

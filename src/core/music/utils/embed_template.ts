@@ -3,7 +3,7 @@ import magmastream from "magmastream";
 import Formatter from "../../../utils/format";
 import { IConfig } from "../../../types";
 
-const getTrackProgress = (position: number, duration: number): {
+export const getTrackProgress = (position: number, duration: number): {
     displayPosition: number;
     percentage: number;
     formattedPosition: string;
@@ -29,7 +29,7 @@ const getTrackProgress = (position: number, duration: number): {
  * @param player Optional player instance for progress info
  * @returns Promise<EmbedBuilder>
  */
-const musicEmbed = async (
+export const musicEmbed = async (
     client: discord.Client & { config: IConfig },
     track: magmastream.Track,
     player?: magmastream.Player
@@ -50,7 +50,7 @@ const musicEmbed = async (
             const length = 15;
             const filledBlocks = Math.floor(progress.percentage * length);
             const progressBar = "▬".repeat(filledBlocks) + "●" + "▬".repeat(Math.max(0, length - filledBlocks - 1));
-            
+
             progressText = `${progressBar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
         } catch (error) {
             progressText = "";
@@ -90,7 +90,7 @@ const musicEmbed = async (
  * @param {number | null} [position] - Optional position in queue (null to hide position)
  * @returns {discord.EmbedBuilder} Formatted embed for track
  */
-const createTrackEmbed = (
+export const createTrackEmbed = (
     track: magmastream.Track,
     client: discord.Client,
     position?: number | null
@@ -154,7 +154,7 @@ const createTrackEmbed = (
  * @param {any} client - Discord client instance
  * @returns {discord.EmbedBuilder} Formatted embed for playlist
  */
-const createPlaylistEmbed = (
+export const createPlaylistEmbed = (
     playlist: magmastream.PlaylistData,
     query: string,
     requester: string,
@@ -215,7 +215,7 @@ const createPlaylistEmbed = (
 /**
  * Button configuration using icons that match Discord's native style
  */
-const buttonConfig = [
+export const buttonConfig = [
     { id: "pause-music", label: "Pause", emoji: "⏸️" },
     { id: "resume-music", label: "Resume", emoji: "▶️" },
     { id: "skip-music", label: "Skip", emoji: "⏭️" },
@@ -228,7 +228,7 @@ const buttonConfig = [
  * @param disabled Whether the buttons should be disabled
  * @returns ActionRowBuilder with button components
  */
-const createMusicButtons = (disabled: boolean) => {
+export const createMusicButtons = (disabled: boolean) => {
     const row = new discord.ActionRowBuilder<discord.ButtonBuilder>();
 
     buttonConfig.forEach(({ id, label, emoji }) => {
@@ -245,14 +245,14 @@ const createMusicButtons = (disabled: boolean) => {
     return row;
 };
 
-const disabledMusicButton = createMusicButtons(true);
-const musicButton = createMusicButtons(false);
+export const disabledMusicButton = createMusicButtons(true);
+export const musicButton = createMusicButtons(false);
 
 /**
  * Handles music button interaction responses with modern Discord-style
  * @class MusicResponseHandler
  */
-class MusicResponseHandler {
+export class MusicResponseHandler {
     private readonly client: discord.Client;
 
     constructor(client: discord.Client) {
@@ -360,7 +360,7 @@ class MusicResponseHandler {
  * Manages the music channel embed display and updates
  * Handles initial setup, queue updates, and reset functionality
  */
-class MusicChannelManager {
+export class MusicChannelManager {
     private readonly client: discord.Client;
     private readonly maxQueueItems: number = 5;
 
@@ -513,18 +513,7 @@ class MusicChannelManager {
     };
 }
 
-const randomTips = (client: discord.Client): string => {
+export const randomTips = (client: discord.Client): string => {
     const tips: string[] = client.config.content.text.random_tips;
     return tips[Math.floor(Math.random() * tips.length)];
 }
-
-export {
-    disabledMusicButton,
-    musicButton,
-    musicEmbed,
-    MusicResponseHandler,
-    createTrackEmbed,
-    createPlaylistEmbed,
-    MusicChannelManager,
-    randomTips
-};
