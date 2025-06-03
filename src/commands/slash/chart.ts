@@ -4,46 +4,6 @@ import MusicDB from "../../utils/music/music_db";
 import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { SlashCommand, ISongs } from "../../types";
 
-/**
- * Formats milliseconds into a human-readable duration string
- * @param milliseconds Total duration in milliseconds
- * @returns Formatted duration string (e.g., "5 days, 3 hours, 45 minutes")
- */
-const formatDuration = (milliseconds: number): string => {
-    // Guard against extremely large numbers
-    if (milliseconds <= 0 || !isFinite(milliseconds)) {
-        return "0 minutes";
-    }
-
-    // Calculate time units
-    const seconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    // Format parts
-    const parts = [];
-
-    if (days > 0) {
-        parts.push(`${days} ${days === 1 ? 'day' : 'days'}`);
-    }
-
-    if (hours % 24 > 0) {
-        parts.push(`${hours % 24} ${hours % 24 === 1 ? 'hour' : 'hours'}`);
-    }
-
-    if (minutes % 60 > 0) {
-        parts.push(`${minutes % 60} ${minutes % 60 === 1 ? 'minute' : 'minutes'}`);
-    }
-
-    // Handle edge cases
-    if (parts.length === 0) {
-        return "less than a minute";
-    }
-
-    // Limit to 3 most significant units for readability
-    return parts.slice(0, 3).join(", ");
-};
 
 const musicChartCommand: SlashCommand = {
     cooldown: 10,
@@ -219,7 +179,7 @@ const musicChartCommand: SlashCommand = {
                 0
             );
 
-            const formattedDuration = formatDuration(totalDuration);
+            const formattedDuration = Formatter.formatDuration(totalDuration);
 
             const maxPlays =
                 topSongs.length > 0 ? topSongs[0].played_number || 0 : 0;

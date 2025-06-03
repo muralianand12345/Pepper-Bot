@@ -3,6 +3,7 @@ import { MusicResponseHandler } from "../../utils/music/embed_template";
 import { VoiceChannelValidator } from "../../utils/music/music_validations";
 import { SlashCommand } from "../../types";
 
+
 const stopcommand: SlashCommand = {
     cooldown: 5,
     owner: false,
