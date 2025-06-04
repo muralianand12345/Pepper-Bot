@@ -93,16 +93,6 @@ content:
         # Message to display when no music is playing
         no_music_playing: No Music Playing Right Now 😔
 
-        # Tips displayed randomly to promote dashboard usage
-        random_tips:
-            - "🎶 Pro Tip: Some features like analytics & drag-to-reorder are only on the dashboard. You're missing out 👀."
-            - "10x faster than commands — Drag songs, skip with a click, manage queue visually. Open Pepper Dashboard 🎵."
-            - "Still using /play? Try the Dashboard instead — it's faster, visual, and command-free!\n/play ❌ play via dashboard ✅."
-            - "Stop typing, start clicking!\n/play ❌ dashboard ✅ — drag, skip, queue, stats 📊."
-            - "🎉 Hey! Did you know you can control everything from Pepper's Web Dashboard? It's faster, visual & no commands needed. Wanna try?"
-            - "📊 Take control in a whole new way: See what's playing, reorder songs, view analytics — with zero commands. 🎧 Try the Pepper Dashboard."
-            - "🚀 Did you know Pepper has a full dashboard now? Visual queue, smart controls, and playback stats—all in 1 click. Try it once 👉."
-
     # Embed styling configuration
     embed:
         # Colors for different types of embeds

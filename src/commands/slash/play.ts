@@ -1,7 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
 import { ConfigManager } from "../../utils/config";
-import { VoiceChannelValidator, MusicPlayerValidator, MusicResponseHandler, randomTips, SpotifyAutoComplete, handleSearchResult } from "../../core/music";
+import { VoiceChannelValidator, MusicPlayerValidator, MusicResponseHandler, SpotifyAutoComplete, handleSearchResult } from "../../core/music";
 import { SlashCommand, INodeOption } from "../../types";
 
 const configManager = ConfigManager.getInstance();
@@ -220,7 +220,7 @@ const playcommand: SlashCommand = {
                     new MusicResponseHandler(client).createSuccessEmbed(
                         `Connected to ${guildMember?.voice.channel?.name}`
                     ).setFooter({
-                        text: randomTips(client) || client.user?.username || "",
+                        text: client.user?.username || "",
                         iconURL: client.user?.avatarURL() || "",
                     }),
                 ],
