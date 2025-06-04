@@ -53,3 +53,7 @@ export interface IBotPresence {
     name: string;
     type: discord.ActivityType;
 }
+
+export type CommandContext =
+    | { type: 'interaction'; interaction: discord.ChatInputCommandInteraction }
+    | { type: 'message'; message: discord.Message };

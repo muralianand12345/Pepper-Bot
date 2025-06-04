@@ -1,13 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
 import { MusicResponseHandler } from "./utils";
-
-/**
- * Command context that can be either an interaction or a message
- */
-export type CommandContext =
-    | { type: 'interaction'; interaction: discord.ChatInputCommandInteraction }
-    | { type: 'message'; message: discord.Message };
+import { CommandContext } from "../../types";
 
 /**
  * Validates voice channel states and permissions for Discord music commands.

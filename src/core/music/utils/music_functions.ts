@@ -5,6 +5,7 @@ import timers from "timers/promises";
 import magmastream from "magmastream";
 import { shouldSendMessageInChannel } from "./music_channel_utility";
 import { createPlaylistEmbed, createTrackEmbed, musicButton } from "./embed_template";
+import { CommandContext } from "../../../types";
 
 /**
  * Creates a promise that resolves after the specified milliseconds
@@ -61,13 +62,6 @@ export const fetchAudioStream = (url: string): Promise<Readable> => {
             });
     });
 };
-
-/**
- * Command context that can be either an interaction or a message
- */
-export type CommandContext =
-    | { type: 'interaction'; interaction: discord.ChatInputCommandInteraction }
-    | { type: 'message'; message: discord.Message };
 
 export const isInteractionContext = (context: CommandContext): context is { type: 'interaction'; interaction: discord.ChatInputCommandInteraction } => {
     return context.type === 'interaction';
