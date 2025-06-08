@@ -1,7 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
 
-import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator } from "./handlers";
+import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator, Autoplay } from "./handlers";
 
 export * from "./func";
 export * from "./repo";
@@ -266,6 +266,44 @@ export class Music {
         } catch (error) {
             this.client.logger.error(`[MUSIC] Loop error: ${error}`);
             await this.interaction.followUp({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("An error occurred while toggling loop", true)], components: [new MusicResponseHandler(this.client).getSupportButton()], flags: discord.MessageFlags.Ephemeral });
+        }
+    };
+
+    autoplay = async (enable: boolean): Promise<discord.InteractionResponse<boolean> | void> => {
+        const musicCheck = this.validateMusicEnabled();
+        if (musicCheck) return await this.interaction.reply({ embeds: [musicCheck], flags: discord.MessageFlags.Ephemeral });
+
+        const player = this.client.manager.get(this.interaction.guild?.id || "");
+        if (!player) return await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("No music is currently playing")], flags: discord.MessageFlags.Ephemeral });
+
+        const validator = new VoiceChannelValidator(this.client, this.interaction);
+        for (const check of [
+            validator.validateGuildContext(),
+            validator.validateVoiceConnection(),
+            validator.validateMusicPlaying(player),
+            validator.validateVoiceSameChannel(player),
+        ]) {
+            const [isValid, embed] = await check;
+            if (!isValid) return await this.interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
+        };
+
+        await this.interaction.deferReply();
+
+        try {
+
+            const autoplayManager = Autoplay.getInstance(player.guildId, player, this.client);
+            if (enable) {
+                autoplayManager.enable(this.interaction.user.id);
+                const embed = new MusicResponseHandler(this.client).createSuccessEmbed("🎵 Smart Autoplay is now **enabled**\n\n" + "When the queue is empty, I'll automatically add songs based on your music preferences.");
+                await this.interaction.editReply({ embeds: [embed] });
+            } else {
+                autoplayManager.disable();
+                const embed = new MusicResponseHandler(this.client).createInfoEmbed("⏹️ Autoplay is now **disabled**\n\n" + "Playback will stop when the queue is empty.");
+                await this.interaction.editReply({ embeds: [embed] });
+            }
+        } catch (error) {
+            this.client.logger.error(`[AUTOPLAY] Command error: ${error}`);
+            await this.interaction.editReply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("An error occurred while toggling autoplay.", true)], components: [new MusicResponseHandler(this.client).getSupportButton()] });
         }
     };
 };

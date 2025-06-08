@@ -14,7 +14,7 @@ export interface Command {
     execute: (
         interaction: discord.ChatInputCommandInteraction,
         client: discord.Client
-    ) => Promise<void> | void;
+    ) => Promise<discord.InteractionResponse<boolean> | void> | Promise<void> | discord.InteractionResponse<boolean> | void;
     autocomplete?: (
         interaction: discord.AutocompleteInteraction,
         client: discord.Client
