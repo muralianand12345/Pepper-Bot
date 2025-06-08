@@ -61,3 +61,8 @@ export interface IMusicUser extends mongoose.Document {
     userId: string;
     songs: Array<ISongs>;
 };
+
+export interface INodeOption {
+    name: string;
+    value: string;
+};

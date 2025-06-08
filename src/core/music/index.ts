@@ -7,14 +7,14 @@ export * from "./handlers";
 export * from "./auto_search";
 
 
-const CONFIG = {
+export const MUSIC_CONFIG = {
     ERROR_SEARCH_TEXT: "Unable To Fetch Results",
     DEFAULT_SEARCH_TEXT: "Please enter a song name or url",
     PLAYER_OPTIONS: {
         volume: 50,
         selfDeafen: true,
     },
-}
+};
 
 export class Music {
     private client: discord.Client;
@@ -43,7 +43,7 @@ export class Music {
         switch (res.loadType) {
             case "empty": {
                 if (!player.queue.current) player.destroy();
-                await this.interaction.editReply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed(CONFIG.ERROR_SEARCH_TEXT)] });
+                await this.interaction.editReply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed(MUSIC_CONFIG.ERROR_SEARCH_TEXT)] });
                 break;
             };
             case "track":
@@ -70,7 +70,7 @@ export class Music {
         const musicCheck = this.validateMusicEnabled();
         if (musicCheck) return await this.interaction.reply({ embeds: [musicCheck], flags: discord.MessageFlags.Ephemeral });
 
-        const query = this.interaction.options.getString("song") || CONFIG.DEFAULT_SEARCH_TEXT;
+        const query = this.interaction.options.getString("song") || MUSIC_CONFIG.DEFAULT_SEARCH_TEXT;
         const nodeChoice = this.interaction.options.getString("lavalink_node") || undefined;
 
         const nodeCheck = await this.validateLavalinkNode(nodeChoice);
@@ -91,7 +91,7 @@ export class Music {
             voiceChannelId: guildMember?.voice.channelId || "",
             textChannelId: this.interaction.channelId,
             node: nodeChoice,
-            ...CONFIG.PLAYER_OPTIONS,
+            ...MUSIC_CONFIG.PLAYER_OPTIONS,
         });
 
         const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
