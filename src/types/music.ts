@@ -66,3 +66,10 @@ export interface INodeOption {
     name: string;
     value: string;
 };
+
+export interface ITrackProgress {
+    displayPosition: number;
+    percentage: number;
+    formattedPosition: string;
+    formattedDuration: string;
+};

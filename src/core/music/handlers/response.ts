@@ -2,6 +2,7 @@ import discord from "discord.js";
 import magmastream from "magmastream";
 
 import Formatter from "../../../utils/format";
+import { ITrackProgress } from "../../../types";
 
 
 export class MusicResponseHandler {
@@ -10,6 +11,20 @@ export class MusicResponseHandler {
     constructor(client: discord.Client) {
         this.client = client;
     };
+
+    private trackProgress = (position: number, duration: number): ITrackProgress => {
+        const normalizedPosition = Math.min(position, duration);
+        const percentage = normalizedPosition / duration;
+        const formattedPosition = Formatter.msToTime(normalizedPosition);
+        const formattedDuration = Formatter.msToTime(duration);
+
+        return {
+            displayPosition: normalizedPosition,
+            percentage,
+            formattedPosition,
+            formattedDuration
+        };
+    }
 
     public createSuccessEmbed = (message: string): discord.EmbedBuilder => {
         return new discord.EmbedBuilder()
@@ -53,6 +68,44 @@ export class MusicResponseHandler {
                 text: this.client.user?.username || "Music Bot",
                 iconURL: this.client.user?.displayAvatarURL()
             });
+    };
+
+    public createMusicEmbed = (track: magmastream.Track, player?: magmastream.Player): discord.EmbedBuilder => {
+        const trackImg = track.thumbnail || track.artworkUrl;
+        const trackTitle = Formatter.truncateText(track.title, 60);
+        const trackAuthor = track.author || "Unknown";
+        const trackUri = track.uri || "https://google.com"
+        const defaultColor: discord.ColorResolvable = "#2b2d31";
+        let progressText = "";
+
+        if (player && player.queue && player.queue.current) {
+            try {
+                const position = Math.max(0, player.position);
+                const duration = track.duration || 0;
+                const progress = this.trackProgress(position, duration);
+                const length = 15;
+                const filledBlocks = Math.floor(progress.percentage * length);
+                const progressBar = "▬".repeat(filledBlocks) + "●" + "▬".repeat(Math.max(0, length - filledBlocks - 1));
+
+                progressText = `${progressBar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
+            } catch (error) {
+                progressText = "";
+            }
+        }
+
+        const embed = new discord.EmbedBuilder()
+            .setColor(defaultColor)
+            .setTitle(`Now Playing`)
+            .setDescription(`**${Formatter.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`)
+            .setThumbnail(trackImg);
+
+        if (progressText) {
+            embed.addFields([{ name: "Progress", value: progressText, inline: false }]);
+            embed.setFooter({ text: `${track.sourceName || 'Unknown'} • ${track.requester?.tag || 'Unknown'}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
+            return embed;
+        }
+
+        return embed;
     };
 
     public createTrackEmbed = (track: magmastream.Track, position?: number | null): discord.EmbedBuilder => {

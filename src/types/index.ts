@@ -18,7 +18,7 @@ declare global {
             FEEDBACK_WEBHOOK: string;
         }
     }
-}
+};
 
 declare module "discord.js" {
     export interface Client {
@@ -29,7 +29,13 @@ declare module "discord.js" {
         config: IConfig;
         manager: magmastream.Manager;
     }
-}
+};
+
+declare module "magmastream" {
+    interface Player {
+        cleanupScheduledAt?: number;
+    }
+};
 
 export * from "./music";
 export * from "./logger";
