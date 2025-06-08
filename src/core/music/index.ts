@@ -4,6 +4,7 @@ import magmastream from "magmastream";
 import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator } from "./handlers";
 
 export * from "./func";
+export * from "./repo";
 export * from "./handlers";
 export * from "./auto_search";
 export * from "./now_playing";

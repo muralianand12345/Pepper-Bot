@@ -1,4 +1,5 @@
 import discord from "discord.js";
+import timers from "timers/promises";
 
 
 export const sendTempMessage = async (channel: discord.TextChannel, embed: discord.EmbedBuilder, duration: number = 10000): Promise<void> => {
@@ -16,4 +17,8 @@ export const sendTempMessage = async (channel: discord.TextChannel, embed: disco
             if (deleteError.code !== 10008) { }
         });
     }, duration);
+};
+
+export const wait = async (ms: number): Promise<void> => {
+    await timers.setTimeout(ms);
 };

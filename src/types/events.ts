@@ -27,6 +27,11 @@ export interface BotEvent {
     execute: (...args: any[]) => void | Promise<void>;
 };
 
+export interface LavalinkEvent {
+    name: string;
+    execute: (...args: any[]) => void;
+};
+
 export interface BotPresence {
     name: string;
     type: discord.ActivityType;
