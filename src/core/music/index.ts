@@ -54,7 +54,7 @@ export class Music {
                 const track = res.tracks[0];
                 player.queue.add(track);
                 if (!player.playing && !player.paused && !player.queue.size) player.play();
-                await this.interaction.editReply({ embeds: [new MusicResponseHandler(this.client).createTrackEmbed(track, player.queue.size)], components: [new MusicResponseHandler(this.client).getMusicButton()] });
+                await this.interaction.editReply({ embeds: [new MusicResponseHandler(this.client).createTrackEmbed(track, player.queue.size)] });
                 break;
             };
             case "playlist": {

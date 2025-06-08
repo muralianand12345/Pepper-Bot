@@ -74,6 +74,14 @@ const lavalinkEvent: LavalinkEvent = {
 
             logTrackStart(track, player, client);
 
+            try {
+                const nowPlayingManager = NowPlayingManager.getInstance(player.guildId, player, client);
+                await nowPlayingManager.updateOrCreateMessage(channel, track);
+                client.logger.debug(`[LAVALINK] Now playing message created/updated for ${track.title}`);
+            } catch (nowPlayingError) {
+                client.logger.error(`[LAVALINK] Failed to create/update now playing message: ${nowPlayingError}`);
+            }
+
         } catch (error) {
             client.logger.error(`[TRACK_START] Error in trackStart event: ${error}`);
         }

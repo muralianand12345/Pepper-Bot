@@ -59,6 +59,15 @@ const lavalinkEvent: LavalinkEvent = {
                 if (processed) return client.logger.info(`[QUEUE_END] Autoplay added tracks for guild ${player.guildId}`);
             };
 
+            try {
+                const queueEndEmbed = createQueueEndEmbed(client);
+                await channel.send({ embeds: [queueEndEmbed] });
+
+                client.logger.debug(`[QUEUE_END] Queue end message sent with disabled buttons for guild ${player.guildId}`);
+            } catch (messageError) {
+                client.logger.error(`[QUEUE_END] Failed to send queue end message: ${messageError}`);
+            }
+
             await handlePlayerCleanup(player, player.guildId, client);
         } catch (error) {
             client.logger.error(`[QUEUE_END] Error in queue end event: ${error}`);

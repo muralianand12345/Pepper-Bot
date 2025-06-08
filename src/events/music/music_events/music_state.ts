@@ -54,8 +54,12 @@ const event: BotEvent = {
                     const currentMemberCount = currentChannel.members.filter((member) => !member.user.bot).size;
                     if (currentMemberCount === 0) {
                         client.logger.info(`[VOICE_STATE] Voice channel still empty after 10 minutes, disconnecting from guild ${player.guildId}`);
+
                         const disconnectEmbed = new MusicResponseHandler(client).createInfoEmbed("🔌 Disconnecting due to inactivity (10 minutes with no listeners)");
-                        await sendTempMessage(textChannel, disconnectEmbed);
+                        const disabledButtons = new MusicResponseHandler(client).getMusicButton(true);
+
+                        await textChannel.send({ embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
+
                         NowPlayingManager.removeInstance(player.guildId);
                         currentPlayer.destroy();
                     }
