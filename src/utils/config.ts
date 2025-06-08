@@ -1,6 +1,9 @@
+import fs from "fs";
 import path from "path";
 import { z } from "zod";
+import yaml from "yaml";
 import { config } from "dotenv";
+import discord from "discord.js";
 
 
 const EnvSchema = z.object({
@@ -107,4 +110,15 @@ export class ConfigManager {
     public getFeedbackWebhook = (): string => {
         return this.config.FEEDBACK_WEBHOOK;
     }
-}
+};
+
+export const loadConfig = (client: discord.Client) => {
+    try {
+        const configPath = path.join(__dirname, "../../config/config.yml");
+        const file = fs.readFileSync(configPath, "utf8");
+        return yaml.parse(file);
+    } catch (error) {
+        client.logger.error(`[PEPPER] Failed to load configuration: ${error}`);
+        process.exit(1);
+    }
+};

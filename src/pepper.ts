@@ -1,27 +1,13 @@
-import fs from "fs";
-import path from "path";
-import yaml from "yaml";
 import discord from "discord.js";
 import { Manager, UseNodeOptions } from "magmastream";
 
 import { Command } from "./types";
 import Logger from "./utils/logger";
-import { ConfigManager } from "./utils/config";
 import CommandLogger from "./utils/command_logger";
+import { ConfigManager, loadConfig } from "./utils/config";
 
 
 const configManager = ConfigManager.getInstance();
-
-const loadConfig = (client: discord.Client) => {
-    try {
-        const configPath = path.join(__dirname, "../config/config.yml");
-        const file = fs.readFileSync(configPath, "utf8");
-        return yaml.parse(file);
-    } catch (error) {
-        client.logger.error(`[PEPPER] Failed to load configuration: ${error}`);
-        process.exit(1);
-    }
-};
 
 const initializeManager = (config: any, client: discord.Client) => {
     return new Manager({
