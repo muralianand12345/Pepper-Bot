@@ -1,3 +1,5 @@
+import discord from "discord.js";
+
 import { BotPresence } from "./events";
 
 
@@ -6,7 +8,7 @@ export interface IConfig {
         owners: Array<string>;
         presence: {
             enabled: boolean;
-            status: string;
+            status: discord.PresenceStatusData;
             interval: number;
             activity: Array<BotPresence>;
         };
