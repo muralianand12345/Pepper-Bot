@@ -40,16 +40,10 @@ const langCommand: Command = {
 
     autocomplete: async (interaction: discord.AutocompleteInteraction, client: discord.Client): Promise<void> => {
         const focused = interaction.options.getFocused(true);
-
         if (focused.name === "language") {
             const supportedLanguages = localeDetector.getSupportedLanguages();
             const query = focused.value.toLowerCase();
-
-            const filtered = supportedLanguages
-                .filter(lang => lang.name.toLowerCase().includes(query) || lang.code.toLowerCase().includes(query))
-                .slice(0, 25)
-                .map(lang => ({ name: `${lang.name} (${lang.code})`, value: lang.code }));
-
+            const filtered = supportedLanguages.filter(lang => lang.name.toLowerCase().includes(query) || lang.code.toLowerCase().includes(query)).slice(0, 25).map(lang => ({ name: `${lang.name} (${lang.code})`, value: lang.code }));
             await interaction.respond(filtered);
         }
     },
