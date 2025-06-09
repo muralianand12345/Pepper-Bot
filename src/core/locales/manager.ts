@@ -3,7 +3,6 @@ import path from "path";
 import yaml from "yaml";
 import discord from "discord.js";
 
-import client from "../../pepper";
 import { LocaleData, InterpolationData } from "../../types";
 
 
@@ -24,44 +23,33 @@ export class LocalizationManager {
     };
 
     private loadAllLocales = (): void => {
-        try {
-            if (!fs.existsSync(this.localesPath)) {
-                fs.mkdirSync(this.localesPath, { recursive: true });
-                client.logger.log(`[LOCALIZATION] Created locales directory: ${this.localesPath}`);
-                return;
-            }
+        if (!fs.existsSync(this.localesPath)) {
+            fs.mkdirSync(this.localesPath, { recursive: true });
+            return;
+        }
 
-            const files = fs.readdirSync(this.localesPath).filter(file => file.endsWith('.yml') || file.endsWith('.yaml'));
+        const files = fs.readdirSync(this.localesPath).filter(file => file.endsWith('.yml') || file.endsWith('.yaml'));
 
-            for (const file of files) {
-                const locale = path.basename(file, path.extname(file));
-                this.loadLocale(locale);
-            }
-
-            client.logger.log(`[LOCALIZATION] Loaded ${this.locales.size} locale(s): ${Array.from(this.locales.keys()).join(', ')}`);
-        } catch (error) {
-            client.logger.error(`[LOCALIZATION] Error loading locales: ${error}`);
+        for (const file of files) {
+            const locale = path.basename(file, path.extname(file));
+            this.loadLocale(locale);
         }
     };
 
     private loadLocale = (locale: string): void => {
-        try {
-            const filePath = path.join(this.localesPath, `${locale}.yml`);
-            if (!fs.existsSync(filePath)) {
-                const yamlPath = path.join(this.localesPath, `${locale}.yaml`);
-                if (!fs.existsSync(yamlPath)) return;
-                const content = fs.readFileSync(yamlPath, 'utf8');
-                const data = yaml.parse(content);
-                this.locales.set(locale, data);
-                return;
-            }
-
-            const content = fs.readFileSync(filePath, 'utf8');
+        const filePath = path.join(this.localesPath, `${locale}.yml`);
+        if (!fs.existsSync(filePath)) {
+            const yamlPath = path.join(this.localesPath, `${locale}.yaml`);
+            if (!fs.existsSync(yamlPath)) return;
+            const content = fs.readFileSync(yamlPath, 'utf8');
             const data = yaml.parse(content);
             this.locales.set(locale, data);
-        } catch (error) {
-            client.logger.error(`[LOCALIZATION] Error loading locale ${locale}: ${error}`);
+            return;
         }
+
+        const content = fs.readFileSync(filePath, 'utf8');
+        const data = yaml.parse(content);
+        this.locales.set(locale, data);
     };
 
     public reloadLocales = (): void => {
@@ -98,10 +86,7 @@ export class LocalizationManager {
             translation = localeData ? this.getNestedValue(localeData, key) : null;
         }
 
-        if (!translation) {
-            client.logger.warn(`[LOCALIZATION] Missing translation for key: ${key} in locale: ${locale}`);
-            return key;
-        }
+        if (!translation) return key;
 
         return this.interpolate(translation, data);
     };
@@ -194,4 +179,4 @@ export class LocalizationManager {
 
         return mapping[discordLocale] || this.defaultLocale;
     };
-}
+};
