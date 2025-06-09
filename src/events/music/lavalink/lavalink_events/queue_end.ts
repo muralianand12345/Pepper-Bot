@@ -2,11 +2,15 @@ import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 
 import { LavalinkEvent } from "../../../../types";
+import { LocaleDetector } from "../../../../core/locales";
 import { wait, Autoplay, NowPlayingManager, MusicResponseHandler } from "../../../../core/music";
 
 
-const createQueueEndEmbed = (client: discord.Client): discord.EmbedBuilder => {
-    return new MusicResponseHandler(client).createInfoEmbed("🎵 Played all music in queue");
+const localeDetector = new LocaleDetector();
+
+const createQueueEndEmbed = (client: discord.Client, locale: string = 'en'): discord.EmbedBuilder => {
+    const responseHandler = new MusicResponseHandler(client);
+    return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || "🎵 Played all music in queue", locale);
 };
 
 const shouldAutoplayKeepAlive = (player: magmastream.Player, guildId: string, client: discord.Client): boolean => {
@@ -20,7 +24,10 @@ const shouldAutoplayKeepAlive = (player: magmastream.Player, guildId: string, cl
 };
 
 const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, client: discord.Client): Promise<void> => {
-    if (shouldAutoplayKeepAlive(player, guildId, client)) return client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
+    if (shouldAutoplayKeepAlive(player, guildId, client)) {
+        return client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
+    }
+
     const CLEANUP_DELAY = 300000;
     const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
 
@@ -60,10 +67,15 @@ const lavalinkEvent: LavalinkEvent = {
             };
 
             try {
-                const queueEndEmbed = createQueueEndEmbed(client);
+                let guildLocale = 'en';
+                try {
+                    guildLocale = await localeDetector.getGuildLanguage(player.guildId) || 'en';
+                } catch (error) { }
+
+                const queueEndEmbed = createQueueEndEmbed(client, guildLocale);
                 await channel.send({ embeds: [queueEndEmbed] });
 
-                client.logger.debug(`[QUEUE_END] Queue end message sent with disabled buttons for guild ${player.guildId}`);
+                client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${player.guildId}`);
             } catch (messageError) {
                 client.logger.error(`[QUEUE_END] Failed to send queue end message: ${messageError}`);
             }

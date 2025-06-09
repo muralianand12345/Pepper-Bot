@@ -1,11 +1,14 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 
+import { LocaleDetector } from "../../../../core/locales";
 import { LavalinkEvent, ISongsUser } from "../../../../types";
 import { wait, MusicDB, NowPlayingManager } from "../../../../core/music";
+import { MusicResponseHandler } from "../../../../core/music/handlers/response";
 
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
+const localeDetector = new LocaleDetector();
 
 const logTrackStart = (track: magmastream.Track, player: magmastream.Player, client: discord.Client): void => {
     const guildName = client.guilds.cache.get(player.guildId)?.name;
@@ -31,6 +34,11 @@ const lavalinkEvent: LavalinkEvent = {
             const channel = (await client.channels.fetch(player.textChannelId)) as discord.TextChannel;
             if (!channel?.isTextBased()) return;
 
+            let guildLocale = 'en';
+            try {
+                guildLocale = await localeDetector.getGuildLanguage(player.guildId) || 'en';
+            } catch (error) { }
+
             if (YTREGEX.test(track.uri)) {
                 const isFromPlaylist = player.queue && player.queue.size > 0;
 
@@ -38,10 +46,14 @@ const lavalinkEvent: LavalinkEvent = {
                     player.stop(1);
                     client.logger.warn(`[LAVALINK] Skipping YouTube track: ${track.uri}`);
 
-                    const embed = new discord.EmbedBuilder()
-                        .setColor("Red")
-                        .setDescription(`⚠️ Skipping song! Youtube source detected.`)
-                        .setFooter({ text: "We do not support Youtube links due to YouTube's TOS.", iconURL: client.user?.displayAvatarURL() || "", });
+                    const responseHandler = new MusicResponseHandler(client);
+                    const embed = responseHandler.createWarningEmbed(
+                        client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || "⚠️ Skipping song! Youtube source detected.",
+                        guildLocale
+                    ).setFooter({
+                        text: client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.",
+                        iconURL: client.user?.displayAvatarURL() || ""
+                    });
 
                     return await channel.send({ embeds: [embed] }).then((msg) => wait(5000).then(() => msg.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));
                 } else {

@@ -1,0 +1,138 @@
+commands:
+    play:
+        name: "jouer"
+        description: "Jouer une chanson par nom ou URL"
+        options:
+            song:
+                name: "chanson"
+                description: "Nom de la chanson/URL"
+            lavalink_node:
+                name: "noeud_lavalink"
+                description: "Lavalink pour jouer la chanson (Optionnel)"
+
+    pause:
+        name: "pause"
+        description: "Mettre en pause la musique en cours de lecture"
+
+    resume:
+        name: "reprendre"
+        description: "Reprendre la musique en pause"
+
+    skip:
+        name: "passer"
+        description: "Passer la chanson actuelle et jouer la suivante"
+
+    stop:
+        name: "arreter"
+        description: "Arrêter la musique et se déconnecter du canal vocal"
+
+    loop:
+        name: "boucle"
+        description: "Basculer le mode de répétition pour la piste actuelle"
+
+    autoplay:
+        name: "lecture_auto"
+        description: "Basculer la lecture automatique intelligente basée sur vos préférences musicales"
+        options:
+            enabled:
+                name: "active"
+                description: "Activer ou désactiver la lecture automatique"
+
+    language:
+        name: "langue"
+        description: "Définir les préférences de langue pour le bot"
+        options:
+            scope:
+                name: "portee"
+                description: "Définir la langue pour l'utilisateur ou le serveur"
+                choices:
+                    user: "utilisateur"
+                    server: "serveur"
+                    reset: "reinitialiser"
+            language:
+                name: "langue"
+                description: "Choisissez votre langue préférée"
+
+responses:
+    music:
+        connected: "Connecté à {channelName}"
+        paused: "Musique en pause !"
+        resumed: "Musique reprise !"
+        skipped: "Chanson actuelle passée !"
+        stopped: "Lecteur de musique arrêté et déconnecté du canal vocal"
+        loop_enabled: "La répétition est maintenant activée"
+        loop_disabled: "La répétition est maintenant désactivée"
+        autoplay_enabled: "🎵 La Lecture Automatique Intelligente est maintenant **activée**\n\nQuand la file d'attente est vide, j'ajouterai automatiquement des chansons basées sur vos préférences musicales."
+        autoplay_disabled: "⏹️ La lecture automatique est maintenant **désactivée**\n\nLa lecture s'arrêtera quand la file d'attente sera vide."
+        now_playing: "En Cours de Lecture"
+        track_added: "Piste Ajoutée à la File d'Attente"
+        playlist_added: "Playlist Ajoutée à la File d'Attente"
+        queue_empty: "🎵 Toute la musique de la file d'attente a été jouée"
+        disconnected: "🔌 Lecteur de musique déconnecté"
+        disconnected_inactivity: "🔌 Déconnexion due à l'inactivité (10 minutes sans auditeurs)"
+        paused_empty_channel: "⏸️ Lecture en pause car le canal vocal est vide"
+        resumed_members_joined: "▶️ Lecture reprise"
+        youtube_blocked: "⚠️ Chanson passée ! Source Youtube détectée."
+        youtube_footer: "Nous ne prenons pas en charge les liens Youtube en raison des TOS de YouTube."
+
+    errors:
+        music_disabled: "La musique est actuellement désactivée."
+        no_player: "Aucune musique n'est en cours de lecture"
+        no_voice_channel: "Vous devez être dans un canal vocal"
+        not_same_voice: "Vous n'êtes pas dans le même canal vocal que le bot"
+        no_permission_join: "Je n'ai pas la permission de rejoindre {channelName}"
+        need_permissions: "J'ai besoin des permissions pour `Se connecter` et `Parler` dans {channelName}"
+        not_in_server: "Vous n'êtes pas sur le serveur"
+        server_only: "Cette commande ne peut être utilisée que sur un serveur"
+        already_paused: "La musique est déjà en pause"
+        already_playing: "La musique est déjà en cours de lecture"
+        no_queue: "Il n'y a pas de chansons dans la file d'attente"
+        queue_too_small: "Il n'y a que {count} chansons dans la file d'attente"
+        youtube_not_supported: "Nous ne prenons pas en charge les liens ou la musique YouTube pour le moment :("
+        no_results: "Impossible de récupérer les résultats"
+        node_invalid: "Nœud Lavalink invalide"
+        node_not_connected: "Le nœud Lavalink n'est pas connecté"
+        player_exists: "Hmmm, vous avez un lecteur de musique actif sur ce serveur. Veuillez arrêter le lecteur actuel avant de changer de nœuds Lavalink."
+        no_permission: "🚫 {user}, Vous n'avez pas la permission d'utiliser cette commande !"
+        missing_user_perms: "🚫 Vous n'avez pas les permissions `{permissions}` pour utiliser cette commande !"
+        missing_bot_perms: "🚫 J'ai besoin des permissions `{permissions}` pour exécuter cette commande !"
+        general_error: "Une erreur s'est produite lors de l'exécution de cette commande."
+        play_error: "Une erreur s'est produite lors du traitement de la chanson"
+        stop_error: "Une erreur s'est produite lors de l'arrêt de la chanson"
+        pause_error: "Une erreur s'est produite lors de la mise en pause de la chanson"
+        resume_error: "Une erreur s'est produite lors de la reprise de la chanson"
+        skip_error: "Une erreur s'est produite lors du passage de la chanson"
+        loop_error: "Une erreur s'est produite lors du basculement de la répétition"
+        autoplay_error: "Une erreur s'est produite lors du basculement de la lecture automatique."
+        contact_dev: "Si ce problème persiste, veuillez utiliser /feedback ou contacter le développeur"
+
+    language:
+        user_set: "Votre langue a été définie sur **{language}**"
+        server_set: "La langue du serveur a été définie sur **{language}** (Admin uniquement)"
+        reset: "La préférence de langue a été réinitialisée. Utilisation de la locale de Discord."
+        same_language: "La langue est déjà définie sur **{language}**"
+        unsupported: "La langue **{language}** n'est pas prise en charge. Langues prises en charge : {languages}"
+        no_permission: "Vous avez besoin de la permission **Gérer le Serveur** pour changer la langue du serveur"
+
+    fields:
+        duration: "Durée"
+        source: "Source"
+        requested_by: "Demandé par"
+        queue_info: "Info File d'Attente"
+        position: "Position #{position}"
+        playing_next: "Lecture suivante"
+        tracks: "Pistes"
+        total_duration: "Durée Totale"
+        avg_duration: "Durée Moyenne"
+        added_by: "Ajouté par"
+        progress: "Progrès"
+
+    buttons:
+        pause: "Pause"
+        resume: "Reprendre"
+        skip: "Passer"
+        stop: "Arrêter"
+        loop: "Boucle"
+        support_server: "Serveur de Support"
+
+    default_search: "Veuillez entrer un nom de chanson ou une URL"

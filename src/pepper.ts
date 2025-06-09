@@ -4,6 +4,7 @@ import { Manager, UseNodeOptions } from "magmastream";
 import { Command } from "./types";
 import Logger from "./utils/logger";
 import CommandLogger from "./utils/command_logger";
+import { LocalizationManager } from "./core/locales";
 import { ConfigManager, loadConfig } from "./utils/config";
 
 
@@ -40,6 +41,7 @@ const createClient = (): discord.Client => {
     client.cooldowns = new discord.Collection<string, number>();
     client.config = loadConfig(client);
     client.manager = initializeManager(client.config, client);
+    client.localizationManager = LocalizationManager.getInstance();
     client.on(discord.Events.Raw, (d) => client.manager.updateVoiceState(d));
 
     return client;

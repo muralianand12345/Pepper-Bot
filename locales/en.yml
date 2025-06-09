@@ -1,0 +1,138 @@
+commands:
+    play:
+        name: "play"
+        description: "Play a song via song name or url"
+        options:
+            song:
+                name: "song"
+                description: "Song Name/URL"
+            lavalink_node:
+                name: "lavalink_node"
+                description: "Lavalink to play the song (Optional)"
+
+    pause:
+        name: "pause"
+        description: "Pause the currently playing music"
+
+    resume:
+        name: "resume"
+        description: "Resume the paused music"
+
+    skip:
+        name: "skip"
+        description: "Skip the current song and play the next one"
+
+    stop:
+        name: "stop"
+        description: "Stop the music and disconnect from voice channel"
+
+    loop:
+        name: "loop"
+        description: "Toggle loop mode for the current track"
+
+    autoplay:
+        name: "autoplay"
+        description: "Toggle smart autoplay based on your music preferences"
+        options:
+            enabled:
+                name: "enabled"
+                description: "Enable or disable autoplay"
+
+    language:
+        name: "language"
+        description: "Set language preferences for the bot"
+        options:
+            scope:
+                name: "scope"
+                description: "Set language for user or server"
+                choices:
+                    user: "user"
+                    server: "server"
+                    reset: "reset"
+            language:
+                name: "language"
+                description: "Choose your preferred language"
+
+responses:
+    music:
+        connected: "Connected to {channelName}"
+        paused: "Paused the music!"
+        resumed: "Resumed the music!"
+        skipped: "Skipped the current song!"
+        stopped: "Music player stopped and disconnected from the voice channel"
+        loop_enabled: "Looping is now enabled"
+        loop_disabled: "Looping is now disabled"
+        autoplay_enabled: "🎵 Smart Autoplay is now **enabled**\n\nWhen the queue is empty, I'll automatically add songs based on your music preferences."
+        autoplay_disabled: "⏹️ Autoplay is now **disabled**\n\nPlayback will stop when the queue is empty."
+        now_playing: "Now Playing"
+        track_added: "Track Added to Queue"
+        playlist_added: "Playlist Added to Queue"
+        queue_empty: "🎵 Played all music in queue"
+        disconnected: "🔌 Music player disconnected"
+        disconnected_inactivity: "🔌 Disconnecting due to inactivity (10 minutes with no listeners)"
+        paused_empty_channel: "⏸️ Paused playback because the voice channel is empty"
+        resumed_members_joined: "▶️ Resumed playback"
+        youtube_blocked: "⚠️ Skipping song! Youtube source detected."
+        youtube_footer: "We do not support Youtube links due to YouTube's TOS."
+
+    errors:
+        music_disabled: "Music is currently disabled."
+        no_player: "No music is currently playing"
+        no_voice_channel: "You need to be in a voice channel"
+        not_same_voice: "You are not in the same voice channel as the bot"
+        no_permission_join: "I don't have permission to join {channelName}"
+        need_permissions: "I need the permissions to `Join` and `Speak` in {channelName}"
+        not_in_server: "You are not in the server"
+        server_only: "This command can only be used in a server"
+        already_paused: "The music is already paused"
+        already_playing: "The music is already playing"
+        no_queue: "There are no songs in the queue"
+        queue_too_small: "There are only {count} songs in the queue"
+        youtube_not_supported: "We do not support YouTube links or music at this time :("
+        no_results: "Unable To Fetch Results"
+        node_invalid: "Invalid Lavalink node"
+        node_not_connected: "Lavalink node is not connected"
+        player_exists: "Hmmm, you have an active music player in this server. Please stop the current player before switching Lavalink nodes."
+        no_permission: "🚫 {user}, You don't have permission to use this command!"
+        missing_user_perms: "🚫 You don't have `{permissions}` permissions to use this command!"
+        missing_bot_perms: "🚫 I need `{permissions}` permissions to execute this command!"
+        general_error: "An error occurred while executing this command."
+        play_error: "An error occurred while processing the song"
+        stop_error: "An error occurred while stopping song"
+        pause_error: "An error occurred while pausing the song"
+        resume_error: "An error occurred while resuming the song"
+        skip_error: "An error occurred while skipping the song"
+        loop_error: "An error occurred while toggling loop"
+        autoplay_error: "An error occurred while toggling autoplay."
+        contact_dev: "If this issue persists, please use /feedback or contact the developer"
+
+    language:
+        user_set: "Your language has been set to **{language}**"
+        server_set: "Server language has been set to **{language}** (Admin only)"
+        reset: "Language preference has been reset. Using Discord's locale."
+        same_language: "Language is already set to **{language}**"
+        unsupported: "Language **{language}** is not supported. Supported languages: {languages}"
+        no_permission: "You need **Manage Server** permission to change server language"
+
+    fields:
+        duration: "Duration"
+        source: "Source"
+        requested_by: "Requested by"
+        queue_info: "Queue Info"
+        position: "Position #{position}"
+        playing_next: "Playing next"
+        tracks: "Tracks"
+        total_duration: "Total Duration"
+        avg_duration: "Avg. Duration"
+        added_by: "Added by"
+        progress: "Progress"
+
+    buttons:
+        pause: "Pause"
+        resume: "Resume"
+        skip: "Skip"
+        stop: "Stop"
+        loop: "Loop"
+        support_server: "Support Server"
+
+    default_search: "Please enter a song name or url"

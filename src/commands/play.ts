@@ -3,21 +3,28 @@ import magmastream from "magmastream";
 
 import { Command, INodeOption } from "../types";
 import { ConfigManager } from "../utils/config";
-import { Music, SpotifyAutoComplete, MUSIC_CONFIG } from "../core/music";
+import { Music, SpotifyAutoComplete } from "../core/music";
+import { LocalizationManager, LocaleDetector } from "../core/locales";
 
 
 const configManager = ConfigManager.getInstance();
+const localizationManager = LocalizationManager.getInstance();
+const localeDetector = new LocaleDetector();
 
-const command: Command = {
+const playCommand: Command = {
     cooldown: 1,
     data: new discord.SlashCommandBuilder()
         .setName("play")
         .setDescription("Play a song via song name or url")
+        .setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.name'))
+        .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.description'))
         .setContexts(discord.InteractionContextType.Guild)
         .addStringOption((option) =>
             option
                 .setName("song")
                 .setDescription("Song Name/URL")
+                .setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.name'))
+                .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.description'))
                 .setRequired(true)
                 .setAutocomplete(true)
         )
@@ -25,28 +32,25 @@ const command: Command = {
             option
                 .setName("lavalink_node")
                 .setDescription("Lavalink to play the song (Optional)")
+                .setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.lavalink_node.name'))
+                .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.lavalink_node.description'))
                 .setRequired(false)
                 .setAutocomplete(true)
         ),
     autocomplete: async (interaction: discord.AutocompleteInteraction, client: discord.Client): Promise<void> => {
         const focused = interaction.options.getFocused(true);
+        const t = await localeDetector.getTranslator(interaction);
 
         try {
             let suggestions;
 
             if (focused.name === "lavalink_node") {
-                const nodes: INodeOption[] = client.manager.nodes
-                    .filter((node: magmastream.Node) => node.connected == true)
-                    .map((node: magmastream.Node) => ({ name: `${node.options.identifier} (${node.options.host})`, value: node.options.identifier || "Unknown Node" }));
-
-                suggestions = nodes.filter((option: INodeOption) =>
-                    option.name
-                        .toLowerCase()
-                        .includes(focused.value.toLowerCase())
-                );
+                const nodes: INodeOption[] = client.manager.nodes.filter((node: magmastream.Node) => node.connected == true).map((node: magmastream.Node) => ({ name: `${node.options.identifier} (${node.options.host})`, value: node.options.identifier || "Unknown Node" }));
+                suggestions = nodes.filter((option: INodeOption) => option.name.toLowerCase().includes(focused.value.toLowerCase()));
             } else if (focused.name === "song") {
                 if (!focused.value) {
-                    suggestions = [{ name: MUSIC_CONFIG.DEFAULT_SEARCH_TEXT.slice(0, 100), value: MUSIC_CONFIG.DEFAULT_SEARCH_TEXT }];
+                    const defaultText = t('responses.default_search');
+                    suggestions = [{ name: defaultText.slice(0, 100), value: defaultText }];
                 } else {
                     focused.value = focused.value.split("?")[0].split("#")[0];
                     const isSpotifyLink = focused.value.match(/^(https:\/\/open\.spotify\.com\/|spotify:)/i);
@@ -61,8 +65,9 @@ const command: Command = {
 
             await interaction.respond(suggestions || []);
         } catch (error) {
-            client.logger.error(`[NODE_PLAY] Autocomplete error: ${error}`);
-            await interaction.respond([{ name: MUSIC_CONFIG.ERROR_SEARCH_TEXT.slice(0, 100), value: MUSIC_CONFIG.ERROR_SEARCH_TEXT }]);
+            client.logger.error(`[PLAY_COMMAND] Autocomplete error: ${error}`);
+            const errorText = t('responses.errors.no_results');
+            await interaction.respond([{ name: errorText.slice(0, 100), value: errorText }]);
         }
     },
     execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {
@@ -71,4 +76,4 @@ const command: Command = {
     }
 };
 
-export default command;
+export default playCommand;

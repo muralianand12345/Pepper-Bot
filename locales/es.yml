@@ -1,0 +1,138 @@
+commands:
+    play:
+        name: "reproducir"
+        description: "Reproduce una canción por nombre o URL"
+        options:
+            song:
+                name: "cancion"
+                description: "Nombre de la canción/URL"
+            lavalink_node:
+                name: "nodo_lavalink"
+                description: "Lavalink para reproducir la canción (Opcional)"
+
+    pause:
+        name: "pausar"
+        description: "Pausar la música que se está reproduciendo"
+
+    resume:
+        name: "reanudar"
+        description: "Reanudar la música pausada"
+
+    skip:
+        name: "saltar"
+        description: "Saltar la canción actual y reproducir la siguiente"
+
+    stop:
+        name: "parar"
+        description: "Parar la música y desconectar del canal de voz"
+
+    loop:
+        name: "repetir"
+        description: "Alternar el modo de repetición para la pista actual"
+
+    autoplay:
+        name: "autoreproducir"
+        description: "Alternar la reproducción automática inteligente basada en tus preferencias musicales"
+        options:
+            enabled:
+                name: "activado"
+                description: "Activar o desactivar la reproducción automática"
+
+    language:
+        name: "idioma"
+        description: "Establecer preferencias de idioma para el bot"
+        options:
+            scope:
+                name: "alcance"
+                description: "Establecer idioma para usuario o servidor"
+                choices:
+                    user: "usuario"
+                    server: "servidor"
+                    reset: "resetear"
+            language:
+                name: "idioma"
+                description: "Elige tu idioma preferido"
+
+responses:
+    music:
+        connected: "Conectado a {channelName}"
+        paused: "¡Música pausada!"
+        resumed: "¡Música reanudada!"
+        skipped: "¡Canción actual saltada!"
+        stopped: "Reproductor de música detenido y desconectado del canal de voz"
+        loop_enabled: "La repetición está ahora activada"
+        loop_disabled: "La repetición está ahora desactivada"
+        autoplay_enabled: "🎵 La Reproducción Automática Inteligente está ahora **activada**\n\nCuando la cola esté vacía, añadiré automáticamente canciones basadas en tus preferencias musicales."
+        autoplay_disabled: "⏹️ La reproducción automática está ahora **desactivada**\n\nLa reproducción se detendrá cuando la cola esté vacía."
+        now_playing: "Reproduciendo Ahora"
+        track_added: "Pista Añadida a la Cola"
+        playlist_added: "Lista de Reproducción Añadida a la Cola"
+        queue_empty: "🎵 Se reprodujo toda la música en la cola"
+        disconnected: "🔌 Reproductor de música desconectado"
+        disconnected_inactivity: "🔌 Desconectando por inactividad (10 minutos sin oyentes)"
+        paused_empty_channel: "⏸️ Reproducción pausada porque el canal de voz está vacío"
+        resumed_members_joined: "▶️ Reproducción reanudada"
+        youtube_blocked: "⚠️ ¡Saltando canción! Fuente de Youtube detectada."
+        youtube_footer: "No admitimos enlaces de Youtube debido a los TOS de YouTube."
+
+    errors:
+        music_disabled: "La música está actualmente desactivada."
+        no_player: "No se está reproduciendo música actualmente"
+        no_voice_channel: "Necesitas estar en un canal de voz"
+        not_same_voice: "No estás en el mismo canal de voz que el bot"
+        no_permission_join: "No tengo permiso para unirme a {channelName}"
+        need_permissions: "Necesito los permisos para `Conectar` y `Hablar` en {channelName}"
+        not_in_server: "No estás en el servidor"
+        server_only: "Este comando solo se puede usar en un servidor"
+        already_paused: "La música ya está pausada"
+        already_playing: "La música ya se está reproduciendo"
+        no_queue: "No hay canciones en la cola"
+        queue_too_small: "Solo hay {count} canciones en la cola"
+        youtube_not_supported: "No admitimos enlaces o música de YouTube en este momento :("
+        no_results: "No se pudieron obtener resultados"
+        node_invalid: "Nodo Lavalink inválido"
+        node_not_connected: "El nodo Lavalink no está conectado"
+        player_exists: "Hmmm, tienes un reproductor de música activo en este servidor. Por favor, detén el reproductor actual antes de cambiar nodos Lavalink."
+        no_permission: "🚫 {user}, ¡No tienes permiso para usar este comando!"
+        missing_user_perms: "🚫 ¡No tienes permisos de `{permissions}` para usar este comando!"
+        missing_bot_perms: "🚫 ¡Necesito permisos de `{permissions}` para ejecutar este comando!"
+        general_error: "Ocurrió un error al ejecutar este comando."
+        play_error: "Ocurrió un error al procesar la canción"
+        stop_error: "Ocurrió un error al detener la canción"
+        pause_error: "Ocurrió un error al pausar la canción"
+        resume_error: "Ocurrió un error al reanudar la canción"
+        skip_error: "Ocurrió un error al saltar la canción"
+        loop_error: "Ocurrió un error al alternar la repetición"
+        autoplay_error: "Ocurrió un error al alternar la reproducción automática."
+        contact_dev: "Si este problema persiste, por favor usa /feedback o contacta al desarrollador"
+
+    language:
+        user_set: "Tu idioma ha sido establecido a **{language}**"
+        server_set: "El idioma del servidor ha sido establecido a **{language}** (Solo Admin)"
+        reset: "La preferencia de idioma ha sido restablecida. Usando la configuración regional de Discord."
+        same_language: "El idioma ya está establecido a **{language}**"
+        unsupported: "El idioma **{language}** no es compatible. Idiomas compatibles: {languages}"
+        no_permission: "Necesitas permiso de **Administrar Servidor** para cambiar el idioma del servidor"
+
+    fields:
+        duration: "Duración"
+        source: "Fuente"
+        requested_by: "Solicitado por"
+        queue_info: "Info de Cola"
+        position: "Posición #{position}"
+        playing_next: "Reproduciendo siguiente"
+        tracks: "Pistas"
+        total_duration: "Duración Total"
+        avg_duration: "Duración Promedio"
+        added_by: "Añadido por"
+        progress: "Progreso"
+
+    buttons:
+        pause: "Pausar"
+        resume: "Reanudar"
+        skip: "Saltar"
+        stop: "Parar"
+        loop: "Repetir"
+        support_server: "Servidor de Soporte"
+
+    default_search: "Por favor ingresa el nombre de una canción o URL"

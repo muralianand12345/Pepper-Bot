@@ -9,6 +9,3 @@ export const userDataSchema = new Schema<ISongsUser>({
     discriminator: { type: String, required: true },
     avatar: { type: String, required: false },
 });
-
-export * from "./music_guild";
-export * from "./music_user";

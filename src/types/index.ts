@@ -5,6 +5,7 @@ import { IConfig } from "./config";
 import { ILogger } from "./logger";
 import { Command } from "./events";
 import CommandLogger from "../utils/command_logger";
+import { LocalizationManager } from "../core/locales";
 
 declare global {
     namespace NodeJS {
@@ -28,6 +29,7 @@ declare module "discord.js" {
         cmdLogger: CommandLogger;
         config: IConfig;
         manager: magmastream.Manager;
+        localizationManager?: LocalizationManager;
     }
 };
 
@@ -41,3 +43,4 @@ export * from "./music";
 export * from "./logger";
 export * from "./events";
 export * from "./config";
+export * from "./locales";

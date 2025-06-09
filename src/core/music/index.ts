@@ -1,6 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
 
+import { LocaleDetector } from "../locales";
 import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator, Autoplay } from "./handlers";
 
 export * from "./func";
@@ -22,31 +23,61 @@ export const MUSIC_CONFIG = {
 export class Music {
     private client: discord.Client;
     private interaction: discord.ChatInputCommandInteraction | discord.ButtonInteraction;
+    private localeDetector: LocaleDetector;
+    private locale: string = 'en';
+    private t: (key: string, data?: Record<string, string | number>) => string = (key) => key;
 
     constructor(client: discord.Client, interaction: discord.ChatInputCommandInteraction | discord.ButtonInteraction) {
         this.client = client;
         this.interaction = interaction;
+        this.localeDetector = new LocaleDetector();
+        this.initializeLocale();
+    };
+
+    private initializeLocale = async (): Promise<void> => {
+        this.locale = await this.localeDetector.detectLocale(this.interaction);
+        this.t = await this.localeDetector.getTranslator(this.interaction);
     };
 
     private validateMusicEnabled = (): discord.EmbedBuilder | null => {
         if (this.client.config.music.enabled) return null;
-        return new MusicResponseHandler(this.client).createErrorEmbed("Music is currently disabled.");
+        return new MusicResponseHandler(this.client).createErrorEmbed(
+            this.t('responses.errors.music_disabled'),
+            this.locale
+        );
     };
 
     private validateLavalinkNode = async (nodeChoice: string | undefined): Promise<discord.EmbedBuilder | null> => {
         if (!nodeChoice) return null;
-        if (this.client.manager.get(this.interaction.guild?.id || "")) return new MusicResponseHandler(this.client).createErrorEmbed("Hmmm, you have an active music player in this server. Please stop the current player before switching Lavalink nodes.");
+        if (this.client.manager.get(this.interaction.guild?.id || "")) {
+            return new MusicResponseHandler(this.client).createErrorEmbed(
+                this.t('responses.errors.player_exists'),
+                this.locale
+            );
+        }
         const node = this.client.manager.nodes.find((n: magmastream.Node) => n.options.identifier === nodeChoice);
-        if (!node) return new MusicResponseHandler(this.client).createErrorEmbed("Invalid Lavalink node");
-        if (!node.connected) return new MusicResponseHandler(this.client).createErrorEmbed("Lavalink node is not connected");
+        if (!node) {
+            return new MusicResponseHandler(this.client).createErrorEmbed(
+                this.t('responses.errors.node_invalid'),
+                this.locale
+            );
+        }
+        if (!node.connected) {
+            return new MusicResponseHandler(this.client).createErrorEmbed(
+                this.t('responses.errors.node_not_connected'),
+                this.locale
+            );
+        }
         return null;
     };
 
     searchResults = async (res: magmastream.SearchResult, player: magmastream.Player): Promise<void> => {
+        const responseHandler = new MusicResponseHandler(this.client);
+
         switch (res.loadType) {
             case "empty": {
                 if (!player.queue.current) player.destroy();
-                await this.interaction.editReply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed(MUSIC_CONFIG.ERROR_SEARCH_TEXT)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_results'), this.locale)] });
                 break;
             };
             case "track":
@@ -54,14 +85,14 @@ export class Music {
                 const track = res.tracks[0];
                 player.queue.add(track);
                 if (!player.playing && !player.paused && !player.queue.size) player.play();
-                await this.interaction.editReply({ embeds: [new MusicResponseHandler(this.client).createTrackEmbed(track, player.queue.size)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, player.queue.size, this.locale)] });
                 break;
             };
             case "playlist": {
                 if (!res.playlist) break;
                 res.playlist.tracks.forEach((track: magmastream.Track) => player.queue.add(track));
                 if (!player.playing && !player.paused && player.queue.totalSize === res.playlist.tracks.length) player.play();
-                await this.interaction.editReply({ embeds: [new MusicResponseHandler(this.client).createPlaylistEmbed(res.playlist, this.interaction.user)], components: [new MusicResponseHandler(this.client).getMusicButton()] });
+                await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
                 break;
             };
         };
@@ -70,10 +101,13 @@ export class Music {
     play = async (): Promise<discord.InteractionResponse<boolean> | void> => {
         if (!(this.interaction instanceof discord.ChatInputCommandInteraction)) return;
 
+        await this.initializeLocale();
+        const responseHandler = new MusicResponseHandler(this.client);
+
         const musicCheck = this.validateMusicEnabled();
         if (musicCheck) return await this.interaction.reply({ embeds: [musicCheck], flags: discord.MessageFlags.Ephemeral });
 
-        const query = this.interaction.options.getString("song") || MUSIC_CONFIG.DEFAULT_SEARCH_TEXT;
+        const query = this.interaction.options.getString("song") || this.t('responses.default_search');
         const nodeChoice = this.interaction.options.getString("lavalink_node") || undefined;
 
         const nodeCheck = await this.validateLavalinkNode(nodeChoice);
@@ -108,7 +142,7 @@ export class Music {
 
         if (!["CONNECTING", "CONNECTED"].includes(player.state)) {
             player.connect();
-            await this.interaction.editReply({ embeds: [new MusicResponseHandler(this.client).createSuccessEmbed(`Connected to ${guildMember?.voice.channel?.name}`)] });
+            await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)], });
         }
 
         try {
@@ -117,16 +151,19 @@ export class Music {
             await this.searchResults(res, player);
         } catch (error) {
             this.client.logger.error(`[MUSIC] Play error: ${error}`);
-            await this.interaction.followUp({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("An error occurred while processing the song", true)], components: [new MusicResponseHandler(this.client).getSupportButton()], flags: discord.MessageFlags.Ephemeral });
+            await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.play_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
         }
     };
 
     stop = async (): Promise<discord.InteractionResponse<boolean> | void> => {
+        await this.initializeLocale();
+        const responseHandler = new MusicResponseHandler(this.client);
+
         const musicCheck = this.validateMusicEnabled();
         if (musicCheck) return await this.interaction.reply({ embeds: [musicCheck], flags: discord.MessageFlags.Ephemeral });
 
         const player = this.client.manager.get(this.interaction.guild?.id || "");
-        if (!player) return await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("No music is currently playing")], flags: discord.MessageFlags.Ephemeral });
+        if (!player) return await this.interaction.reply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)], flags: discord.MessageFlags.Ephemeral });
 
         const validator = new VoiceChannelValidator(this.client, this.interaction);
         for (const check of [
@@ -141,19 +178,22 @@ export class Music {
 
         try {
             player.destroy();
-            await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createSuccessEmbed("Music player stopped and disconnected from the voice channel")], components: [new MusicResponseHandler(this.client).getMusicButton(true)] });
+            await this.interaction.reply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'), this.locale)], components: [responseHandler.getMusicButton(true, this.locale)] });
         } catch (error) {
             this.client.logger.error(`[MUSIC] Stop error: ${error}`);
-            await this.interaction.followUp({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("An error occurred while stopping song", true)], components: [new MusicResponseHandler(this.client).getSupportButton()], flags: discord.MessageFlags.Ephemeral });
+            await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.stop_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
         }
     };
 
     pause = async (): Promise<discord.InteractionResponse<boolean> | void> => {
+        await this.initializeLocale();
+        const responseHandler = new MusicResponseHandler(this.client);
+
         const musicCheck = this.validateMusicEnabled();
         if (musicCheck) return await this.interaction.reply({ embeds: [musicCheck], flags: discord.MessageFlags.Ephemeral });
 
         const player = this.client.manager.get(this.interaction.guild?.id || "");
-        if (!player) return await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("No music is currently playing")], flags: discord.MessageFlags.Ephemeral });
+        if (!player) return await this.interaction.reply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)], flags: discord.MessageFlags.Ephemeral });
 
         const validator = new VoiceChannelValidator(this.client, this.interaction);
         for (const check of [
@@ -172,19 +212,22 @@ export class Music {
 
         try {
             player.pause(true);
-            await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createSuccessEmbed("Paused the music!")], components: [new MusicResponseHandler(this.client).getMusicButton()] });
+            await this.interaction.reply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
         } catch (error) {
             this.client.logger.error(`[MUSIC] Pause error: ${error}`);
-            await this.interaction.followUp({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("An error occurred while pausing the song", true)], components: [new MusicResponseHandler(this.client).getSupportButton()], flags: discord.MessageFlags.Ephemeral });
+            await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.pause_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
         }
     };
 
     resume = async (): Promise<discord.InteractionResponse<boolean> | void> => {
+        await this.initializeLocale();
+        const responseHandler = new MusicResponseHandler(this.client);
+
         const musicCheck = this.validateMusicEnabled();
         if (musicCheck) return await this.interaction.reply({ embeds: [musicCheck], flags: discord.MessageFlags.Ephemeral });
 
         const player = this.client.manager.get(this.interaction.guild?.id || "");
-        if (!player) return await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("No music is currently playing")], flags: discord.MessageFlags.Ephemeral });
+        if (!player) return await this.interaction.reply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)], flags: discord.MessageFlags.Ephemeral });
 
         const validator = new VoiceChannelValidator(this.client, this.interaction);
         for (const check of [
@@ -203,19 +246,22 @@ export class Music {
 
         try {
             player.pause(false);
-            await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createSuccessEmbed("Resumed the music!")], components: [new MusicResponseHandler(this.client).getMusicButton()] });
+            await this.interaction.reply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
         } catch (error) {
             this.client.logger.error(`[MUSIC] Resume error: ${error}`);
-            await this.interaction.followUp({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("An error occurred while resuming the song", true)], components: [new MusicResponseHandler(this.client).getSupportButton()], flags: discord.MessageFlags.Ephemeral });
+            await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.resume_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
         }
     };
 
     skip = async (): Promise<discord.InteractionResponse<boolean> | void> => {
+        await this.initializeLocale();
+        const responseHandler = new MusicResponseHandler(this.client);
+
         const musicCheck = this.validateMusicEnabled();
         if (musicCheck) return await this.interaction.reply({ embeds: [musicCheck], flags: discord.MessageFlags.Ephemeral });
 
         const player = this.client.manager.get(this.interaction.guild?.id || "");
-        if (!player) return await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("No music is currently playing")], flags: discord.MessageFlags.Ephemeral });
+        if (!player) return await this.interaction.reply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)], flags: discord.MessageFlags.Ephemeral });
 
         const validator = new VoiceChannelValidator(this.client, this.interaction);
         for (const check of [
@@ -235,19 +281,22 @@ export class Music {
         try {
             player.stop(1);
             if (player.queue.size === 0 && this.interaction.guildId) player.destroy();
-            await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createSuccessEmbed("Skipped the current song!")], components: [new MusicResponseHandler(this.client).getMusicButton()] });
+            await this.interaction.reply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
         } catch (error) {
             this.client.logger.error(`[MUSIC] Skip error: ${error}`);
-            await this.interaction.followUp({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("An error occurred while skipping the song", true)], components: [new MusicResponseHandler(this.client).getSupportButton()], flags: discord.MessageFlags.Ephemeral });
+            await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.skip_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
         }
     };
 
     loop = async (): Promise<discord.InteractionResponse<boolean> | void> => {
+        await this.initializeLocale();
+        const responseHandler = new MusicResponseHandler(this.client);
+
         const musicCheck = this.validateMusicEnabled();
         if (musicCheck) return await this.interaction.reply({ embeds: [musicCheck], flags: discord.MessageFlags.Ephemeral });
 
         const player = this.client.manager.get(this.interaction.guild?.id || "");
-        if (!player) return await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("No music is currently playing")], flags: discord.MessageFlags.Ephemeral });
+        if (!player) return await this.interaction.reply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)], flags: discord.MessageFlags.Ephemeral });
 
         const validator = new VoiceChannelValidator(this.client, this.interaction);
         for (const check of [
@@ -262,19 +311,24 @@ export class Music {
 
         try {
             player.setTrackRepeat(!player.trackRepeat);
-            await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createSuccessEmbed(`Looping is now ${player.trackRepeat ? "enabled" : "disabled"}`)], components: [new MusicResponseHandler(this.client).getMusicButton()] });
+            const message = player.trackRepeat ? this.t('responses.music.loop_enabled') : this.t('responses.music.loop_disabled');
+
+            await this.interaction.reply({ embeds: [responseHandler.createSuccessEmbed(message, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
         } catch (error) {
             this.client.logger.error(`[MUSIC] Loop error: ${error}`);
-            await this.interaction.followUp({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("An error occurred while toggling loop", true)], components: [new MusicResponseHandler(this.client).getSupportButton()], flags: discord.MessageFlags.Ephemeral });
+            await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.loop_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
         }
     };
 
     autoplay = async (enable: boolean): Promise<discord.InteractionResponse<boolean> | void> => {
+        await this.initializeLocale();
+        const responseHandler = new MusicResponseHandler(this.client);
+
         const musicCheck = this.validateMusicEnabled();
         if (musicCheck) return await this.interaction.reply({ embeds: [musicCheck], flags: discord.MessageFlags.Ephemeral });
 
         const player = this.client.manager.get(this.interaction.guild?.id || "");
-        if (!player) return await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("No music is currently playing")], flags: discord.MessageFlags.Ephemeral });
+        if (!player) return await this.interaction.reply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)], flags: discord.MessageFlags.Ephemeral });
 
         const validator = new VoiceChannelValidator(this.client, this.interaction);
         for (const check of [
@@ -290,20 +344,19 @@ export class Music {
         await this.interaction.deferReply();
 
         try {
-
             const autoplayManager = Autoplay.getInstance(player.guildId, player, this.client);
             if (enable) {
                 autoplayManager.enable(this.interaction.user.id);
-                const embed = new MusicResponseHandler(this.client).createSuccessEmbed("🎵 Smart Autoplay is now **enabled**\n\n" + "When the queue is empty, I'll automatically add songs based on your music preferences.");
+                const embed = responseHandler.createSuccessEmbed(this.t('responses.music.autoplay_enabled'), this.locale);
                 await this.interaction.editReply({ embeds: [embed] });
             } else {
                 autoplayManager.disable();
-                const embed = new MusicResponseHandler(this.client).createInfoEmbed("⏹️ Autoplay is now **disabled**\n\n" + "Playback will stop when the queue is empty.");
+                const embed = responseHandler.createInfoEmbed(this.t('responses.music.autoplay_disabled'), this.locale);
                 await this.interaction.editReply({ embeds: [embed] });
             }
         } catch (error) {
             this.client.logger.error(`[AUTOPLAY] Command error: ${error}`);
-            await this.interaction.editReply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed("An error occurred while toggling autoplay.", true)], components: [new MusicResponseHandler(this.client).getSupportButton()] });
+            await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.autoplay_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
         }
     };
 };

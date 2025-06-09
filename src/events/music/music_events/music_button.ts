@@ -1,8 +1,8 @@
 import discord from "discord.js";
 
-import { Music } from "../../../core/music";
 import { BotEvent } from "../../../types";
-
+import { Music } from "../../../core/music";
+import { LocaleDetector } from "../../../core/locales";
 
 const MUSIC_BUTTON_IDS = [
     "pause-music",
@@ -11,6 +11,8 @@ const MUSIC_BUTTON_IDS = [
     "stop-music",
     "loop-music"
 ];
+
+const localeDetector = new LocaleDetector();
 
 const validateButtonInteraction = (interaction: discord.Interaction): interaction is discord.ButtonInteraction => {
     return interaction.isButton() && MUSIC_BUTTON_IDS.includes(interaction.customId);
@@ -44,7 +46,18 @@ const handleMusicButtonAction = async (interaction: discord.ButtonInteraction, c
         client.logger.error(`[MUSIC_BUTTON] Error handling button ${interaction.customId}: ${error}`);
 
         if (!interaction.replied && !interaction.deferred) {
-            await interaction.reply({ content: "❌ An error occurred while processing your request.", flags: discord.MessageFlags.Ephemeral }).catch(() => { });
+            try {
+                const locale = await localeDetector.detectLocale(interaction);
+                const t = await localeDetector.getTranslator(interaction);
+                const message = t('responses.errors.general_error');
+
+                await interaction.reply({
+                    content: `❌ ${message}`,
+                    flags: discord.MessageFlags.Ephemeral
+                }).catch(() => { });
+            } catch (localeError) {
+                await interaction.reply({ content: "❌ An error occurred while processing your request.", flags: discord.MessageFlags.Ephemeral }).catch(() => { });
+            }
         }
     }
 };
@@ -55,7 +68,18 @@ const event: BotEvent = {
         if (!validateButtonInteraction(interaction)) return;
 
         if (!client.config.music.enabled) {
-            await interaction.reply({ content: "❌ Music is currently disabled.", flags: discord.MessageFlags.Ephemeral }).catch(() => { });
+            try {
+                const locale = await localeDetector.detectLocale(interaction);
+                const t = await localeDetector.getTranslator(interaction);
+                const message = t('responses.errors.music_disabled');
+
+                await interaction.reply({ content: `❌ ${message}`, flags: discord.MessageFlags.Ephemeral }).catch(() => { });
+            } catch (localeError) {
+                await interaction.reply({
+                    content: "❌ Music is currently disabled.",
+                    flags: discord.MessageFlags.Ephemeral
+                }).catch(() => { });
+            }
             return;
         }
 

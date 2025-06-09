@@ -6,6 +6,7 @@ import { IMusicUser } from "../../../types";
 
 const musicUserSchema = new Schema<IMusicUser>({
     userId: { type: String, required: true },
+    language: { type: String, required: false, default: null },
     songs: [
         {
             track: { type: String, required: true },

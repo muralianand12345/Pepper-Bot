@@ -2,8 +2,11 @@ import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 
 import { LavalinkEvent } from "../../../../types";
+import { LocaleDetector } from "../../../../core/locales";
 import { Autoplay, NowPlayingManager, MusicResponseHandler } from "../../../../core/music";
 
+
+const localeDetector = new LocaleDetector();
 
 const lavalinkEvent: LavalinkEvent = {
     name: ManagerEventTypes.PlayerDestroy,
@@ -15,11 +18,16 @@ const lavalinkEvent: LavalinkEvent = {
             if (player.textChannelId) {
                 const channel = (await client.channels.fetch(player.textChannelId)) as discord.TextChannel;
                 if (channel?.isTextBased()) {
-                    const disconnectEmbed = new MusicResponseHandler(client).createInfoEmbed("🔌 Music player disconnected");
-                    const disabledButtons = new MusicResponseHandler(client).getMusicButton(true);
+                    let guildLocale = 'en';
+                    try {
+                        guildLocale = await localeDetector.getGuildLanguage(player.guildId) || 'en';
+                    } catch (error) { }
+
+                    const responseHandler = new MusicResponseHandler(client);
+                    const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || "🔌 Music player disconnected", guildLocale);
+                    const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
 
                     await channel.send({ embeds: [disconnectEmbed], components: [disabledButtons] });
-
                     client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent with disabled buttons for guild ${player.guildId}`);
                 }
             }

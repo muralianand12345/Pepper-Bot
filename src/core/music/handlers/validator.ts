@@ -1,6 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
 
+import { LocaleDetector } from "../../locales";
 import { MusicResponseHandler } from "./response";
 
 
@@ -11,10 +12,12 @@ export class VoiceChannelValidator {
         discord.PermissionsBitField.Flags.Connect,
         discord.PermissionsBitField.Flags.Speak,
     ];
+    private localeDetector: LocaleDetector;
 
     constructor(client: discord.Client, interaction: discord.ChatInputCommandInteraction | discord.ButtonInteraction) {
         this.client = client;
         this.interaction = interaction;
+        this.localeDetector = new LocaleDetector();
     };
 
     private getGuild = (): discord.Guild | null => {
@@ -25,7 +28,11 @@ export class VoiceChannelValidator {
         return this.interaction.user.id;
     };
 
-    private createErrorEmbed = (message: string): discord.EmbedBuilder => new MusicResponseHandler(this.client).createErrorEmbed(message || " ");
+    private createErrorEmbed = async (messageKey: string, data?: Record<string, string | number>): Promise<discord.EmbedBuilder> => {
+        const locale = await this.localeDetector.detectLocale(this.interaction);
+        const t = await this.localeDetector.getTranslator(this.interaction);
+        return new MusicResponseHandler(this.client).createErrorEmbed(t(messageKey, data), locale);
+    };
 
     private getGuildMember = async (): Promise<discord.GuildMember | undefined> => {
         const guild = this.getGuild();
@@ -43,14 +50,12 @@ export class VoiceChannelValidator {
 
     private validateGuildMember = async (): Promise<[boolean, discord.EmbedBuilder]> => {
         const member = await this.getGuildMember();
-        if (!member) return [false, this.createErrorEmbed("You are not in the server")];
-        return [true, this.createErrorEmbed("")];
+        if (!member) return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
+        return [true, await this.createErrorEmbed("")];
     };
 
     public async validateGuildContext(): Promise<[boolean, discord.EmbedBuilder]> {
-        return !this.getGuild()
-            ? [false, this.createErrorEmbed("This command can only be used in a server")]
-            : [true, this.createErrorEmbed("")];
+        return !this.getGuild() ? [false, await this.createErrorEmbed('responses.errors.server_only')] : [true, await this.createErrorEmbed("")];
     };
 
     public async validateVoiceConnection(): Promise<[boolean, discord.EmbedBuilder]> {
@@ -58,28 +63,22 @@ export class VoiceChannelValidator {
         if (!isValid) return [false, errorEmbed];
 
         const member = await this.getGuildMember();
-        if (!member) return [false, this.createErrorEmbed("Failed to find your guild member information")];
+        if (!member) return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
 
         const voiceChannel = member.voice.channel;
-        if (!voiceChannel) return [false, this.createErrorEmbed("You need to be in a voice channel")];
+        if (!voiceChannel) return [false, await this.createErrorEmbed('responses.errors.no_voice_channel')];
 
         const guild = this.getGuild()!;
         const botMember = guild.members.me;
 
-        if (!botMember?.permissions.has(this.requiredPermissions)) return [false, this.createErrorEmbed(`I need the permissions to \`Join\` and \`Speak\` in <#${voiceChannel.id}>`)];
-
-        return !voiceChannel.joinable
-            ? [false, this.createErrorEmbed(`I don't have permission to join <#${voiceChannel.id}>`)]
-            : [true, this.createErrorEmbed("")];
+        if (!botMember?.permissions.has(this.requiredPermissions)) return [false, await this.createErrorEmbed('responses.errors.need_permissions', { channelName: voiceChannel.name })];
+        return !voiceChannel.joinable ? [false, await this.createErrorEmbed('responses.errors.no_permission_join', { channelName: voiceChannel.name })] : [true, await this.createErrorEmbed("")];
     };
 
     public async validateVoiceSameChannel(player: magmastream.Player): Promise<[boolean, discord.EmbedBuilder]> {
         const member = await this.getGuildMember();
-        if (!member) return [false, this.createErrorEmbed("Failed to find your guild member information")];
-
-        return member.voice.channelId !== player.voiceChannelId
-            ? [false, this.createErrorEmbed("You are not in the same voice channel as the bot")]
-            : [true, this.createErrorEmbed("")];
+        if (!member) return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
+        return member.voice.channelId !== player.voiceChannelId ? [false, await this.createErrorEmbed('responses.errors.not_same_voice')] : [true, await this.createErrorEmbed("")];
     };
 
     public async validatePlayerConnection(player: magmastream.Player): Promise<[boolean, discord.EmbedBuilder]> {
@@ -87,17 +86,13 @@ export class VoiceChannelValidator {
         if (!isValid) return [false, errorEmbed];
 
         const member = await this.getGuildMember();
-        if (!member) return [false, this.createErrorEmbed("Failed to find your guild member information")];
+        if (!member) return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
 
-        return member.voice.channelId !== player.voiceChannelId
-            ? [false, this.createErrorEmbed("You are not in the same voice channel as the bot")]
-            : [true, this.createErrorEmbed("")];
+        return member.voice.channelId !== player.voiceChannelId ? [false, await this.createErrorEmbed('responses.errors.not_same_voice')] : [true, await this.createErrorEmbed("")];
     };
 
     public async validateMusicPlaying(player: magmastream.Player): Promise<[boolean, discord.EmbedBuilder]> {
-        return !player.queue.current
-            ? [false, this.createErrorEmbed("There is no music currently playing")]
-            : [true, this.createErrorEmbed("")];
+        return !player.queue.current ? [false, await this.createErrorEmbed('responses.errors.no_player')] : [true, await this.createErrorEmbed("")];
     };
 };
 
@@ -105,38 +100,44 @@ export class MusicPlayerValidator {
     private readonly client: discord.Client;
     private readonly player: magmastream.Player;
     private readonly ytRegex: RegExp = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
+    private localeDetector: LocaleDetector;
 
     constructor(client: discord.Client, player: magmastream.Player) {
         this.client = client;
         this.player = player;
+        this.localeDetector = new LocaleDetector();
     };
 
-    private createErrorEmbed = (message: string): discord.EmbedBuilder => new MusicResponseHandler(this.client).createErrorEmbed(message);
+    private createErrorEmbed = async (messageKey: string, data?: Record<string, string | number>, interaction?: discord.ChatInputCommandInteraction | discord.ButtonInteraction): Promise<discord.EmbedBuilder> => {
+        const locale = interaction ? await this.localeDetector.detectLocale(interaction) : 'en';
+        const t = interaction ? await this.localeDetector.getTranslator(interaction) : (key: string) => key;
+        return new MusicResponseHandler(this.client).createErrorEmbed(t(messageKey, data), locale);
+    };
 
-    public validatePlayerState = async (): Promise<[boolean, discord.EmbedBuilder | null]> => {
-        if (!this.player?.queue?.current) return [false, this.createErrorEmbed("There is no music playing")]
+    public validatePlayerState = async (interaction?: discord.ChatInputCommandInteraction | discord.ButtonInteraction): Promise<[boolean, discord.EmbedBuilder | null]> => {
+        if (!this.player?.queue?.current) return [false, await this.createErrorEmbed('responses.errors.no_player', {}, interaction)];
         return [true, null];
     };
 
-    public validateQueueSize = async (count: number = 1): Promise<[boolean, discord.EmbedBuilder | null]> => {
+    public validateQueueSize = async (count: number = 1, interaction?: discord.ChatInputCommandInteraction | discord.ButtonInteraction): Promise<[boolean, discord.EmbedBuilder | null]> => {
         const queueSize = this.player?.queue?.size;
-        if (!queueSize) return [false, this.createErrorEmbed("There are no songs in the queue"),];
-        if (queueSize < count) return [false, this.createErrorEmbed(`There are only ${queueSize} songs in the queue`)];
+        if (!queueSize) return [false, await this.createErrorEmbed('responses.errors.no_queue', {}, interaction)];
+        if (queueSize < count) return [false, await this.createErrorEmbed('responses.errors.queue_too_small', { count: queueSize }, interaction)];
         return [true, null];
     };
 
-    public validatePauseState = async (): Promise<[boolean, discord.EmbedBuilder | null]> => {
-        if (this.player?.paused) return [false, this.createErrorEmbed("The music is already paused")];
+    public validatePauseState = async (interaction?: discord.ChatInputCommandInteraction | discord.ButtonInteraction): Promise<[boolean, discord.EmbedBuilder | null]> => {
+        if (this.player?.paused) return [false, await this.createErrorEmbed('responses.errors.already_paused', {}, interaction)];
         return [true, null];
     };
 
-    public validateResumeState = async (): Promise<[boolean, discord.EmbedBuilder | null]> => {
-        if (!this.player?.paused) return [false, this.createErrorEmbed("The music is already playing")]
+    public validateResumeState = async (interaction?: discord.ChatInputCommandInteraction | discord.ButtonInteraction): Promise<[boolean, discord.EmbedBuilder | null]> => {
+        if (!this.player?.paused) return [false, await this.createErrorEmbed('responses.errors.already_playing', {}, interaction)];
         return [true, null];
     };
 
-    public validateMusicSource = async (query: string): Promise<[boolean, discord.EmbedBuilder]> => {
-        if (this.ytRegex.test(query)) return [false, this.createErrorEmbed("We do not support YouTube links or music at this time :(")];
-        return [true, this.createErrorEmbed("")];
+    public validateMusicSource = async (query: string, interaction?: discord.ChatInputCommandInteraction | discord.ButtonInteraction): Promise<[boolean, discord.EmbedBuilder]> => {
+        if (this.ytRegex.test(query)) return [false, await this.createErrorEmbed('responses.errors.youtube_not_supported', {}, interaction)];
+        return [true, await this.createErrorEmbed("", {}, interaction)];
     };
 };

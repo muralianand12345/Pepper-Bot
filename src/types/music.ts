@@ -54,11 +54,13 @@ export interface ISongs {
 
 export interface IMusicGuild extends mongoose.Document {
     guildId: string;
+    language?: string | null;
     songs: Array<ISongs>;
 };
 
 export interface IMusicUser extends mongoose.Document {
     userId: string;
+    language?: string | null;
     songs: Array<ISongs>;
 };
 

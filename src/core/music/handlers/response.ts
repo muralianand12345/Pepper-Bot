@@ -3,13 +3,16 @@ import magmastream from "magmastream";
 
 import Formatter from "../../../utils/format";
 import { ITrackProgress } from "../../../types";
+import { LocalizationManager } from "../../locales";
 
 
 export class MusicResponseHandler {
     private readonly client: discord.Client;
+    private localizationManager: LocalizationManager;
 
     constructor(client: discord.Client) {
         this.client = client;
+        this.localizationManager = LocalizationManager.getInstance();
     };
 
     private trackProgress = (position: number, duration: number): ITrackProgress => {
@@ -26,23 +29,20 @@ export class MusicResponseHandler {
         };
     }
 
-    public createSuccessEmbed = (message: string): discord.EmbedBuilder => {
+    public createSuccessEmbed = (message: string, locale: string = 'en'): discord.EmbedBuilder => {
         return new discord.EmbedBuilder()
             .setColor("#43b581")
             .setDescription(`✓ ${message}`)
-            .setFooter({
-                text: this.client.user?.username || "Music Bot",
-                iconURL: this.client.user?.displayAvatarURL()
-            });
+            .setFooter({ text: this.client.user?.username || "Music Bot", iconURL: this.client.user?.displayAvatarURL() });
     };
 
-    public createErrorEmbed = (message: string, contact_dev: boolean = false): discord.EmbedBuilder => {
+    public createErrorEmbed = (message: string, locale: string = 'en', contact_dev: boolean = false): discord.EmbedBuilder => {
         const embed = new discord.EmbedBuilder()
             .setColor("#f04747")
             .setDescription(`❌ ${message}`)
             .setFooter({
                 text: contact_dev
-                    ? "If this issue persists, please use /feedback or contact the developer"
+                    ? this.localizationManager.translate('responses.errors.contact_dev', locale)
                     : this.client.user?.username || "Music Bot",
                 iconURL: this.client.user?.displayAvatarURL()
             });
@@ -50,27 +50,21 @@ export class MusicResponseHandler {
         return embed;
     };
 
-    public createInfoEmbed = (message: string): discord.EmbedBuilder => {
+    public createInfoEmbed = (message: string, locale: string = 'en'): discord.EmbedBuilder => {
         return new discord.EmbedBuilder()
             .setColor("#5865f2")
             .setDescription(`ℹ️ ${message}`)
-            .setFooter({
-                text: this.client.user?.username || "Music Bot",
-                iconURL: this.client.user?.displayAvatarURL()
-            });
+            .setFooter({ text: this.client.user?.username || "Music Bot", iconURL: this.client.user?.displayAvatarURL() });
     };
 
-    public createWarningEmbed = (message: string): discord.EmbedBuilder => {
+    public createWarningEmbed = (message: string, locale: string = 'en'): discord.EmbedBuilder => {
         return new discord.EmbedBuilder()
             .setColor("#faa61a")
             .setDescription(`⚠️ ${message}`)
-            .setFooter({
-                text: this.client.user?.username || "Music Bot",
-                iconURL: this.client.user?.displayAvatarURL()
-            });
+            .setFooter({ text: this.client.user?.username || "Music Bot", iconURL: this.client.user?.displayAvatarURL() });
     };
 
-    public createMusicEmbed = (track: magmastream.Track, player?: magmastream.Player): discord.EmbedBuilder => {
+    public createMusicEmbed = (track: magmastream.Track, player?: magmastream.Player, locale: string = 'en'): discord.EmbedBuilder => {
         const trackImg = track.thumbnail || track.artworkUrl;
         const trackTitle = Formatter.truncateText(track.title, 60);
         const trackAuthor = track.author || "Unknown";
@@ -95,12 +89,12 @@ export class MusicResponseHandler {
 
         const embed = new discord.EmbedBuilder()
             .setColor(defaultColor)
-            .setTitle(`Now Playing`)
+            .setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
             .setDescription(`**${Formatter.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`)
             .setThumbnail(trackImg);
 
         if (progressText) {
-            embed.addFields([{ name: "Progress", value: progressText, inline: false }]);
+            embed.addFields([{ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false }]);
             embed.setFooter({ text: `${track.sourceName || 'Unknown'} • ${track.requester?.tag || 'Unknown'}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
             return embed;
         }
@@ -108,7 +102,7 @@ export class MusicResponseHandler {
         return embed;
     };
 
-    public createTrackEmbed = (track: magmastream.Track, position?: number | null): discord.EmbedBuilder => {
+    public createTrackEmbed = (track: magmastream.Track, position?: number | null, locale: string = 'en'): discord.EmbedBuilder => {
         const title = Formatter.truncateText(track.title, 60);
         const url = track.uri || "https://google.com";
         const author = track.author || "Unknown";
@@ -116,44 +110,36 @@ export class MusicResponseHandler {
 
         let queueInfo = "";
         if (position === 0) {
-            queueInfo = "Playing next";
+            queueInfo = this.localizationManager.translate('responses.fields.playing_next', locale);
         } else if (position !== null && position !== undefined) {
-            queueInfo = `Position #${position + 1}`;
+            queueInfo = this.localizationManager.translate('responses.fields.position', locale, { position: position + 1 });
         }
 
         const fields = [
-            {
-                name: "Duration",
-                value: duration,
-                inline: true,
-            },
-            {
-                name: "Source",
-                value: track.sourceName || "Unknown",
-                inline: true,
-            },
-            {
-                name: "Requested by",
-                value: track.requester?.tag || "Unknown",
-                inline: true,
-            }
+            { name: this.localizationManager.translate('responses.fields.duration', locale), value: duration, inline: true },
+            { name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName || "Unknown", inline: true },
+            { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: track.requester?.tag || "Unknown", inline: true }
         ];
 
-        if (queueInfo) fields.push({ name: "Queue Info", value: queueInfo, inline: false });
+        if (queueInfo) {
+            fields.push({
+                name: this.localizationManager.translate('responses.fields.queue_info', locale),
+                value: queueInfo,
+                inline: false
+            });
+        }
+
         return new discord.EmbedBuilder()
             .setColor("#5865f2")
-            .setTitle(`Track Added to Queue`)
+            .setTitle(this.localizationManager.translate('responses.music.track_added', locale))
             .setDescription(`**${Formatter.hyperlink(title, url)}**\nby ${author}`)
             .setThumbnail(track.artworkUrl || track.thumbnail || null)
             .addFields(fields)
-            .setFooter({
-                text: this.client.user?.username || "Music Bot",
-                iconURL: this.client.user?.displayAvatarURL()
-            })
+            .setFooter({ text: this.client.user?.username || "Music Bot", iconURL: this.client.user?.displayAvatarURL() })
             .setTimestamp();
     };
 
-    public createPlaylistEmbed = (playlist: magmastream.PlaylistData, requester: discord.User): discord.EmbedBuilder => {
+    public createPlaylistEmbed = (playlist: magmastream.PlaylistData, requester: discord.User, locale: string = 'en'): discord.EmbedBuilder => {
         const playlistName = Formatter.truncateText(playlist.name || "Untitled Playlist", 50);
         const trackPreview = playlist.tracks
             .slice(0, 5)
@@ -162,10 +148,7 @@ export class MusicResponseHandler {
                 return `**${i + 1}.** ${title}`;
             })
             .join("\n");
-        const moreTracksText = playlist.tracks.length > 5
-            ? `\n*...and ${playlist.tracks.length - 5} more tracks*`
-            : "";
-
+        const moreTracksText = playlist.tracks.length > 5 ? `\n*...and ${playlist.tracks.length - 5} more tracks*` : "";
         const totalDuration = Formatter.msToTime(playlist.duration || 0);
         let avgDuration = "0:00:00";
         if (playlist.tracks.length > 0) {
@@ -175,62 +158,44 @@ export class MusicResponseHandler {
 
         return new discord.EmbedBuilder()
             .setColor("#43b581")
-            .setTitle("Playlist Added to Queue")
+            .setTitle(this.localizationManager.translate('responses.music.playlist_added', locale))
             .setDescription(`**${playlistName}**\n\n**Preview:**\n${trackPreview}${moreTracksText}`)
             .setThumbnail(playlist.tracks[0]?.artworkUrl || playlist.tracks[0]?.thumbnail || null)
             .addFields([
-                {
-                    name: "Tracks",
-                    value: `${playlist.tracks.length}`,
-                    inline: true,
-                },
-                {
-                    name: "Total Duration",
-                    value: totalDuration,
-                    inline: true,
-                },
-                {
-                    name: "Avg. Duration",
-                    value: avgDuration,
-                    inline: true,
-                },
-                {
-                    name: "Added by",
-                    value: requester.tag || "Unknown",
-                    inline: false,
-                }
+                { name: this.localizationManager.translate('responses.fields.tracks', locale), value: `${playlist.tracks.length}`, inline: true },
+                { name: this.localizationManager.translate('responses.fields.total_duration', locale), value: totalDuration, inline: true },
+                { name: this.localizationManager.translate('responses.fields.avg_duration', locale), value: avgDuration, inline: true },
+                { name: this.localizationManager.translate('responses.fields.added_by', locale), value: requester.tag || "Unknown", inline: false }
             ])
-            .setFooter({
-                text: `Playlist loaded successfully`,
-                iconURL: this.client.user?.displayAvatarURL()
-            })
+            .setFooter({ text: `Playlist loaded successfully`, iconURL: this.client.user?.displayAvatarURL() })
             .setTimestamp();
     };
 
-    public getSupportButton = (): discord.ActionRowBuilder<discord.ButtonBuilder> => {
+    public getSupportButton = (locale: string = 'en'): discord.ActionRowBuilder<discord.ButtonBuilder> => {
         return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
             new discord.ButtonBuilder()
-                .setLabel("Support Server")
+                .setLabel(this.localizationManager.translate('responses.buttons.support_server', locale))
                 .setStyle(discord.ButtonStyle.Link)
                 .setURL("https://discord.gg/XzE9hSbsNb")
                 .setEmoji("🔧")
         );
     };
 
-    public getMusicButton = (disabled: boolean = false): discord.ActionRowBuilder<discord.ButtonBuilder> => {
+    public getMusicButton = (disabled: boolean = false, locale: string = 'en'): discord.ActionRowBuilder<discord.ButtonBuilder> => {
         const row = new discord.ActionRowBuilder<discord.ButtonBuilder>();
         const buttonConfig = [
-            { id: "pause-music", label: "Pause", emoji: "⏸️" },
-            { id: "resume-music", label: "Resume", emoji: "▶️" },
-            { id: "skip-music", label: "Skip", emoji: "⏭️" },
-            { id: "stop-music", label: "Stop", emoji: "⏹️" },
-            { id: "loop-music", label: "Loop", emoji: "🔄" },
+            { id: "pause-music", labelKey: "responses.buttons.pause", emoji: "⏸️" },
+            { id: "resume-music", labelKey: "responses.buttons.resume", emoji: "▶️" },
+            { id: "skip-music", labelKey: "responses.buttons.skip", emoji: "⏭️" },
+            { id: "stop-music", labelKey: "responses.buttons.stop", emoji: "⏹️" },
+            { id: "loop-music", labelKey: "responses.buttons.loop", emoji: "🔄" },
         ];
-        buttonConfig.forEach(({ id, label, emoji }) => {
+
+        buttonConfig.forEach(({ id, labelKey, emoji }) => {
             row.addComponents(
                 new discord.ButtonBuilder()
                     .setCustomId(id)
-                    .setLabel(label)
+                    .setLabel(this.localizationManager.translate(labelKey, locale))
                     .setStyle(discord.ButtonStyle.Secondary)
                     .setEmoji(emoji)
                     .setDisabled(disabled)
@@ -240,4 +205,3 @@ export class MusicResponseHandler {
         return row;
     };
 };
-
