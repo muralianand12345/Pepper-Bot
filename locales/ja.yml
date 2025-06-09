@@ -1,0 +1,126 @@
+commands:
+    play:
+        name: "再生"
+        description: "曲名またはURLで音楽を再生"
+        options:
+            song:
+                name: "曲"
+                description: "曲名/URL"
+            lavalink_node:
+                name: "ラバリンクノード"
+                description: "音楽を再生するLavalink（オプション）"
+    pause:
+        name: "一時停止"
+        description: "現在再生中の音楽を一時停止"
+    resume:
+        name: "再開"
+        description: "一時停止中の音楽を再開"
+    skip:
+        name: "スキップ"
+        description: "現在の曲をスキップして次の曲を再生"
+    stop:
+        name: "停止"
+        description: "音楽を停止してボイスチャンネルから切断"
+    loop:
+        name: "ループ"
+        description: "現在のトラックのループモードを切り替え"
+    autoplay:
+        name: "自動再生"
+        description: "音楽の好みに基づいたスマート自動再生を切り替え"
+        options:
+            enabled:
+                name: "有効"
+                description: "自動再生を有効または無効にする"
+    language:
+        name: "言語"
+        description: "ボットの言語設定を変更"
+        options:
+            scope:
+                name: "スコープ"
+                description: "ユーザーまたはサーバーの言語を設定"
+                choices:
+                    user: "ユーザー"
+                    server: "サーバー"
+                    reset: "リセット"
+            language:
+                name: "言語"
+                description: "お好みの言語を選択"
+
+responses:
+    default_search: "曲名またはURLを入力してください"
+    errors:
+        music_disabled: "音楽機能は無効になっています"
+        not_in_server: "このコマンドを使用するにはサーバーにいる必要があります"
+        server_only: "このコマンドはサーバーでのみ使用できます"
+        no_voice_channel: "このコマンドを使用するにはボイスチャンネルにいる必要があります"
+        need_permissions: "チャンネル{channelName}に接続して話すための権限が必要です"
+        no_permission_join: "チャンネル{channelName}に参加する権限がありません"
+        not_same_voice: "私と同じボイスチャンネルにいる必要があります"
+        no_player: "現在音楽が再生されていません"
+        no_queue: "キューは空です"
+        queue_too_small: "キューには{count}曲しかありません"
+        already_paused: "音楽は既に一時停止されています"
+        already_playing: "音楽は既に再生されています"
+        youtube_not_supported: "YouTubeの利用規約により、YouTubeリンクはサポートされていません"
+        player_exists: "このサーバーには既にアクティブなプレイヤーがあります"
+        node_invalid: "指定されたLavalinkノードが無効です"
+        node_not_connected: "指定されたLavalinkノードが接続されていません"
+        no_results: "検索結果が見つかりませんでした"
+        play_error: "音楽の再生中にエラーが発生しました"
+        stop_error: "音楽の停止中にエラーが発生しました"
+        pause_error: "音楽の一時停止中にエラーが発生しました"
+        resume_error: "音楽の再開中にエラーが発生しました"
+        skip_error: "音楽のスキップ中にエラーが発生しました"
+        loop_error: "ループモードの切り替え中にエラーが発生しました"
+        autoplay_error: "自動再生の切り替え中にエラーが発生しました"
+        general_error: "予期しないエラーが発生しました"
+        contact_dev: "この問題が続く場合は開発者にお問い合わせください"
+        no_permission: "このコマンドを使用する権限がありません、{user}"
+        missing_user_perms: "以下の権限が不足しています：{permissions}"
+        missing_bot_perms: "以下の権限が不足しています：{permissions}"
+    music:
+        connected: "🎵 ボイスチャンネル**{channelName}**に接続しました"
+        stopped: "⏹️ 音楽を停止し、ボイスチャンネルから切断しました"
+        paused: "⏸️ 音楽を一時停止しました"
+        resumed: "▶️ 音楽を再開しました"
+        skipped: "⏭️ 音楽をスキップしました"
+        loop_enabled: "🔄 ループモードが有効になりました"
+        loop_disabled: "🔄 ループモードが無効になりました"
+        autoplay_enabled: "🎶 自動再生が有効になりました"
+        autoplay_disabled: "🎶 自動再生が無効になりました"
+        now_playing: "再生中"
+        track_added: "🎵 楽曲をキューに追加しました"
+        playlist_added: "📋 プレイリストをキューに追加しました"
+        youtube_blocked: "⚠️ 楽曲をスキップしています！YouTube ソースが検出されました"
+        youtube_footer: "YouTubeの利用規約によりYouTubeリンクはサポートしていません"
+        queue_empty: "🎵 キュー内のすべての音楽を再生しました"
+        resumed_members_joined: "▶️ 再生を再開しました"
+        paused_empty_channel: "⏸️ ボイスチャンネルが空のため再生を一時停止しました"
+        disconnected_inactivity: "🔌 非アクティブのため切断します（10分間リスナーなし）"
+        disconnected: "🔌 音楽プレイヤーが切断されました"
+    buttons:
+        pause: "一時停止"
+        resume: "再開"
+        skip: "スキップ"
+        stop: "停止"
+        loop: "ループ"
+        support_server: "サポートサーバー"
+    fields:
+        progress: "進行状況"
+        playing_next: "次に再生"
+        position: "キューの位置：{position}"
+        duration: "再生時間"
+        source: "ソース"
+        requested_by: "リクエスト者"
+        queue_info: "キュー情報"
+        tracks: "トラック"
+        total_duration: "総再生時間"
+        avg_duration: "平均再生時間"
+        added_by: "追加者"
+    language:
+        reset: "言語設定がリセットされました"
+        unsupported: "言語'{language}'はサポートされていません。サポートされている言語：{languages}"
+        same_language: "言語は既に{language}に設定されています"
+        user_set: "ユーザー言語を{language}に設定しました"
+        server_set: "サーバー言語を{language}に設定しました"
+        no_permission: "サーバー言語を変更するには「サーバー管理」権限が必要です"

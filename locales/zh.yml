@@ -1,0 +1,126 @@
+commands:
+    play:
+        name: "播放"
+        description: "通过歌曲名称或URL播放音乐"
+        options:
+            song:
+                name: "歌曲"
+                description: "歌曲名称/URL"
+            lavalink_node:
+                name: "拉瓦链接节点"
+                description: "播放歌曲的Lavalink（可选）"
+    pause:
+        name: "暂停"
+        description: "暂停当前播放的音乐"
+    resume:
+        name: "继续"
+        description: "继续播放暂停的音乐"
+    skip:
+        name: "跳过"
+        description: "跳过当前歌曲播放下一首"
+    stop:
+        name: "停止"
+        description: "停止音乐并断开语音频道连接"
+    loop:
+        name: "循环"
+        description: "切换当前曲目的循环模式"
+    autoplay:
+        name: "自动播放"
+        description: "基于您的音乐偏好切换智能自动播放"
+        options:
+            enabled:
+                name: "启用"
+                description: "启用或禁用自动播放"
+    language:
+        name: "语言"
+        description: "设置机器人的语言偏好"
+        options:
+            scope:
+                name: "范围"
+                description: "为用户或服务器设置语言"
+                choices:
+                    user: "用户"
+                    server: "服务器"
+                    reset: "重置"
+            language:
+                name: "语言"
+                description: "选择您偏好的语言"
+
+responses:
+    default_search: "请输入歌曲名称或URL"
+    errors:
+        music_disabled: "音乐功能已禁用"
+        not_in_server: "您必须在服务器中才能使用此命令"
+        server_only: "此命令只能在服务器中使用"
+        no_voice_channel: "您必须在语音频道中才能使用此命令"
+        need_permissions: "我需要连接和在频道{channelName}中说话的权限"
+        no_permission_join: "我没有加入频道{channelName}的权限"
+        not_same_voice: "您必须和我在同一个语音频道中"
+        no_player: "当前没有音乐在播放"
+        no_queue: "队列是空的"
+        queue_too_small: "队列中只有{count}首歌曲"
+        already_paused: "音乐已经暂停"
+        already_playing: "音乐已经在播放"
+        youtube_not_supported: "由于YouTube服务条款，不支持YouTube链接"
+        player_exists: "此服务器已有活跃的播放器"
+        node_invalid: "指定的Lavalink节点无效"
+        node_not_connected: "指定的Lavalink节点未连接"
+        no_results: "未找到搜索结果"
+        play_error: "播放音乐时发生错误"
+        stop_error: "停止音乐时发生错误"
+        pause_error: "暂停音乐时发生错误"
+        resume_error: "继续音乐时发生错误"
+        skip_error: "跳过音乐时发生错误"
+        loop_error: "切换循环模式时发生错误"
+        autoplay_error: "切换自动播放时发生错误"
+        general_error: "发生了意外错误"
+        contact_dev: "如果此问题持续存在，请联系开发者"
+        no_permission: "您没有使用此命令的权限，{user}"
+        missing_user_perms: "您缺少以下权限：{permissions}"
+        missing_bot_perms: "我缺少以下权限：{permissions}"
+    music:
+        connected: "🎵 已连接到语音频道**{channelName}**"
+        stopped: "⏹️ 音乐已停止并断开语音频道连接"
+        paused: "⏸️ 音乐已暂停"
+        resumed: "▶️ 音乐已继续"
+        skipped: "⏭️ 音乐已跳过"
+        loop_enabled: "🔄 循环模式已启用"
+        loop_disabled: "🔄 循环模式已禁用"
+        autoplay_enabled: "🎶 自动播放已启用"
+        autoplay_disabled: "🎶 自动播放已禁用"
+        now_playing: "正在播放"
+        track_added: "🎵 歌曲已添加到队列"
+        playlist_added: "📋 播放列表已添加到队列"
+        youtube_blocked: "⚠️ 跳过歌曲！检测到YouTube源"
+        youtube_footer: "由于YouTube TOS，我们不支持YouTube链接"
+        queue_empty: "🎵 播放了队列中的所有音乐"
+        resumed_members_joined: "▶️ 已恢复播放"
+        paused_empty_channel: "⏸️ 由于语音频道为空，已暂停播放"
+        disconnected_inactivity: "🔌 由于不活跃而断开连接（10分钟无听众）"
+        disconnected: "🔌 音乐播放器已断开连接"
+    buttons:
+        pause: "暂停"
+        resume: "继续"
+        skip: "跳过"
+        stop: "停止"
+        loop: "循环"
+        support_server: "支持服务器"
+    fields:
+        progress: "进度"
+        playing_next: "下一首播放"
+        position: "队列位置：{position}"
+        duration: "时长"
+        source: "来源"
+        requested_by: "请求者"
+        queue_info: "队列信息"
+        tracks: "曲目"
+        total_duration: "总时长"
+        avg_duration: "平均时长"
+        added_by: "添加者"
+    language:
+        reset: "语言偏好已重置"
+        unsupported: "语言'{language}'不受支持。支持的语言：{languages}"
+        same_language: "语言已设置为{language}"
+        user_set: "用户语言已设置为{language}"
+        server_set: "服务器语言已设置为{language}"
+        no_permission: "您需要'管理服务器'权限来更改服务器语言"

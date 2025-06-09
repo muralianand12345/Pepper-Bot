@@ -1,0 +1,126 @@
+commands:
+    play:
+        name: "putar"
+        description: "Putar musik melalui nama lagu atau URL"
+        options:
+            song:
+                name: "lagu"
+                description: "Nama lagu/URL"
+            lavalink_node:
+                name: "node_lavalink"
+                description: "Lavalink untuk memutar lagu (Opsional)"
+    pause:
+        name: "jeda"
+        description: "Jeda musik yang sedang diputar"
+    resume:
+        name: "lanjut"
+        description: "Lanjutkan musik yang dijeda"
+    skip:
+        name: "lewati"
+        description: "Lewati lagu saat ini dan putar yang berikutnya"
+    stop:
+        name: "henti"
+        description: "Hentikan musik dan putuskan dari saluran suara"
+    loop:
+        name: "ulang"
+        description: "Togel mode ulang untuk track saat ini"
+    autoplay:
+        name: "putar-otomatis"
+        description: "Togel autoplay pintar berdasarkan preferensi musik Anda"
+        options:
+            enabled:
+                name: "diaktifkan"
+                description: "Aktifkan atau nonaktifkan autoplay"
+    language:
+        name: "bahasa"
+        description: "Atur preferensi bahasa untuk bot"
+        options:
+            scope:
+                name: "cakupan"
+                description: "Atur bahasa untuk pengguna atau server"
+                choices:
+                    user: "Pengguna"
+                    server: "Server"
+                    reset: "Reset"
+            language:
+                name: "bahasa"
+                description: "Pilih bahasa yang Anda inginkan"
+
+responses:
+    default_search: "Silakan masukkan nama lagu atau URL"
+    errors:
+        music_disabled: "Fitur musik dinonaktifkan"
+        not_in_server: "Anda harus berada di server untuk menggunakan perintah ini"
+        server_only: "Perintah ini hanya dapat digunakan di server"
+        no_voice_channel: "Anda harus berada di saluran suara untuk menggunakan perintah ini"
+        need_permissions: "Saya memerlukan izin untuk terhubung dan berbicara di saluran {channelName}"
+        no_permission_join: "Saya tidak memiliki izin untuk bergabung dengan saluran {channelName}"
+        not_same_voice: "Anda harus berada di saluran suara yang sama dengan saya"
+        no_player: "Tidak ada musik yang sedang diputar saat ini"
+        no_queue: "Antrian kosong"
+        queue_too_small: "Antrian hanya memiliki {count} lagu"
+        already_paused: "Musik sudah dijeda"
+        already_playing: "Musik sudah diputar"
+        youtube_not_supported: "Link YouTube tidak didukung karena Ketentuan Layanan YouTube"
+        player_exists: "Sudah ada pemutar aktif di server ini"
+        node_invalid: "Node Lavalink yang ditentukan tidak valid"
+        node_not_connected: "Node Lavalink yang ditentukan tidak terhubung"
+        no_results: "Tidak ditemukan hasil untuk pencarian Anda"
+        play_error: "Terjadi kesalahan saat mencoba memutar musik"
+        stop_error: "Terjadi kesalahan saat mencoba menghentikan musik"
+        pause_error: "Terjadi kesalahan saat mencoba menjeda musik"
+        resume_error: "Terjadi kesalahan saat mencoba melanjutkan musik"
+        skip_error: "Terjadi kesalahan saat mencoba melewati musik"
+        loop_error: "Terjadi kesalahan saat mencoba mengalihkan mode ulang"
+        autoplay_error: "Terjadi kesalahan saat mencoba mengalihkan autoplay"
+        general_error: "Terjadi kesalahan yang tidak terduga"
+        contact_dev: "Jika masalah ini terus berlanjut, hubungi developer"
+        no_permission: "Anda tidak memiliki izin untuk menggunakan perintah ini, {user}"
+        missing_user_perms: "Anda kehilangan izin berikut: {permissions}"
+        missing_bot_perms: "Saya kehilangan izin berikut: {permissions}"
+    music:
+        connected: "🎵 Terhubung ke saluran suara **{channelName}**"
+        stopped: "⏹️ Musik dihentikan dan terputus dari saluran suara"
+        paused: "⏸️ Musik dijeda"
+        resumed: "▶️ Musik dilanjutkan"
+        skipped: "⏭️ Musik dilewati"
+        loop_enabled: "🔄 Mode ulang diaktifkan"
+        loop_disabled: "🔄 Mode ulang dinonaktifkan"
+        autoplay_enabled: "🎶 Autoplay diaktifkan"
+        autoplay_disabled: "🎶 Autoplay dinonaktifkan"
+        now_playing: "Sedang Diputar"
+        track_added: "🎵 Lagu ditambahkan ke antrian"
+        playlist_added: "📋 Playlist ditambahkan ke antrian"
+        youtube_blocked: "⚠️ Melewati lagu! Sumber YouTube terdeteksi"
+        youtube_footer: "Kami tidak mendukung link YouTube karena TOS YouTube"
+        queue_empty: "🎵 Memutar semua musik dalam antrian"
+        resumed_members_joined: "▶️ Pemutaran dilanjutkan"
+        paused_empty_channel: "⏸️ Pemutaran dijeda karena saluran suara kosong"
+        disconnected_inactivity: "🔌 Memutuskan karena tidak aktif (10 menit tanpa pendengar)"
+        disconnected: "🔌 Pemutar musik terputus"
+    buttons:
+        pause: "Jeda"
+        resume: "Lanjut"
+        skip: "Lewati"
+        stop: "Henti"
+        loop: "Ulang"
+        support_server: "Server Dukungan"
+    fields:
+        progress: "Kemajuan"
+        playing_next: "Memutar selanjutnya"
+        position: "Posisi dalam antrian: {position}"
+        duration: "Durasi"
+        source: "Sumber"
+        requested_by: "Diminta oleh"
+        queue_info: "Info Antrian"
+        tracks: "Track"
+        total_duration: "Durasi Total"
+        avg_duration: "Durasi Rata-rata"
+        added_by: "Ditambahkan oleh"
+    language:
+        reset: "Preferensi bahasa telah direset"
+        unsupported: "Bahasa '{language}' tidak didukung. Bahasa yang didukung: {languages}"
+        same_language: "Bahasa sudah diatur ke {language}"
+        user_set: "Bahasa pengguna diatur ke {language}"
+        server_set: "Bahasa server diatur ke {language}"
+        no_permission: "Anda memerlukan izin 'Kelola Server' untuk mengubah bahasa server"

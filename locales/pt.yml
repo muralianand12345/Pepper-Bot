@@ -1,0 +1,126 @@
+commands:
+    play:
+        name: "tocar"
+        description: "Tocar uma música via nome ou URL"
+        options:
+            song:
+                name: "musica"
+                description: "Nome da música/URL"
+            lavalink_node:
+                name: "no_lavalink"
+                description: "Lavalink para tocar a música (Opcional)"
+    pause:
+        name: "pausar"
+        description: "Pausar a música que está tocando"
+    resume:
+        name: "continuar"
+        description: "Continuar a música pausada"
+    skip:
+        name: "pular"
+        description: "Pular a música atual e tocar a próxima"
+    stop:
+        name: "parar"
+        description: "Parar a música e desconectar do canal de voz"
+    loop:
+        name: "repetir"
+        description: "Alternar modo de repetição para a faixa atual"
+    autoplay:
+        name: "reproducao-automatica"
+        description: "Alternar reprodução automática inteligente baseada em suas preferências musicais"
+        options:
+            enabled:
+                name: "ativado"
+                description: "Ativar ou desativar reprodução automática"
+    language:
+        name: "idioma"
+        description: "Definir preferências de idioma para o bot"
+        options:
+            scope:
+                name: "escopo"
+                description: "Definir idioma para usuário ou servidor"
+                choices:
+                    user: "Usuário"
+                    server: "Servidor"
+                    reset: "Resetar"
+            language:
+                name: "idioma"
+                description: "Escolha seu idioma preferido"
+
+responses:
+    default_search: "Digite o nome de uma música ou URL"
+    errors:
+        music_disabled: "A funcionalidade de música está desabilitada"
+        not_in_server: "Você deve estar em um servidor para usar este comando"
+        server_only: "Este comando só pode ser usado em servidores"
+        no_voice_channel: "Você deve estar em um canal de voz para usar este comando"
+        need_permissions: "Preciso de permissões para conectar e falar no canal {channelName}"
+        no_permission_join: "Não tenho permissão para entrar no canal {channelName}"
+        not_same_voice: "Você deve estar no mesmo canal de voz que eu"
+        no_player: "Não há música tocando no momento"
+        no_queue: "A fila está vazia"
+        queue_too_small: "A fila tem apenas {count} música(s)"
+        already_paused: "A música já está pausada"
+        already_playing: "A música já está tocando"
+        youtube_not_supported: "Links do YouTube não são suportados devido aos Termos de Serviço do YouTube"
+        player_exists: "Já existe um player ativo neste servidor"
+        node_invalid: "Nó Lavalink inválido especificado"
+        node_not_connected: "O nó Lavalink especificado não está conectado"
+        no_results: "Nenhum resultado encontrado para sua pesquisa"
+        play_error: "Ocorreu um erro ao tentar tocar a música"
+        stop_error: "Ocorreu um erro ao tentar parar a música"
+        pause_error: "Ocorreu um erro ao tentar pausar a música"
+        resume_error: "Ocorreu um erro ao tentar continuar a música"
+        skip_error: "Ocorreu um erro ao tentar pular a música"
+        loop_error: "Ocorreu um erro ao tentar alternar o modo de repetição"
+        autoplay_error: "Ocorreu um erro ao tentar alternar a reprodução automática"
+        general_error: "Ocorreu um erro inesperado"
+        contact_dev: "Se este problema persistir, entre em contato com o desenvolvedor"
+        no_permission: "Você não tem permissão para usar este comando, {user}"
+        missing_user_perms: "Você está perdendo as seguintes permissões: {permissions}"
+        missing_bot_perms: "Estou perdendo as seguintes permissões: {permissions}"
+    music:
+        connected: "🎵 Conectado ao canal de voz **{channelName}**"
+        stopped: "⏹️ Música parada e desconectado do canal de voz"
+        paused: "⏸️ Música pausada"
+        resumed: "▶️ Música continuada"
+        skipped: "⏭️ Música pulada"
+        loop_enabled: "🔄 Modo de repetição ativado"
+        loop_disabled: "🔄 Modo de repetição desativado"
+        autoplay_enabled: "🎶 Reprodução automática ativada"
+        autoplay_disabled: "🎶 Reprodução automática desativada"
+        now_playing: "Tocando Agora"
+        track_added: "🎵 Música Adicionada à Fila"
+        playlist_added: "📋 Playlist Adicionada à Fila"
+        youtube_blocked: "⚠️ Pulando música! Fonte do YouTube detectada"
+        youtube_footer: "Não suportamos links do YouTube devido aos TOS do YouTube"
+        queue_empty: "🎵 Todas as músicas da fila foram tocadas"
+        resumed_members_joined: "▶️ Reprodução retomada"
+        paused_empty_channel: "⏸️ Reprodução pausada porque o canal de voz está vazio"
+        disconnected_inactivity: "🔌 Desconectando devido à inatividade (10 minutos sem ouvintes)"
+        disconnected: "🔌 Player de música desconectado"
+    buttons:
+        pause: "Pausar"
+        resume: "Continuar"
+        skip: "Pular"
+        stop: "Parar"
+        loop: "Repetir"
+        support_server: "Servidor de Suporte"
+    fields:
+        progress: "Progresso"
+        playing_next: "Tocando em seguida"
+        position: "Posição na fila: {position}"
+        duration: "Duração"
+        source: "Fonte"
+        requested_by: "Solicitado por"
+        queue_info: "Info da Fila"
+        tracks: "Faixas"
+        total_duration: "Duração Total"
+        avg_duration: "Duração Média"
+        added_by: "Adicionado por"
+    language:
+        reset: "Preferências de idioma foram resetadas"
+        unsupported: "Idioma '{language}' não é suportado. Idiomas suportados: {languages}"
+        same_language: "O idioma já está definido como {language}"
+        user_set: "Idioma do usuário definido para {language}"
+        server_set: "Idioma do servidor definido para {language}"
+        no_permission: "Você precisa da permissão 'Gerenciar Servidor' para alterar o idioma do servidor"
