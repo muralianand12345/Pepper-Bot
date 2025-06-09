@@ -31,7 +31,10 @@ const helpCommand: Command = {
         if (focused.name === "command") {
             const commands = Array.from(client.commands.values());
             const query = focused.value.toLowerCase();
-            const filtered = commands.filter(cmd => cmd.data.name.toLowerCase().includes(query)).slice(0, 25).map(cmd => ({ name: `/${cmd.data.name} - ${cmd.data.description}`, value: cmd.data.name }));
+            const filtered = commands
+                .filter(cmd => cmd.data.name.toLowerCase().includes(query))
+                .slice(0, 25)
+                .map(cmd => ({ name: `/${cmd.data.name} - ${cmd.data.description}`, value: cmd.data.name }));
             await interaction.respond(filtered);
         }
     },
@@ -63,8 +66,9 @@ const helpCommand: Command = {
                 .setFooter({ text: t('responses.help.command_footer'), iconURL: client.user?.displayAvatarURL() })
                 .setTimestamp();
 
-            if ('options' in command.data && command.data.options && command.data.options.length > 0) {
-                const optionsText = command.data.options.map((option) => `\`${option.name}\` - ${option.description}`).join('\n');
+            const apiData = command.data.toJSON();
+            if (apiData.options && apiData.options.length > 0) {
+                const optionsText = apiData.options.map((option) => `\`${option.name}\` - ${option.description}`).join('\n');
                 commandEmbed.addFields([{ name: t('responses.help.options'), value: optionsText.length > 1024 ? optionsText.substring(0, 1021) + "..." : optionsText, inline: false }]);
             }
 
