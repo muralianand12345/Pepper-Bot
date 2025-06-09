@@ -53,6 +53,30 @@ commands:
                 name: "sprache"
                 description: "Wählen Sie Ihre bevorzugte Sprache"
 
+    feedback:
+        name: "feedback"
+        description: "Feedback an die Entwickler senden"
+
+    ping:
+        name: "ping"
+        description: "Latenz und Verbindungsstatus des Bots überprüfen"
+
+    help:
+        name: "hilfe"
+        description: "Alle verfügbaren Befehle und ihre Beschreibungen anzeigen"
+        options:
+            command:
+                name: "befehl"
+                description: "Detaillierte Informationen zu einem bestimmten Befehl erhalten"
+
+    filter:
+        name: "filter"
+        description: "Audio-Filter anwenden, um Ihr Musikerlebnis zu verbessern"
+        options:
+            type:
+                name: "typ"
+                description: "Wählen Sie einen Audio-Filter zum Anwenden"
+
 responses:
     music:
         connected: "Verbunden mit {channelName}"
@@ -74,6 +98,8 @@ responses:
         resumed_members_joined: "▶️ Wiedergabe fortgesetzt"
         youtube_blocked: "⚠️ Lied übersprungen! Youtube-Quelle erkannt."
         youtube_footer: "Wir unterstützen keine Youtube-Links aufgrund der YouTube-AGB."
+        filter_applied: "{filter} Filter angewendet"
+        filter_cleared: "Alle Audio-Filter entfernt"
 
     errors:
         music_disabled: "Musik ist derzeit deaktiviert."
@@ -105,6 +131,10 @@ responses:
         loop_error: "Ein Fehler ist beim Umschalten der Wiederholung aufgetreten"
         autoplay_error: "Ein Fehler ist beim Umschalten der Autowiedergabe aufgetreten."
         contact_dev: "Wenn dieses Problem weiterhin besteht, verwenden Sie bitte /feedback oder kontaktieren Sie den Entwickler"
+        filter_error: "Ein Fehler beim Anwenden des Filters ist aufgetreten"
+        filter_not_found: "Filter `{filter}` nicht gefunden. Verfügbare Filter: {available}"
+        feedback_not_configured: "Das Feedback-System ist nicht ordnungsgemäß konfiguriert"
+        feedback_failed: "Feedback konnte nicht gesendet werden. Bitte versuchen Sie es später erneut."
 
     language:
         user_set: "Ihre Sprache wurde auf **{language}** gesetzt"
@@ -135,4 +165,47 @@ responses:
         loop: "Schleife"
         support_server: "Support Server"
 
+    ping:
+        title: "🏓 Pong!"
+        description: "Bot-Latenz und Verbindungsinformationen"
+        api_latency: "API-Latenz"
+        websocket_latency: "WebSocket-Latenz"
+        database_latency: "Datenbank-Latenz"
+        music_nodes: "Musik-Knoten"
+        uptime: "Betriebszeit"
+        memory_usage: "Speicherverbrauch"
+        footer: "Alle Systeme betriebsbereit"
+
+    help:
+        title: "📚 Befehlshilfe"
+        description: "Hier sind alle {total} verfügbaren Befehle. Verwenden Sie `{prefix}help <befehl>` für detaillierte Informationen."
+        footer: "Verwenden Sie `/help <befehl>` für weitere Details zu einem bestimmten Befehl"
+        command_footer: "Befehlsinformationen"
+        command_not_found: "Befehl `{command}` nicht gefunden."
+        cooldown: "Abklingzeit"
+        permissions: "Berechtigungen"
+        options: "Optionen"
+        no_cooldown: "Keine"
+        owner_only: "Nur Besitzer"
+        none: "Keine"
+        no_commands: "Keine Befehle in dieser Kategorie"
+        categories:
+            music: "Musik-Befehle"
+            utility: "Utility-Befehle"
+            other: "Andere Befehle"
+
+    feedback:
+        sent: "Vielen Dank für Ihr Feedback! Es wurde an die Entwickler gesendet."
+
     default_search: "Bitte geben Sie einen Lieднamen oder eine URL ein"
+
+modals:
+    feedback:
+        title: "Feedback Senden"
+        type_label: "Feedback-Typ"
+        type_placeholder: "Fehlerbericht, Feature-Anfrage, Allgemeines Feedback, etc."
+        feedback_label: "Ihr Feedback"
+        feedback_placeholder: "Bitte beschreiben Sie Ihr Feedback detailliert..."
+
+filters:
+    clear: "🧹 Alle Filter Löschen"

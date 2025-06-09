@@ -45,6 +45,26 @@ commands:
             language:
                 name: "언어"
                 description: "원하는 언어 선택"
+    feedback:
+        name: "피드백"
+        description: "개발자에게 피드백 보내기"
+    ping:
+        name: "핑"
+        description: "봇의 지연시간과 연결 상태 확인"
+    help:
+        name: "도움말"
+        description: "사용 가능한 모든 명령어와 설명 표시"
+        options:
+            command:
+                name: "명령어"
+                description: "특정 명령어의 자세한 정보 얻기"
+    filter:
+        name: "필터"
+        description: "음악 경험을 향상시키는 오디오 필터 적용"
+        options:
+            type:
+                name: "유형"
+                description: "적용할 오디오 필터 선택"
 
 responses:
     default_search: "곡명 또는 URL을 입력하세요"
@@ -78,6 +98,10 @@ responses:
         no_permission: "이 명령어를 사용할 권한이 없습니다, {user}"
         missing_user_perms: "다음 권한이 부족합니다: {permissions}"
         missing_bot_perms: "다음 권한이 부족합니다: {permissions}"
+        filter_error: "필터 적용 중 오류가 발생했습니다"
+        filter_not_found: "필터 `{filter}`를 찾을 수 없습니다. 사용 가능한 필터: {available}"
+        feedback_not_configured: "피드백 시스템이 올바르게 구성되지 않았습니다"
+        feedback_failed: "피드백 전송에 실패했습니다. 나중에 다시 시도해주세요."
     music:
         connected: "🎵 음성 채널 **{channelName}**에 연결되었습니다"
         stopped: "⏹️ 음악을 정지하고 음성 채널에서 연결을 해제했습니다"
@@ -98,6 +122,8 @@ responses:
         paused_empty_channel: "⏸️ 음성 채널이 비어있어 재생을 일시정지했습니다"
         disconnected_inactivity: "🔌 비활성으로 인해 연결을 해제합니다 (10분간 청취자 없음)"
         disconnected: "🔌 음악 플레이어가 연결 해제되었습니다"
+        filter_applied: "{filter} 필터가 적용되었습니다"
+        filter_cleared: "모든 오디오 필터가 제거되었습니다"
     buttons:
         pause: "일시정지"
         resume: "재개"
@@ -124,3 +150,43 @@ responses:
         user_set: "사용자 언어를 {language}로 설정했습니다"
         server_set: "서버 언어를 {language}로 설정했습니다"
         no_permission: "서버 언어를 변경하려면 '서버 관리' 권한이 필요합니다"
+    ping:
+        title: "🏓 퐁!"
+        description: "봇 지연시간 및 연결 정보"
+        api_latency: "API 지연시간"
+        websocket_latency: "웹소켓 지연시간"
+        database_latency: "데이터베이스 지연시간"
+        music_nodes: "음악 노드"
+        uptime: "가동 시간"
+        memory_usage: "메모리 사용량"
+        footer: "모든 시스템 정상 작동"
+    help:
+        title: "📚 명령어 도움말"
+        description: "사용 가능한 {total}개의 명령어입니다. `{prefix}help <명령어>`로 자세한 정보를 확인하세요."
+        footer: "특정 명령어의 자세한 내용은 `/help <명령어>`를 사용하세요"
+        command_footer: "명령어 정보"
+        command_not_found: "명령어 `{command}`를 찾을 수 없습니다."
+        cooldown: "쿨다운"
+        permissions: "권한"
+        options: "옵션"
+        no_cooldown: "없음"
+        owner_only: "소유자만"
+        none: "없음"
+        no_commands: "이 카테고리에 명령어가 없습니다"
+        categories:
+            music: "음악 명령어"
+            utility: "유틸리티 명령어"
+            other: "기타 명령어"
+    feedback:
+        sent: "피드백 감사합니다! 개발자에게 전송되었습니다."
+
+modals:
+    feedback:
+        title: "피드백 보내기"
+        type_label: "피드백 유형"
+        type_placeholder: "버그 리포트, 기능 요청, 일반 피드백 등"
+        feedback_label: "당신의 피드백"
+        feedback_placeholder: "피드백을 자세히 설명해주세요..."
+
+filters:
+    clear: "🧹 모든 필터 제거"

@@ -45,6 +45,26 @@ commands:
             language:
                 name: "言語"
                 description: "お好みの言語を選択"
+    feedback:
+        name: "フィードバック"
+        description: "開発者にフィードバックを送信"
+    ping:
+        name: "ping"
+        description: "ボットの遅延と接続状態を確認"
+    help:
+        name: "ヘルプ"
+        description: "利用可能なすべてのコマンドとその説明を表示"
+        options:
+            command:
+                name: "コマンド"
+                description: "特定のコマンドの詳細情報を取得"
+    filter:
+        name: "フィルター"
+        description: "音楽体験を向上させるオーディオフィルターを適用"
+        options:
+            type:
+                name: "タイプ"
+                description: "適用するオーディオフィルターを選択"
 
 responses:
     default_search: "曲名またはURLを入力してください"
@@ -78,6 +98,10 @@ responses:
         no_permission: "このコマンドを使用する権限がありません、{user}"
         missing_user_perms: "以下の権限が不足しています：{permissions}"
         missing_bot_perms: "以下の権限が不足しています：{permissions}"
+        filter_error: "フィルターの適用中にエラーが発生しました"
+        filter_not_found: "フィルター `{filter}` が見つかりません。利用可能なフィルター：{available}"
+        feedback_not_configured: "フィードバックシステムが正しく設定されていません"
+        feedback_failed: "フィードバックの送信に失敗しました。後でもう一度お試しください。"
     music:
         connected: "🎵 ボイスチャンネル**{channelName}**に接続しました"
         stopped: "⏹️ 音楽を停止し、ボイスチャンネルから切断しました"
@@ -98,6 +122,8 @@ responses:
         paused_empty_channel: "⏸️ ボイスチャンネルが空のため再生を一時停止しました"
         disconnected_inactivity: "🔌 非アクティブのため切断します（10分間リスナーなし）"
         disconnected: "🔌 音楽プレイヤーが切断されました"
+        filter_applied: "{filter}フィルターが適用されました"
+        filter_cleared: "すべてのオーディオフィルターがクリアされました"
     buttons:
         pause: "一時停止"
         resume: "再開"
@@ -124,3 +150,43 @@ responses:
         user_set: "ユーザー言語を{language}に設定しました"
         server_set: "サーバー言語を{language}に設定しました"
         no_permission: "サーバー言語を変更するには「サーバー管理」権限が必要です"
+    ping:
+        title: "🏓 ポン！"
+        description: "ボットの遅延と接続情報"
+        api_latency: "API遅延"
+        websocket_latency: "WebSocket遅延"
+        database_latency: "データベース遅延"
+        music_nodes: "音楽ノード"
+        uptime: "稼働時間"
+        memory_usage: "メモリ使用量"
+        footer: "すべてのシステムが正常動作中"
+    help:
+        title: "📚 コマンドヘルプ"
+        description: "利用可能な{total}個のコマンドです。`{prefix}help <コマンド>`で詳細情報を確認できます。"
+        footer: "特定のコマンドの詳細は `/help <コマンド>` を使用してください"
+        command_footer: "コマンド情報"
+        command_not_found: "コマンド `{command}` が見つかりません。"
+        cooldown: "クールダウン"
+        permissions: "権限"
+        options: "オプション"
+        no_cooldown: "なし"
+        owner_only: "オーナーのみ"
+        none: "なし"
+        no_commands: "このカテゴリにはコマンドがありません"
+        categories:
+            music: "音楽コマンド"
+            utility: "ユーティリティコマンド"
+            other: "その他のコマンド"
+    feedback:
+        sent: "フィードバックありがとうございます！開発者に送信されました。"
+
+modals:
+    feedback:
+        title: "フィードバック送信"
+        type_label: "フィードバックタイプ"
+        type_placeholder: "バグレポート、機能リクエスト、一般的なフィードバックなど"
+        feedback_label: "あなたのフィードバック"
+        feedback_placeholder: "フィードバックを詳しく説明してください..."
+
+filters:
+    clear: "🧹 すべてのフィルターをクリア"

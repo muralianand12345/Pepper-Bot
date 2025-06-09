@@ -53,6 +53,30 @@ commands:
                 name: "language"
                 description: "Choose your preferred language"
 
+    feedback:
+        name: "feedback"
+        description: "Send feedback to the developers"
+
+    ping:
+        name: "ping"
+        description: "Check the bot's latency and connection status"
+
+    help:
+        name: "help"
+        description: "Display all available commands and their descriptions"
+        options:
+            command:
+                name: "command"
+                description: "Get detailed information about a specific command"
+
+    filter:
+        name: "filter"
+        description: "Apply audio filters to enhance your music experience"
+        options:
+            type:
+                name: "type"
+                description: "Choose an audio filter to apply"
+
 responses:
     music:
         connected: "Connected to {channelName}"
@@ -74,6 +98,8 @@ responses:
         resumed_members_joined: "▶️ Resumed playback"
         youtube_blocked: "⚠️ Skipping song! Youtube source detected."
         youtube_footer: "We do not support Youtube links due to YouTube's TOS."
+        filter_applied: "Applied {filter} filter"
+        filter_cleared: "All audio filters cleared"
 
     errors:
         music_disabled: "Music is currently disabled."
@@ -105,6 +131,10 @@ responses:
         loop_error: "An error occurred while toggling loop"
         autoplay_error: "An error occurred while toggling autoplay."
         contact_dev: "If this issue persists, please use /feedback or contact the developer"
+        filter_error: "An error occurred while applying the filter"
+        filter_not_found: "Filter `{filter}` not found. Available filters: {available}"
+        feedback_not_configured: "Feedback system is not properly configured"
+        feedback_failed: "Failed to send feedback. Please try again later."
 
     language:
         user_set: "Your language has been set to **{language}**"
@@ -135,4 +165,47 @@ responses:
         loop: "Loop"
         support_server: "Support Server"
 
+    ping:
+        title: "🏓 Pong!"
+        description: "Bot latency and connection information"
+        api_latency: "API Latency"
+        websocket_latency: "WebSocket Latency"
+        database_latency: "Database Latency"
+        music_nodes: "Music Nodes"
+        uptime: "Uptime"
+        memory_usage: "Memory Usage"
+        footer: "All systems operational"
+
+    help:
+        title: "📚 Command Help"
+        description: "Here are all {total} available commands. Use `{prefix}help <command>` for detailed information."
+        footer: "Use `/help <command>` for more details about a specific command"
+        command_footer: "Command Information"
+        command_not_found: "Command `{command}` not found."
+        cooldown: "Cooldown"
+        permissions: "Permissions"
+        options: "Options"
+        no_cooldown: "None"
+        owner_only: "Owner Only"
+        none: "None"
+        no_commands: "No commands in this category"
+        categories:
+            music: "Music Commands"
+            utility: "Utility Commands"
+            other: "Other Commands"
+
+    feedback:
+        sent: "Thank you for your feedback! It has been sent to the developers."
+
     default_search: "Please enter a song name or url"
+
+modals:
+    feedback:
+        title: "Send Feedback"
+        type_label: "Feedback Type"
+        type_placeholder: "Bug Report, Feature Request, General Feedback, etc."
+        feedback_label: "Your Feedback"
+        feedback_placeholder: "Please describe your feedback in detail..."
+
+filters:
+    clear: "🧹 Clear All Filters"

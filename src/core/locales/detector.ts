@@ -54,7 +54,7 @@ export class LocaleDetector {
     };
 
     public detectLocale = async (
-        interaction: discord.ChatInputCommandInteraction | discord.ButtonInteraction | discord.AutocompleteInteraction
+        interaction: discord.ChatInputCommandInteraction | discord.ButtonInteraction | discord.AutocompleteInteraction | discord.ModalSubmitInteraction
     ): Promise<string> => {
         try {
             const userLanguage = await this.getUserLanguage(interaction.user.id);
@@ -76,7 +76,7 @@ export class LocaleDetector {
     };
 
     public getTranslator = async (
-        interaction: discord.ChatInputCommandInteraction | discord.ButtonInteraction | discord.AutocompleteInteraction
+        interaction: discord.ChatInputCommandInteraction | discord.ButtonInteraction | discord.AutocompleteInteraction | discord.ModalSubmitInteraction
     ) => {
         const locale = await this.detectLocale(interaction);
         return (key: string, data?: Record<string, string | number>) => {

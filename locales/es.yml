@@ -53,6 +53,30 @@ commands:
                 name: "idioma"
                 description: "Elige tu idioma preferido"
 
+    feedback:
+        name: "comentarios"
+        description: "Enviar comentarios a los desarrolladores"
+
+    ping:
+        name: "ping"
+        description: "Verificar la latencia y estado de conexión del bot"
+
+    help:
+        name: "ayuda"
+        description: "Mostrar todos los comandos disponibles y sus descripciones"
+        options:
+            command:
+                name: "comando"
+                description: "Obtener información detallada sobre un comando específico"
+
+    filter:
+        name: "filtro"
+        description: "Aplicar filtros de audio para mejorar tu experiencia musical"
+        options:
+            type:
+                name: "tipo"
+                description: "Elige un filtro de audio para aplicar"
+
 responses:
     music:
         connected: "Conectado a {channelName}"
@@ -74,6 +98,8 @@ responses:
         resumed_members_joined: "▶️ Reproducción reanudada"
         youtube_blocked: "⚠️ ¡Saltando canción! Fuente de Youtube detectada."
         youtube_footer: "No admitimos enlaces de Youtube debido a los TOS de YouTube."
+        filter_applied: "Filtro {filter} aplicado"
+        filter_cleared: "Todos los filtros de audio eliminados"
 
     errors:
         music_disabled: "La música está actualmente desactivada."
@@ -105,6 +131,10 @@ responses:
         loop_error: "Ocurrió un error al alternar la repetición"
         autoplay_error: "Ocurrió un error al alternar la reproducción automática."
         contact_dev: "Si este problema persiste, por favor usa /feedback o contacta al desarrollador"
+        filter_error: "Ocurrió un error al aplicar el filtro"
+        filter_not_found: "Filtro `{filter}` no encontrado. Filtros disponibles: {available}"
+        feedback_not_configured: "El sistema de comentarios no está configurado correctamente"
+        feedback_failed: "Error al enviar comentarios. Inténtalo de nuevo más tarde."
 
     language:
         user_set: "Tu idioma ha sido establecido a **{language}**"
@@ -135,4 +165,47 @@ responses:
         loop: "Repetir"
         support_server: "Servidor de Soporte"
 
+    ping:
+        title: "🏓 ¡Pong!"
+        description: "Información de latencia y conexión del bot"
+        api_latency: "Latencia de API"
+        websocket_latency: "Latencia de WebSocket"
+        database_latency: "Latencia de Base de Datos"
+        music_nodes: "Nodos de Música"
+        uptime: "Tiempo Activo"
+        memory_usage: "Uso de Memoria"
+        footer: "Todos los sistemas operativos"
+
+    help:
+        title: "📚 Ayuda de Comandos"
+        description: "Aquí están todos los {total} comandos disponibles. Usa `{prefix}help <comando>` para información detallada."
+        footer: "Usa `/help <comando>` para más detalles sobre un comando específico"
+        command_footer: "Información del Comando"
+        command_not_found: "Comando `{command}` no encontrado."
+        cooldown: "Tiempo de Espera"
+        permissions: "Permisos"
+        options: "Opciones"
+        no_cooldown: "Ninguno"
+        owner_only: "Solo Propietario"
+        none: "Ninguno"
+        no_commands: "No hay comandos en esta categoría"
+        categories:
+            music: "Comandos de Música"
+            utility: "Comandos de Utilidad"
+            other: "Otros Comandos"
+
+    feedback:
+        sent: "¡Gracias por tus comentarios! Han sido enviados a los desarrolladores."
+
     default_search: "Por favor ingresa el nombre de una canción o URL"
+
+modals:
+    feedback:
+        title: "Enviar Comentarios"
+        type_label: "Tipo de Comentario"
+        type_placeholder: "Reporte de Error, Solicitud de Función, Comentario General, etc."
+        feedback_label: "Tus Comentarios"
+        feedback_placeholder: "Por favor describe tus comentarios en detalle..."
+
+filters:
+    clear: "🧹 Limpiar Todos los Filtros"

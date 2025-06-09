@@ -53,6 +53,30 @@ commands:
                 name: "langue"
                 description: "Choisissez votre langue préférée"
 
+    feedback:
+        name: "commentaires"
+        description: "Envoyer des commentaires aux développeurs"
+
+    ping:
+        name: "ping"
+        description: "Vérifier la latence et l'état de connexion du bot"
+
+    help:
+        name: "aide"
+        description: "Afficher toutes les commandes disponibles et leurs descriptions"
+        options:
+            command:
+                name: "commande"
+                description: "Obtenir des informations détaillées sur une commande spécifique"
+
+    filter:
+        name: "filtre"
+        description: "Appliquer des filtres audio pour améliorer votre expérience musicale"
+        options:
+            type:
+                name: "type"
+                description: "Choisir un filtre audio à appliquer"
+
 responses:
     music:
         connected: "Connecté à {channelName}"
@@ -74,6 +98,8 @@ responses:
         resumed_members_joined: "▶️ Lecture reprise"
         youtube_blocked: "⚠️ Chanson passée ! Source Youtube détectée."
         youtube_footer: "Nous ne prenons pas en charge les liens Youtube en raison des TOS de YouTube."
+        filter_applied: "Filtre {filter} appliqué"
+        filter_cleared: "Tous les filtres audio supprimés"
 
     errors:
         music_disabled: "La musique est actuellement désactivée."
@@ -105,6 +131,10 @@ responses:
         loop_error: "Une erreur s'est produite lors du basculement de la répétition"
         autoplay_error: "Une erreur s'est produite lors du basculement de la lecture automatique."
         contact_dev: "Si ce problème persiste, veuillez utiliser /feedback ou contacter le développeur"
+        filter_error: "Une erreur s'est produite lors de l'application du filtre"
+        filter_not_found: "Filtre `{filter}` introuvable. Filtres disponibles : {available}"
+        feedback_not_configured: "Le système de commentaires n'est pas configuré correctement"
+        feedback_failed: "Échec de l'envoi des commentaires. Veuillez réessayer plus tard."
 
     language:
         user_set: "Votre langue a été définie sur **{language}**"
@@ -135,4 +165,47 @@ responses:
         loop: "Boucle"
         support_server: "Serveur de Support"
 
+    ping:
+        title: "🏓 Pong !"
+        description: "Informations de latence et de connexion du bot"
+        api_latency: "Latence API"
+        websocket_latency: "Latence WebSocket"
+        database_latency: "Latence Base de Données"
+        music_nodes: "Nœuds Musicaux"
+        uptime: "Temps de Fonctionnement"
+        memory_usage: "Utilisation Mémoire"
+        footer: "Tous les systèmes opérationnels"
+
+    help:
+        title: "📚 Aide des Commandes"
+        description: "Voici toutes les {total} commandes disponibles. Utilisez `{prefix}help <commande>` pour des informations détaillées."
+        footer: "Utilisez `/help <commande>` pour plus de détails sur une commande spécifique"
+        command_footer: "Informations de Commande"
+        command_not_found: "Commande `{command}` introuvable."
+        cooldown: "Temps de Recharge"
+        permissions: "Permissions"
+        options: "Options"
+        no_cooldown: "Aucun"
+        owner_only: "Propriétaire Seulement"
+        none: "Aucun"
+        no_commands: "Aucune commande dans cette catégorie"
+        categories:
+            music: "Commandes Musicales"
+            utility: "Commandes Utilitaires"
+            other: "Autres Commandes"
+
+    feedback:
+        sent: "Merci pour vos commentaires ! Ils ont été envoyés aux développeurs."
+
     default_search: "Veuillez entrer un nom de chanson ou une URL"
+
+modals:
+    feedback:
+        title: "Envoyer des Commentaires"
+        type_label: "Type de Commentaire"
+        type_placeholder: "Rapport de Bug, Demande de Fonctionnalité, Commentaire Général, etc."
+        feedback_label: "Vos Commentaires"
+        feedback_placeholder: "Veuillez décrire vos commentaires en détail..."
+
+filters:
+    clear: "🧹 Effacer Tous les Filtres"

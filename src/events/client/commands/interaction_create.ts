@@ -99,10 +99,37 @@ const executeCommand = async (command: Command, interaction: discord.Interaction
     }
 };
 
+const handleModalSubmit = async (interaction: discord.ModalSubmitInteraction, client: discord.Client): Promise<void> => {
+    try {
+        if (interaction.customId === "feedback_modal") {
+            const feedbackCommand = client.commands.get("feedback");
+            if (feedbackCommand?.modal) return await feedbackCommand.modal(interaction);
+        }
+
+        client.logger.warn(`[INTERACTION_CREATE] Unhandled modal interaction: ${interaction.customId}`);
+    } catch (error) {
+        client.logger.error(`[INTERACTION_CREATE] Error handling modal ${interaction.customId}: ${error}`);
+
+        if (!interaction.replied && !interaction.deferred) {
+            try {
+                const locale = await localeDetector.detectLocale(interaction);
+                const t = await localeDetector.getTranslator(interaction);
+                const message = t('responses.errors.general_error');
+
+                await interaction.reply({ content: `❌ ${message}`, flags: discord.MessageFlags.Ephemeral }).catch(() => { });
+            } catch (localeError) {
+                await interaction.reply({ content: "❌ An error occurred while processing your request.", flags: discord.MessageFlags.Ephemeral }).catch(() => { });
+            }
+        }
+    }
+};
+
 const event: BotEvent = {
     name: discord.Events.InteractionCreate,
     execute: async (interaction: discord.Interaction, client: discord.Client): Promise<void> => {
         try {
+            if (interaction.isModalSubmit()) return await handleModalSubmit(interaction, client);
+
             if (interaction.isAutocomplete()) {
                 const command = client.commands.get(interaction.commandName);
                 if (command?.autocomplete) {
@@ -117,6 +144,7 @@ const event: BotEvent = {
 
             if (!validateInteraction(interaction, client)) return;
             if (!interaction.isChatInputCommand()) return;
+
             const command = client.commands.get(interaction.commandName);
             if (!command) return client.logger.warn(`[INTERACTION_CREATE] Command ${interaction.commandName} not found.`);
 

@@ -45,6 +45,26 @@ commands:
             language:
                 name: "idioma"
                 description: "Escolha seu idioma preferido"
+    feedback:
+        name: "feedback"
+        description: "Enviar feedback para os desenvolvedores"
+    ping:
+        name: "ping"
+        description: "Verificar latência e status de conexão do bot"
+    help:
+        name: "ajuda"
+        description: "Exibir todos os comandos disponíveis e suas descrições"
+        options:
+            command:
+                name: "comando"
+                description: "Obter informações detalhadas sobre um comando específico"
+    filter:
+        name: "filtro"
+        description: "Aplicar filtros de áudio para melhorar sua experiência musical"
+        options:
+            type:
+                name: "tipo"
+                description: "Escolha um filtro de áudio para aplicar"
 
 responses:
     default_search: "Digite o nome de uma música ou URL"
@@ -78,6 +98,10 @@ responses:
         no_permission: "Você não tem permissão para usar este comando, {user}"
         missing_user_perms: "Você está perdendo as seguintes permissões: {permissions}"
         missing_bot_perms: "Estou perdendo as seguintes permissões: {permissions}"
+        filter_error: "Ocorreu um erro ao aplicar o filtro"
+        filter_not_found: "Filtro `{filter}` não encontrado. Filtros disponíveis: {available}"
+        feedback_not_configured: "O sistema de feedback não está configurado corretamente"
+        feedback_failed: "Falha ao enviar feedback. Tente novamente mais tarde."
     music:
         connected: "🎵 Conectado ao canal de voz **{channelName}**"
         stopped: "⏹️ Música parada e desconectado do canal de voz"
@@ -98,6 +122,8 @@ responses:
         paused_empty_channel: "⏸️ Reprodução pausada porque o canal de voz está vazio"
         disconnected_inactivity: "🔌 Desconectando devido à inatividade (10 minutos sem ouvintes)"
         disconnected: "🔌 Player de música desconectado"
+        filter_applied: "Filtro {filter} aplicado"
+        filter_cleared: "Todos os filtros de áudio removidos"
     buttons:
         pause: "Pausar"
         resume: "Continuar"
@@ -124,3 +150,43 @@ responses:
         user_set: "Idioma do usuário definido para {language}"
         server_set: "Idioma do servidor definido para {language}"
         no_permission: "Você precisa da permissão 'Gerenciar Servidor' para alterar o idioma do servidor"
+    ping:
+        title: "🏓 Pong!"
+        description: "Informações de latência e conexão do bot"
+        api_latency: "Latência da API"
+        websocket_latency: "Latência do WebSocket"
+        database_latency: "Latência do Banco de Dados"
+        music_nodes: "Nós de Música"
+        uptime: "Tempo Ativo"
+        memory_usage: "Uso de Memória"
+        footer: "Todos os sistemas operacionais"
+    help:
+        title: "📚 Ajuda de Comandos"
+        description: "Aqui estão todos os {total} comandos disponíveis. Use `{prefix}help <comando>` para informações detalhadas."
+        footer: "Use `/help <comando>` para mais detalhes sobre um comando específico"
+        command_footer: "Informações do Comando"
+        command_not_found: "Comando `{command}` não encontrado."
+        cooldown: "Tempo de Recarga"
+        permissions: "Permissões"
+        options: "Opções"
+        no_cooldown: "Nenhum"
+        owner_only: "Apenas Proprietário"
+        none: "Nenhum"
+        no_commands: "Nenhum comando nesta categoria"
+        categories:
+            music: "Comandos de Música"
+            utility: "Comandos Utilitários"
+            other: "Outros Comandos"
+    feedback:
+        sent: "Obrigado pelo seu feedback! Foi enviado para os desenvolvedores."
+
+modals:
+    feedback:
+        title: "Enviar Feedback"
+        type_label: "Tipo de Feedback"
+        type_placeholder: "Relatório de Bug, Solicitação de Recurso, Feedback Geral, etc."
+        feedback_label: "Seu Feedback"
+        feedback_placeholder: "Por favor, descreva seu feedback em detalhes..."
+
+filters:
+    clear: "🧹 Limpar Todos os Filtros"

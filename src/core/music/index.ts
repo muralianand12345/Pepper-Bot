@@ -14,6 +14,19 @@ export * from "./now_playing";
 export const MUSIC_CONFIG = {
     ERROR_SEARCH_TEXT: "Unable To Fetch Results",
     DEFAULT_SEARCH_TEXT: "Please enter a song name or url",
+    AUDIO_FILTERS: {
+        clear: { name: "Clear", emoji: "🔄", description: "Remove all filters" },
+        bassboost: { name: "Bass Boost", emoji: "🔊", description: "Enhance the bass frequencies" },
+        nightcore: { name: "Nightcore", emoji: "🎵", description: "Speed up and pitch the audio" },
+        vaporwave: { name: "Vaporwave", emoji: "🌊", description: "Slow down and lower the pitch" },
+        pop: { name: "Pop", emoji: "🎤", description: "Enhance vocals and mids" },
+        soft: { name: "Soft", emoji: "🕊️", description: "Gentle, smooth sound" },
+        treblebass: { name: "Treble Bass", emoji: "📊", description: "Enhance both highs and lows" },
+        eightd: { name: "8D Audio", emoji: "🎧", description: "Spatial rotating effect" },
+        karaoke: { name: "Karaoke", emoji: "🎤", description: "Reduce vocals for karaoke" },
+        vibrato: { name: "Vibrato", emoji: "〰️", description: "Add vibrato effect" },
+        tremolo: { name: "Tremolo", emoji: "📳", description: "Add tremolo effect" }
+    },
     PLAYER_OPTIONS: {
         volume: 50,
         selfDeafen: true,
@@ -41,34 +54,21 @@ export class Music {
 
     private validateMusicEnabled = (): discord.EmbedBuilder | null => {
         if (this.client.config.music.enabled) return null;
-        return new MusicResponseHandler(this.client).createErrorEmbed(
-            this.t('responses.errors.music_disabled'),
-            this.locale
-        );
+        return new MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.music_disabled'), this.locale);
     };
 
     private validateLavalinkNode = async (nodeChoice: string | undefined): Promise<discord.EmbedBuilder | null> => {
         if (!nodeChoice) return null;
-        if (this.client.manager.get(this.interaction.guild?.id || "")) {
-            return new MusicResponseHandler(this.client).createErrorEmbed(
-                this.t('responses.errors.player_exists'),
-                this.locale
-            );
-        }
+        if (this.client.manager.get(this.interaction.guild?.id || "")) return new MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.player_exists'), this.locale);
+
         const node = this.client.manager.nodes.find((n: magmastream.Node) => n.options.identifier === nodeChoice);
-        if (!node) {
-            return new MusicResponseHandler(this.client).createErrorEmbed(
-                this.t('responses.errors.node_invalid'),
-                this.locale
-            );
-        }
-        if (!node.connected) {
-            return new MusicResponseHandler(this.client).createErrorEmbed(
-                this.t('responses.errors.node_not_connected'),
-                this.locale
-            );
-        }
+        if (!node) return new MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.node_invalid'), this.locale);
+        if (!node.connected) return new MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.node_not_connected'), this.locale);
         return null;
+    };
+
+    private validateFilterName = (filterName: string): filterName is keyof typeof MUSIC_CONFIG.AUDIO_FILTERS => {
+        return filterName in MUSIC_CONFIG.AUDIO_FILTERS;
     };
 
     searchResults = async (res: magmastream.SearchResult, player: magmastream.Player): Promise<void> => {
@@ -357,6 +357,106 @@ export class Music {
         } catch (error) {
             this.client.logger.error(`[AUTOPLAY] Command error: ${error}`);
             await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.autoplay_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
+        }
+    };
+
+    filter = async (filterName: string): Promise<discord.InteractionResponse<boolean> | discord.Message<boolean> | void> => {
+        await this.initializeLocale();
+        const responseHandler = new MusicResponseHandler(this.client);
+
+        const musicCheck = this.validateMusicEnabled();
+        if (musicCheck) return await this.interaction.reply({ embeds: [musicCheck], flags: discord.MessageFlags.Ephemeral });
+
+        const player = this.client.manager.get(this.interaction.guild?.id || "");
+        if (!player) return await this.interaction.reply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)], flags: discord.MessageFlags.Ephemeral });
+
+        const validator = new VoiceChannelValidator(this.client, this.interaction);
+        for (const check of [
+            validator.validateGuildContext(),
+            validator.validateVoiceConnection(),
+            validator.validateMusicPlaying(player),
+            validator.validateVoiceSameChannel(player),
+        ]) {
+            const [isValid, embed] = await check;
+            if (!isValid) return await this.interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
+        }
+
+        await this.interaction.deferReply();
+
+        try {
+            if (!this.validateFilterName(filterName)) {
+                const embed = responseHandler.createErrorEmbed(this.t('responses.errors.filter_not_found', { filter: filterName }), this.locale);
+                return await this.interaction.editReply({ embeds: [embed] });
+            }
+
+            let success = false;
+
+            if (!player.filters) {
+                player.filters = new magmastream.Filters(player);
+            }
+
+            switch (filterName) {
+                case "clear":
+                    await player.filters.clearFilters();
+                    success = true;
+                    break;
+                case "bassboost":
+                    await player.filters.bassBoost(2);
+                    success = true;
+                    break;
+                case "nightcore":
+                    await player.filters.nightcore(true);
+                    success = true;
+                    break;
+                case "vaporwave":
+                    await player.filters.vaporwave(true);
+                    success = true;
+                    break;
+                case "pop":
+                    await player.filters.pop(true);
+                    success = true;
+                    break;
+                case "soft":
+                    await player.filters.soft(true);
+                    success = true;
+                    break;
+                case "treblebass":
+                    await player.filters.trebleBass(true);
+                    success = true;
+                    break;
+                case "eightd":
+                    await player.filters.eightD(true);
+                    success = true;
+                    break;
+                case "karaoke":
+                    await player.filters.setKaraoke({ level: 1.0, monoLevel: 1.0, filterBand: 220, filterWidth: 100 });
+                    success = true;
+                    break;
+                case "vibrato":
+                    await player.filters.setVibrato({ frequency: 4, depth: 0.75 });
+                    success = true;
+                    break;
+                case "tremolo":
+                    await player.filters.tremolo(true);
+                    success = true;
+                    break;
+            };
+
+            if (!success) {
+                const embed = responseHandler.createErrorEmbed(this.t('responses.errors.filter_not_found', { filter: filterName }), this.locale);
+                return await this.interaction.editReply({ embeds: [embed] });
+            };
+
+            const filter = MUSIC_CONFIG.AUDIO_FILTERS[filterName];
+            const embed = responseHandler.createSuccessEmbed(this.t('responses.music.filter_applied', { filter: filter.name }), this.locale);
+            await this.interaction.editReply({ embeds: [embed] });
+
+        } catch (error) {
+            this.client.logger.error(`[FILTER] Command error: ${error}`);
+            await this.interaction.editReply({
+                embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.filter_error'), this.locale, true)],
+                components: [responseHandler.getSupportButton(this.locale)]
+            });
         }
     };
 };
