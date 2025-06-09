@@ -9,27 +9,21 @@ commands:
             lavalink_node:
                 name: "noeud_lavalink"
                 description: "Lavalink pour jouer la chanson (Optionnel)"
-
     pause:
         name: "pause"
         description: "Mettre en pause la musique en cours de lecture"
-
     resume:
         name: "reprendre"
         description: "Reprendre la musique en pause"
-
     skip:
         name: "passer"
         description: "Passer la chanson actuelle et jouer la suivante"
-
     stop:
         name: "arreter"
         description: "Arrêter la musique et se déconnecter du canal vocal"
-
     loop:
         name: "boucle"
         description: "Basculer le mode de répétition pour la piste actuelle"
-
     autoplay:
         name: "lecture_auto"
         description: "Basculer la lecture automatique intelligente basée sur vos préférences musicales"
@@ -37,7 +31,6 @@ commands:
             enabled:
                 name: "active"
                 description: "Activer ou désactiver la lecture automatique"
-
     language:
         name: "langue"
         description: "Définir les préférences de langue pour le bot"
@@ -52,15 +45,12 @@ commands:
             language:
                 name: "langue"
                 description: "Choisissez votre langue préférée"
-
     feedback:
         name: "commentaires"
         description: "Envoyer des commentaires aux développeurs"
-
     ping:
         name: "ping"
         description: "Vérifier la latence et l'état de connexion du bot"
-
     help:
         name: "aide"
         description: "Afficher toutes les commandes disponibles et leurs descriptions"
@@ -68,7 +58,6 @@ commands:
             command:
                 name: "commande"
                 description: "Obtenir des informations détaillées sur une commande spécifique"
-
     filter:
         name: "filtre"
         description: "Appliquer des filtres audio pour améliorer votre expérience musicale"
@@ -100,7 +89,6 @@ responses:
         youtube_footer: "Nous ne prenons pas en charge les liens Youtube en raison des TOS de YouTube."
         filter_applied: "Filtre {filter} appliqué"
         filter_cleared: "Tous les filtres audio supprimés"
-
     errors:
         music_disabled: "La musique est actuellement désactivée."
         no_player: "Aucune musique n'est en cours de lecture"
@@ -135,7 +123,6 @@ responses:
         filter_not_found: "Filtre `{filter}` introuvable. Filtres disponibles : {available}"
         feedback_not_configured: "Le système de commentaires n'est pas configuré correctement"
         feedback_failed: "Échec de l'envoi des commentaires. Veuillez réessayer plus tard."
-
     language:
         user_set: "Votre langue a été définie sur **{language}**"
         server_set: "La langue du serveur a été définie sur **{language}** (Admin uniquement)"
@@ -143,7 +130,6 @@ responses:
         same_language: "La langue est déjà définie sur **{language}**"
         unsupported: "La langue **{language}** n'est pas prise en charge. Langues prises en charge : {languages}"
         no_permission: "Vous avez besoin de la permission **Gérer le Serveur** pour changer la langue du serveur"
-
     fields:
         duration: "Durée"
         source: "Source"
@@ -156,7 +142,6 @@ responses:
         avg_duration: "Durée Moyenne"
         added_by: "Ajouté par"
         progress: "Progrès"
-
     buttons:
         pause: "Pause"
         resume: "Reprendre"
@@ -164,7 +149,6 @@ responses:
         stop: "Arrêter"
         loop: "Boucle"
         support_server: "Serveur de Support"
-
     ping:
         title: "🏓 Pong !"
         description: "Informations de latence et de connexion du bot"
@@ -175,7 +159,6 @@ responses:
         uptime: "Temps de Fonctionnement"
         memory_usage: "Utilisation Mémoire"
         footer: "Tous les systèmes opérationnels"
-
     help:
         title: "📚 Aide des Commandes"
         description: "Voici toutes les {total} commandes disponibles. Utilisez `{prefix}help <commande>` pour des informations détaillées."
@@ -193,10 +176,8 @@ responses:
             music: "Commandes Musicales"
             utility: "Commandes Utilitaires"
             other: "Autres Commandes"
-
     feedback:
         sent: "Merci pour vos commentaires ! Ils ont été envoyés aux développeurs."
-
     default_search: "Veuillez entrer un nom de chanson ou une URL"
 
 modals:

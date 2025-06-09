@@ -9,27 +9,21 @@ commands:
             lavalink_node:
                 name: "nodo_lavalink"
                 description: "Lavalink para reproducir la canción (Opcional)"
-
     pause:
         name: "pausar"
         description: "Pausar la música que se está reproduciendo"
-
     resume:
         name: "reanudar"
         description: "Reanudar la música pausada"
-
     skip:
         name: "saltar"
         description: "Saltar la canción actual y reproducir la siguiente"
-
     stop:
         name: "parar"
         description: "Parar la música y desconectar del canal de voz"
-
     loop:
         name: "repetir"
         description: "Alternar el modo de repetición para la pista actual"
-
     autoplay:
         name: "autoreproducir"
         description: "Alternar la reproducción automática inteligente basada en tus preferencias musicales"
@@ -37,7 +31,6 @@ commands:
             enabled:
                 name: "activado"
                 description: "Activar o desactivar la reproducción automática"
-
     language:
         name: "idioma"
         description: "Establecer preferencias de idioma para el bot"
@@ -52,15 +45,12 @@ commands:
             language:
                 name: "idioma"
                 description: "Elige tu idioma preferido"
-
     feedback:
         name: "comentarios"
         description: "Enviar comentarios a los desarrolladores"
-
     ping:
         name: "ping"
         description: "Verificar la latencia y estado de conexión del bot"
-
     help:
         name: "ayuda"
         description: "Mostrar todos los comandos disponibles y sus descripciones"
@@ -68,7 +58,6 @@ commands:
             command:
                 name: "comando"
                 description: "Obtener información detallada sobre un comando específico"
-
     filter:
         name: "filtro"
         description: "Aplicar filtros de audio para mejorar tu experiencia musical"
@@ -100,7 +89,6 @@ responses:
         youtube_footer: "No admitimos enlaces de Youtube debido a los TOS de YouTube."
         filter_applied: "Filtro {filter} aplicado"
         filter_cleared: "Todos los filtros de audio eliminados"
-
     errors:
         music_disabled: "La música está actualmente desactivada."
         no_player: "No se está reproduciendo música actualmente"
@@ -135,7 +123,6 @@ responses:
         filter_not_found: "Filtro `{filter}` no encontrado. Filtros disponibles: {available}"
         feedback_not_configured: "El sistema de comentarios no está configurado correctamente"
         feedback_failed: "Error al enviar comentarios. Inténtalo de nuevo más tarde."
-
     language:
         user_set: "Tu idioma ha sido establecido a **{language}**"
         server_set: "El idioma del servidor ha sido establecido a **{language}** (Solo Admin)"
@@ -143,7 +130,6 @@ responses:
         same_language: "El idioma ya está establecido a **{language}**"
         unsupported: "El idioma **{language}** no es compatible. Idiomas compatibles: {languages}"
         no_permission: "Necesitas permiso de **Administrar Servidor** para cambiar el idioma del servidor"
-
     fields:
         duration: "Duración"
         source: "Fuente"
@@ -156,7 +142,6 @@ responses:
         avg_duration: "Duración Promedio"
         added_by: "Añadido por"
         progress: "Progreso"
-
     buttons:
         pause: "Pausar"
         resume: "Reanudar"
@@ -164,7 +149,6 @@ responses:
         stop: "Parar"
         loop: "Repetir"
         support_server: "Servidor de Soporte"
-
     ping:
         title: "🏓 ¡Pong!"
         description: "Información de latencia y conexión del bot"
@@ -175,7 +159,6 @@ responses:
         uptime: "Tiempo Activo"
         memory_usage: "Uso de Memoria"
         footer: "Todos los sistemas operativos"
-
     help:
         title: "📚 Ayuda de Comandos"
         description: "Aquí están todos los {total} comandos disponibles. Usa `{prefix}help <comando>` para información detallada."
@@ -193,10 +176,8 @@ responses:
             music: "Comandos de Música"
             utility: "Comandos de Utilidad"
             other: "Otros Comandos"
-
     feedback:
         sent: "¡Gracias por tus comentarios! Han sido enviados a los desarrolladores."
-
     default_search: "Por favor ingresa el nombre de una canción o URL"
 
 modals:

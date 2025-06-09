@@ -9,27 +9,21 @@ commands:
             lavalink_node:
                 name: "lavalink_node"
                 description: "Lavalink to play the song (Optional)"
-
     pause:
         name: "pause"
         description: "Pause the currently playing music"
-
     resume:
         name: "resume"
         description: "Resume the paused music"
-
     skip:
         name: "skip"
         description: "Skip the current song and play the next one"
-
     stop:
         name: "stop"
         description: "Stop the music and disconnect from voice channel"
-
     loop:
         name: "loop"
         description: "Toggle loop mode for the current track"
-
     autoplay:
         name: "autoplay"
         description: "Toggle smart autoplay based on your music preferences"
@@ -37,7 +31,6 @@ commands:
             enabled:
                 name: "enabled"
                 description: "Enable or disable autoplay"
-
     language:
         name: "language"
         description: "Set language preferences for the bot"
@@ -52,15 +45,12 @@ commands:
             language:
                 name: "language"
                 description: "Choose your preferred language"
-
     feedback:
         name: "feedback"
         description: "Send feedback to the developers"
-
     ping:
         name: "ping"
         description: "Check the bot's latency and connection status"
-
     help:
         name: "help"
         description: "Display all available commands and their descriptions"
@@ -68,7 +58,6 @@ commands:
             command:
                 name: "command"
                 description: "Get detailed information about a specific command"
-
     filter:
         name: "filter"
         description: "Apply audio filters to enhance your music experience"
@@ -100,7 +89,6 @@ responses:
         youtube_footer: "We do not support Youtube links due to YouTube's TOS."
         filter_applied: "Applied {filter} filter"
         filter_cleared: "All audio filters cleared"
-
     errors:
         music_disabled: "Music is currently disabled."
         no_player: "No music is currently playing"
@@ -135,7 +123,6 @@ responses:
         filter_not_found: "Filter `{filter}` not found. Available filters: {available}"
         feedback_not_configured: "Feedback system is not properly configured"
         feedback_failed: "Failed to send feedback. Please try again later."
-
     language:
         user_set: "Your language has been set to **{language}**"
         server_set: "Server language has been set to **{language}** (Admin only)"
@@ -143,7 +130,6 @@ responses:
         same_language: "Language is already set to **{language}**"
         unsupported: "Language **{language}** is not supported. Supported languages: {languages}"
         no_permission: "You need **Manage Server** permission to change server language"
-
     fields:
         duration: "Duration"
         source: "Source"
@@ -156,7 +142,6 @@ responses:
         avg_duration: "Avg. Duration"
         added_by: "Added by"
         progress: "Progress"
-
     buttons:
         pause: "Pause"
         resume: "Resume"
@@ -164,7 +149,6 @@ responses:
         stop: "Stop"
         loop: "Loop"
         support_server: "Support Server"
-
     ping:
         title: "🏓 Pong!"
         description: "Bot latency and connection information"
@@ -175,7 +159,6 @@ responses:
         uptime: "Uptime"
         memory_usage: "Memory Usage"
         footer: "All systems operational"
-
     help:
         title: "📚 Command Help"
         description: "Here are all {total} available commands. Use `{prefix}help <command>` for detailed information."
@@ -193,10 +176,8 @@ responses:
             music: "Music Commands"
             utility: "Utility Commands"
             other: "Other Commands"
-
     feedback:
         sent: "Thank you for your feedback! It has been sent to the developers."
-
     default_search: "Please enter a song name or url"
 
 modals:
