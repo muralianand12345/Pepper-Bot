@@ -175,7 +175,7 @@ const createChartEmbed = (chartData: ISongs[], analytics: ChartAnalytics, title:
 };
 
 const createAnalyticsOverview = (analytics: ChartAnalytics, t: (key: string, data?: Record<string, any>) => string, locale: string): string => {
-    const totalTimeFormatted = Formatter.msToTime(analytics.totalPlaytime);
+    const totalTimeFormatted = Formatter.formatUptime(analytics.totalPlaytime / 1000);
     const avgPlayCount = Math.round(analytics.averagePlayCount * 10) / 10;
     return [
         `🎵 **${analytics.totalSongs}** ${t('responses.chart.total_tracks')}`,

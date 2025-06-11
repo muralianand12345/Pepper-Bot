@@ -139,7 +139,7 @@ const refreshChartEmbed = async (interaction: discord.ButtonInteraction, origina
                 embedColor = "#5865f2";
         }
 
-        const totalTimeFormatted = Formatter.msToTime(analytics.totalPlaytime);
+        const totalTimeFormatted = Formatter.formatUptime(analytics.totalPlaytime / 1000);
         const avgPlayCount = Math.round(analytics.averagePlayCount * 10) / 10;
 
         const description = [

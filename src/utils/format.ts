@@ -19,11 +19,16 @@ class Formatter {
     }
 
     public static formatUptime = (seconds: number): string => {
+
+        const years = Math.floor(seconds / 31536000);
+        const months = Math.floor(seconds / 2592000);
         const days = Math.floor(seconds / 86400);
         const hours = Math.floor((seconds % 86400) / 3600);
         const minutes = Math.floor(((seconds % 86400) % 3600) / 60);
         const parts = [];
 
+        if (years > 0) parts.push(`${years}y`);
+        if (months > 0) parts.push(`${months}mo`);
         if (days > 0) parts.push(`${days}d`);
         if (hours > 0) parts.push(`${hours}h`);
         if (minutes > 0) parts.push(`${minutes}m`);
