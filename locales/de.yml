@@ -1,0 +1,263 @@
+commands:
+    play:
+        name: "spielen"
+        description: "Ein Lied über Namen oder URL abspielen"
+        options:
+            song:
+                name: "lied"
+                description: "Liedname/URL"
+            lavalink_node:
+                name: "lavalink_knoten"
+                description: "Lavalink zum Abspielen des Liedes (Optional)"
+    pause:
+        name: "pausieren"
+        description: "Die aktuell abgespielte Musik pausieren"
+    resume:
+        name: "fortsetzen"
+        description: "Die pausierte Musik fortsetzen"
+    skip:
+        name: "uberspringen"
+        description: "Das aktuelle Lied überspringen und das nächste abspielen"
+    stop:
+        name: "stoppen"
+        description: "Die Musik stoppen und vom Sprachkanal trennen"
+    loop:
+        name: "schleife"
+        description: "Wiederholungsmodus für den aktuellen Track umschalten"
+    autoplay:
+        name: "autowiedergabe"
+        description: "Intelligente Autowiedergabe basierend auf Ihren Musikpräferenzen umschalten"
+        options:
+            enabled:
+                name: "aktiviert"
+                description: "Autowiedergabe aktivieren oder deaktivieren"
+    language:
+        name: "sprache"
+        description: "Spracheinstellungen für den Bot festlegen"
+        options:
+            scope:
+                name: "bereich"
+                description: "Sprache für Benutzer oder Server festlegen"
+                choices:
+                    user: "benutzer"
+                    server: "server"
+                    reset: "zurucksetzen"
+            language:
+                name: "sprache"
+                description: "Wählen Sie Ihre bevorzugte Sprache"
+    feedback:
+        name: "feedback"
+        description: "Feedback an die Entwickler senden"
+    ping:
+        name: "ping"
+        description: "Latenz und Verbindungsstatus des Bots überprüfen"
+    help:
+        name: "hilfe"
+        description: "Alle verfügbaren Befehle und ihre Beschreibungen anzeigen"
+        options:
+            command:
+                name: "befehl"
+                description: "Detaillierte Informationen zu einem bestimmten Befehl erhalten"
+    filter:
+        name: "filter"
+        description: "Audio-Filter anwenden, um Ihr Musikerlebnis zu verbessern"
+        options:
+            type:
+                name: "typ"
+                description: "Wählen Sie einen Audio-Filter zum Anwenden"
+    chart:
+        name: "diagramm"
+        description: "Musik-Analysen und Diagramme anzeigen"
+        options:
+            scope:
+                name: "bereich"
+                description: "Bereich für Analysen wählen"
+                choices:
+                    user: "Persönlich"
+                    guild: "Server"
+                    global: "Global"
+            limit:
+                name: "grenzwert"
+                description: "Anzahl der Top-Elemente zum Anzeigen (5-20)"
+    suggest_songs:
+        name: "songs-vorschlagen"
+        description: "Intelligente Musikempfehlungen basierend auf Ihrem Hörverlauf erhalten"
+        options:
+            count:
+                name: "anzahl"
+                description: "Anzahl der Empfehlungen (1-20)"
+
+responses:
+    music:
+        connected: "Verbunden mit {channelName}"
+        paused: "Musik pausiert!"
+        resumed: "Musik fortgesetzt!"
+        skipped: "Aktuelles Lied übersprungen!"
+        stopped: "Musik-Player gestoppt und vom Sprachkanal getrennt"
+        loop_enabled: "Wiederholung ist jetzt aktiviert"
+        loop_disabled: "Wiederholung ist jetzt deaktiviert"
+        autoplay_enabled: "🎵 Intelligente Autowiedergabe ist jetzt **aktiviert**\n\nWenn die Warteschlange leer ist, füge ich automatisch Lieder basierend auf Ihren Musikpräferenzen hinzu."
+        autoplay_disabled: "⏹️ Autowiedergabe ist jetzt **deaktiviert**\n\nDie Wiedergabe stoppt, wenn die Warteschlange leer ist."
+        now_playing: "Wird Abgespielt"
+        track_added: "Track zur Warteschlange Hinzugefügt"
+        playlist_added: "Playlist zur Warteschlange Hinzugefügt"
+        queue_empty: "🎵 Alle Musik in der Warteschlange abgespielt"
+        disconnected: "🔌 Musik-Player getrennt"
+        disconnected_inactivity: "🔌 Trennung aufgrund von Inaktivität (10 Minuten ohne Zuhörer)"
+        paused_empty_channel: "⏸️ Wiedergabe pausiert, da der Sprachkanal leer ist"
+        resumed_members_joined: "▶️ Wiedergabe fortgesetzt"
+        youtube_blocked: "⚠️ Lied übersprungen! Youtube-Quelle erkannt."
+        youtube_footer: "Wir unterstützen keine Youtube-Links aufgrund der YouTube-AGB."
+        filter_applied: "{filter} Filter angewendet"
+        filter_cleared: "Alle Audio-Filter entfernt"
+    chart:
+        user_title: "{user}s Musik-Diagramm"
+        guild_title: "{guild} Server-Diagramm"
+        global_title: "Globales Musik-Diagramm"
+        no_user_data: "Sie haben noch keine Musik gehört. Beginnen Sie mit der Wiedergabe von Liedern, um Ihre Diagramme zu sehen!"
+        no_guild_data: "Dieser Server hat noch keine Musikdaten. Beginnen Sie mit der Wiedergabe von Liedern, um die Server-Diagramme zu sehen!"
+        no_global_data: "Derzeit sind keine globalen Musikdaten verfügbar."
+        total_tracks: "Tracks insgesamt"
+        unique_artists: "einzigartige Künstler"
+        total_listening_time: "gesamte Hörzeit"
+        average_plays: "durchschnittliche Wiedergaben pro Track"
+        recent_activity: "diese Woche gespielte Tracks"
+        top_tracks: "Top-Tracks"
+        top_sources: "Top-Quellen"
+        listening_stats: "Hörstatistiken"
+        total_hours: "Gesamtstunden"
+        avg_song_length: "Durchschnittliche Liedlänge"
+        this_week: "Diese Woche"
+        tracks: "Tracks"
+        plays: "Wiedergaben"
+        no_data: "Keine Daten verfügbar"
+        footer: "Musik-Analytics Dashboard"
+        export_success: "{scope} Export abgeschlossen mit {count} Einträgen"
+        buttons:
+            refresh: "Aktualisieren"
+            export: "Daten Exportieren"
+    suggest_songs:
+        title: "Intelligente Musikempfehlungen"
+        fresh_title: "Neue Musikempfehlungen"
+        description: "Basierend auf Ihrem Top-Song: **{song}** von **{artist}**\n\nGefunden {spotifyCount} Spotify-Tracks von {totalCount} Empfehlungen"
+        footer: "Angefragt von {user}"
+        refreshed_footer: "Aktualisiert von {user}"
+        top_recommendations: "Top-Empfehlungen"
+        more_recommendations: "Weitere Empfehlungen"
+        additional_recommendations: "Zusätzliche Empfehlungen"
+        unknown_track: "Unbekannter Track"
+        no_history: "Sie haben noch keine Hörhistorie. Spielen Sie zuerst einige Songs!"
+        no_recommendations: 'Keine Empfehlungen basierend auf "{song}" gefunden. Versuchen Sie, vielfältigere Songs zu spielen!'
+        no_valid_recommendations: "Keine gültigen Empfehlungen gefunden"
+        no_additional_recommendations: "Keine zusätzlichen Empfehlungen"
+        no_new_recommendations: "Keine neuen Empfehlungen gefunden"
+        now_playing: "Jetzt spielend: **{title}** von **{artist}**"
+        added_tracks: "{count} Tracks zur Warteschlange hinzugefügt!"
+        buttons:
+            play_top: "Top-Pick Spielen"
+            add_all: "Alle zur Warteschlange hinzufügen"
+            refresh: "Neue Vorschläge erhalten"
+        errors:
+            invalid_track: "Ungültige Track-Daten für die Top-Empfehlung"
+            generation_failed: "Fehler beim Generieren von Empfehlungen"
+    errors:
+        music_disabled: "Musik ist derzeit deaktiviert."
+        no_player: "Derzeit wird keine Musik abgespielt"
+        no_voice_channel: "Sie müssen sich in einem Sprachkanal befinden"
+        not_same_voice: "Sie befinden sich nicht im selben Sprachkanal wie der Bot"
+        no_permission_join: "Ich habe keine Berechtigung, {channelName} beizutreten"
+        need_permissions: "Ich benötige die Berechtigungen zum `Verbinden` und `Sprechen` in {channelName}"
+        not_in_server: "Sie sind nicht auf dem Server"
+        server_only: "Dieser Befehl kann nur auf einem Server verwendet werden"
+        already_paused: "Die Musik ist bereits pausiert"
+        already_playing: "Die Musik wird bereits abgespielt"
+        no_queue: "Es befinden sich keine Lieder in der Warteschlange"
+        queue_too_small: "Es befinden sich nur {count} Lieder in der Warteschlange"
+        youtube_not_supported: "Wir unterstützen derzeit keine YouTube-Links oder -Musik :("
+        no_results: "Ergebnisse konnten nicht abgerufen werden"
+        node_invalid: "Ungültiger Lavalink-Knoten"
+        node_not_connected: "Lavalink-Knoten ist nicht verbunden"
+        player_exists: "Hmmm, Sie haben einen aktiven Musik-Player auf diesem Server. Bitte stoppen Sie den aktuellen Player, bevor Sie Lavalink-Knoten wechseln."
+        no_permission: "🚫 {user}, Sie haben keine Berechtigung, diesen Befehl zu verwenden!"
+        missing_user_perms: "🚫 Sie haben keine `{permissions}`-Berechtigungen, um diesen Befehl zu verwenden!"
+        missing_bot_perms: "🚫 Ich benötige `{permissions}`-Berechtigungen, um diesen Befehl auszuführen!"
+        general_error: "Ein Fehler ist beim Ausführen dieses Befehls aufgetreten."
+        play_error: "Ein Fehler ist beim Verarbeiten des Liedes aufgetreten"
+        stop_error: "Ein Fehler ist beim Stoppen des Liedes aufgetreten"
+        pause_error: "Ein Fehler ist beim Pausieren des Liedes aufgetreten"
+        resume_error: "Ein Fehler ist beim Fortsetzen des Liedes aufgetreten"
+        skip_error: "Ein Fehler ist beim Überspringen des Liedes aufgetreten"
+        loop_error: "Ein Fehler ist beim Umschalten der Wiederholung aufgetreten"
+        autoplay_error: "Ein Fehler ist beim Umschalten der Autowiedergabe aufgetreten."
+        contact_dev: "Wenn dieses Problem weiterhin besteht, verwenden Sie bitte /feedback oder kontaktieren Sie den Entwickler"
+        filter_error: "Ein Fehler beim Anwenden des Filters ist aufgetreten"
+        filter_not_found: "Filter `{filter}` nicht gefunden. Verfügbare Filter: {available}"
+        feedback_not_configured: "Das Feedback-System ist nicht ordnungsgemäß konfiguriert"
+        feedback_failed: "Feedback konnte nicht gesendet werden. Bitte versuchen Sie es später erneut."
+    language:
+        user_set: "Ihre Sprache wurde auf **{language}** gesetzt"
+        server_set: "Die Serversprache wurde auf **{language}** gesetzt (Nur Admin)"
+        reset: "Sprachpräferenz wurde zurückgesetzt. Discord-Locale wird verwendet."
+        same_language: "Sprache ist bereits auf **{language}** gesetzt"
+        unsupported: "Sprache **{language}** wird nicht unterstützt. Unterstützte Sprachen: {languages}"
+        no_permission: "Sie benötigen die Berechtigung **Server Verwalten**, um die Serversprache zu ändern"
+    fields:
+        duration: "Dauer"
+        source: "Quelle"
+        requested_by: "Angefragt von"
+        queue_info: "Warteschlangen-Info"
+        position: "Position #{position}"
+        playing_next: "Als nächstes abgespielt"
+        tracks: "Tracks"
+        total_duration: "Gesamtdauer"
+        avg_duration: "Durchschnittsdauer"
+        added_by: "Hinzugefügt von"
+        progress: "Fortschritt"
+    buttons:
+        pause: "Pausieren"
+        resume: "Fortsetzen"
+        skip: "Überspringen"
+        stop: "Stoppen"
+        loop: "Schleife"
+        support_server: "Support Server"
+    ping:
+        title: "🏓 Pong!"
+        description: "Bot-Latenz und Verbindungsinformationen"
+        api_latency: "API-Latenz"
+        websocket_latency: "WebSocket-Latenz"
+        database_latency: "Datenbank-Latenz"
+        music_nodes: "Musik-Knoten"
+        uptime: "Betriebszeit"
+        memory_usage: "Speicherverbrauch"
+        footer: "Alle Systeme betriebsbereit"
+    help:
+        title: "📚 Befehlshilfe"
+        description: "Hier sind alle {total} verfügbaren Befehle. Verwenden Sie `{prefix}help <befehl>` für detaillierte Informationen."
+        footer: "Verwenden Sie `/help <befehl>` für weitere Details zu einem bestimmten Befehl"
+        command_footer: "Befehlsinformationen"
+        command_not_found: "Befehl `{command}` nicht gefunden."
+        cooldown: "Abklingzeit"
+        permissions: "Berechtigungen"
+        options: "Optionen"
+        no_cooldown: "Keine"
+        owner_only: "Nur Besitzer"
+        none: "Keine"
+        no_commands: "Keine Befehle in dieser Kategorie"
+        categories:
+            music: "Musik-Befehle"
+            utility: "Utility-Befehle"
+            other: "Andere Befehle"
+    feedback:
+        sent: "Vielen Dank für Ihr Feedback! Es wurde an die Entwickler gesendet."
+    default_search: "Bitte geben Sie einen Liedname oder eine URL ein"
+
+modals:
+    feedback:
+        title: "Feedback Senden"
+        type_label: "Feedback-Typ"
+        type_placeholder: "Fehlerbericht, Feature-Anfrage, Allgemeines Feedback, etc."
+        feedback_label: "Ihr Feedback"
+        feedback_placeholder: "Bitte beschreiben Sie Ihr Feedback detailliert..."
+
+filters:
+    clear: "🧹 Alle Filter Löschen"

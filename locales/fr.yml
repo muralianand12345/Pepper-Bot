@@ -1,0 +1,263 @@
+commands:
+    play:
+        name: "jouer"
+        description: "Jouer une chanson par nom ou URL"
+        options:
+            song:
+                name: "chanson"
+                description: "Nom de la chanson/URL"
+            lavalink_node:
+                name: "noeud_lavalink"
+                description: "Lavalink pour jouer la chanson (Optionnel)"
+    pause:
+        name: "pause"
+        description: "Mettre en pause la musique en cours de lecture"
+    resume:
+        name: "reprendre"
+        description: "Reprendre la musique en pause"
+    skip:
+        name: "passer"
+        description: "Passer la chanson actuelle et jouer la suivante"
+    stop:
+        name: "arreter"
+        description: "Arrêter la musique et se déconnecter du canal vocal"
+    loop:
+        name: "boucle"
+        description: "Basculer le mode de répétition pour la piste actuelle"
+    autoplay:
+        name: "lecture_auto"
+        description: "Basculer la lecture automatique intelligente basée sur vos préférences musicales"
+        options:
+            enabled:
+                name: "active"
+                description: "Activer ou désactiver la lecture automatique"
+    language:
+        name: "langue"
+        description: "Définir les préférences de langue pour le bot"
+        options:
+            scope:
+                name: "portee"
+                description: "Définir la langue pour l'utilisateur ou le serveur"
+                choices:
+                    user: "utilisateur"
+                    server: "serveur"
+                    reset: "reinitialiser"
+            language:
+                name: "langue"
+                description: "Choisissez votre langue préférée"
+    feedback:
+        name: "commentaires"
+        description: "Envoyer des commentaires aux développeurs"
+    ping:
+        name: "ping"
+        description: "Vérifier la latence et l'état de connexion du bot"
+    help:
+        name: "aide"
+        description: "Afficher toutes les commandes disponibles et leurs descriptions"
+        options:
+            command:
+                name: "commande"
+                description: "Obtenir des informations détaillées sur une commande spécifique"
+    filter:
+        name: "filtre"
+        description: "Appliquer des filtres audio pour améliorer votre expérience musicale"
+        options:
+            type:
+                name: "type"
+                description: "Choisir un filtre audio à appliquer"
+    chart:
+        name: "graphique"
+        description: "Afficher les analyses et graphiques musicaux"
+        options:
+            scope:
+                name: "portee"
+                description: "Choisir la portée pour les analyses"
+                choices:
+                    user: "Personnel"
+                    guild: "Serveur"
+                    global: "Global"
+            limit:
+                name: "limite"
+                description: "Nombre d'éléments principaux à afficher (5-20)"
+    suggest_songs:
+        name: "suggerer-chansons"
+        description: "Obtenir des recommandations musicales intelligentes basées sur votre historique d'écoute"
+        options:
+            count:
+                name: "nombre"
+                description: "Nombre de recommandations à obtenir (1-20)"
+
+responses:
+    music:
+        connected: "Connecté à {channelName}"
+        paused: "Musique en pause !"
+        resumed: "Musique reprise !"
+        skipped: "Chanson actuelle passée !"
+        stopped: "Lecteur de musique arrêté et déconnecté du canal vocal"
+        loop_enabled: "La répétition est maintenant activée"
+        loop_disabled: "La répétition est maintenant désactivée"
+        autoplay_enabled: "🎵 La Lecture Automatique Intelligente est maintenant **activée**\n\nQuand la file d'attente est vide, j'ajouterai automatiquement des chansons basées sur vos préférences musicales."
+        autoplay_disabled: "⏹️ La lecture automatique est maintenant **désactivée**\n\nLa lecture s'arrêtera quand la file d'attente sera vide."
+        now_playing: "En Cours de Lecture"
+        track_added: "Piste Ajoutée à la File d'Attente"
+        playlist_added: "Playlist Ajoutée à la File d'Attente"
+        queue_empty: "🎵 Toute la musique de la file d'attente a été jouée"
+        disconnected: "🔌 Lecteur de musique déconnecté"
+        disconnected_inactivity: "🔌 Déconnexion due à l'inactivité (10 minutes sans auditeurs)"
+        paused_empty_channel: "⏸️ Lecture en pause car le canal vocal est vide"
+        resumed_members_joined: "▶️ Lecture reprise"
+        youtube_blocked: "⚠️ Chanson passée ! Source Youtube détectée."
+        youtube_footer: "Nous ne prenons pas en charge les liens Youtube en raison des TOS de YouTube."
+        filter_applied: "Filtre {filter} appliqué"
+        filter_cleared: "Tous les filtres audio supprimés"
+    chart:
+        user_title: "Graphique Musical de {user}"
+        guild_title: "Graphique du Serveur {guild}"
+        global_title: "Graphique Musical Global"
+        no_user_data: "Vous n'avez pas encore écouté de musique. Commencez à jouer des chansons pour voir vos graphiques !"
+        no_guild_data: "Ce serveur n'a pas encore de données musicales. Commencez à jouer des chansons pour voir les graphiques du serveur !"
+        no_global_data: "Aucune donnée musicale globale disponible pour le moment."
+        total_tracks: "pistes totales"
+        unique_artists: "artistes uniques"
+        total_listening_time: "temps d'écoute total"
+        average_plays: "lectures moyennes par piste"
+        recent_activity: "pistes jouées cette semaine"
+        top_tracks: "Principales Pistes"
+        top_sources: "Principales Sources"
+        listening_stats: "Statistiques d'Écoute"
+        total_hours: "Heures Totales"
+        avg_song_length: "Durée Moyenne des Chansons"
+        this_week: "Cette Semaine"
+        tracks: "pistes"
+        plays: "lectures"
+        no_data: "Aucune donnée disponible"
+        footer: "Tableau de Bord des Analyses Musicales"
+        export_success: "Exportation {scope} terminée avec {count} enregistrements"
+        buttons:
+            refresh: "Actualiser"
+            export: "Exporter les Données"
+    suggest_songs:
+        title: "Recommandations Musicales Intelligentes"
+        fresh_title: "Nouvelles Recommandations Musicales"
+        description: "Basé sur votre chanson préférée: **{song}** par **{artist}**\n\nTrouvé {spotifyCount} pistes Spotify sur {totalCount} recommandations"
+        footer: "Demandé par {user}"
+        refreshed_footer: "Actualisé par {user}"
+        top_recommendations: "Principales Recommandations"
+        more_recommendations: "Plus de Recommandations"
+        additional_recommendations: "Recommandations Supplémentaires"
+        unknown_track: "Piste Inconnue"
+        no_history: "Vous n'avez pas encore d'historique d'écoute. Jouez d'abord quelques chansons!"
+        no_recommendations: 'Aucune recommandation trouvée basée sur "{song}". Essayez de jouer des chansons plus variées!'
+        no_valid_recommendations: "Aucune recommandation valide trouvée"
+        no_additional_recommendations: "Aucune recommandation supplémentaire"
+        no_new_recommendations: "Aucune nouvelle recommandation trouvée"
+        now_playing: "En cours de lecture: **{title}** par **{artist}**"
+        added_tracks: "{count} pistes ajoutées à la file d'attente!"
+        buttons:
+            play_top: "Jouer le Top"
+            add_all: "Tout Ajouter à la File"
+            refresh: "Obtenir de Nouvelles Suggestions"
+        errors:
+            invalid_track: "Données de piste invalides pour la recommandation principale"
+            generation_failed: "Échec de la génération des recommandations"
+    errors:
+        music_disabled: "La musique est actuellement désactivée."
+        no_player: "Aucune musique n'est en cours de lecture"
+        no_voice_channel: "Vous devez être dans un canal vocal"
+        not_same_voice: "Vous n'êtes pas dans le même canal vocal que le bot"
+        no_permission_join: "Je n'ai pas la permission de rejoindre {channelName}"
+        need_permissions: "J'ai besoin des permissions pour `Se connecter` et `Parler` dans {channelName}"
+        not_in_server: "Vous n'êtes pas sur le serveur"
+        server_only: "Cette commande ne peut être utilisée que sur un serveur"
+        already_paused: "La musique est déjà en pause"
+        already_playing: "La musique est déjà en cours de lecture"
+        no_queue: "Il n'y a pas de chansons dans la file d'attente"
+        queue_too_small: "Il n'y a que {count} chansons dans la file d'attente"
+        youtube_not_supported: "Nous ne prenons pas en charge les liens ou la musique YouTube pour le moment :("
+        no_results: "Impossible de récupérer les résultats"
+        node_invalid: "Nœud Lavalink invalide"
+        node_not_connected: "Le nœud Lavalink n'est pas connecté"
+        player_exists: "Hmmm, vous avez un lecteur de musique actif sur ce serveur. Veuillez arrêter le lecteur actuel avant de changer de nœuds Lavalink."
+        no_permission: "🚫 {user}, Vous n'avez pas la permission d'utiliser cette commande !"
+        missing_user_perms: "🚫 Vous n'avez pas les permissions `{permissions}` pour utiliser cette commande !"
+        missing_bot_perms: "🚫 J'ai besoin des permissions `{permissions}` pour exécuter cette commande !"
+        general_error: "Une erreur s'est produite lors de l'exécution de cette commande."
+        play_error: "Une erreur s'est produite lors du traitement de la chanson"
+        stop_error: "Une erreur s'est produite lors de l'arrêt de la chanson"
+        pause_error: "Une erreur s'est produite lors de la mise en pause de la chanson"
+        resume_error: "Une erreur s'est produite lors de la reprise de la chanson"
+        skip_error: "Une erreur s'est produite lors du passage de la chanson"
+        loop_error: "Une erreur s'est produite lors du basculement de la répétition"
+        autoplay_error: "Une erreur s'est produite lors du basculement de la lecture automatique."
+        contact_dev: "Si ce problème persiste, veuillez utiliser /feedback ou contacter le développeur"
+        filter_error: "Une erreur s'est produite lors de l'application du filtre"
+        filter_not_found: "Filtre `{filter}` introuvable. Filtres disponibles : {available}"
+        feedback_not_configured: "Le système de commentaires n'est pas configuré correctement"
+        feedback_failed: "Échec de l'envoi des commentaires. Veuillez réessayer plus tard."
+    language:
+        user_set: "Votre langue a été définie sur **{language}**"
+        server_set: "La langue du serveur a été définie sur **{language}** (Admin uniquement)"
+        reset: "La préférence de langue a été réinitialisée. Utilisation de la locale de Discord."
+        same_language: "La langue est déjà définie sur **{language}**"
+        unsupported: "La langue **{language}** n'est pas prise en charge. Langues prises en charge : {languages}"
+        no_permission: "Vous avez besoin de la permission **Gérer le Serveur** pour changer la langue du serveur"
+    fields:
+        duration: "Durée"
+        source: "Source"
+        requested_by: "Demandé par"
+        queue_info: "Info File d'Attente"
+        position: "Position #{position}"
+        playing_next: "Lecture suivante"
+        tracks: "Pistes"
+        total_duration: "Durée Totale"
+        avg_duration: "Durée Moyenne"
+        added_by: "Ajouté par"
+        progress: "Progrès"
+    buttons:
+        pause: "Pause"
+        resume: "Reprendre"
+        skip: "Passer"
+        stop: "Arrêter"
+        loop: "Boucle"
+        support_server: "Serveur de Support"
+    ping:
+        title: "🏓 Pong !"
+        description: "Informations de latence et de connexion du bot"
+        api_latency: "Latence API"
+        websocket_latency: "Latence WebSocket"
+        database_latency: "Latence Base de Données"
+        music_nodes: "Nœuds Musicaux"
+        uptime: "Temps de Fonctionnement"
+        memory_usage: "Utilisation Mémoire"
+        footer: "Tous les systèmes opérationnels"
+    help:
+        title: "📚 Aide des Commandes"
+        description: "Voici toutes les {total} commandes disponibles. Utilisez `{prefix}help <commande>` pour des informations détaillées."
+        footer: "Utilisez `/help <commande>` pour plus de détails sur une commande spécifique"
+        command_footer: "Informations de Commande"
+        command_not_found: "Commande `{command}` introuvable."
+        cooldown: "Temps de Recharge"
+        permissions: "Permissions"
+        options: "Options"
+        no_cooldown: "Aucun"
+        owner_only: "Propriétaire Seulement"
+        none: "Aucun"
+        no_commands: "Aucune commande dans cette catégorie"
+        categories:
+            music: "Commandes Musicales"
+            utility: "Commandes Utilitaires"
+            other: "Autres Commandes"
+    feedback:
+        sent: "Merci pour vos commentaires ! Ils ont été envoyés aux développeurs."
+    default_search: "Veuillez entrer un nom de chanson ou une URL"
+
+modals:
+    feedback:
+        title: "Envoyer des Commentaires"
+        type_label: "Type de Commentaire"
+        type_placeholder: "Rapport de Bug, Demande de Fonctionnalité, Commentaire Général, etc."
+        feedback_label: "Vos Commentaires"
+        feedback_placeholder: "Veuillez décrire vos commentaires en détail..."
+
+filters:
+    clear: "🧹 Effacer Tous les Filtres"

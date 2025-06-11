@@ -1,0 +1,263 @@
+commands:
+    play:
+        name: "tocar"
+        description: "Tocar uma música via nome ou URL"
+        options:
+            song:
+                name: "musica"
+                description: "Nome da música/URL"
+            lavalink_node:
+                name: "no_lavalink"
+                description: "Lavalink para tocar a música (Opcional)"
+    pause:
+        name: "pausar"
+        description: "Pausar a música que está tocando"
+    resume:
+        name: "continuar"
+        description: "Continuar a música pausada"
+    skip:
+        name: "pular"
+        description: "Pular a música atual e tocar a próxima"
+    stop:
+        name: "parar"
+        description: "Parar a música e desconectar do canal de voz"
+    loop:
+        name: "repetir"
+        description: "Alternar modo de repetição para a faixa atual"
+    autoplay:
+        name: "reproducao-automatica"
+        description: "Alternar reprodução automática inteligente baseada em suas preferências musicais"
+        options:
+            enabled:
+                name: "ativado"
+                description: "Ativar ou desativar reprodução automática"
+    language:
+        name: "idioma"
+        description: "Definir preferências de idioma para o bot"
+        options:
+            scope:
+                name: "escopo"
+                description: "Definir idioma para usuário ou servidor"
+                choices:
+                    user: "Usuário"
+                    server: "Servidor"
+                    reset: "Resetar"
+            language:
+                name: "idioma"
+                description: "Escolha seu idioma preferido"
+    feedback:
+        name: "feedback"
+        description: "Enviar feedback para os desenvolvedores"
+    ping:
+        name: "ping"
+        description: "Verificar latência e status de conexão do bot"
+    help:
+        name: "ajuda"
+        description: "Exibir todos os comandos disponíveis e suas descrições"
+        options:
+            command:
+                name: "comando"
+                description: "Obter informações detalhadas sobre um comando específico"
+    filter:
+        name: "filtro"
+        description: "Aplicar filtros de áudio para melhorar sua experiência musical"
+        options:
+            type:
+                name: "tipo"
+                description: "Escolha um filtro de áudio para aplicar"
+    chart:
+        name: "grafico"
+        description: "Exibir análises e gráficos musicais"
+        options:
+            scope:
+                name: "escopo"
+                description: "Escolher o escopo para análises"
+                choices:
+                    user: "Pessoal"
+                    guild: "Servidor"
+                    global: "Global"
+            limit:
+                name: "limite"
+                description: "Número de itens principais para exibir (5-20)"
+    suggest_songs:
+        name: "sugerir-musicas"
+        description: "Obter recomendações musicais inteligentes baseadas no seu histórico de escuta"
+        options:
+            count:
+                name: "quantidade"
+                description: "Número de recomendações para obter (1-20)"
+
+responses:
+    default_search: "Digite o nome de uma música ou URL"
+    errors:
+        music_disabled: "A funcionalidade de música está desabilitada"
+        not_in_server: "Você deve estar em um servidor para usar este comando"
+        server_only: "Este comando só pode ser usado em servidores"
+        no_voice_channel: "Você deve estar em um canal de voz para usar este comando"
+        need_permissions: "Preciso de permissões para conectar e falar no canal {channelName}"
+        no_permission_join: "Não tenho permissão para entrar no canal {channelName}"
+        not_same_voice: "Você deve estar no mesmo canal de voz que eu"
+        no_player: "Não há música tocando no momento"
+        no_queue: "A fila está vazia"
+        queue_too_small: "A fila tem apenas {count} música(s)"
+        already_paused: "A música já está pausada"
+        already_playing: "A música já está tocando"
+        youtube_not_supported: "Links do YouTube não são suportados devido aos Termos de Serviço do YouTube"
+        player_exists: "Já existe um player ativo neste servidor"
+        node_invalid: "Nó Lavalink inválido especificado"
+        node_not_connected: "O nó Lavalink especificado não está conectado"
+        no_results: "Nenhum resultado encontrado para sua pesquisa"
+        play_error: "Ocorreu um erro ao tentar tocar a música"
+        stop_error: "Ocorreu um erro ao tentar parar a música"
+        pause_error: "Ocorreu um erro ao tentar pausar a música"
+        resume_error: "Ocorreu um erro ao tentar continuar a música"
+        skip_error: "Ocorreu um erro ao tentar pular a música"
+        loop_error: "Ocorreu um erro ao tentar alternar o modo de repetição"
+        autoplay_error: "Ocorreu um erro ao tentar alternar a reprodução automática"
+        general_error: "Ocorreu um erro inesperado"
+        contact_dev: "Se este problema persistir, entre em contato com o desenvolvedor"
+        no_permission: "Você não tem permissão para usar este comando, {user}"
+        missing_user_perms: "Você está perdendo as seguintes permissões: {permissions}"
+        missing_bot_perms: "Estou perdendo as seguintes permissões: {permissions}"
+        filter_error: "Ocorreu um erro ao aplicar o filtro"
+        filter_not_found: "Filtro `{filter}` não encontrado. Filtros disponíveis: {available}"
+        feedback_not_configured: "O sistema de feedback não está configurado corretamente"
+        feedback_failed: "Falha ao enviar feedback. Tente novamente mais tarde."
+    music:
+        connected: "🎵 Conectado ao canal de voz **{channelName}**"
+        stopped: "⏹️ Música parada e desconectado do canal de voz"
+        paused: "⏸️ Música pausada"
+        resumed: "▶️ Música continuada"
+        skipped: "⏭️ Música pulada"
+        loop_enabled: "🔄 Modo de repetição ativado"
+        loop_disabled: "🔄 Modo de repetição desativado"
+        autoplay_enabled: "🎶 Reprodução automática ativada"
+        autoplay_disabled: "🎶 Reprodução automática desativada"
+        now_playing: "Tocando Agora"
+        track_added: "🎵 Música Adicionada à Fila"
+        playlist_added: "📋 Playlist Adicionada à Fila"
+        youtube_blocked: "⚠️ Pulando música! Fonte do YouTube detectada"
+        youtube_footer: "Não suportamos links do YouTube devido aos TOS do YouTube"
+        queue_empty: "🎵 Todas as músicas da fila foram tocadas"
+        resumed_members_joined: "▶️ Reprodução retomada"
+        paused_empty_channel: "⏸️ Reprodução pausada porque o canal de voz está vazio"
+        disconnected_inactivity: "🔌 Desconectando devido à inatividade (10 minutos sem ouvintes)"
+        disconnected: "🔌 Player de música desconectado"
+        filter_applied: "Filtro {filter} aplicado"
+        filter_cleared: "Todos os filtros de áudio removidos"
+    chart:
+        user_title: "Gráfico Musical de {user}"
+        guild_title: "Gráfico do Servidor {guild}"
+        global_title: "Gráfico Musical Global"
+        no_user_data: "Você ainda não ouviu música. Comece a tocar músicas para ver seus gráficos!"
+        no_guild_data: "Este servidor ainda não tem dados musicais. Comece a tocar músicas para ver os gráficos do servidor!"
+        no_global_data: "Nenhum dado musical global disponível no momento."
+        total_tracks: "faixas totais"
+        unique_artists: "artistas únicos"
+        total_listening_time: "tempo total de escuta"
+        average_plays: "reproduções médias por faixa"
+        recent_activity: "faixas tocadas esta semana"
+        top_tracks: "Principais Faixas"
+        top_sources: "Principais Fontes"
+        listening_stats: "Estatísticas de Escuta"
+        total_hours: "Horas Totais"
+        avg_song_length: "Duração Média da Música"
+        this_week: "Esta Semana"
+        tracks: "faixas"
+        plays: "reproduções"
+        no_data: "Nenhum dado disponível"
+        footer: "Painel de Análises Musicais"
+        export_success: "Exportação {scope} concluída com {count} registros"
+        buttons:
+            refresh: "Atualizar"
+            export: "Exportar Dados"
+    suggest_songs:
+        title: "Recomendações Musicais Inteligentes"
+        fresh_title: "Novas Recomendações Musicais"
+        description: "Baseado na sua música favorita: **{song}** de **{artist}**\n\nEncontradas {spotifyCount} faixas do Spotify de {totalCount} recomendações"
+        footer: "Solicitado por {user}"
+        refreshed_footer: "Atualizado por {user}"
+        top_recommendations: "Principais Recomendações"
+        more_recommendations: "Mais Recomendações"
+        additional_recommendations: "Recomendações Adicionais"
+        unknown_track: "Faixa Desconhecida"
+        no_history: "Você ainda não tem histórico de escuta. Toque algumas músicas primeiro!"
+        no_recommendations: 'Nenhuma recomendação encontrada baseada em "{song}". Tente tocar músicas mais variadas!'
+        no_valid_recommendations: "Nenhuma recomendação válida encontrada"
+        no_additional_recommendations: "Nenhuma recomendação adicional"
+        no_new_recommendations: "Nenhuma nova recomendação encontrada"
+        now_playing: "Tocando agora: **{title}** de **{artist}**"
+        added_tracks: "{count} faixas adicionadas à fila!"
+        buttons:
+            play_top: "Tocar Favorita"
+            add_all: "Adicionar Tudo à Fila"
+            refresh: "Obter Novas Sugestões"
+        errors:
+            invalid_track: "Dados de faixa inválidos para a recomendação principal"
+            generation_failed: "Falha ao gerar recomendações"
+    buttons:
+        pause: "Pausar"
+        resume: "Continuar"
+        skip: "Pular"
+        stop: "Parar"
+        loop: "Repetir"
+        support_server: "Servidor de Suporte"
+    fields:
+        progress: "Progresso"
+        playing_next: "Tocando em seguida"
+        position: "Posição na fila: {position}"
+        duration: "Duração"
+        source: "Fonte"
+        requested_by: "Solicitado por"
+        queue_info: "Info da Fila"
+        tracks: "Faixas"
+        total_duration: "Duração Total"
+        avg_duration: "Duração Média"
+        added_by: "Adicionado por"
+    language:
+        reset: "Preferências de idioma foram resetadas"
+        unsupported: "Idioma '{language}' não é suportado. Idiomas suportados: {languages}"
+        same_language: "O idioma já está definido como {language}"
+        user_set: "Idioma do usuário definido para {language}"
+        server_set: "Idioma do servidor definido para {language}"
+        no_permission: "Você precisa da permissão 'Gerenciar Servidor' para alterar o idioma do servidor"
+    ping:
+        title: "🏓 Pong!"
+        description: "Informações de latência e conexão do bot"
+        api_latency: "Latência da API"
+        websocket_latency: "Latência do WebSocket"
+        database_latency: "Latência do Banco de Dados"
+        music_nodes: "Nós de Música"
+        uptime: "Tempo Ativo"
+        memory_usage: "Uso de Memória"
+        footer: "Todos os sistemas operacionais"
+    help:
+        title: "📚 Ajuda de Comandos"
+        description: "Aqui estão todos os {total} comandos disponíveis. Use `{prefix}help <comando>` para informações detalhadas."
+        footer: "Use `/help <comando>` para mais detalhes sobre um comando específico"
+        command_footer: "Informações do Comando"
+        command_not_found: "Comando `{command}` não encontrado."
+        cooldown: "Tempo de Recarga"
+        permissions: "Permissões"
+        options: "Opções"
+        no_cooldown: "Nenhum"
+        owner_only: "Apenas Proprietário"
+        none: "Nenhum"
+        no_commands: "Nenhum comando nesta categoria"
+        categories:
+            music: "Comandos de Música"
+            utility: "Comandos Utilitários"
+            other: "Outros Comandos"
+    feedback:
+        sent: "Obrigado pelo seu feedback! Foi enviado para os desenvolvedores."
+
+modals:
+    feedback:
+        title: "Enviar Feedback"
+        type_label: "Tipo de Feedback"
+        type_placeholder: "Relatório de Bug, Solicitação de Recurso, Feedback Geral, etc."
+        feedback_label: "Seu Feedback"
+        feedback_placeholder: "Por favor, descreva seu feedback em detalhes..."
+
+filters:
+    clear: "🧹 Limpar Todos os Filtros"

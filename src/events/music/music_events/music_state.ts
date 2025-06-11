@@ -1,18 +1,16 @@
 import discord from "discord.js";
-import { sendTempMessage } from "../../../utils/music/music_functions";
-import { MusicResponseHandler } from "../../../utils/music/embed_template";
-import { NowPlayingManager } from "../../../utils/music/now_playing_manager";
+
 import { BotEvent } from "../../../types";
+import { LocaleDetector } from "../../../core/locales";
+import { NowPlayingManager, MusicResponseHandler, sendTempMessage } from "../../../core/music";
+
+
+const localeDetector = new LocaleDetector();
 
 const event: BotEvent = {
     name: discord.Events.VoiceStateUpdate,
-    execute: async (
-        oldState: discord.VoiceState,
-        newState: discord.VoiceState,
-        client: discord.Client
-    ) => {
+    execute: async (oldState: discord.VoiceState, newState: discord.VoiceState, client: discord.Client): Promise<void> => {
         if (!client.config.music.enabled) return;
-
         const player = client.manager.get(newState.guild.id);
         if (!player || player.state !== "CONNECTED") return;
 
@@ -23,33 +21,30 @@ const event: BotEvent = {
         }
 
         if (!player.voiceChannelId) return;
-        const playerChannel = client.channels.cache.get(
-            player.voiceChannelId
-        ) as discord.VoiceBasedChannel;
+        const playerChannel = client.channels.cache.get(player.voiceChannelId) as discord.VoiceBasedChannel;
         if (!playerChannel) return;
 
-        const textChannel = client.channels.cache.get(
-            String(player.textChannelId)
-        ) as discord.TextChannel;
+        const textChannel = client.channels.cache.get(String(player.textChannelId)) as discord.TextChannel;
         if (!textChannel) return;
 
-        const memberCount = playerChannel.members.filter(
-            (member) => !member.user.bot
-        ).size;
+        const memberCount = playerChannel.members.filter((member) => !member.user.bot).size;
+
+        let guildLocale = 'en';
+        try {
+            guildLocale = await localeDetector.getGuildLanguage(newState.guild.id) || 'en';
+        } catch (error) { }
 
         if (memberCount === 1 && player.paused) {
             player.pause(false);
-            const embed = new MusicResponseHandler(client).createInfoEmbed(
-                "▶️ Resumed playback"
-            );
+            const responseHandler = new MusicResponseHandler(client);
+            const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || "▶️ Resumed playback", guildLocale);
             await sendTempMessage(textChannel, embed);
         }
 
         if (memberCount === 0 && !player.paused && player.playing) {
             player.pause(true);
-            const embed = new MusicResponseHandler(client).createInfoEmbed(
-                "⏸️ Paused playback because the voice channel is empty"
-            );
+            const responseHandler = new MusicResponseHandler(client);
+            const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || "⏸️ Paused playback because the voice channel is empty", guildLocale);
             await sendTempMessage(textChannel, embed);
 
             const DISCONNECT_DELAY = 600000;
@@ -64,22 +59,19 @@ const event: BotEvent = {
                     if (!currentPlayer) return;
                     if (currentPlayer.cleanupScheduledAt !== scheduledAt) return;
 
-                    const currentChannel = client.channels.cache.get(
-                        String(currentPlayer.voiceChannelId)
-                    ) as discord.VoiceBasedChannel;
-
+                    const currentChannel = client.channels.cache.get(String(currentPlayer.voiceChannelId)) as discord.VoiceBasedChannel;
                     if (!currentChannel) return;
 
-                    const currentMemberCount = currentChannel.members.filter(
-                        (member) => !member.user.bot
-                    ).size;
-
+                    const currentMemberCount = currentChannel.members.filter((member) => !member.user.bot).size;
                     if (currentMemberCount === 0) {
                         client.logger.info(`[VOICE_STATE] Voice channel still empty after 10 minutes, disconnecting from guild ${player.guildId}`);
-                        const disconnectEmbed = new MusicResponseHandler(client).createInfoEmbed(
-                            "🔌 Disconnecting due to inactivity (10 minutes with no listeners)"
-                        );
-                        await sendTempMessage(textChannel, disconnectEmbed);
+
+                        const responseHandler = new MusicResponseHandler(client);
+                        const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || "🔌 Disconnecting due to inactivity (10 minutes with no listeners)", guildLocale);
+                        const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
+
+                        await textChannel.send({ embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
+
                         NowPlayingManager.removeInstance(player.guildId);
                         currentPlayer.destroy();
                     }

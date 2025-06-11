@@ -1,16 +1,12 @@
 import { Schema, model } from "mongoose";
-import { ISongsUser, IMusicUser } from "../../../types";
 
-const userDataSchema = new Schema<ISongsUser>({
-    id: { type: String, required: true },
-    username: { type: String, required: true },
-    discriminator: { type: String, required: true },
-    avatar: { type: String, required: false },
-});
+import { userDataSchema } from "./index";
+import { IMusicUser } from "../../../types";
+
 
 const musicUserSchema = new Schema<IMusicUser>({
     userId: { type: String, required: true },
-    spotify_presence: { type: Boolean, default: true, required: true },
+    language: { type: String, required: false, default: null },
     songs: [
         {
             track: { type: String, required: true },

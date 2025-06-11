@@ -1,11 +1,11 @@
+import fs from "fs";
 import path from "path";
 import { z } from "zod";
+import yaml from "yaml";
 import { config } from "dotenv";
+import discord from "discord.js";
 
-/**
- * Schema for validating environment variables
- * Defines the required structure and types for the bot's configuration
- */
+
 const EnvSchema = z.object({
     TOKEN: z.string(),
     MONGO_URI: z.string(),
@@ -30,12 +30,6 @@ export class ConfigManager {
     private static instance: ConfigManager;
     private config: z.infer<typeof EnvSchema>;
 
-    /**
-     * Private constructor to prevent direct instantiation
-     * Loads and validates environment variables from the appropriate .env file
-     * @private
-     * @throws {Error} If environment variables cannot be loaded or validated
-     */
     private constructor() {
         const environment = process.env.NODE_ENV || "prod";
         const envPath = path.resolve(process.cwd(), `.env.${environment}`);
@@ -78,80 +72,53 @@ export class ConfigManager {
         }
     }
 
-    /**
-     * Gets the singleton instance of ConfigManager
-     * Creates a new instance if one doesn't exist
-     * @static
-     * @returns {ConfigManager} The singleton ConfigManager instance
-     */
-    public static getInstance(): ConfigManager {
+    public static getInstance = (): ConfigManager => {
         if (!ConfigManager.instance) {
             ConfigManager.instance = new ConfigManager();
         }
         return ConfigManager.instance;
     }
 
-    /**
-     * Retrieves the complete configuration object
-     * @returns {z.infer<typeof EnvSchema>} The complete configuration object
-     */
-    public getConfig(): z.infer<typeof EnvSchema> {
+    public getConfig = (): z.infer<typeof EnvSchema> => {
         return this.config;
     }
 
-    /**
-     * Gets the Discord bot token
-     * @returns {string} The Discord bot token from environment variables
-     */
-    public getToken(): string {
+    public getToken = (): string => {
         return this.config.TOKEN;
     }
 
-    /**
-     * Gets the MongoDB connection URI
-     * @returns {string} The MongoDB connection URI from environment variables
-     */
-    public getMongoUri(): string {
+    public getMongoUri = (): string => {
         return this.config.MONGO_URI;
     }
 
-    /**
-     * Gets the debug mode status
-     * @returns {boolean} The current debug mode status
-     */
-    public isDebugMode(): boolean {
+    public isDebugMode = (): boolean => {
         return this.config.DEBUG_MODE;
     }
 
-    /**
-     * Gets the Last.fm API key
-     * @returns {string} The Last.fm API key from environment variables
-     */
-    public getLastFmApiKey(): string {
+    public getLastFmApiKey = (): string => {
         return this.config.LASTFM_API_KEY;
     }
 
-    /**
-     * Gets the Spotify client ID
-     * @returns {string} The Spotify client ID from environment variables
-     */
-    public getSpotifyClientId(): string {
+    public getSpotifyClientId = (): string => {
         return this.config.SPOTIFY_CLIENT_ID;
     }
 
-    /**
-     * Gets the Spotify client secret
-     * @returns {string} The Spotify client secret from environment variables
-     */
-    public getSpotifyClientSecret(): string {
+    public getSpotifyClientSecret = (): string => {
         return this.config.SPOTIFY_CLIENT_SECRET;
     }
 
-    /**
-     * Gets the feedback webhook URL
-     * @returns {string} The feedback webhook URL from environment variables
-     */
-    public getFeedbackWebhook(): string {
+    public getFeedbackWebhook = (): string => {
         return this.config.FEEDBACK_WEBHOOK;
     }
-}
+};
+
+export const loadConfig = (client: discord.Client) => {
+    try {
+        const configPath = path.join(__dirname, "../../config/config.yml");
+        const file = fs.readFileSync(configPath, "utf8");
+        return yaml.parse(file);
+    } catch (error) {
+        client.logger.error(`[PEPPER] Failed to load configuration: ${error}`);
+        process.exit(1);
+    }
+};

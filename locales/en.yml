@@ -1,0 +1,262 @@
+commands:
+    play:
+        name: "play"
+        description: "Play a song via song name or url"
+        options:
+            song:
+                name: "song"
+                description: "Song Name/URL"
+            lavalink_node:
+                name: "lavalink_node"
+                description: "Lavalink to play the song (Optional)"
+    pause:
+        name: "pause"
+        description: "Pause the currently playing music"
+    resume:
+        name: "resume"
+        description: "Resume the paused music"
+    skip:
+        name: "skip"
+        description: "Skip the current song and play the next one"
+    stop:
+        name: "stop"
+        description: "Stop the music and disconnect from voice channel"
+    loop:
+        name: "loop"
+        description: "Toggle loop mode for the current track"
+    autoplay:
+        name: "autoplay"
+        description: "Toggle smart autoplay based on your music preferences"
+        options:
+            enabled:
+                name: "enabled"
+                description: "Enable or disable autoplay"
+    language:
+        name: "language"
+        description: "Set language preferences for the bot"
+        options:
+            scope:
+                name: "scope"
+                description: "Set language for user or server"
+                choices:
+                    user: "user"
+                    server: "server"
+                    reset: "reset"
+            language:
+                name: "language"
+                description: "Choose your preferred language"
+    feedback:
+        name: "feedback"
+        description: "Send feedback to the developers"
+    ping:
+        name: "ping"
+        description: "Check the bot's latency and connection status"
+    help:
+        name: "help"
+        description: "Display all available commands and their descriptions"
+        options:
+            command:
+                name: "command"
+                description: "Get detailed information about a specific command"
+    filter:
+        name: "filter"
+        description: "Apply audio filters to enhance your music experience"
+        options:
+            type:
+                name: "type"
+                description: "Choose an audio filter to apply"
+    chart:
+        name: "chart"
+        description: "Display music analytics and charts"
+        options:
+            scope:
+                name: "scope"
+                description: "Choose the scope for analytics"
+                choices:
+                    user: "Personal"
+                    guild: "Server"
+                    global: "Global"
+            limit:
+                name: "limit"
+                description: "Number of top items to display (5-20)"
+    suggest_songs:
+        name: "suggest-songs"
+        description: "Get smart music recommendations based on your listening history"
+        options:
+            count:
+                name: "count"
+                description: "Number of recommendations to get (1-20)"
+
+responses:
+    music:
+        connected: "Connected to {channelName}"
+        paused: "Paused the music!"
+        resumed: "Resumed the music!"
+        skipped: "Skipped the current song!"
+        stopped: "Music player stopped and disconnected from the voice channel"
+        loop_enabled: "Looping is now enabled"
+        loop_disabled: "Looping is now disabled"
+        autoplay_enabled: "🎵 Smart Autoplay is now **enabled**\n\nWhen the queue is empty, I'll automatically add songs based on your music preferences."
+        autoplay_disabled: "⏹️ Autoplay is now **disabled**\n\nPlayback will stop when the queue is empty."
+        now_playing: "Now Playing"
+        track_added: "Track Added to Queue"
+        playlist_added: "Playlist Added to Queue"
+        queue_empty: "🎵 Played all music in queue"
+        disconnected: "🔌 Music player disconnected"
+        disconnected_inactivity: "🔌 Disconnecting due to inactivity (10 minutes with no listeners)"
+        paused_empty_channel: "⏸️ Paused playback because the voice channel is empty"
+        resumed_members_joined: "▶️ Resumed playback"
+        youtube_blocked: "⚠️ Skipping song! Youtube source detected."
+        youtube_footer: "We do not support Youtube links due to YouTube's TOS."
+        filter_applied: "Applied {filter} filter"
+        filter_cleared: "All audio filters cleared"
+    chart:
+        user_title: "{user}'s Music Chart"
+        guild_title: "{guild} Server Chart"
+        global_title: "Global Music Chart"
+        no_user_data: "You haven't listened to any music yet. Start playing some songs to see your charts!"
+        no_guild_data: "This server doesn't have any music data yet. Start playing some songs to see the server charts!"
+        no_global_data: "No global music data available at the moment."
+        total_tracks: "total tracks"
+        unique_artists: "unique artists"
+        total_listening_time: "total listening time"
+        average_plays: "average plays per track"
+        recent_activity: "tracks played this week"
+        top_tracks: "Top Tracks"
+        top_sources: "Top Sources"
+        listening_stats: "Listening Stats"
+        total_hours: "Total Hours"
+        avg_song_length: "Avg Song Length"
+        this_week: "This Week"
+        tracks: "tracks"
+        plays: "plays"
+        no_data: "No data available"
+        footer: "Music Analytics Dashboard"
+        buttons:
+            refresh: "Refresh"
+            export: "Export Data"
+    suggest_songs:
+        title: "Smart Music Recommendations"
+        fresh_title: "Fresh Music Recommendations"
+        description: "Based on your top song: **{song}** by **{artist}**\n\nFound {spotifyCount} Spotify tracks out of {totalCount} recommendations"
+        footer: "Requested by {user}"
+        refreshed_footer: "Refreshed by {user}"
+        top_recommendations: "Top Recommendations"
+        more_recommendations: "More Recommendations"
+        additional_recommendations: "Additional Recommendations"
+        unknown_track: "Unknown Track"
+        no_history: "You don't have any listening history yet. Play some songs first!"
+        no_recommendations: 'No recommendations found based on "{song}". Try playing more varied songs!'
+        no_valid_recommendations: "No valid recommendations found"
+        no_additional_recommendations: "No additional recommendations"
+        no_new_recommendations: "No new recommendations found"
+        now_playing: "Now playing: **{title}** by **{artist}**"
+        added_tracks: "Added {count} tracks to the queue!"
+        buttons:
+            play_top: "Play Top Pick"
+            add_all: "Add All to Queue"
+            refresh: "Get New Suggestions"
+        errors:
+            invalid_track: "Invalid track data for the top recommendation"
+            generation_failed: "Failed to generate recommendations"
+    errors:
+        music_disabled: "Music is currently disabled."
+        no_player: "No music is currently playing"
+        no_voice_channel: "You need to be in a voice channel"
+        not_same_voice: "You are not in the same voice channel as the bot"
+        no_permission_join: "I don't have permission to join {channelName}"
+        need_permissions: "I need the permissions to `Join` and `Speak` in {channelName}"
+        not_in_server: "You are not in the server"
+        server_only: "This command can only be used in a server"
+        already_paused: "The music is already paused"
+        already_playing: "The music is already playing"
+        no_queue: "There are no songs in the queue"
+        queue_too_small: "There are only {count} songs in the queue"
+        youtube_not_supported: "We do not support YouTube links or music at this time :("
+        no_results: "Unable To Fetch Results"
+        node_invalid: "Invalid Lavalink node"
+        node_not_connected: "Lavalink node is not connected"
+        player_exists: "Hmmm, you have an active music player in this server. Please stop the current player before switching Lavalink nodes."
+        no_permission: "🚫 {user}, You don't have permission to use this command!"
+        missing_user_perms: "🚫 You don't have `{permissions}` permissions to use this command!"
+        missing_bot_perms: "🚫 I need `{permissions}` permissions to execute this command!"
+        general_error: "An error occurred while executing this command."
+        play_error: "An error occurred while processing the song"
+        stop_error: "An error occurred while stopping song"
+        pause_error: "An error occurred while pausing the song"
+        resume_error: "An error occurred while resuming the song"
+        skip_error: "An error occurred while skipping the song"
+        loop_error: "An error occurred while toggling loop"
+        autoplay_error: "An error occurred while toggling autoplay."
+        contact_dev: "If this issue persists, please use /feedback or contact the developer"
+        filter_error: "An error occurred while applying the filter"
+        filter_not_found: "Filter `{filter}` not found. Available filters: {available}"
+        feedback_not_configured: "Feedback system is not properly configured"
+        feedback_failed: "Failed to send feedback. Please try again later."
+    language:
+        user_set: "Your language has been set to **{language}**"
+        server_set: "Server language has been set to **{language}** (Admin only)"
+        reset: "Language preference has been reset. Using Discord's locale."
+        same_language: "Language is already set to **{language}**"
+        unsupported: "Language **{language}** is not supported. Supported languages: {languages}"
+        no_permission: "You need **Manage Server** permission to change server language"
+    fields:
+        duration: "Duration"
+        source: "Source"
+        requested_by: "Requested by"
+        queue_info: "Queue Info"
+        position: "Position #{position}"
+        playing_next: "Playing next"
+        tracks: "Tracks"
+        total_duration: "Total Duration"
+        avg_duration: "Avg. Duration"
+        added_by: "Added by"
+        progress: "Progress"
+    buttons:
+        pause: "Pause"
+        resume: "Resume"
+        skip: "Skip"
+        stop: "Stop"
+        loop: "Loop"
+        support_server: "Support Server"
+    ping:
+        title: "🏓 Pong!"
+        description: "Bot latency and connection information"
+        api_latency: "API Latency"
+        websocket_latency: "WebSocket Latency"
+        database_latency: "Database Latency"
+        music_nodes: "Music Nodes"
+        uptime: "Uptime"
+        memory_usage: "Memory Usage"
+        footer: "All systems operational"
+    help:
+        title: "📚 Command Help"
+        description: "Here are all {total} available commands. Use `{prefix}help <command>` for detailed information."
+        footer: "Use `/help <command>` for more details about a specific command"
+        command_footer: "Command Information"
+        command_not_found: "Command `{command}` not found."
+        cooldown: "Cooldown"
+        permissions: "Permissions"
+        options: "Options"
+        no_cooldown: "None"
+        owner_only: "Owner Only"
+        none: "None"
+        no_commands: "No commands in this category"
+        categories:
+            music: "Music Commands"
+            utility: "Utility Commands"
+            other: "Other Commands"
+    feedback:
+        sent: "Thank you for your feedback! It has been sent to the developers."
+    default_search: "Please enter a song name or url"
+
+modals:
+    feedback:
+        title: "Send Feedback"
+        type_label: "Feedback Type"
+        type_placeholder: "Bug Report, Feature Request, General Feedback, etc."
+        feedback_label: "Your Feedback"
+        feedback_placeholder: "Please describe your feedback in detail..."
+
+filters:
+    clear: "🧹 Clear All Filters"
