@@ -86,7 +86,7 @@ const helpCommand: Command = {
 
             commands.forEach(cmd => {
                 const name = cmd.data.name.toLowerCase();
-                if (['play', 'stop', 'pause', 'resume', 'skip', 'loop', 'autoplay', 'filter'].includes(name)) {
+                if (['play', 'stop', 'pause', 'resume', 'skip', 'loop', 'autoplay', 'filter', 'suggest_songs'].includes(name)) {
                     categories.music.push(cmd);
                 } else if (['ping', 'help', 'language', 'feedback', 'chart'].includes(name)) {
                     categories.utility.push(cmd);
