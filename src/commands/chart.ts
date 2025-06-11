@@ -200,14 +200,6 @@ const createTopTracksField = (chartData: ISongs[], t: (key: string, data?: Recor
 
 const createStatsFields = (analytics: ChartAnalytics, t: (key: string, data?: Record<string, any>) => string, locale: string, scope: string) => {
     const fields = [];
-
-    const topSources = Object.entries(analytics.topGenres)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 3)
-        .map(([source, count]) => `**${source}**: ${count}`)
-        .join('\n') || t('responses.chart.no_data');
-
-    fields.push({ name: `📻 ${t('responses.chart.top_sources')}`, value: topSources, inline: true });
     const totalHours = Math.round(analytics.totalPlaytime / (1000 * 60 * 60) * 10) / 10;
     const avgSongLength = analytics.totalSongs > 0 ? Formatter.msToTime(analytics.totalPlaytime / analytics.totalSongs) : "0:00:00";
 

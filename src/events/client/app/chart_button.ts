@@ -77,7 +77,7 @@ const createExportData = (chartData: ISongs[], scope: string, username: string, 
     return csvContent;
 };
 
-const refreshChartEmbed = async (interaction: discord.ButtonInteraction, originalEmbed: discord.Embed, client: discord.Client): Promise<void> => {
+const refreshChartEmbed = async (interaction: discord.ButtonInteraction, originalEmbed: discord.Embed, client: discord.Client): Promise<void | discord.InteractionResponse> => {
     const locale = await localeDetector.detectLocale(interaction);
     const t = await localeDetector.getTranslator(interaction);
     const responseHandler = new MusicResponseHandler(client);
@@ -85,8 +85,7 @@ const refreshChartEmbed = async (interaction: discord.ButtonInteraction, origina
     const chartInfo = extractChartDataFromEmbed(originalEmbed);
     if (!chartInfo) {
         const embed = responseHandler.createErrorEmbed(t('responses.errors.general_error'), locale);
-        await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
-        return;
+        return await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
     }
 
     await interaction.deferUpdate();
@@ -161,12 +160,6 @@ const refreshChartEmbed = async (interaction: discord.ButtonInteraction, origina
             return `${medal} **${title}** - ${artist}\n└ ${plays} ${t('responses.chart.plays')} • ${duration}`;
         }).join('\n\n');
 
-        const topSources = Object.entries(analytics.topGenres)
-            .sort(([, a], [, b]) => (b as number) - (a as number))
-            .slice(0, 3)
-            .map(([source, count]) => `**${source}**: ${count}`)
-            .join('\n') || t('responses.chart.no_data');
-
         const totalHours = Math.round(analytics.totalPlaytime / (1000 * 60 * 60) * 10) / 10;
         const avgSongLength = analytics.totalSongs > 0 ? Formatter.msToTime(analytics.totalPlaytime / analytics.totalSongs) : "0:00:00";
 
@@ -176,7 +169,6 @@ const refreshChartEmbed = async (interaction: discord.ButtonInteraction, origina
             .setDescription(description)
             .addFields([
                 { name: `🎶 ${t('responses.chart.top_tracks')}`, value: tracksList.length > 1024 ? tracksList.substring(0, 1021) + "..." : tracksList, inline: false },
-                { name: `📻 ${t('responses.chart.top_sources')}`, value: topSources, inline: true },
                 { name: `⏰ ${t('responses.chart.listening_stats')}`, value: [`${t('responses.chart.total_hours')}: **${totalHours}h**`, `${t('responses.chart.avg_song_length')}: **${avgSongLength}**`, `${t('responses.chart.this_week')}: **${analytics.recentActivity}** ${t('responses.chart.tracks')}`].join('\n'), inline: true }
             ])
             .setTimestamp()
@@ -212,7 +204,7 @@ const refreshChartEmbed = async (interaction: discord.ButtonInteraction, origina
     }
 };
 
-const exportChartData = async (interaction: discord.ButtonInteraction, originalEmbed: discord.Embed, client: discord.Client): Promise<void> => {
+const exportChartData = async (interaction: discord.ButtonInteraction, originalEmbed: discord.Embed, client: discord.Client): Promise<void | discord.InteractionResponse> => {
     const locale = await localeDetector.detectLocale(interaction);
     const t = await localeDetector.getTranslator(interaction);
     const responseHandler = new MusicResponseHandler(client);
@@ -220,8 +212,7 @@ const exportChartData = async (interaction: discord.ButtonInteraction, originalE
     const chartInfo = extractChartDataFromEmbed(originalEmbed);
     if (!chartInfo) {
         const embed = responseHandler.createErrorEmbed(t('responses.errors.general_error'), locale);
-        await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
-        return;
+        return await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
     }
 
     await interaction.deferReply({ flags: discord.MessageFlags.Ephemeral });
@@ -279,7 +270,6 @@ const handleChartButtonAction = async (interaction: discord.ButtonInteraction, c
 
         if (!interaction.replied && !interaction.deferred) {
             try {
-                const locale = await localeDetector.detectLocale(interaction);
                 const t = await localeDetector.getTranslator(interaction);
                 const message = t('responses.errors.general_error');
 
