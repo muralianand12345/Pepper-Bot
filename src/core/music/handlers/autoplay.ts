@@ -2,7 +2,7 @@ import discord from "discord.js";
 import magmastream from "magmastream";
 
 import { ISongs } from "../../../types";
-import PlaylistSuggestion from "./playlist_suggestion";
+import { PlaylistSuggestion } from "./playlist_suggestion";
 
 
 export class Autoplay {

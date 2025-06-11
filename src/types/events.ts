@@ -11,10 +11,7 @@ export interface Command {
     cooldown?: number;
     owner?: boolean;
     premium?: boolean;
-    execute: (
-        interaction: discord.ChatInputCommandInteraction,
-        client: discord.Client
-    ) => Promise<discord.InteractionResponse<boolean> | void> | Promise<void> | discord.InteractionResponse<boolean> | void;
+    execute: (interaction: discord.ChatInputCommandInteraction, client: discord.Client) => Promise<discord.InteractionResponse<boolean> | discord.Message<boolean> | void> | discord.Message<boolean> | discord.InteractionResponse<boolean> | void;
     autocomplete?: (
         interaction: discord.AutocompleteInteraction,
         client: discord.Client

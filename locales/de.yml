@@ -79,6 +79,13 @@ commands:
             limit:
                 name: "grenzwert"
                 description: "Anzahl der Top-Elemente zum Anzeigen (5-20)"
+    suggest_songs:
+        name: "songs-vorschlagen"
+        description: "Intelligente Musikempfehlungen basierend auf Ihrem Hörverlauf erhalten"
+        options:
+            count:
+                name: "anzahl"
+                description: "Anzahl der Empfehlungen (1-20)"
 
 responses:
     music:
@@ -129,6 +136,30 @@ responses:
         buttons:
             refresh: "Aktualisieren"
             export: "Daten Exportieren"
+    suggest_songs:
+        title: "Intelligente Musikempfehlungen"
+        fresh_title: "Neue Musikempfehlungen"
+        description: "Basierend auf Ihrem Top-Song: **{song}** von **{artist}**\n\nGefunden {spotifyCount} Spotify-Tracks von {totalCount} Empfehlungen"
+        footer: "Angefragt von {user}"
+        refreshed_footer: "Aktualisiert von {user}"
+        top_recommendations: "Top-Empfehlungen"
+        more_recommendations: "Weitere Empfehlungen"
+        additional_recommendations: "Zusätzliche Empfehlungen"
+        unknown_track: "Unbekannter Track"
+        no_history: "Sie haben noch keine Hörhistorie. Spielen Sie zuerst einige Songs!"
+        no_recommendations: 'Keine Empfehlungen basierend auf "{song}" gefunden. Versuchen Sie, vielfältigere Songs zu spielen!'
+        no_valid_recommendations: "Keine gültigen Empfehlungen gefunden"
+        no_additional_recommendations: "Keine zusätzlichen Empfehlungen"
+        no_new_recommendations: "Keine neuen Empfehlungen gefunden"
+        now_playing: "Jetzt spielend: **{title}** von **{artist}**"
+        added_tracks: "{count} Tracks zur Warteschlange hinzugefügt!"
+        buttons:
+            play_top: "Top-Pick Spielen"
+            add_all: "Alle zur Warteschlange hinzufügen"
+            refresh: "Neue Vorschläge erhalten"
+        errors:
+            invalid_track: "Ungültige Track-Daten für die Top-Empfehlung"
+            generation_failed: "Fehler beim Generieren von Empfehlungen"
     errors:
         music_disabled: "Musik ist derzeit deaktiviert."
         no_player: "Derzeit wird keine Musik abgespielt"
@@ -218,7 +249,7 @@ responses:
             other: "Andere Befehle"
     feedback:
         sent: "Vielen Dank für Ihr Feedback! Es wurde an die Entwickler gesendet."
-    default_search: "Bitte geben Sie einen Lieднamen oder eine URL ein"
+    default_search: "Bitte geben Sie einen Liedname oder eine URL ein"
 
 modals:
     feedback:

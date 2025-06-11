@@ -79,6 +79,13 @@ commands:
             limit:
                 name: "limite"
                 description: "Número de itens principais para exibir (5-20)"
+    suggest_songs:
+        name: "sugerir-musicas"
+        description: "Obter recomendações musicais inteligentes baseadas no seu histórico de escuta"
+        options:
+            count:
+                name: "quantidade"
+                description: "Número de recomendações para obter (1-20)"
 
 responses:
     default_search: "Digite o nome de uma música ou URL"
@@ -164,6 +171,30 @@ responses:
         buttons:
             refresh: "Atualizar"
             export: "Exportar Dados"
+    suggest_songs:
+        title: "Recomendações Musicais Inteligentes"
+        fresh_title: "Novas Recomendações Musicais"
+        description: "Baseado na sua música favorita: **{song}** de **{artist}**\n\nEncontradas {spotifyCount} faixas do Spotify de {totalCount} recomendações"
+        footer: "Solicitado por {user}"
+        refreshed_footer: "Atualizado por {user}"
+        top_recommendations: "Principais Recomendações"
+        more_recommendations: "Mais Recomendações"
+        additional_recommendations: "Recomendações Adicionais"
+        unknown_track: "Faixa Desconhecida"
+        no_history: "Você ainda não tem histórico de escuta. Toque algumas músicas primeiro!"
+        no_recommendations: 'Nenhuma recomendação encontrada baseada em "{song}". Tente tocar músicas mais variadas!'
+        no_valid_recommendations: "Nenhuma recomendação válida encontrada"
+        no_additional_recommendations: "Nenhuma recomendação adicional"
+        no_new_recommendations: "Nenhuma nova recomendação encontrada"
+        now_playing: "Tocando agora: **{title}** de **{artist}**"
+        added_tracks: "{count} faixas adicionadas à fila!"
+        buttons:
+            play_top: "Tocar Favorita"
+            add_all: "Adicionar Tudo à Fila"
+            refresh: "Obter Novas Sugestões"
+        errors:
+            invalid_track: "Dados de faixa inválidos para a recomendação principal"
+            generation_failed: "Falha ao gerar recomendações"
     buttons:
         pause: "Pausar"
         resume: "Continuar"

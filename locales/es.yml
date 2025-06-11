@@ -79,6 +79,13 @@ commands:
             limit:
                 name: "limite"
                 description: "Número de elementos principales a mostrar (5-20)"
+    suggest_songs:
+        name: "sugerir-canciones"
+        description: "Obtener recomendaciones musicales inteligentes basadas en tu historial de escucha"
+        options:
+            count:
+                name: "cantidad"
+                description: "Número de recomendaciones a obtener (1-20)"
 
 responses:
     music:
@@ -129,6 +136,30 @@ responses:
         buttons:
             refresh: "Actualizar"
             export: "Exportar Datos"
+    suggest_songs:
+        title: "Recomendaciones Musicales Inteligentes"
+        fresh_title: "Nuevas Recomendaciones Musicales"
+        description: "Basado en tu canción favorita: **{song}** de **{artist}**\n\nEncontradas {spotifyCount} pistas de Spotify de {totalCount} recomendaciones"
+        footer: "Solicitado por {user}"
+        refreshed_footer: "Actualizado por {user}"
+        top_recommendations: "Principales Recomendaciones"
+        more_recommendations: "Más Recomendaciones"
+        additional_recommendations: "Recomendaciones Adicionales"
+        unknown_track: "Pista Desconocida"
+        no_history: "¡Aún no tienes historial de escucha. Reproduce algunas canciones primero!"
+        no_recommendations: 'No se encontraron recomendaciones basadas en "{song}". ¡Intenta reproducir canciones más variadas!'
+        no_valid_recommendations: "No se encontraron recomendaciones válidas"
+        no_additional_recommendations: "No hay recomendaciones adicionales"
+        no_new_recommendations: "No se encontraron nuevas recomendaciones"
+        now_playing: "Reproduciendo ahora: **{title}** de **{artist}**"
+        added_tracks: "¡Añadidas {count} pistas a la cola!"
+        buttons:
+            play_top: "Reproducir Favorita"
+            add_all: "Añadir Todo a la Cola"
+            refresh: "Obtener Nuevas Sugerencias"
+        errors:
+            invalid_track: "Datos de pista inválidos para la recomendación principal"
+            generation_failed: "Error al generar recomendaciones"
     errors:
         music_disabled: "La música está actualmente desactivada."
         no_player: "No se está reproduciendo música actualmente"

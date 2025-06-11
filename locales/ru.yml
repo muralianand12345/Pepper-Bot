@@ -79,6 +79,12 @@ commands:
             limit:
                 name: "лимит"
                 description: "Количество топ элементов для отображения (5-20)"
+    suggest_songs:
+        name: "предложить-песни"
+        description: "Получить умные музыкальные рекомендации на основе истории прослушивания"
+        options:
+            count:
+                name: "количество"
 
 responses:
     default_search: "Пожалуйста, введите название песни или URL"
@@ -164,6 +170,30 @@ responses:
         buttons:
             refresh: "Обновить"
             export: "Экспорт Данных"
+    suggest_songs:
+        title: "Умные Музыкальные Рекомендации"
+        fresh_title: "Новые Музыкальные Рекомендации"
+        description: "На основе вашей топ-песни: **{song}** от **{artist}**\n\nНайдено {spotifyCount} треков Spotify из {totalCount} рекомендаций"
+        footer: "Запрошено {user}"
+        refreshed_footer: "Обновлено {user}"
+        top_recommendations: "Топ Рекомендации"
+        more_recommendations: "Больше Рекомендаций"
+        additional_recommendations: "Дополнительные Рекомендации"
+        unknown_track: "Неизвестный Трек"
+        no_history: "У вас пока нет истории прослушивания. Сначала воспроизведите несколько песен!"
+        no_recommendations: 'Не найдено рекомендаций на основе "{song}". Попробуйте воспроизвести более разнообразные песни!'
+        no_valid_recommendations: "Не найдено действительных рекомендаций"
+        no_additional_recommendations: "Нет дополнительных рекомендаций"
+        no_new_recommendations: "Не найдено новых рекомендаций"
+        now_playing: "Сейчас играет: **{title}** от **{artist}**"
+        added_tracks: "Добавлено {count} треков в очередь!"
+        buttons:
+            play_top: "Воспроизвести Топ"
+            add_all: "Добавить Все в Очередь"
+            refresh: "Получить Новые Предложения"
+        errors:
+            invalid_track: "Неверные данные трека для топ рекомендации"
+            generation_failed: "Ошибка генерации рекомендаций"
     buttons:
         pause: "Пауза"
         resume: "Продолжить"

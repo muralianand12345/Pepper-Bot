@@ -5,7 +5,7 @@ import { MusicDB } from "../repo";
 import { ISongs, ISongsUser } from "../../../types";
 
 
-class PlaylistSuggestion {
+export class PlaylistSuggestion {
     private client: discord.Client;
     private readonly defaultLimit: number = 20;
     private readonly similarityThreshold: number = 0.4;
@@ -421,6 +421,4 @@ class PlaylistSuggestion {
         }
         return result;
     };
-}
-
-export default PlaylistSuggestion;
+};

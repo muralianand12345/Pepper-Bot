@@ -79,6 +79,13 @@ commands:
             limit:
                 name: "limite"
                 description: "Nombre d'éléments principaux à afficher (5-20)"
+    suggest_songs:
+        name: "suggerer-chansons"
+        description: "Obtenir des recommandations musicales intelligentes basées sur votre historique d'écoute"
+        options:
+            count:
+                name: "nombre"
+                description: "Nombre de recommandations à obtenir (1-20)"
 
 responses:
     music:
@@ -129,6 +136,30 @@ responses:
         buttons:
             refresh: "Actualiser"
             export: "Exporter les Données"
+    suggest_songs:
+        title: "Recommandations Musicales Intelligentes"
+        fresh_title: "Nouvelles Recommandations Musicales"
+        description: "Basé sur votre chanson préférée: **{song}** par **{artist}**\n\nTrouvé {spotifyCount} pistes Spotify sur {totalCount} recommandations"
+        footer: "Demandé par {user}"
+        refreshed_footer: "Actualisé par {user}"
+        top_recommendations: "Principales Recommandations"
+        more_recommendations: "Plus de Recommandations"
+        additional_recommendations: "Recommandations Supplémentaires"
+        unknown_track: "Piste Inconnue"
+        no_history: "Vous n'avez pas encore d'historique d'écoute. Jouez d'abord quelques chansons!"
+        no_recommendations: 'Aucune recommandation trouvée basée sur "{song}". Essayez de jouer des chansons plus variées!'
+        no_valid_recommendations: "Aucune recommandation valide trouvée"
+        no_additional_recommendations: "Aucune recommandation supplémentaire"
+        no_new_recommendations: "Aucune nouvelle recommandation trouvée"
+        now_playing: "En cours de lecture: **{title}** par **{artist}**"
+        added_tracks: "{count} pistes ajoutées à la file d'attente!"
+        buttons:
+            play_top: "Jouer le Top"
+            add_all: "Tout Ajouter à la File"
+            refresh: "Obtenir de Nouvelles Suggestions"
+        errors:
+            invalid_track: "Données de piste invalides pour la recommandation principale"
+            generation_failed: "Échec de la génération des recommandations"
     errors:
         music_disabled: "La musique est actuellement désactivée."
         no_player: "Aucune musique n'est en cours de lecture"
