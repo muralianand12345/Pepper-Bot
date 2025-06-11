@@ -1,4 +1,5 @@
 import discord from "discord.js";
+import magmastream from "magmastream";
 
 import { BotPresence } from "./events";
 
@@ -23,7 +24,7 @@ export interface IConfig {
     music: {
         enabled: boolean;
         lavalink: {
-            default_search: string;
+            default_search: magmastream.SearchPlatform;
             nodes: Array<{
                 identifier: string;
                 host: string;

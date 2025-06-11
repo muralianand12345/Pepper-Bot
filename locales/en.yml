@@ -65,6 +65,20 @@ commands:
             type:
                 name: "type"
                 description: "Choose an audio filter to apply"
+    chart:
+        name: "chart"
+        description: "Display music analytics and charts"
+        options:
+            scope:
+                name: "scope"
+                description: "Choose the scope for analytics"
+                choices:
+                    user: "Personal"
+                    guild: "Server"
+                    global: "Global"
+            limit:
+                name: "limit"
+                description: "Number of top items to display (5-20)"
 
 responses:
     music:
@@ -89,6 +103,31 @@ responses:
         youtube_footer: "We do not support Youtube links due to YouTube's TOS."
         filter_applied: "Applied {filter} filter"
         filter_cleared: "All audio filters cleared"
+    chart:
+        user_title: "{user}'s Music Chart"
+        guild_title: "{guild} Server Chart"
+        global_title: "Global Music Chart"
+        no_user_data: "You haven't listened to any music yet. Start playing some songs to see your charts!"
+        no_guild_data: "This server doesn't have any music data yet. Start playing some songs to see the server charts!"
+        no_global_data: "No global music data available at the moment."
+        total_tracks: "total tracks"
+        unique_artists: "unique artists"
+        total_listening_time: "total listening time"
+        average_plays: "average plays per track"
+        recent_activity: "tracks played this week"
+        top_tracks: "Top Tracks"
+        top_sources: "Top Sources"
+        listening_stats: "Listening Stats"
+        total_hours: "Total Hours"
+        avg_song_length: "Avg Song Length"
+        this_week: "This Week"
+        tracks: "tracks"
+        plays: "plays"
+        no_data: "No data available"
+        footer: "Music Analytics Dashboard"
+        buttons:
+            refresh: "Refresh"
+            export: "Export Data"
     errors:
         music_disabled: "Music is currently disabled."
         no_player: "No music is currently playing"

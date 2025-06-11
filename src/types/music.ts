@@ -75,3 +75,12 @@ export interface ITrackProgress {
     formattedPosition: string;
     formattedDuration: string;
 };
+
+export interface ChartAnalytics {
+    totalSongs: number;
+    uniqueArtists: number;
+    totalPlaytime: number;
+    topGenres: { [key: string]: number };
+    recentActivity: number;
+    averagePlayCount: number;
+};

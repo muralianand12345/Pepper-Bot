@@ -27,10 +27,7 @@ const sendErrorReply = async (client: discord.Client, interaction: discord.Inter
         const t = await localeDetector.getTranslator(interaction as any);
         const message = t(messageKey, data);
 
-        await interaction.reply({
-            embeds: [new MusicResponseHandler(client).createErrorEmbed(message, locale)],
-            flags: discord.MessageFlags.Ephemeral
-        });
+        await interaction.reply({ embeds: [new MusicResponseHandler(client).createErrorEmbed(message, locale)], flags: discord.MessageFlags.Ephemeral });
     } catch (error) {
         await interaction.reply({ embeds: [new MusicResponseHandler(client).createErrorEmbed(messageKey)], flags: discord.MessageFlags.Ephemeral });
     }

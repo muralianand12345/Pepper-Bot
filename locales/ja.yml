@@ -65,6 +65,20 @@ commands:
             type:
                 name: "タイプ"
                 description: "適用するオーディオフィルターを選択"
+    chart:
+        name: "チャート"
+        description: "音楽の分析とチャートを表示"
+        options:
+            scope:
+                name: "スコープ"
+                description: "分析の範囲を選択"
+                choices:
+                    user: "個人"
+                    guild: "サーバー"
+                    global: "グローバル"
+            limit:
+                name: "制限"
+                description: "表示するトップアイテムの数（5-20）"
 
 responses:
     default_search: "曲名またはURLを入力してください"
@@ -124,6 +138,32 @@ responses:
         disconnected: "🔌 音楽プレイヤーが切断されました"
         filter_applied: "{filter}フィルターが適用されました"
         filter_cleared: "すべてのオーディオフィルターがクリアされました"
+    chart:
+        user_title: "{user}の音楽チャート"
+        guild_title: "{guild}サーバーチャート"
+        global_title: "グローバル音楽チャート"
+        no_user_data: "まだ音楽を聴いていません。楽曲を再生してチャートを見ましょう！"
+        no_guild_data: "このサーバーにはまだ音楽データがありません。楽曲を再生してサーバーチャートを見ましょう！"
+        no_global_data: "現在グローバル音楽データが利用できません。"
+        total_tracks: "総トラック数"
+        unique_artists: "ユニークアーティスト数"
+        total_listening_time: "総リスニング時間"
+        average_plays: "トラックあたり平均再生回数"
+        recent_activity: "今週再生されたトラック"
+        top_tracks: "トップトラック"
+        top_sources: "トップソース"
+        listening_stats: "リスニング統計"
+        total_hours: "総時間"
+        avg_song_length: "平均楽曲長"
+        this_week: "今週"
+        tracks: "トラック"
+        plays: "再生"
+        no_data: "データがありません"
+        footer: "音楽分析ダッシュボード"
+        export_success: "{scope}エクスポートが{count}件のレコードで完了しました"
+        buttons:
+            refresh: "更新"
+            export: "データエクスポート"
     buttons:
         pause: "一時停止"
         resume: "再開"

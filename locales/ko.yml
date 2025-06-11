@@ -65,6 +65,20 @@ commands:
             type:
                 name: "유형"
                 description: "적용할 오디오 필터 선택"
+    chart:
+        name: "차트"
+        description: "음악 분석과 차트 표시"
+        options:
+            scope:
+                name: "범위"
+                description: "분석 범위 선택"
+                choices:
+                    user: "개인"
+                    guild: "서버"
+                    global: "글로벌"
+            limit:
+                name: "제한"
+                description: "표시할 상위 항목 수 (5-20)"
 
 responses:
     default_search: "곡명 또는 URL을 입력하세요"
@@ -124,6 +138,32 @@ responses:
         disconnected: "🔌 음악 플레이어가 연결 해제되었습니다"
         filter_applied: "{filter} 필터가 적용되었습니다"
         filter_cleared: "모든 오디오 필터가 제거되었습니다"
+    chart:
+        user_title: "{user}의 음악 차트"
+        guild_title: "{guild} 서버 차트"
+        global_title: "글로벌 음악 차트"
+        no_user_data: "아직 음악을 듣지 않았습니다. 곡을 재생해서 차트를 확인해보세요!"
+        no_guild_data: "이 서버에는 아직 음악 데이터가 없습니다. 곡을 재생해서 서버 차트를 확인해보세요!"
+        no_global_data: "현재 글로벌 음악 데이터를 사용할 수 없습니다."
+        total_tracks: "총 트랙 수"
+        unique_artists: "고유 아티스트 수"
+        total_listening_time: "총 청취 시간"
+        average_plays: "트랙당 평균 재생 횟수"
+        recent_activity: "이번 주 재생된 트랙"
+        top_tracks: "인기 트랙"
+        top_sources: "인기 소스"
+        listening_stats: "청취 통계"
+        total_hours: "총 시간"
+        avg_song_length: "평균 곡 길이"
+        this_week: "이번 주"
+        tracks: "트랙"
+        plays: "재생"
+        no_data: "데이터가 없습니다"
+        footer: "음악 분석 대시보드"
+        export_success: "{scope} 내보내기가 {count}개 레코드로 완료되었습니다"
+        buttons:
+            refresh: "새로고침"
+            export: "데이터 내보내기"
     buttons:
         pause: "일시정지"
         resume: "재개"

@@ -65,6 +65,20 @@ commands:
             type:
                 name: "tipo"
                 description: "Escolha um filtro de áudio para aplicar"
+    chart:
+        name: "grafico"
+        description: "Exibir análises e gráficos musicais"
+        options:
+            scope:
+                name: "escopo"
+                description: "Escolher o escopo para análises"
+                choices:
+                    user: "Pessoal"
+                    guild: "Servidor"
+                    global: "Global"
+            limit:
+                name: "limite"
+                description: "Número de itens principais para exibir (5-20)"
 
 responses:
     default_search: "Digite o nome de uma música ou URL"
@@ -124,6 +138,32 @@ responses:
         disconnected: "🔌 Player de música desconectado"
         filter_applied: "Filtro {filter} aplicado"
         filter_cleared: "Todos os filtros de áudio removidos"
+    chart:
+        user_title: "Gráfico Musical de {user}"
+        guild_title: "Gráfico do Servidor {guild}"
+        global_title: "Gráfico Musical Global"
+        no_user_data: "Você ainda não ouviu música. Comece a tocar músicas para ver seus gráficos!"
+        no_guild_data: "Este servidor ainda não tem dados musicais. Comece a tocar músicas para ver os gráficos do servidor!"
+        no_global_data: "Nenhum dado musical global disponível no momento."
+        total_tracks: "faixas totais"
+        unique_artists: "artistas únicos"
+        total_listening_time: "tempo total de escuta"
+        average_plays: "reproduções médias por faixa"
+        recent_activity: "faixas tocadas esta semana"
+        top_tracks: "Principais Faixas"
+        top_sources: "Principais Fontes"
+        listening_stats: "Estatísticas de Escuta"
+        total_hours: "Horas Totais"
+        avg_song_length: "Duração Média da Música"
+        this_week: "Esta Semana"
+        tracks: "faixas"
+        plays: "reproduções"
+        no_data: "Nenhum dado disponível"
+        footer: "Painel de Análises Musicais"
+        export_success: "Exportação {scope} concluída com {count} registros"
+        buttons:
+            refresh: "Atualizar"
+            export: "Exportar Dados"
     buttons:
         pause: "Pausar"
         resume: "Continuar"

@@ -65,6 +65,20 @@ commands:
             type:
                 name: "typ"
                 description: "Wählen Sie einen Audio-Filter zum Anwenden"
+    chart:
+        name: "diagramm"
+        description: "Musik-Analysen und Diagramme anzeigen"
+        options:
+            scope:
+                name: "bereich"
+                description: "Bereich für Analysen wählen"
+                choices:
+                    user: "Persönlich"
+                    guild: "Server"
+                    global: "Global"
+            limit:
+                name: "grenzwert"
+                description: "Anzahl der Top-Elemente zum Anzeigen (5-20)"
 
 responses:
     music:
@@ -89,6 +103,32 @@ responses:
         youtube_footer: "Wir unterstützen keine Youtube-Links aufgrund der YouTube-AGB."
         filter_applied: "{filter} Filter angewendet"
         filter_cleared: "Alle Audio-Filter entfernt"
+    chart:
+        user_title: "{user}s Musik-Diagramm"
+        guild_title: "{guild} Server-Diagramm"
+        global_title: "Globales Musik-Diagramm"
+        no_user_data: "Sie haben noch keine Musik gehört. Beginnen Sie mit der Wiedergabe von Liedern, um Ihre Diagramme zu sehen!"
+        no_guild_data: "Dieser Server hat noch keine Musikdaten. Beginnen Sie mit der Wiedergabe von Liedern, um die Server-Diagramme zu sehen!"
+        no_global_data: "Derzeit sind keine globalen Musikdaten verfügbar."
+        total_tracks: "Tracks insgesamt"
+        unique_artists: "einzigartige Künstler"
+        total_listening_time: "gesamte Hörzeit"
+        average_plays: "durchschnittliche Wiedergaben pro Track"
+        recent_activity: "diese Woche gespielte Tracks"
+        top_tracks: "Top-Tracks"
+        top_sources: "Top-Quellen"
+        listening_stats: "Hörstatistiken"
+        total_hours: "Gesamtstunden"
+        avg_song_length: "Durchschnittliche Liedlänge"
+        this_week: "Diese Woche"
+        tracks: "Tracks"
+        plays: "Wiedergaben"
+        no_data: "Keine Daten verfügbar"
+        footer: "Musik-Analytics Dashboard"
+        export_success: "{scope} Export abgeschlossen mit {count} Einträgen"
+        buttons:
+            refresh: "Aktualisieren"
+            export: "Daten Exportieren"
     errors:
         music_disabled: "Musik ist derzeit deaktiviert."
         no_player: "Derzeit wird keine Musik abgespielt"

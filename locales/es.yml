@@ -65,6 +65,20 @@ commands:
             type:
                 name: "tipo"
                 description: "Elige un filtro de audio para aplicar"
+    chart:
+        name: "grafico"
+        description: "Mostrar analíticas y gráficos musicales"
+        options:
+            scope:
+                name: "alcance"
+                description: "Elige el alcance para las analíticas"
+                choices:
+                    user: "Personal"
+                    guild: "Servidor"
+                    global: "Global"
+            limit:
+                name: "limite"
+                description: "Número de elementos principales a mostrar (5-20)"
 
 responses:
     music:
@@ -89,6 +103,32 @@ responses:
         youtube_footer: "No admitimos enlaces de Youtube debido a los TOS de YouTube."
         filter_applied: "Filtro {filter} aplicado"
         filter_cleared: "Todos los filtros de audio eliminados"
+    chart:
+        user_title: "Gráfico Musical de {user}"
+        guild_title: "Gráfico del Servidor {guild}"
+        global_title: "Gráfico Musical Global"
+        no_user_data: "Aún no has escuchado música. ¡Comienza a reproducir canciones para ver tus gráficos!"
+        no_guild_data: "Este servidor aún no tiene datos musicales. ¡Comienza a reproducir canciones para ver los gráficos del servidor!"
+        no_global_data: "No hay datos musicales globales disponibles en este momento."
+        total_tracks: "pistas totales"
+        unique_artists: "artistas únicos"
+        total_listening_time: "tiempo total de escucha"
+        average_plays: "reproducciones promedio por pista"
+        recent_activity: "pistas reproducidas esta semana"
+        top_tracks: "Principales Pistas"
+        top_sources: "Principales Fuentes"
+        listening_stats: "Estadísticas de Escucha"
+        total_hours: "Horas Totales"
+        avg_song_length: "Duración Promedio de Canción"
+        this_week: "Esta Semana"
+        tracks: "pistas"
+        plays: "reproducciones"
+        no_data: "No hay datos disponibles"
+        footer: "Panel de Analíticas Musicales"
+        export_success: "Exportación de {scope} completada con {count} registros"
+        buttons:
+            refresh: "Actualizar"
+            export: "Exportar Datos"
     errors:
         music_disabled: "La música está actualmente desactivada."
         no_player: "No se está reproduciendo música actualmente"

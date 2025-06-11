@@ -4,7 +4,6 @@ import { Command } from "../types";
 import { MusicResponseHandler } from "../core/music";
 import { LocalizationManager, LocaleDetector } from "../core/locales";
 
-
 const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
 
@@ -89,7 +88,7 @@ const helpCommand: Command = {
                 const name = cmd.data.name.toLowerCase();
                 if (['play', 'stop', 'pause', 'resume', 'skip', 'loop', 'autoplay', 'filter'].includes(name)) {
                     categories.music.push(cmd);
-                } else if (['ping', 'help', 'language', 'feedback'].includes(name)) {
+                } else if (['ping', 'help', 'language', 'feedback', 'chart'].includes(name)) {
                     categories.utility.push(cmd);
                 } else {
                     categories.other.push(cmd);

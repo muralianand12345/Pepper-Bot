@@ -65,6 +65,20 @@ commands:
             type:
                 name: "type"
                 description: "Choisir un filtre audio à appliquer"
+    chart:
+        name: "graphique"
+        description: "Afficher les analyses et graphiques musicaux"
+        options:
+            scope:
+                name: "portee"
+                description: "Choisir la portée pour les analyses"
+                choices:
+                    user: "Personnel"
+                    guild: "Serveur"
+                    global: "Global"
+            limit:
+                name: "limite"
+                description: "Nombre d'éléments principaux à afficher (5-20)"
 
 responses:
     music:
@@ -89,6 +103,32 @@ responses:
         youtube_footer: "Nous ne prenons pas en charge les liens Youtube en raison des TOS de YouTube."
         filter_applied: "Filtre {filter} appliqué"
         filter_cleared: "Tous les filtres audio supprimés"
+    chart:
+        user_title: "Graphique Musical de {user}"
+        guild_title: "Graphique du Serveur {guild}"
+        global_title: "Graphique Musical Global"
+        no_user_data: "Vous n'avez pas encore écouté de musique. Commencez à jouer des chansons pour voir vos graphiques !"
+        no_guild_data: "Ce serveur n'a pas encore de données musicales. Commencez à jouer des chansons pour voir les graphiques du serveur !"
+        no_global_data: "Aucune donnée musicale globale disponible pour le moment."
+        total_tracks: "pistes totales"
+        unique_artists: "artistes uniques"
+        total_listening_time: "temps d'écoute total"
+        average_plays: "lectures moyennes par piste"
+        recent_activity: "pistes jouées cette semaine"
+        top_tracks: "Principales Pistes"
+        top_sources: "Principales Sources"
+        listening_stats: "Statistiques d'Écoute"
+        total_hours: "Heures Totales"
+        avg_song_length: "Durée Moyenne des Chansons"
+        this_week: "Cette Semaine"
+        tracks: "pistes"
+        plays: "lectures"
+        no_data: "Aucune donnée disponible"
+        footer: "Tableau de Bord des Analyses Musicales"
+        export_success: "Exportation {scope} terminée avec {count} enregistrements"
+        buttons:
+            refresh: "Actualiser"
+            export: "Exporter les Données"
     errors:
         music_disabled: "La musique est actuellement désactivée."
         no_player: "Aucune musique n'est en cours de lecture"

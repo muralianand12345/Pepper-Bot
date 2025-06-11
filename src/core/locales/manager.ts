@@ -65,7 +65,7 @@ export class LocalizationManager {
         return this.locales.has(locale);
     };
 
-    private getNestedValue = (obj: any, path: string): any => {
+    private getNestedValue = (obj: Record<string, any>, path: string): any => {
         return path.split('.').reduce((current, key) => {
             return current && current[key] !== undefined ? current[key] : null;
         }, obj);

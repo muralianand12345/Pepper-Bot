@@ -20,7 +20,6 @@ const processActivityName = (name: string, client: discord.Client): string => {
         "<playersize>": client.manager.players.size.toString(),
         "<guildsize>": client.guilds.cache.size.toString(),
         "<channelsize>": client.channels.cache.size.toString(),
-        "<prefix>": (client as any).config.bot.prefix,
     };
 
     return Object.entries(replacements).reduce((acc, [token, value]) => acc.replace(new RegExp(token, "g"), value ?? ""), name);

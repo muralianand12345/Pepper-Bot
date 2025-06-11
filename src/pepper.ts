@@ -1,8 +1,8 @@
 import discord from "discord.js";
-import { Manager, UseNodeOptions } from "magmastream";
+import { Manager, UseNodeOptions, Payload } from "magmastream";
 
-import { Command } from "./types";
 import Logger from "./utils/logger";
+import { Command, IConfig } from "./types";
 import CommandLogger from "./utils/command_logger";
 import { LocalizationManager } from "./core/locales";
 import { ConfigManager, loadConfig } from "./utils/config";
@@ -10,7 +10,7 @@ import { ConfigManager, loadConfig } from "./utils/config";
 
 const configManager = ConfigManager.getInstance();
 
-const initializeManager = (config: any, client: discord.Client) => {
+const initializeManager = (config: IConfig, client: discord.Client) => {
     return new Manager({
         usePriority: true,
         useNode: UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
@@ -18,7 +18,7 @@ const initializeManager = (config: any, client: discord.Client) => {
         autoPlay: true,
         defaultSearchPlatform: config.music.lavalink.default_search,
         lastFmApiKey: configManager.getLastFmApiKey(),
-        send: (id: string, payload: any) => {
+        send: (id: string, payload: Payload) => {
             const guild = client.guilds.cache.get(id);
             if (guild) guild.shard.send(payload);
         },
