@@ -88,10 +88,7 @@ const chartCommand: Command = {
                         return;
                     }
 
-                    chartData = guildHistory.songs
-                        .sort((a, b) => (b.played_number || 0) - (a.played_number || 0))
-                        .slice(0, limit);
-
+                    chartData = guildHistory.songs.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit);
                     analytics = calculateAnalytics(guildHistory.songs);
                     embedTitle = t('responses.chart.guild_title', { guild: interaction.guild?.name || 'Server' });
                     embedColor = "#f1c40f";
@@ -106,10 +103,7 @@ const chartCommand: Command = {
                         return;
                     }
 
-                    chartData = globalHistory.songs
-                        .sort((a, b) => (b.played_number || 0) - (a.played_number || 0))
-                        .slice(0, limit)
-
+                    chartData = globalHistory.songs.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit)
                     analytics = calculateAnalytics(globalHistory.songs);
                     embedTitle = t('responses.chart.global_title');
                     embedColor = "#e74c3c";
@@ -175,7 +169,7 @@ const createChartEmbed = (chartData: ISongs[], analytics: ChartAnalytics, title:
 };
 
 const createAnalyticsOverview = (analytics: ChartAnalytics, t: (key: string, data?: Record<string, any>) => string, locale: string): string => {
-    const totalTimeFormatted = Formatter.formatUptime(analytics.totalPlaytime / 1000);
+    const totalTimeFormatted = Formatter.formatListeningTime(analytics.totalPlaytime / 1000);
     const avgPlayCount = Math.round(analytics.averagePlayCount * 10) / 10;
     return [
         `🎵 **${analytics.totalSongs}** ${t('responses.chart.total_tracks')}`,

@@ -19,7 +19,6 @@ class Formatter {
     }
 
     public static formatUptime = (seconds: number): string => {
-
         const years = Math.floor(seconds / 31536000);
         const months = Math.floor(seconds / 2592000);
         const days = Math.floor(seconds / 86400);
@@ -34,6 +33,53 @@ class Formatter {
         if (minutes > 0) parts.push(`${minutes}m`);
 
         return parts.join(" ") || "< 1m";
+    }
+
+    public static formatListeningTime = (seconds: number): string => {
+        if (seconds < 60) return "< 1m";
+
+        let remaining = Math.floor(seconds);
+        const parts = [];
+
+        const years = Math.floor(remaining / 31536000);
+        remaining %= 31536000;
+
+        const months = Math.floor(remaining / 2592000);
+        remaining %= 2592000;
+
+        const days = Math.floor(remaining / 86400);
+        remaining %= 86400;
+
+        const hours = Math.floor(remaining / 3600);
+        remaining %= 3600;
+
+        const minutes = Math.floor(remaining / 60);
+
+        if (years > 0) {
+            parts.push(`${years}y`);
+            if (months > 0) parts.push(`${months}mo`);
+            return parts.join(" ");
+        }
+
+        if (months > 0) {
+            parts.push(`${months}mo`);
+            if (days > 0) parts.push(`${days}d`);
+            return parts.join(" ");
+        }
+
+        if (days > 0) {
+            parts.push(`${days}d`);
+            if (hours > 0) parts.push(`${hours}h`);
+            return parts.join(" ");
+        }
+
+        if (hours > 0) {
+            parts.push(`${hours}h`);
+            if (minutes > 0) parts.push(`${minutes}m`);
+            return parts.join(" ");
+        }
+
+        return `${minutes}m`;
     }
 
     public static truncateText = (text: string, maxLength: number = 50, ellipsis: string = "..."): string => {
