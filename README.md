@@ -1,238 +1,295 @@
-# 🎵 Pepper Music Bot
+# Pepper Bot 🎵
 
 ![Version](https://img.shields.io/badge/version-5.0.2-blue)
-![License](https://img.shields.io/badge/license-Apache%202.0-green)
-![Discord.js](https://img.shields.io/badge/discord.js-v14-7289da)
-![TypeScript](https://img.shields.io/badge/typescript-v5.2.2-blue)
+![Discord.js](https://img.shields.io/badge/discord.js-v14.18.0-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8.2-blue)
+![License](https://img.shields.io/badge/license-Apache--2.0-green)
 
-A modern, feature-rich music bot for Discord with advanced queue management, music analytics, personalized recommendations, and a secure API interface.
-
-![Pepper Bot Banner](https://images-ext-1.discordapp.net/external/2gT4PoVob9xz18PqYFy__v34bJDXlCjyx-L_anpKAUI/%3Furl%3Dhttps%253A%252F%252F1401372451-files.gitbook.io%252F%257E%252Ffiles%252Fv0%252Fb%252Fgitbook-x-prod.appspot.com%252Fo%252Fspaces%25252FbVBhQoZcw8F4L1D8Cxry%25252Fsocialpreview%25252FwrXaqBE6Ipo7kCICpatB%25252Fimage.png%253Falt%253Dmedia%2526token%253D5b7eb3aa-a107-4d1f-9c71-bb9a0ad87cad%26width%3D1200%26height%3D630%26sign%3Dbce4f03f%26sv%3D2/https/docs-pepper.mrbotz.com/~gitbook/image?format=webp&width=1232&height=806)
+A powerful Discord music bot with smart autoplay, multi-language support, and advanced analytics. Built with TypeScript, Discord.js v14, and Lavalink for high-quality audio streaming.
 
 ## ✨ Features
 
-- **High-Quality Music Playback** - Support for Spotify, SoundCloud, and more
-- **Advanced Queue Management** - Skip, pause, resume, shuffle, and loop functionality
-- **Music Analytics** - Track listening history and view detailed statistics
-- **Personalized Recommendations** - Get song suggestions based on listening history
-- **RESTful API** - Control the bot programmatically with a secure API
-- **WebSocket Integration** - Real-time music control and events
-- **Swagger Documentation** - Interactive API documentation
-- **Sharding Support** - Scales across multiple servers efficiently
-- **Premium User Features** - Special commands for premium users
-- **Detailed Logging** - Comprehensive logging for monitoring and debugging
+### 🎵 Music Playback
+- **High-Quality Audio**: Powered by Lavalink for superior sound quality
+- **Multiple Sources**: Support for Spotify, SoundCloud, Bandcamp, and more
+- **Smart Queue Management**: Advanced queue system with position tracking
+- **Audio Filters**: 11+ audio filters including bassboost, nightcore, and 8D audio
 
-## 🚀 Getting Started
+### 🤖 Smart Features
+- **Intelligent Autoplay**: Smart music recommendations based on listening history
+- **Music Analytics**: Personal, server, and global music charts with detailed statistics
+- **Song Suggestions**: Get personalized recommendations using smart algorithms
+- **Multi-Language Support**: 15+ languages with complete localization
+
+### 🛠 Advanced Controls
+- **Voice Channel Management**: Auto-pause when channel is empty, resume when users join
+- **Loop Modes**: Single track and queue loop options
+- **Player Persistence**: Maintains state across bot restarts
+- **Dashboard Integration**: Web-based control panel for enhanced management
+
+### 📊 Analytics & History
+- **Listening Statistics**: Track play counts, listening time, and favorite artists
+- **Export Data**: CSV export functionality for personal analytics
+- **Global Charts**: See what's trending across all servers
+- **User Profiles**: Personal music taste analysis
+
+## 🚀 Quick Start
 
 ### Prerequisites
-
-- Node.js (v18 or higher)
-- MongoDB
-- Lavalink server(s)
+- Node.js 18.0.0 or higher
+- MongoDB database
+- Lavalink server
 - Discord Bot Token
-- Spotify Developer credentials (for Spotify integration)
-- Last.fm API key (for recommendation features)
+- Spotify API credentials (optional, for enhanced features)
 
 ### Installation
 
-1. Clone the repository
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/muralianand12345/Pepper-Bot.git
+   cd Pepper-Bot
+   ```
 
-```bash
-git clone https://github.com/muralianand12345/Pepper-Bot.git
-cd Pepper-Bot
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-2. Install dependencies
+3. **Environment Setup**
+   ```bash
+   cp .example.env .env.prod
+   ```
+   
+   Edit `.env.prod` with your credentials:
+   ```env
+   DEBUG_MODE=false
+   TOKEN=your_discord_bot_token
+   MONGO_URI=mongodb://localhost:27017/pepperbot
+   LASTFM_API_KEY=your_lastfm_api_key
+   SPOTIFY_CLIENT_ID=your_spotify_client_id
+   SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+   FEEDBACK_WEBHOOK=your_discord_webhook_url
+   ```
 
-```bash
-npm i -g yarn
-yarn
-```
+4. **Configuration**
+   ```bash
+   cp config/config.example.yml config/config.yml
+   ```
+   
+   Update `config/config.yml` with your settings (bot owners, Lavalink nodes, etc.)
 
-3. Configure environment variables
+5. **Build and Start**
+   ```bash
+   npm run build
+   npm start
+   ```
 
-```bash
-cp .example.env .env.prod
-# Edit .env.prod with your configuration
-```
+## ⚙️ Configuration
 
-4. Configure the bot settings
-
-```bash
-cp config/config.example.yml config/config.yml
-# Edit config.yml with your configuration
-```
-
-5. Build the TypeScript code
-
-```bash
-yarn build
-```
-
-6. Run the bot
-
-```bash
-yarn start
-```
-
-## 📚 Documentation
-
-- [API Documentation](./src/events/client/api/README.md) - Details about the RESTful API
-- [WebSocket Protocol](./static/README.md) - Documentation for WebSocket integration
-
-## 🧩 Architecture
-
-Pepper Bot is built with a modular architecture that separates concerns and makes maintenance easier:
-
-```
-src/
-├── commands/        # Bot commands (slash and message)
-├── events/          # Event handlers
-├── handlers/        # Command and event handlers
-├── types/           # TypeScript type definitions
-└── utils/           # Utility functions
-```
-
-### Key Components
-
-- **Music System**: Built on [Magmastream](https://github.com/Magmastream-NPM/magmastream) (Lavalink wrapper)
-- **Database**: MongoDB with Mongoose for storing music history and user preferences
-- **API**: Express.js with authentication and rate limiting
-- **WebSocket**: Real-time event system for dynamic music control
-
-## 🛠️ Advanced Configuration
-
-### Cloudflare Tunnel Setup
-
-To securely expose your API, you can use Cloudflare Tunnels:
-
-1. Install `cloudflared`: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
-
-2. Create a config file:
-
-```yml
-tunnel: tunnel-id
-credentials-file: /Users/username/.cloudflared/tunnel-id.json
-
-ingress:
-  - hostname: pepper.domain.in
-    service: http://localhost:3000
-  - service: http_status:404
-```
-
-3. Execute in terminal/cmd:
-
-```bash
-# One Time Local only
-cloudflared tunnel login
-cloudflared tunnel create pepper-api
-cloudflared tunnel route dns pepper-api peppermusic.domain.in
-
-# Run the tunnel
-cloudflared tunnel --config ~/.cloudflared/config.yml run pepper-api
-```
-
-### Lavalink Configuration
-
-Configure Lavalink nodes in `config.yml`:
-
-```yml
+### Lavalink Setup
+Configure your Lavalink nodes in `config/config.yml`:
+```yaml
 music:
   lavalink:
-    default_search: spsearch
-    nodes: [
-        {
-          "identifier": "Node 1",
-          "host": "lavalink.example.com",
-          "port": 443,
-          "password": "your-password",
-          "secure": true,
-          # Additional options...
-        },
-        # More nodes...
-      ]
+    nodes:
+      - identifier: "Main Node"
+        host: "localhost"
+        port: 2333
+        password: "youshallnotpass"
+        secure: false
 ```
 
-## 📊 API & WebSocket Usage
+### Bot Permissions
+Required Discord permissions:
+- `Send Messages`
+- `Use Slash Commands`
+- `Connect` (to voice channels)
+- `Speak` (in voice channels)
+- `Use Voice Activity`
+- `Read Message History`
+- `Add Reactions`
+- `Embed Links`
 
-### REST API
+## 🎮 Commands
 
-The bot includes a full RESTful API for programmatic control:
+### Music Commands
+- `/play <song>` - Play a song or add to queue
+- `/pause` - Pause the current track
+- `/resume` - Resume playback
+- `/skip` - Skip the current song
+- `/stop` - Stop playback and leave voice channel
+- `/loop` - Toggle loop mode for current track
+- `/autoplay <enabled>` - Toggle smart autoplay
 
-```javascript
-// Example API request to get active players
-fetch("https://pepper.domain.in/api/v1/music/players", {
-  headers: {
-    "x-api-key": "your-api-key",
-  },
-})
-  .then((response) => response.json())
-  .then((data) => console.log(data));
+### Utility Commands
+- `/ping` - Check bot latency and status
+- `/help [command]` - Display help information
+- `/language <scope> [language]` - Set language preferences
+- `/feedback` - Send feedback to developers
+
+### Analytics Commands
+- `/chart <scope> [limit]` - Display music analytics
+- `/suggest-songs [count]` - Get personalized recommendations
+- `/filter <type>` - Apply audio filters
+
+## 🌍 Supported Languages
+
+- 🇺🇸 English
+- 🇪🇸 Spanish (Español)
+- 🇫🇷 French (Français)
+- 🇩🇪 German (Deutsch)
+- 🇧🇷 Portuguese (Português)
+- 🇷🇺 Russian (Русский)
+- And 10+ more languages
+
+## 🏗 Development
+
+### Development Setup
+```bash
+# Install dependencies
+npm install
+
+# Set up development environment
+cp .example.env .env.dev
+# Edit .env.dev with your development credentials
+
+# Start development server with hot reload
+npm run dev
 ```
 
-### WebSocket
+### Project Structure
+```
+src/
+├── commands/          # Slash commands
+├── core/              # Core functionality
+│   ├── music/         # Music system
+│   └── locales/       # Internationalization
+├── events/            # Discord.js event handlers
+├── handlers/          # Command and event loaders
+├── types/             # TypeScript type definitions
+├── utils/             # Utility functions
+└── main.ts           # Application entry point
 
-For real-time control and events:
+config/               # Configuration files
+locales/             # Translation files
+scripts/             # Build and utility scripts
+```
 
-```javascript
-// Connect to WebSocket
-const ws = new WebSocket("wss://pepper.domain.in/api/v1/music/ws");
+### Adding New Features
 
-// Authenticate
-ws.onopen = () => {
-  ws.send(
-    JSON.stringify({
-      type: "auth",
-      data: { apiKey: "your-api-key" },
-    })
-  );
+#### Creating a New Command
+```typescript
+import discord from "discord.js";
+import { Command } from "../types";
+import { LocalizationManager } from "../core/locales";
+
+const localizationManager = LocalizationManager.getInstance();
+
+const newCommand: Command = {
+    cooldown: 5,
+    data: new discord.SlashCommandBuilder()
+        .setName("example")
+        .setDescription("Example command")
+        .setNameLocalizations(localizationManager.getCommandLocalizations('commands.example.name'))
+        .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.example.description')),
+    
+    execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {
+        // Command implementation
+    }
 };
 
-// Play a song
-ws.send(
-  JSON.stringify({
-    type: "play",
-    data: {
-      guildId: "123456789012345678",
-      query: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",
-      userId: "987654321098765432",
-    },
-  })
-);
+export default newCommand;
+```
 
-// Listen for events
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  console.log(`Event: ${data.type}`, data);
-};
+#### Adding Translations
+Add new translation keys to locale files in `locales/`:
+```yaml
+commands:
+  example:
+    name: "example"
+    description: "Example command description"
+
+responses:
+  example:
+    success: "Command executed successfully!"
 ```
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+### Code Style
+- Use TypeScript with strict mode
+- Follow ESLint configuration
+- Use arrow functions for all functions and class methods
+- Import discord.js as: `import discord from "discord.js"`
+- No comments in code (self-documenting code preferred)
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Bot not responding to commands:**
+- Check bot permissions in Discord server
+- Verify bot token is correct
+- Ensure bot is online and properly started
+
+**Music not playing:**
+- Verify Lavalink server is running and accessible
+- Check voice channel permissions
+- Ensure audio sources are accessible
+
+**Database connection issues:**
+- Verify MongoDB connection string
+- Check MongoDB server status
+- Ensure proper network connectivity
+
+### Logs
+Logs are stored in `logs/` directory organized by date:
+```
+logs/
+└── 2024/
+    └── January/
+        └── bot-log-2024-01-15.log
+```
+
+## 📊 Performance
+
+### Recommended System Requirements
+- **CPU**: 1+ cores
+- **RAM**: 1GB minimum, 4GB recommended
+- **Storage**: 10GB available space
+- **Network**: Stable internet connection with low latency
+
+### Optimization Tips
+- Use SSD storage for better database performance
+- Deploy Lavalink server close to bot instance
+- Monitor memory usage with built-in analytics
+- Use CDN for dashboard assets
+
 ## 📄 License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgements
+## 🙏 Acknowledgments
 
-- [Discord.js](https://discord.js.org/) - Discord API wrapper
-- [Magmastream](https://github.com/Magmastream-NPM/magmastream) - Lavalink client for Node.js
-- [Express](https://expressjs.com/) - Web framework for Node.js
-- [Mongoose](https://mongoosejs.com/) - MongoDB object modeling
-- [Swagger](https://swagger.io/) - API documentation
-- All contributors who have helped improve this project
+- [Discord.js](https://discord.js.org/) - Discord API library
+- [Lavalink](https://github.com/freyacodes/Lavalink) - Audio delivery system
+- [Magmastream](https://github.com/Blackfort-Hosting/magmastream) - Lavalink client
+- [MongoDB](https://www.mongodb.com/) - Database system
 
-## 📧 Contact
+## 📞 Support
 
-For any questions or concerns, please open an issue or contact the maintainer:
+- **Discord Server**: [Join our support server](https://discord.gg/XzE9hSbsNb)
+- **Issues**: [GitHub Issues](https://github.com/muralianand12345/Pepper-Bot/issues)
+- **Documentation**: [Wiki](https://github.com/muralianand12345/Pepper-Bot/wiki)
 
-- GitHub: [muralianand12345](https://github.com/muralianand12345)
-- Discord: murlee#0
+---
+
+**Made with ❤️ by MRBotZ**
+
+*Pepper Bot - Bringing high-quality music to Discord servers worldwide*

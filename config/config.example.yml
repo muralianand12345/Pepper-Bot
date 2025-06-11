@@ -22,37 +22,17 @@ bot:
               type: "PLAYING"
             - name: "<channelsize> Channels!" # <channelsize> shows total channels
               type: "WATCHING"
-
-    # Command handling settings
     command:
-        prefix: "!" # Prefix for traditional commands (not slash commands)
-        disable_message: true # Whether to disable message commands
-        cooldown_message: You are on `<duration>` cooldown! # Message shown during command cooldown
-        register_specific_commands: # Register only specific slash commands
-            enabled: true # Whether to register only specific commands
-            commands:
-                - "node" # Command names to register
+        cooldown_message: You are on `<duration>` cooldown! # Message shown when command is on cooldown
 
     # Logging channel configuration
     log:
         command: "1234567890" # Channel ID for command usage logs
         server: "1234567890" # Channel ID for server join/leave logs
 
-    # Optional features
-    features:
-        spotify_presence:
-            enabled: false # Whether to track Spotify presence
-        dj_role:
-            enabled: false # Whether to use DJ role restriction
-            default_timeout: 86400000 # DJ role timeout in ms (24 hours)
-            default_role_name: DJ # Name of the DJ role to create if not exists
-
 # Music playback configuration
 music:
     enabled: true # Whether music functionality is enabled
-    dashboard_url: "https://pepper.mrbotz.com/dashboard/server/<guildId>" # Web dashboard URL template
-    image: "https://localhost:8080/assets/music.gif" # Default music image
-
     # Lavalink audio node configuration
     lavalink:
         default_search:
@@ -86,60 +66,3 @@ music:
               resumeStatus: false
               resumeTimeout: 1000
               requestTimeout: 10000
-
-# Content and messaging configuration
-content:
-    text:
-        # Message to display when no music is playing
-        no_music_playing: No Music Playing Right Now 😔
-
-        # Tips displayed randomly to promote dashboard usage
-        random_tips:
-            - "🎶 Pro Tip: Some features like analytics & drag-to-reorder are only on the dashboard. You're missing out 👀."
-            - "10x faster than commands — Drag songs, skip with a click, manage queue visually. Open Pepper Dashboard 🎵."
-            - "Still using /play? Try the Dashboard instead — it's faster, visual, and command-free!\n/play ❌ play via dashboard ✅."
-            - "Stop typing, start clicking!\n/play ❌ dashboard ✅ — drag, skip, queue, stats 📊."
-            - "🎉 Hey! Did you know you can control everything from Pepper's Web Dashboard? It's faster, visual & no commands needed. Wanna try?"
-            - "📊 Take control in a whole new way: See what's playing, reorder songs, view analytics — with zero commands. 🎧 Try the Pepper Dashboard."
-            - "🚀 Did you know Pepper has a full dashboard now? Visual queue, smart controls, and playback stats—all in 1 click. Try it once 👉."
-
-    # Embed styling configuration
-    embed:
-        # Colors for different types of embeds
-        color:
-            default: Purple # Default embed color
-            success: Green # Success messages color
-            error: Red # Error messages color
-            info: Blue # Informational messages color
-            warning: Yellow # Warning messages color
-
-        # Empty queue embed styling
-        no_music_playing:
-            author:
-                name: "No song playing currently" # Text displayed in author field
-                icon_url: https://media.discordapp.net/attachments/1100136924305440829/1118029575755145277/image.png?ex=67950cee&is=6793bb6e&hm=d6a106740f477165d7ffb529920436f29051152b8642c566689ae4eacc52b857&=&format=webp&quality=lossless&width=1232&height=806
-            # Image displayed in empty player embeds
-            image: https://media.discordapp.net/attachments/1100136924305440829/1118029575755145277/image.png?ex=67950cee&is=6793bb6e&hm=d6a106740f477165d7ffb529920436f29051152b8642c566689ae4eacc52b857&=&format=webp&quality=lossless&width=1232&height=806
-
-# API and web dashboard configuration
-api:
-    enabled: true # Whether API is enabled
-    # Webhook for API event notifications
-    webhook: https://discord.com/api/webhooks/123123123123123123123/gdfgfdzgdzsffdsdfsesr32532efdfs
-    port: 3000 # Port for the API server
-
-    # Allowed origins for CORS (cross-origin resource sharing)
-    origin:
-        - "https://domain.in" # Main website domain
-        - "https://pepper.domain.in" # Subdomain for Pepper
-        - "https://peppermusic.domain.in" # Subdomain for music player
-
-    # Authentication settings
-    auth:
-        enabled: true # Whether API authentication is required
-        apiKey: "your-secure-api-key-here" # API key for authentication | NOTE: move to .env
-
-    # Rate limiting to prevent abuse
-    rateLimit:
-        windowMs: 900000 # Time window for rate limit (15 minutes)
-        max: 100 # Maximum requests per window
