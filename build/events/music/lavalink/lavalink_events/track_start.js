@@ -1,23 +1,38 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = require("magmastream");
 const locales_1 = require("../../../../core/locales");
 const music_1 = require("../../../../core/music");
 const response_1 = require("../../../../core/music/handlers/response");
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 const localeDetector = new locales_1.LocaleDetector();
-const logTrackStart = (track, player, client) => {
-    const guildName = client.guilds.cache.get(player.guildId)?.name;
-    const requester = track.requester;
-    if (!requester)
-        return client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId})`);
-    client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` + `By ${requester.tag} (${requester.id})`);
-    client.logger.info(`[LAVALINK] User: ${requester.tag} (${requester.id}) requested song uri ${track.uri} ` + `in ${guildName} (${player.guildId}) using Node ${player.node.options.identifier} (${player.node.options.host}:${player.node.options.port || ""})`);
-};
-const convertUserToUserData = (user) => {
+const getRequester = (client, user) => {
     if (!user)
         return null;
-    return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined, };
+    if (typeof user === "string") {
+        const cachedUser = client.users.cache.get(user);
+        if (cachedUser)
+            user = cachedUser;
+        else
+            return { id: user, username: "Unknown", discriminator: "0000", avatar: undefined };
+    }
+    if (user instanceof discord_js_1.default.ClientUser)
+        return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
+    if (user instanceof discord_js_1.default.User)
+        return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
+    return { id: user, username: "Unknown", discriminator: "0000", avatar: undefined };
+};
+const logTrackStart = (track, player, client) => {
+    const guildName = client.guilds.cache.get(player.guildId)?.name;
+    const requesterData = track.requester ? getRequester(client, track.requester) : null;
+    if (!requesterData)
+        return client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId})`);
+    client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` + `By ${requesterData.username} (${requesterData.id})`);
+    client.logger.info(`[LAVALINK] User: ${requesterData.username} (${requesterData.id}) requested song uri ${track.uri} ` + `in ${guildName} (${player.guildId}) using Node ${player.node.options.identifier} (${player.node.options.host}:${player.node.options.port || ""})`);
 };
 const lavalinkEvent = {
     name: magmastream_1.ManagerEventTypes.TrackStart,
@@ -33,6 +48,7 @@ const lavalinkEvent = {
                 guildLocale = await localeDetector.getGuildLanguage(player.guildId) || 'en';
             }
             catch (error) { }
+            const requesterData = track.requester ? getRequester(client, track.requester) : null;
             if (YTREGEX.test(track.uri)) {
                 const isFromPlaylist = player.queue && player.queue.size > 0;
                 if (!isFromPlaylist) {
@@ -46,7 +62,6 @@ const lavalinkEvent = {
                     client.logger.info(`[LAVALINK] Playing YouTube track from playlist: ${track.title}`);
                 }
             }
-            const requesterData = track.requester ? convertUserToUserData(track.requester) : null;
             const songData = {
                 track: track.title,
                 artworkUrl: track.artworkUrl || "",
@@ -64,7 +79,7 @@ const lavalinkEvent = {
                 played_number: 1,
                 timestamp: new Date(),
             };
-            await music_1.MusicDB.addMusicUserData(track.requester?.id || null, songData);
+            await music_1.MusicDB.addMusicUserData(requesterData?.id || null, songData);
             await music_1.MusicDB.addMusicGuildData(player.guildId, songData);
             logTrackStart(track, player, client);
             try {

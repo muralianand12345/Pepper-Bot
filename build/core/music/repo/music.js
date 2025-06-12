@@ -55,8 +55,6 @@ MusicDB.userExists = async (userId) => {
     return count > 0;
 };
 MusicDB.atomicAddMusicUserData = async (userId, songData) => {
-    if (!userId)
-        throw new Error("User ID is required to add music data");
     try {
         const user = await music_user_1.default.findOne({ userId, "songs.uri": songData.uri });
         if (user) {

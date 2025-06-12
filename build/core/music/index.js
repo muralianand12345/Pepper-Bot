@@ -77,32 +77,14 @@ class Music {
         this.validateFilterName = (filterName) => {
             return filterName in exports.MUSIC_CONFIG.AUDIO_FILTERS;
         };
-        this.safeReply = async (content) => {
-            try {
-                if (this.isDeferred || this.interaction.deferred) {
-                    const { flags, ...editContent } = content;
-                    await this.interaction.editReply(editContent);
-                }
-                else {
-                    await this.interaction.reply(content);
-                }
+        this.lavaSearch = async (query, retry = 5) => {
+            let res;
+            res = await this.client.manager.search(query, this.interaction.user.id);
+            if (res.loadType === "error" && retry > 0) {
+                this.client.logger.warn(`[MUSIC] Error searching songs. Retrying... (${retry} attempts left)`);
+                return this.lavaSearch(query, retry - 1);
             }
-            catch (error) {
-                this.client.logger.error(`[MUSIC] Reply error: ${error}`);
-            }
-        };
-        this.safeEphemeralReply = async (content) => {
-            try {
-                if (this.isDeferred || this.interaction.deferred) {
-                    await this.interaction.followUp({ ...content, flags: discord_js_1.default.MessageFlags.Ephemeral });
-                }
-                else {
-                    await this.interaction.reply({ ...content, flags: discord_js_1.default.MessageFlags.Ephemeral });
-                }
-            }
-            catch (error) {
-                this.client.logger.error(`[MUSIC] Ephemeral reply error: ${error}`);
-            }
+            return res;
         };
         this.searchResults = async (res, player) => {
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
@@ -111,7 +93,7 @@ class Music {
                     {
                         if (!player.queue.current)
                             player.destroy();
-                        await this.safeReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_results'), this.locale)] });
+                        await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_results'), this.locale)] });
                         break;
                     }
                     ;
@@ -122,7 +104,7 @@ class Music {
                         player.queue.add(track);
                         if (!player.playing && !player.paused && !player.queue.size)
                             player.play();
-                        await this.safeReply({ embeds: [responseHandler.createTrackEmbed(track, player.queue.size, this.locale)] });
+                        await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, player.queue.size, this.locale)] });
                         break;
                     }
                     ;
@@ -133,7 +115,7 @@ class Music {
                         res.playlist.tracks.forEach((track) => player.queue.add(track));
                         if (!player.playing && !player.paused && player.queue.totalSize === res.playlist.tracks.length)
                             player.play();
-                        await this.safeReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                        await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
                         break;
                     }
                     ;
@@ -141,18 +123,19 @@ class Music {
             ;
         };
         this.play = async () => {
+            await this.interaction.deferReply();
             if (!(this.interaction instanceof discord_js_1.default.ChatInputCommandInteraction))
                 return;
             await this.initializeLocale();
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
-                return await this.safeEphemeralReply({ embeds: [musicCheck] });
+                return await this.interaction.editReply({ embeds: [musicCheck] });
             const query = this.interaction.options.getString("song") || this.t('responses.default_search');
             const nodeChoice = this.interaction.options.getString("lavalink_node") || undefined;
             const nodeCheck = await this.validateLavalinkNode(nodeChoice);
             if (nodeCheck)
-                return await this.safeEphemeralReply({ embeds: [nodeCheck] });
+                return await this.interaction.editReply({ embeds: [nodeCheck] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [
                 validator.validateGuildContext(),
@@ -160,7 +143,7 @@ class Music {
             ]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
-                    return await this.safeEphemeralReply({ embeds: [embed] });
+                    return await this.interaction.editReply({ embeds: [embed] });
             }
             const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
             const player = this.client.manager.create({
@@ -172,17 +155,17 @@ class Music {
             });
             const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
             if (!playerValid)
-                return await this.safeEphemeralReply({ embeds: [playerEmbed] });
+                return await this.interaction.editReply({ embeds: [playerEmbed] });
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
             const [queueValid, queueError] = await musicValidator.validateMusicSource(query);
             if (!queueValid && queueError)
-                return this.safeReply({ embeds: [queueError] });
+                return this.interaction.editReply({ embeds: [queueError] });
             if (!["CONNECTING", "CONNECTED"].includes(player.state)) {
                 player.connect();
-                await this.safeReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)], });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)], });
             }
             try {
-                const res = await this.client.manager.search(query, this.interaction.user);
+                const res = await this.lavaSearch(query);
                 if (res.loadType === "error")
                     throw new Error("No results found | loadType: error");
                 await this.searchResults(res, player);
@@ -193,14 +176,15 @@ class Music {
             }
         };
         this.stop = async () => {
+            await this.interaction.deferReply();
             await this.initializeLocale();
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
-                return await this.safeEphemeralReply({ embeds: [musicCheck] });
+                return await this.interaction.editReply({ embeds: [musicCheck] });
             const player = this.client.manager.get(this.interaction.guild?.id || "");
             if (!player)
-                return await this.safeEphemeralReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+                return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [
                 validator.validateGuildContext(),
@@ -210,12 +194,12 @@ class Music {
             ]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
-                    return await this.safeEphemeralReply({ embeds: [embed] });
+                    return await this.interaction.editReply({ embeds: [embed] });
             }
             ;
             try {
                 player.destroy();
-                await this.safeReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'), this.locale)], components: [responseHandler.getMusicButton(true, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'), this.locale)], components: [responseHandler.getMusicButton(true, this.locale)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Stop error: ${error}`);
@@ -223,14 +207,15 @@ class Music {
             }
         };
         this.pause = async () => {
+            await this.interaction.deferReply();
             await this.initializeLocale();
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
-                return await this.safeEphemeralReply({ embeds: [musicCheck] });
+                return await this.interaction.editReply({ embeds: [musicCheck] });
             const player = this.client.manager.get(this.interaction.guild?.id || "");
             if (!player)
-                return await this.safeEphemeralReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+                return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [
                 validator.validateGuildContext(),
@@ -240,16 +225,16 @@ class Music {
             ]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
-                    return await this.safeEphemeralReply({ embeds: [embed] });
+                    return await this.interaction.editReply({ embeds: [embed] });
             }
             ;
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
             const [isValid, errorEmbed] = await musicValidator.validatePauseState();
             if (!isValid && errorEmbed)
-                return await this.safeEphemeralReply({ embeds: [errorEmbed] });
+                return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
                 player.pause(true);
-                await this.safeReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Pause error: ${error}`);
@@ -257,14 +242,15 @@ class Music {
             }
         };
         this.resume = async () => {
+            await this.interaction.deferReply();
             await this.initializeLocale();
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
-                return await this.safeEphemeralReply({ embeds: [musicCheck] });
+                return await this.interaction.editReply({ embeds: [musicCheck] });
             const player = this.client.manager.get(this.interaction.guild?.id || "");
             if (!player)
-                return await this.safeEphemeralReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+                return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [
                 validator.validateGuildContext(),
@@ -274,16 +260,16 @@ class Music {
             ]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
-                    return await this.safeEphemeralReply({ embeds: [embed] });
+                    return await this.interaction.editReply({ embeds: [embed] });
             }
             ;
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
             const [isValid, errorEmbed] = await musicValidator.validateResumeState();
             if (!isValid && errorEmbed)
-                return await this.safeEphemeralReply({ embeds: [errorEmbed] });
+                return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
                 player.pause(false);
-                await this.safeReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Resume error: ${error}`);
@@ -291,14 +277,15 @@ class Music {
             }
         };
         this.skip = async () => {
+            await this.interaction.deferReply();
             await this.initializeLocale();
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
-                return await this.safeEphemeralReply({ embeds: [musicCheck] });
+                return await this.interaction.editReply({ embeds: [musicCheck] });
             const player = this.client.manager.get(this.interaction.guild?.id || "");
             if (!player)
-                return await this.safeEphemeralReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+                return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [
                 validator.validateGuildContext(),
@@ -308,18 +295,18 @@ class Music {
             ]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
-                    return await this.safeEphemeralReply({ embeds: [embed] });
+                    return await this.interaction.editReply({ embeds: [embed] });
             }
             ;
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
             const [isValid, errorEmbed] = await musicValidator.validateQueueSize(1);
             if (!isValid && errorEmbed)
-                return await this.safeEphemeralReply({ embeds: [errorEmbed] });
+                return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
                 player.stop(1);
                 if (player.queue.size === 0 && this.interaction.guildId)
                     player.destroy();
-                await this.safeReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Skip error: ${error}`);
@@ -327,14 +314,15 @@ class Music {
             }
         };
         this.loop = async () => {
+            await this.interaction.deferReply();
             await this.initializeLocale();
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
-                return await this.safeEphemeralReply({ embeds: [musicCheck] });
+                return await this.interaction.editReply({ embeds: [musicCheck] });
             const player = this.client.manager.get(this.interaction.guild?.id || "");
             if (!player)
-                return await this.safeEphemeralReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+                return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [
                 validator.validateGuildContext(),
@@ -344,13 +332,13 @@ class Music {
             ]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
-                    return await this.safeEphemeralReply({ embeds: [embed] });
+                    return await this.interaction.editReply({ embeds: [embed] });
             }
             ;
             try {
                 player.setTrackRepeat(!player.trackRepeat);
                 const message = player.trackRepeat ? this.t('responses.music.loop_enabled') : this.t('responses.music.loop_disabled');
-                await this.safeReply({ embeds: [responseHandler.createSuccessEmbed(message, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Loop error: ${error}`);
@@ -358,14 +346,15 @@ class Music {
             }
         };
         this.autoplay = async (enable) => {
+            await this.interaction.deferReply();
             await this.initializeLocale();
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
-                return await this.safeEphemeralReply({ embeds: [musicCheck] });
+                return await this.interaction.editReply({ embeds: [musicCheck] });
             const player = this.client.manager.get(this.interaction.guild?.id || "");
             if (!player)
-                return await this.safeEphemeralReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+                return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [
                 validator.validateGuildContext(),
@@ -375,7 +364,7 @@ class Music {
             ]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
-                    return await this.safeEphemeralReply({ embeds: [embed] });
+                    return await this.interaction.editReply({ embeds: [embed] });
             }
             ;
             if (!this.isDeferred && !this.interaction.deferred) {
@@ -387,28 +376,29 @@ class Music {
                 if (enable) {
                     autoplayManager.enable(this.interaction.user.id);
                     const embed = responseHandler.createSuccessEmbed(this.t('responses.music.autoplay_enabled'), this.locale);
-                    await this.safeReply({ embeds: [embed] });
+                    await this.interaction.editReply({ embeds: [embed] });
                 }
                 else {
                     autoplayManager.disable();
                     const embed = responseHandler.createInfoEmbed(this.t('responses.music.autoplay_disabled'), this.locale);
-                    await this.safeReply({ embeds: [embed] });
+                    await this.interaction.editReply({ embeds: [embed] });
                 }
             }
             catch (error) {
                 this.client.logger.error(`[AUTOPLAY] Command error: ${error}`);
-                await this.safeReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.autoplay_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.autoplay_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
             }
         };
         this.filter = async (filterName) => {
+            await this.interaction.deferReply();
             await this.initializeLocale();
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
-                return await this.safeEphemeralReply({ embeds: [musicCheck] });
+                return await this.interaction.editReply({ embeds: [musicCheck] });
             const player = this.client.manager.get(this.interaction.guild?.id || "");
             if (!player)
-                return await this.safeEphemeralReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+                return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [
                 validator.validateGuildContext(),
@@ -418,7 +408,7 @@ class Music {
             ]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
-                    return await this.safeEphemeralReply({ embeds: [embed] });
+                    return await this.interaction.editReply({ embeds: [embed] });
             }
             if (!this.isDeferred && !this.interaction.deferred) {
                 await this.interaction.deferReply();
@@ -427,7 +417,7 @@ class Music {
             try {
                 if (!this.validateFilterName(filterName)) {
                     const embed = responseHandler.createErrorEmbed(this.t('responses.errors.filter_not_found', { filter: filterName }), this.locale);
-                    return await this.safeReply({ embeds: [embed] });
+                    return await this.interaction.editReply({ embeds: [embed] });
                 }
                 let success = false;
                 if (!player.filters) {
@@ -482,16 +472,16 @@ class Music {
                 ;
                 if (!success) {
                     const embed = responseHandler.createErrorEmbed(this.t('responses.errors.filter_not_found', { filter: filterName }), this.locale);
-                    return await this.safeReply({ embeds: [embed] });
+                    return await this.interaction.editReply({ embeds: [embed] });
                 }
                 ;
                 const filter = exports.MUSIC_CONFIG.AUDIO_FILTERS[filterName];
                 const embed = responseHandler.createSuccessEmbed(this.t('responses.music.filter_applied', { filter: filter.name }), this.locale);
-                await this.safeReply({ embeds: [embed] });
+                await this.interaction.editReply({ embeds: [embed] });
             }
             catch (error) {
                 this.client.logger.error(`[FILTER] Command error: ${error}`);
-                await this.safeReply({
+                await this.interaction.editReply({
                     embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.filter_error'), this.locale, true)],
                     components: [responseHandler.getSupportButton(this.locale)]
                 });

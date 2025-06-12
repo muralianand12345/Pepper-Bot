@@ -25,7 +25,6 @@ const filterCommand = {
         value
     })))),
     execute: async (interaction, client) => {
-        await interaction.deferReply();
         const music = new music_1.Music(client, interaction);
         const filterType = interaction.options.getString("type", true);
         await music.filter(filterType);

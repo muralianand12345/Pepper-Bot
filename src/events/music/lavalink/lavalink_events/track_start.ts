@@ -10,18 +10,24 @@ import { MusicResponseHandler } from "../../../../core/music/handlers/response";
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 const localeDetector = new LocaleDetector();
 
-const logTrackStart = (track: magmastream.Track, player: magmastream.Player, client: discord.Client): void => {
-    const guildName = client.guilds.cache.get(player.guildId)?.name;
-    const requester = track.requester as discord.User;
-    if (!requester) return client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId})`);
-
-    client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` + `By ${requester.tag} (${requester.id})`);
-    client.logger.info(`[LAVALINK] User: ${requester.tag} (${requester.id}) requested song uri ${track.uri} ` + `in ${guildName} (${player.guildId}) using Node ${player.node.options.identifier} (${player.node.options.host}:${player.node.options.port || ""})`);
+const getRequester = (client: discord.Client, user: discord.User | discord.ClientUser | string | null): ISongsUser | null => {
+    if (!user) return null;
+    if (typeof user === "string") {
+        const cachedUser = client.users.cache.get(user);
+        if (cachedUser) user = cachedUser;
+        else return { id: user, username: "Unknown", discriminator: "0000", avatar: undefined };
+    }
+    if (user instanceof discord.ClientUser) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
+    if (user instanceof discord.User) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
+    return { id: user, username: "Unknown", discriminator: "0000", avatar: undefined };
 };
 
-const convertUserToUserData = (user: discord.User | null): ISongsUser | null => {
-    if (!user) return null;
-    return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined, };
+const logTrackStart = (track: magmastream.Track, player: magmastream.Player, client: discord.Client): void => {
+    const guildName = client.guilds.cache.get(player.guildId)?.name;
+    const requesterData = track.requester ? getRequester(client, track.requester) : null;
+    if (!requesterData) return client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId})`);
+    client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` + `By ${requesterData.username} (${requesterData.id})`);
+    client.logger.info(`[LAVALINK] User: ${requesterData.username} (${requesterData.id}) requested song uri ${track.uri} ` + `in ${guildName} (${player.guildId}) using Node ${player.node.options.identifier} (${player.node.options.host}:${player.node.options.port || ""})`);
 };
 
 const lavalinkEvent: LavalinkEvent = {
@@ -38,6 +44,8 @@ const lavalinkEvent: LavalinkEvent = {
                 guildLocale = await localeDetector.getGuildLanguage(player.guildId) || 'en';
             } catch (error) { }
 
+            const requesterData = track.requester ? getRequester(client, track.requester) : null;
+
             if (YTREGEX.test(track.uri)) {
                 const isFromPlaylist = player.queue && player.queue.size > 0;
 
@@ -52,8 +60,6 @@ const lavalinkEvent: LavalinkEvent = {
                     client.logger.info(`[LAVALINK] Playing YouTube track from playlist: ${track.title}`);
                 }
             }
-
-            const requesterData = track.requester ? convertUserToUserData(track.requester as discord.User) : null;
 
             const songData = {
                 track: track.title,
@@ -73,7 +79,7 @@ const lavalinkEvent: LavalinkEvent = {
                 timestamp: new Date(),
             };
 
-            await MusicDB.addMusicUserData(track.requester?.id || null, songData);
+            await MusicDB.addMusicUserData(requesterData?.id || null, songData);
             await MusicDB.addMusicGuildData(player.guildId, songData);
 
             logTrackStart(track, player, client);

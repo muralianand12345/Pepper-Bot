@@ -47,8 +47,6 @@ export class MusicDB {
     };
 
     public static atomicAddMusicUserData = async (userId: string, songData: ISongs): Promise<void> => {
-        if (!userId) throw new Error("User ID is required to add music data");
-
         try {
             const user = await music_user.findOne({ userId, "songs.uri": songData.uri });
             if (user) {

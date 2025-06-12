@@ -10,7 +10,7 @@ const config_1 = require("./utils/config");
 const botPath = path_1.default.join(__dirname, "main.js");
 const configManager = config_1.ConfigManager.getInstance();
 const logger = new logger_1.default();
-const manager = new discord_js_1.default.ShardingManager(botPath, { token: configManager.getToken(), totalShards: "auto" });
+const manager = new discord_js_1.default.ShardingManager(botPath, { token: configManager.getToken() });
 manager.on("shardCreate", (shard) => logger.info(`[INDEX] Launched shard ${shard.id}`));
 manager
     .spawn()

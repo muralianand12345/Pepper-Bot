@@ -71,8 +71,6 @@ const playCommand: Command = {
         }
     },
     execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {
-        await interaction.deferReply();
-
         const music = new Music(client, interaction);
         await music.play();
     }

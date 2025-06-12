@@ -8,7 +8,7 @@ import { ConfigManager } from "./utils/config";
 const botPath = path.join(__dirname, "main.js");
 const configManager = ConfigManager.getInstance();
 const logger = new Logger();
-const manager = new discord.ShardingManager(botPath, { token: configManager.getToken(), totalShards: "auto" });
+const manager = new discord.ShardingManager(botPath, { token: configManager.getToken() });
 
 manager.on("shardCreate", (shard: discord.Shard) => logger.info(`[INDEX] Launched shard ${shard.id}`));
 
