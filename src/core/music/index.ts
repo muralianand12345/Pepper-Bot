@@ -98,7 +98,7 @@ export class Music {
         };
     };
 
-    play = async (): Promise<discord.InteractionResponse<boolean> | void> => {
+    play = async (): Promise<discord.InteractionResponse<boolean> | discord.Message<boolean> | void> => {
         if (!(this.interaction instanceof discord.ChatInputCommandInteraction)) return;
 
         await this.initializeLocale();
@@ -114,44 +114,44 @@ export class Music {
         if (nodeCheck) return await this.interaction.reply({ embeds: [nodeCheck], flags: discord.MessageFlags.Ephemeral });
 
         const validator = new VoiceChannelValidator(this.client, this.interaction);
-        for (const check of [
-            validator.validateGuildContext(),
-            validator.validateVoiceConnection(),
-        ]) {
-            const [isValid, embed] = await check;
-            if (!isValid) return await this.interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
-        }
 
-        const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
-        const player = this.client.manager.create({
-            guildId: this.interaction.guildId || "",
-            voiceChannelId: guildMember?.voice.channelId || "",
-            textChannelId: this.interaction.channelId,
-            node: nodeChoice,
-            ...MUSIC_CONFIG.PLAYER_OPTIONS,
-        });
+        const [isGuildValid, guildEmbed] = await validator.validateGuildContext();
+        if (!isGuildValid) return await this.interaction.reply({ embeds: [guildEmbed], flags: discord.MessageFlags.Ephemeral });
 
-        const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
-        if (!playerValid) return await this.interaction.reply({ embeds: [playerEmbed], flags: discord.MessageFlags.Ephemeral });
-
-        const musicValidator = new MusicPlayerValidator(this.client, player);
-        const [queueValid, queueError] = await musicValidator.validateMusicSource(query);
-        if (!queueValid && queueError) return this.interaction.reply({ embeds: [queueError] });
+        const [isVoiceValid, voiceEmbed] = await validator.validateVoiceConnection();
+        if (!isVoiceValid) return await this.interaction.reply({ embeds: [voiceEmbed], flags: discord.MessageFlags.Ephemeral });
 
         await this.interaction.deferReply();
 
-        if (!["CONNECTING", "CONNECTED"].includes(player.state)) {
-            player.connect();
-            await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)], });
-        }
-
         try {
+            const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
+            const player = this.client.manager.create({
+                guildId: this.interaction.guildId || "",
+                voiceChannelId: guildMember?.voice.channelId || "",
+                textChannelId: this.interaction.channelId,
+                node: nodeChoice,
+                ...MUSIC_CONFIG.PLAYER_OPTIONS,
+            });
+
+            const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
+            if (!playerValid) return await this.interaction.editReply({ embeds: [playerEmbed] });
+
+            const musicValidator = new MusicPlayerValidator(this.client, player);
+            const [queueValid, queueError] = await musicValidator.validateMusicSource(query);
+            if (!queueValid && queueError) return await this.interaction.editReply({ embeds: [queueError] });
+
+            if (!["CONNECTING", "CONNECTED"].includes(player.state)) {
+                player.connect();
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)] });
+            }
+
             const res = await this.client.manager.search(query, this.interaction.user);
             if (res.loadType === "error") throw new Error("No results found | loadType: error");
             await this.searchResults(res, player);
+
         } catch (error) {
             this.client.logger.error(`[MUSIC] Play error: ${error}`);
-            await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.play_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
+            await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.play_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
         }
     };
 

@@ -193,6 +193,9 @@ responses:
         filter_not_found: "Filter `{filter}` not found. Available filters: {available}"
         feedback_not_configured: "Feedback system is not properly configured"
         feedback_failed: "Failed to send feedback. Please try again later."
+        duplicate_interaction: "Command is already being processed. Please wait."
+        interaction_expired: "This interaction has expired. Please try the command again."
+        interaction_failed: "Failed to process interaction. Please try again."
     language:
         user_set: "Your language has been set to **{language}**"
         server_set: "Server language has been set to **{language}** (Admin only)"

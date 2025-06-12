@@ -9,19 +9,19 @@ const locales_1 = require("../../../core/locales");
 const music_1 = require("../../../core/music");
 const music_guild_1 = __importDefault(require("../../database/schema/music_guild"));
 const cooldown = new discord_js_1.default.Collection();
+const processingInteractions = new discord_js_1.default.Collection();
 const localeDetector = new locales_1.LocaleDetector();
 const validateInteraction = (interaction, client) => {
     if (!interaction) {
         client.logger.warn("[INTERACTION_CREATE] Interaction is undefined.");
         return false;
     }
-    ;
     if (!interaction.isChatInputCommand())
         return false;
     return true;
 };
 const sendErrorReply = async (client, interaction, messageKey, data) => {
-    if (!interaction.isRepliable() || interaction.replied)
+    if (!interaction.isRepliable() || interaction.replied || interaction.deferred)
         return;
     try {
         const locale = await localeDetector.detectLocale(interaction);
@@ -30,7 +30,7 @@ const sendErrorReply = async (client, interaction, messageKey, data) => {
         await interaction.reply({ embeds: [new music_1.MusicResponseHandler(client).createErrorEmbed(message, locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
     }
     catch (error) {
-        await interaction.reply({ embeds: [new music_1.MusicResponseHandler(client).createErrorEmbed(messageKey)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+        await interaction.reply({ embeds: [new music_1.MusicResponseHandler(client).createErrorEmbed(messageKey)], flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
     }
 };
 const handleCommandPrerequisites = async (command, interaction, client, music_guild) => {
@@ -47,42 +47,46 @@ const handleCommandPrerequisites = async (command, interaction, client, music_gu
                 await sendErrorReply(client, interaction, coolMsg);
                 return false;
             }
-            ;
         }
-        ;
     }
-    ;
     if (command.owner && !client.config.bot.owners.includes(interaction.user.id)) {
         await sendErrorReply(client, interaction, 'responses.errors.no_permission', { user: interaction.user.toString() });
         return false;
     }
-    ;
     if (command.userPerms && interaction.guild) {
         const member = await interaction.guild.members.fetch(interaction.user.id);
         if (!member.permissions.has(command.userPerms)) {
             await sendErrorReply(client, interaction, 'responses.errors.missing_user_perms', { permissions: command.userPerms.join(", ") });
             return false;
         }
-        ;
     }
-    ;
     if (command.botPerms && interaction.guild) {
         const botMember = await interaction.guild.members.fetch(client.user.id);
         if (!botMember.permissions.has(command.botPerms)) {
             await sendErrorReply(client, interaction, 'responses.errors.missing_bot_perms', { permissions: command.botPerms.join(", ") });
             return false;
         }
-        ;
     }
-    ;
     return true;
 };
 const executeCommand = async (command, interaction, client) => {
     if (!interaction.isChatInputCommand())
         return;
+    const interactionId = `${interaction.id}-${interaction.user.id}`;
+    if (processingInteractions.has(interactionId)) {
+        client.logger.warn(`[INTERACTION_CREATE] Duplicate interaction processing attempt: ${interaction.commandName}`);
+        return;
+    }
+    processingInteractions.set(interactionId, true);
     try {
         await command.execute(interaction, client);
-        await client.cmdLogger.log({ client, commandName: `/${interaction.commandName}`, guild: interaction.guild, user: interaction.user, channel: interaction.channel });
+        await client.cmdLogger.log({
+            client,
+            commandName: `/${interaction.commandName}`,
+            guild: interaction.guild,
+            user: interaction.user,
+            channel: interaction.channel
+        });
         if (command.cooldown) {
             if (client.config.bot.owners.includes(interaction.user.id))
                 return;
@@ -91,11 +95,26 @@ const executeCommand = async (command, interaction, client) => {
             cooldown.set(cooldownKey, Date.now() + cooldownAmount);
             setTimeout(() => cooldown.delete(cooldownKey), cooldownAmount);
         }
-        ;
     }
     catch (error) {
         client.logger.error(`[INTERACTION_CREATE] Error executing command ${command.data.name}: ${error}`);
-        await sendErrorReply(client, interaction, 'responses.errors.general_error');
+        if (!interaction.replied && !interaction.deferred) {
+            await sendErrorReply(client, interaction, 'responses.errors.general_error');
+        }
+        else if (interaction.deferred && !interaction.replied) {
+            try {
+                const locale = await localeDetector.detectLocale(interaction);
+                const t = await localeDetector.getTranslator(interaction);
+                const message = t('responses.errors.general_error');
+                await interaction.editReply({ embeds: [new music_1.MusicResponseHandler(client).createErrorEmbed(message, locale)] });
+            }
+            catch (editError) {
+                client.logger.error(`[INTERACTION_CREATE] Failed to edit deferred reply: ${editError}`);
+            }
+        }
+    }
+    finally {
+        setTimeout(() => processingInteractions.delete(interactionId), 5000);
     }
 };
 const handleModalSubmit = async (interaction, client) => {
@@ -140,7 +159,6 @@ const event = {
                 }
                 return;
             }
-            ;
             if (!validateInteraction(interaction, client))
                 return;
             if (!interaction.isChatInputCommand())
@@ -149,12 +167,13 @@ const event = {
             if (!command)
                 return client.logger.warn(`[INTERACTION_CREATE] Command ${interaction.commandName} not found.`);
             const guild_data = await music_guild_1.default.findOne({ guildId: interaction.guild?.id });
-            if (await handleCommandPrerequisites(command, interaction, client, guild_data))
+            if (await handleCommandPrerequisites(command, interaction, client, guild_data)) {
                 await executeCommand(command, interaction, client);
+            }
         }
         catch (error) {
             client.logger.error(`[INTERACTION_CREATE] Error processing interaction command: ${error}`);
-            if (interaction.isRepliable() && !interaction.replied)
+            if (interaction.isRepliable() && !interaction.replied && !interaction.deferred)
                 await sendErrorReply(client, interaction, 'responses.errors.general_error');
         }
     }
