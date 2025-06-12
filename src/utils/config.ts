@@ -31,21 +31,9 @@ export class ConfigManager {
     private config: z.infer<typeof EnvSchema>;
 
     private constructor() {
-        const environment = process.env.NODE_ENV || "prod";
-        const envPath = path.resolve(process.cwd(), `.env.${environment}`);
+        const result = config();
 
-        let result;
-        if (require("fs").existsSync(envPath)) {
-            result = config({ path: envPath });
-        } else {
-            result = config();
-        }
-
-        if (result.error) {
-            throw new Error(
-                `Failed to load environment variables: ${result.error.message}`
-            );
-        }
+        if (result.error) throw new Error(`Failed to load environment variables: ${result.error.message}`);
 
         try {
             this.config = EnvSchema.parse({

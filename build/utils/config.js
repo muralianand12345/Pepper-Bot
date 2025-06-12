@@ -54,18 +54,9 @@ class ConfigManager {
         this.getFeedbackWebhook = () => {
             return this.config.FEEDBACK_WEBHOOK;
         };
-        const environment = process.env.NODE_ENV || "prod";
-        const envPath = path_1.default.resolve(process.cwd(), `.env.${environment}`);
-        let result;
-        if (require("fs").existsSync(envPath)) {
-            result = (0, dotenv_1.config)({ path: envPath });
-        }
-        else {
-            result = (0, dotenv_1.config)();
-        }
-        if (result.error) {
+        const result = (0, dotenv_1.config)();
+        if (result.error)
             throw new Error(`Failed to load environment variables: ${result.error.message}`);
-        }
         try {
             this.config = EnvSchema.parse({
                 TOKEN: process.env.TOKEN,
