@@ -1,6 +1,6 @@
 {
     "name": "pepper-bot",
-    "version": "5.0.2",
+    "version": "5.0.3",
     "description": "A updated version of pepper music bot.",
     "main": "./build/index.js",
     "type": "commonjs",
