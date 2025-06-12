@@ -9,28 +9,48 @@ const locales_1 = require("../../../core/locales");
 const music_1 = require("../../../core/music");
 const music_guild_1 = __importDefault(require("../../database/schema/music_guild"));
 const cooldown = new discord_js_1.default.Collection();
-const processingInteractions = new discord_js_1.default.Collection();
 const localeDetector = new locales_1.LocaleDetector();
 const validateInteraction = (interaction, client) => {
     if (!interaction) {
         client.logger.warn("[INTERACTION_CREATE] Interaction is undefined.");
         return false;
     }
+    ;
     if (!interaction.isChatInputCommand())
         return false;
     return true;
 };
 const sendErrorReply = async (client, interaction, messageKey, data) => {
-    if (!interaction.isRepliable() || interaction.replied || interaction.deferred)
+    if (!interaction.isRepliable() || interaction.replied)
         return;
     try {
-        const locale = await localeDetector.detectLocale(interaction);
-        const t = await localeDetector.getTranslator(interaction);
-        const message = t(messageKey, data);
-        await interaction.reply({ embeds: [new music_1.MusicResponseHandler(client).createErrorEmbed(message, locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2500));
+        const replyPromise = (async () => {
+            const locale = await localeDetector.detectLocale(interaction);
+            const t = await localeDetector.getTranslator(interaction);
+            const message = t(messageKey, data);
+            await interaction.reply({ embeds: [new music_1.MusicResponseHandler(client).createErrorEmbed(message, locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+        })();
+        await Promise.race([replyPromise, timeoutPromise]);
     }
     catch (error) {
-        await interaction.reply({ embeds: [new music_1.MusicResponseHandler(client).createErrorEmbed(messageKey)], flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
+        if (error instanceof Error && error.message === 'Timeout') {
+            client.logger.warn(`[INTERACTION_CREATE] Reply timeout for interaction ${interaction.id}`);
+        }
+        else {
+            client.logger.error(`[INTERACTION_CREATE] Error sending reply: ${error}`);
+        }
+        try {
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({
+                    embeds: [new music_1.MusicResponseHandler(client).createErrorEmbed(messageKey)],
+                    flags: discord_js_1.default.MessageFlags.Ephemeral
+                });
+            }
+        }
+        catch (fallbackError) {
+            client.logger.error(`[INTERACTION_CREATE] Fallback reply failed: ${fallbackError}`);
+        }
     }
 };
 const handleCommandPrerequisites = async (command, interaction, client, music_guild) => {
@@ -47,46 +67,47 @@ const handleCommandPrerequisites = async (command, interaction, client, music_gu
                 await sendErrorReply(client, interaction, coolMsg);
                 return false;
             }
+            ;
         }
+        ;
     }
+    ;
     if (command.owner && !client.config.bot.owners.includes(interaction.user.id)) {
         await sendErrorReply(client, interaction, 'responses.errors.no_permission', { user: interaction.user.toString() });
         return false;
     }
+    ;
     if (command.userPerms && interaction.guild) {
         const member = await interaction.guild.members.fetch(interaction.user.id);
         if (!member.permissions.has(command.userPerms)) {
             await sendErrorReply(client, interaction, 'responses.errors.missing_user_perms', { permissions: command.userPerms.join(", ") });
             return false;
         }
+        ;
     }
+    ;
     if (command.botPerms && interaction.guild) {
         const botMember = await interaction.guild.members.fetch(client.user.id);
         if (!botMember.permissions.has(command.botPerms)) {
             await sendErrorReply(client, interaction, 'responses.errors.missing_bot_perms', { permissions: command.botPerms.join(", ") });
             return false;
         }
+        ;
     }
+    ;
     return true;
 };
 const executeCommand = async (command, interaction, client) => {
     if (!interaction.isChatInputCommand())
         return;
-    const interactionId = `${interaction.id}-${interaction.user.id}`;
-    if (processingInteractions.has(interactionId)) {
-        client.logger.warn(`[INTERACTION_CREATE] Duplicate interaction processing attempt: ${interaction.commandName}`);
-        return;
-    }
-    processingInteractions.set(interactionId, true);
+    const startTime = Date.now();
     try {
-        await command.execute(interaction, client);
-        await client.cmdLogger.log({
-            client,
-            commandName: `/${interaction.commandName}`,
-            guild: interaction.guild,
-            user: interaction.user,
-            channel: interaction.channel
-        });
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Command execution timeout')), 25000));
+        const commandPromise = command.execute(interaction, client);
+        await Promise.race([commandPromise, timeoutPromise]);
+        const executionTime = Date.now() - startTime;
+        client.logger.debug(`[INTERACTION_CREATE] Command ${command.data.name} executed in ${executionTime}ms`);
+        await client.cmdLogger.log({ client, commandName: `/${interaction.commandName}`, guild: interaction.guild, user: interaction.user, channel: interaction.channel });
         if (command.cooldown) {
             if (client.config.bot.owners.includes(interaction.user.id))
                 return;
@@ -95,26 +116,28 @@ const executeCommand = async (command, interaction, client) => {
             cooldown.set(cooldownKey, Date.now() + cooldownAmount);
             setTimeout(() => cooldown.delete(cooldownKey), cooldownAmount);
         }
+        ;
     }
     catch (error) {
-        client.logger.error(`[INTERACTION_CREATE] Error executing command ${command.data.name}: ${error}`);
-        if (!interaction.replied && !interaction.deferred) {
-            await sendErrorReply(client, interaction, 'responses.errors.general_error');
-        }
-        else if (interaction.deferred && !interaction.replied) {
-            try {
+        const executionTime = Date.now() - startTime;
+        client.logger.error(`[INTERACTION_CREATE] Error executing command ${command.data.name} after ${executionTime}ms: ${error}`);
+        if (error instanceof Error && error.message === 'Command execution timeout')
+            client.logger.warn(`[INTERACTION_CREATE] Command ${command.data.name} timed out after 25 seconds`);
+        try {
+            if (!interaction.replied && !interaction.deferred) {
+                await sendErrorReply(client, interaction, 'responses.errors.general_error');
+            }
+            else if (interaction.deferred) {
                 const locale = await localeDetector.detectLocale(interaction);
                 const t = await localeDetector.getTranslator(interaction);
                 const message = t('responses.errors.general_error');
-                await interaction.editReply({ embeds: [new music_1.MusicResponseHandler(client).createErrorEmbed(message, locale)] });
-            }
-            catch (editError) {
-                client.logger.error(`[INTERACTION_CREATE] Failed to edit deferred reply: ${editError}`);
+                const embed = new music_1.MusicResponseHandler(client).createErrorEmbed(message, locale, true);
+                await interaction.editReply({ embeds: [embed] }).catch((editError) => { client.logger.error(`[INTERACTION_CREATE] Failed to edit reply: ${editError}`); });
             }
         }
-    }
-    finally {
-        setTimeout(() => processingInteractions.delete(interactionId), 5000);
+        catch (replyError) {
+            client.logger.error(`[INTERACTION_CREATE] Failed to send error reply: ${replyError}`);
+        }
     }
 };
 const handleModalSubmit = async (interaction, client) => {
@@ -151,14 +174,23 @@ const event = {
                 const command = client.commands.get(interaction.commandName);
                 if (command?.autocomplete) {
                     try {
-                        await command.autocomplete(interaction, client);
+                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Autocomplete timeout')), 2500));
+                        const autocompletePromise = command.autocomplete(interaction, client);
+                        await Promise.race([autocompletePromise, timeoutPromise]);
                     }
                     catch (error) {
                         client.logger.warn(`[INTERACTION_CREATE] Autocomplete error: ${error}`);
+                        try {
+                            await interaction.respond([]);
+                        }
+                        catch (respondError) {
+                            client.logger.error(`[INTERACTION_CREATE] Failed to respond to autocomplete: ${respondError}`);
+                        }
                     }
                 }
                 return;
             }
+            ;
             if (!validateInteraction(interaction, client))
                 return;
             if (!interaction.isChatInputCommand())
@@ -167,9 +199,8 @@ const event = {
             if (!command)
                 return client.logger.warn(`[INTERACTION_CREATE] Command ${interaction.commandName} not found.`);
             const guild_data = await music_guild_1.default.findOne({ guildId: interaction.guild?.id });
-            if (await handleCommandPrerequisites(command, interaction, client, guild_data)) {
+            if (await handleCommandPrerequisites(command, interaction, client, guild_data))
                 await executeCommand(command, interaction, client);
-            }
         }
         catch (error) {
             client.logger.error(`[INTERACTION_CREATE] Error processing interaction command: ${error}`);

@@ -22,6 +22,7 @@ const autoplayCommand = {
         .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.autoplay.options.enabled.description'))
         .setRequired(true)),
     execute: async (interaction, client) => {
+        await interaction.deferReply();
         const music = new music_1.Music(client, interaction);
         const enabled = interaction.options.getBoolean("enabled", true);
         await music.autoplay(enabled);

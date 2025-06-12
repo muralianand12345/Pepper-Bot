@@ -31,12 +31,12 @@ const chartCommand = {
         .setMinValue(5)
         .setMaxValue(20)),
     execute: async (interaction, client) => {
+        await interaction.deferReply();
         const t = await localeDetector.getTranslator(interaction);
         const locale = await localeDetector.detectLocale(interaction);
         const responseHandler = new music_2.MusicResponseHandler(client);
         const scope = interaction.options.getString("scope", true);
         const limit = interaction.options.getInteger("limit") || 10;
-        await interaction.deferReply();
         try {
             let chartData = undefined;
             let analytics;

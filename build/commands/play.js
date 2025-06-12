@@ -67,6 +67,7 @@ const playCommand = {
         }
     },
     execute: async (interaction, client) => {
+        await interaction.deferReply();
         const music = new music_1.Music(client, interaction);
         await music.play();
     }

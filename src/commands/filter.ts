@@ -29,6 +29,8 @@ const filterCommand: Command = {
                 )
         ),
     execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {
+        await interaction.deferReply();
+
         const music = new Music(client, interaction);
         const filterType = interaction.options.getString("type", true);
         await music.filter(filterType);

@@ -40,14 +40,14 @@ const chartCommand: Command = {
         ),
 
     execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {
+        await interaction.deferReply();
+
         const t = await localeDetector.getTranslator(interaction);
         const locale = await localeDetector.detectLocale(interaction);
         const responseHandler = new MusicResponseHandler(client);
 
         const scope = interaction.options.getString("scope", true);
         const limit = interaction.options.getInteger("limit") || 10;
-
-        await interaction.deferReply();
 
         try {
             let chartData: ISongs[] | undefined = undefined;

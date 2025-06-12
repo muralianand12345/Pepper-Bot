@@ -24,6 +24,8 @@ const autoplayCommand: Command = {
                 .setRequired(true)
         ),
     execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client) => {
+        await interaction.deferReply();
+
         const music = new Music(client, interaction);
         const enabled = interaction.options.getBoolean("enabled", true);
         await music.autoplay(enabled);
