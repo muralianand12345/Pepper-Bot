@@ -27,6 +27,9 @@ const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, 
 		return client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
 	}
 
+	const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, client);
+	nowPlayingManager.onStop();
+
 	const CLEANUP_DELAY = 300000;
 	const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
 

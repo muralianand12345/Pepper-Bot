@@ -14,6 +14,9 @@ const lavalinkEvent: LavalinkEvent = {
 		if (!guild) return;
 
 		try {
+			const nowPlayingManager = NowPlayingManager.getInstance(player.guildId, player, client);
+			nowPlayingManager.onStop();
+
 			if (player.textChannelId) {
 				const channel = (await client.channels.fetch(player.textChannelId)) as discord.TextChannel;
 				if (channel?.isTextBased()) {
@@ -24,10 +27,8 @@ const lavalinkEvent: LavalinkEvent = {
 
 					const responseHandler = new MusicResponseHandler(client);
 					const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected', guildLocale);
-					const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
-
-					await channel.send({ embeds: [disconnectEmbed], components: [disabledButtons] });
-					client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent with disabled buttons for guild ${player.guildId}`);
+					await channel.send({ embeds: [disconnectEmbed] });
+					client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent for guild ${player.guildId}`);
 				}
 			}
 		} catch (messageError) {

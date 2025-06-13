@@ -8,10 +8,11 @@ class NowPlayingManager {
         this.message = null;
         this.updateInterval = null;
         this.lastUpdateTime = 0;
-        this.UPDATE_INTERVAL = 15000; // Update every 15 seconds
-        this.MIN_UPDATE_INTERVAL = 5000; // Minimum 5 seconds between updates
+        this.UPDATE_INTERVAL = 15000;
+        this.MIN_UPDATE_INTERVAL = 5000;
         this.paused = false;
         this.destroyed = false;
+        this.stopped = false;
         this.setMessage = (message, forceUpdate = false) => {
             if (message.author.id !== this.client.user?.id)
                 return this.client.logger?.warn(`[NowPlayingManager] Attempted to set message not authored by bot`);
@@ -27,11 +28,15 @@ class NowPlayingManager {
             this.paused = false;
             this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after resume: ${err}`));
         };
+        this.onStop = () => {
+            this.stopped = true;
+            this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after stop: ${err}`));
+        };
         this.startUpdateInterval = () => {
             if (this.updateInterval)
                 clearInterval(this.updateInterval);
             this.updateInterval = setInterval(() => {
-                if (this.destroyed)
+                if (this.destroyed || this.stopped)
                     return;
                 if (!this.player || !this.player.playing || this.paused)
                     return;
@@ -82,7 +87,8 @@ class NowPlayingManager {
                 }
                 const adjustedPlayer = this.getAdjustedPlayer();
                 const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(this.player.queue.current, adjustedPlayer);
-                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton();
+                const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
+                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons);
                 await this.message.edit({ embeds: [embed], components: [musicButton] });
                 this.lastUpdateTime = Date.now();
             }
@@ -109,7 +115,8 @@ class NowPlayingManager {
         this.updateOrCreateMessage = async (channel, track) => {
             try {
                 const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(track, this.player);
-                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton();
+                const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
+                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons);
                 if (this.message && this.message.editable) {
                     await this.message
                         .edit({ embeds: [embed], components: [musicButton] })

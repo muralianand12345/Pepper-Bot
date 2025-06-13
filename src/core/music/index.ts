@@ -102,7 +102,7 @@ export class Music {
 				if (!res.playlist) break;
 				res.playlist.tracks.forEach((track: magmastream.Track) => player.queue.add(track));
 				if (!player.playing && !player.paused && player.queue.totalSize === res.playlist.tracks.length) player.play();
-				await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+				await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)] });
 				break;
 			}
 		}
@@ -182,7 +182,7 @@ export class Music {
 
 		try {
 			player.destroy();
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'), this.locale)], components: [responseHandler.getMusicButton(true, this.locale)] });
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'), this.locale)] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Stop error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.stop_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
@@ -213,7 +213,7 @@ export class Music {
 
 		try {
 			player.pause(true);
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'), this.locale)] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Pause error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.pause_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
@@ -244,7 +244,7 @@ export class Music {
 
 		try {
 			player.pause(false);
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'), this.locale)] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Resume error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.resume_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
@@ -276,7 +276,7 @@ export class Music {
 		try {
 			player.stop(1);
 			if (player.queue.size === 0 && this.interaction.guildId) player.destroy();
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Skip error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.skip_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
@@ -305,7 +305,7 @@ export class Music {
 			player.setTrackRepeat(!player.trackRepeat);
 			const message = player.trackRepeat ? this.t('responses.music.loop_enabled') : this.t('responses.music.loop_disabled');
 
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message, this.locale)] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Loop error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.loop_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });

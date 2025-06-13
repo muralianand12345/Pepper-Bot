@@ -10,10 +10,11 @@ export class NowPlayingManager {
 	private player: magmastream.Player;
 	private client: discord.Client;
 	private lastUpdateTime: number = 0;
-	private readonly UPDATE_INTERVAL = 15000; // Update every 15 seconds
-	private readonly MIN_UPDATE_INTERVAL = 5000; // Minimum 5 seconds between updates
+	private readonly UPDATE_INTERVAL = 15000;
+	private readonly MIN_UPDATE_INTERVAL = 5000;
 	private paused: boolean = false;
 	private destroyed: boolean = false;
+	private stopped: boolean = false;
 
 	private constructor(player: magmastream.Player, client: discord.Client) {
 		this.player = player;
@@ -50,10 +51,15 @@ export class NowPlayingManager {
 		this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after resume: ${err}`));
 	};
 
+	public onStop = (): void => {
+		this.stopped = true;
+		this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after stop: ${err}`));
+	};
+
 	private startUpdateInterval = (): void => {
 		if (this.updateInterval) clearInterval(this.updateInterval);
 		this.updateInterval = setInterval(() => {
-			if (this.destroyed) return;
+			if (this.destroyed || this.stopped) return;
 			if (!this.player || !this.player.playing || this.paused) return;
 
 			const position = this.player.position;
@@ -107,7 +113,10 @@ export class NowPlayingManager {
 
 			const adjustedPlayer = this.getAdjustedPlayer();
 			const embed = new MusicResponseHandler(this.client).createMusicEmbed(this.player.queue.current, adjustedPlayer);
-			const musicButton = new MusicResponseHandler(this.client).getMusicButton();
+
+			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
+			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons);
+
 			await this.message.edit({ embeds: [embed], components: [musicButton] });
 			this.lastUpdateTime = Date.now();
 		} catch (error) {
@@ -132,7 +141,9 @@ export class NowPlayingManager {
 	public updateOrCreateMessage = async (channel: discord.TextChannel, track: magmastream.Track): Promise<void> => {
 		try {
 			const embed = new MusicResponseHandler(this.client).createMusicEmbed(track, this.player);
-			const musicButton = new MusicResponseHandler(this.client).getMusicButton();
+			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
+			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons);
+
 			if (this.message && this.message.editable) {
 				await this.message
 					.edit({ embeds: [embed], components: [musicButton] })

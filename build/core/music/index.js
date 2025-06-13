@@ -110,7 +110,7 @@ class Music {
                     res.playlist.tracks.forEach((track) => player.queue.add(track));
                     if (!player.playing && !player.paused && player.queue.totalSize === res.playlist.tracks.length)
                         player.play();
-                    await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                    await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)] });
                     break;
                 }
             }
@@ -183,7 +183,7 @@ class Music {
             }
             try {
                 player.destroy();
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'), this.locale)], components: [responseHandler.getMusicButton(true, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'), this.locale)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Stop error: ${error}`);
@@ -212,7 +212,7 @@ class Music {
                 return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
                 player.pause(true);
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'), this.locale)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Pause error: ${error}`);
@@ -241,7 +241,7 @@ class Music {
                 return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
                 player.pause(false);
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'), this.locale)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Resume error: ${error}`);
@@ -272,7 +272,7 @@ class Music {
                 player.stop(1);
                 if (player.queue.size === 0 && this.interaction.guildId)
                     player.destroy();
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Skip error: ${error}`);
@@ -298,7 +298,7 @@ class Music {
             try {
                 player.setTrackRepeat(!player.trackRepeat);
                 const message = player.trackRepeat ? this.t('responses.music.loop_enabled') : this.t('responses.music.loop_disabled');
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message, this.locale)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Loop error: ${error}`);

@@ -1,7 +1,7 @@
 import discord from 'discord.js';
 
 import { BotEvent } from '../../../types';
-import { Music } from '../../../core/music';
+import { Music, NowPlayingManager } from '../../../core/music';
 import { LocaleDetector } from '../../../core/locales';
 
 const MUSIC_BUTTON_IDS = ['pause-music', 'resume-music', 'skip-music', 'stop-music', 'loop-music'];
@@ -15,19 +15,23 @@ const validateButtonInteraction = (interaction: discord.Interaction): interactio
 const handleMusicButtonAction = async (interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> => {
 	try {
 		const music = new Music(client, interaction);
+		const nowPlayingManager = interaction.guildId ? NowPlayingManager.getInstance(interaction.guildId, client.manager.get(interaction.guildId)!, client) : null;
 
 		switch (interaction.customId) {
 			case 'pause-music':
 				await music.pause();
+				if (nowPlayingManager) nowPlayingManager.onPause();
 				break;
 			case 'resume-music':
 				await music.resume();
+				if (nowPlayingManager) nowPlayingManager.onResume();
 				break;
 			case 'skip-music':
 				await music.skip();
 				break;
 			case 'stop-music':
 				await music.stop();
+				if (nowPlayingManager) nowPlayingManager.onStop();
 				break;
 			case 'loop-music':
 				await music.loop();

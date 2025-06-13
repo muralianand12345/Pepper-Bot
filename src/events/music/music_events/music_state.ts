@@ -27,6 +27,7 @@ const event: BotEvent = {
 		if (!textChannel) return;
 
 		const memberCount = playerChannel.members.filter((member) => !member.user.bot).size;
+		const nowPlayingManager = NowPlayingManager.getInstance(player.guildId, player, client);
 
 		let guildLocale = 'en';
 		try {
@@ -35,6 +36,7 @@ const event: BotEvent = {
 
 		if (memberCount === 1 && player.paused) {
 			player.pause(false);
+			nowPlayingManager.onResume();
 			const responseHandler = new MusicResponseHandler(client);
 			const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback', guildLocale);
 			await sendTempMessage(textChannel, embed);
@@ -42,6 +44,7 @@ const event: BotEvent = {
 
 		if (memberCount === 0 && !player.paused && player.playing) {
 			player.pause(true);
+			nowPlayingManager.onPause();
 			const responseHandler = new MusicResponseHandler(client);
 			const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty', guildLocale);
 			await sendTempMessage(textChannel, embed);

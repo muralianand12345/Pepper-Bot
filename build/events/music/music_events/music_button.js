@@ -14,18 +14,25 @@ const validateButtonInteraction = (interaction) => {
 const handleMusicButtonAction = async (interaction, client) => {
     try {
         const music = new music_1.Music(client, interaction);
+        const nowPlayingManager = interaction.guildId ? music_1.NowPlayingManager.getInstance(interaction.guildId, client.manager.get(interaction.guildId), client) : null;
         switch (interaction.customId) {
             case 'pause-music':
                 await music.pause();
+                if (nowPlayingManager)
+                    nowPlayingManager.onPause();
                 break;
             case 'resume-music':
                 await music.resume();
+                if (nowPlayingManager)
+                    nowPlayingManager.onResume();
                 break;
             case 'skip-music':
                 await music.skip();
                 break;
             case 'stop-music':
                 await music.stop();
+                if (nowPlayingManager)
+                    nowPlayingManager.onStop();
                 break;
             case 'loop-music':
                 await music.loop();

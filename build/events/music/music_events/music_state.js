@@ -29,6 +29,7 @@ const event = {
         if (!textChannel)
             return;
         const memberCount = playerChannel.members.filter((member) => !member.user.bot).size;
+        const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, player, client);
         let guildLocale = 'en';
         try {
             guildLocale = (await localeDetector.getGuildLanguage(newState.guild.id)) || 'en';
@@ -36,12 +37,14 @@ const event = {
         catch (error) { }
         if (memberCount === 1 && player.paused) {
             player.pause(false);
+            nowPlayingManager.onResume();
             const responseHandler = new music_1.MusicResponseHandler(client);
             const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback', guildLocale);
             await (0, music_1.sendTempMessage)(textChannel, embed);
         }
         if (memberCount === 0 && !player.paused && player.playing) {
             player.pause(true);
+            nowPlayingManager.onPause();
             const responseHandler = new music_1.MusicResponseHandler(client);
             const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty', guildLocale);
             await (0, music_1.sendTempMessage)(textChannel, embed);
