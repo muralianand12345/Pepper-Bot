@@ -157,7 +157,7 @@ class Music {
             if (!playerValid)
                 return await this.interaction.editReply({ embeds: [playerEmbed] });
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
-            const [queueValid, queueError] = await musicValidator.validateMusicSource(query);
+            const [queueValid, queueError] = await musicValidator.validateMusicSource(query, this.interaction);
             if (!queueValid && queueError)
                 return this.interaction.editReply({ embeds: [queueError] });
             if (!["CONNECTING", "CONNECTED"].includes(player.state)) {
@@ -229,7 +229,7 @@ class Music {
             }
             ;
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
-            const [isValid, errorEmbed] = await musicValidator.validatePauseState();
+            const [isValid, errorEmbed] = await musicValidator.validatePauseState(this.interaction);
             if (!isValid && errorEmbed)
                 return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
@@ -264,7 +264,7 @@ class Music {
             }
             ;
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
-            const [isValid, errorEmbed] = await musicValidator.validateResumeState();
+            const [isValid, errorEmbed] = await musicValidator.validateResumeState(this.interaction);
             if (!isValid && errorEmbed)
                 return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
@@ -299,7 +299,7 @@ class Music {
             }
             ;
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
-            const [isValid, errorEmbed] = await musicValidator.validateQueueSize(1);
+            const [isValid, errorEmbed] = await musicValidator.validateQueueSize(1, this.interaction);
             if (!isValid && errorEmbed)
                 return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
