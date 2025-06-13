@@ -13,15 +13,15 @@ const event = {
     execute: (client) => {
         const MONGO_URI = configManager.getMongoUri();
         if (!MONGO_URI)
-            throw new Error("[DATABASE] MONGO_URI is not defined");
-        (0, mongoose_1.set)("strictQuery", false);
+            throw new Error('[DATABASE] MONGO_URI is not defined');
+        (0, mongoose_1.set)('strictQuery', false);
         (0, mongoose_1.connect)(MONGO_URI)
             .then(() => {
-            client.logger.success("[DATABASE] Connected to MongoDB");
+            client.logger.success('[DATABASE] Connected to MongoDB');
         })
             .catch((error) => {
             client.logger.error(`[DATABASE] Error connecting to MongoDB: ${error}`);
         });
-    }
+    },
 };
 exports.default = event;

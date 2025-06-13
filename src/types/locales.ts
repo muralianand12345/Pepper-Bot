@@ -1,7 +1,7 @@
 export interface LocaleData {
-    [key: string]: any;
-};
+	[key: string]: any;
+}
 
 export interface InterpolationData {
-    [key: string]: string | number;
-};
+	[key: string]: string | number;
+}

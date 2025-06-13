@@ -1,45 +1,44 @@
-import discord from "discord.js";
-import magmastream, { ManagerEventTypes } from "magmastream";
+import discord from 'discord.js';
+import magmastream, { ManagerEventTypes } from 'magmastream';
 
-import { LavalinkEvent } from "../../../../types";
-import { LocaleDetector } from "../../../../core/locales";
-import { Autoplay, NowPlayingManager, MusicResponseHandler } from "../../../../core/music";
-
+import { LavalinkEvent } from '../../../../types';
+import { LocaleDetector } from '../../../../core/locales';
+import { Autoplay, NowPlayingManager, MusicResponseHandler } from '../../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
 const lavalinkEvent: LavalinkEvent = {
-    name: ManagerEventTypes.PlayerDestroy,
-    execute: async (player: magmastream.Player, client: discord.Client) => {
-        const guild = client.guilds.cache.get(player.guildId);
-        if (!guild) return;
+	name: ManagerEventTypes.PlayerDestroy,
+	execute: async (player: magmastream.Player, client: discord.Client) => {
+		const guild = client.guilds.cache.get(player.guildId);
+		if (!guild) return;
 
-        try {
-            if (player.textChannelId) {
-                const channel = (await client.channels.fetch(player.textChannelId)) as discord.TextChannel;
-                if (channel?.isTextBased()) {
-                    let guildLocale = 'en';
-                    try {
-                        guildLocale = await localeDetector.getGuildLanguage(player.guildId) || 'en';
-                    } catch (error) { }
+		try {
+			if (player.textChannelId) {
+				const channel = (await client.channels.fetch(player.textChannelId)) as discord.TextChannel;
+				if (channel?.isTextBased()) {
+					let guildLocale = 'en';
+					try {
+						guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
+					} catch (error) {}
 
-                    const responseHandler = new MusicResponseHandler(client);
-                    const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || "🔌 Music player disconnected", guildLocale);
-                    const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
+					const responseHandler = new MusicResponseHandler(client);
+					const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected', guildLocale);
+					const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
 
-                    await channel.send({ embeds: [disconnectEmbed], components: [disabledButtons] });
-                    client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent with disabled buttons for guild ${player.guildId}`);
-                }
-            }
-        } catch (messageError) {
-            client.logger.warn(`[PLAYER_DESTROY] Failed to send disconnect message: ${messageError}`);
-        }
+					await channel.send({ embeds: [disconnectEmbed], components: [disabledButtons] });
+					client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent with disabled buttons for guild ${player.guildId}`);
+				}
+			}
+		} catch (messageError) {
+			client.logger.warn(`[PLAYER_DESTROY] Failed to send disconnect message: ${messageError}`);
+		}
 
-        NowPlayingManager.removeInstance(player.guildId);
-        Autoplay.removeInstance(player.guildId);
+		NowPlayingManager.removeInstance(player.guildId);
+		Autoplay.removeInstance(player.guildId);
 
-        client.logger.info(`[LAVALINK] Player for guild ${guild.name} (${guild.id}) destroyed`);
-    },
+		client.logger.info(`[LAVALINK] Player for guild ${guild.name} (${guild.id}) destroyed`);
+	},
 };
 
 export default lavalinkEvent;

@@ -28,20 +28,20 @@ __exportStar(require("./handlers"), exports);
 __exportStar(require("./auto_search"), exports);
 __exportStar(require("./now_playing"), exports);
 exports.MUSIC_CONFIG = {
-    ERROR_SEARCH_TEXT: "Unable To Fetch Results",
-    DEFAULT_SEARCH_TEXT: "Please enter a song name or url",
+    ERROR_SEARCH_TEXT: 'Unable To Fetch Results',
+    DEFAULT_SEARCH_TEXT: 'Please enter a song name or url',
     AUDIO_FILTERS: {
-        clear: { name: "Clear", emoji: "🔄", description: "Remove all filters" },
-        bassboost: { name: "Bass Boost", emoji: "🔊", description: "Enhance the bass frequencies" },
-        nightcore: { name: "Nightcore", emoji: "🎵", description: "Speed up and pitch the audio" },
-        vaporwave: { name: "Vaporwave", emoji: "🌊", description: "Slow down and lower the pitch" },
-        pop: { name: "Pop", emoji: "🎤", description: "Enhance vocals and mids" },
-        soft: { name: "Soft", emoji: "🕊️", description: "Gentle, smooth sound" },
-        treblebass: { name: "Treble Bass", emoji: "📊", description: "Enhance both highs and lows" },
-        eightd: { name: "8D Audio", emoji: "🎧", description: "Spatial rotating effect" },
-        karaoke: { name: "Karaoke", emoji: "🎤", description: "Reduce vocals for karaoke" },
-        vibrato: { name: "Vibrato", emoji: "〰️", description: "Add vibrato effect" },
-        tremolo: { name: "Tremolo", emoji: "📳", description: "Add tremolo effect" }
+        clear: { name: 'Clear', emoji: '🔄', description: 'Remove all filters' },
+        bassboost: { name: 'Bass Boost', emoji: '🔊', description: 'Enhance the bass frequencies' },
+        nightcore: { name: 'Nightcore', emoji: '🎵', description: 'Speed up and pitch the audio' },
+        vaporwave: { name: 'Vaporwave', emoji: '🌊', description: 'Slow down and lower the pitch' },
+        pop: { name: 'Pop', emoji: '🎤', description: 'Enhance vocals and mids' },
+        soft: { name: 'Soft', emoji: '🕊️', description: 'Gentle, smooth sound' },
+        treblebass: { name: 'Treble Bass', emoji: '📊', description: 'Enhance both highs and lows' },
+        eightd: { name: '8D Audio', emoji: '🎧', description: 'Spatial rotating effect' },
+        karaoke: { name: 'Karaoke', emoji: '🎤', description: 'Reduce vocals for karaoke' },
+        vibrato: { name: 'Vibrato', emoji: '〰️', description: 'Add vibrato effect' },
+        tremolo: { name: 'Tremolo', emoji: '📳', description: 'Add tremolo effect' },
     },
     PLAYER_OPTIONS: {
         volume: 50,
@@ -65,7 +65,7 @@ class Music {
         this.validateLavalinkNode = async (nodeChoice) => {
             if (!nodeChoice)
                 return null;
-            if (this.client.manager.get(this.interaction.guild?.id || ""))
+            if (this.client.manager.get(this.interaction.guild?.id || ''))
                 return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.player_exists'), this.locale);
             const node = this.client.manager.nodes.find((n) => n.options.identifier === nodeChoice);
             if (!node)
@@ -80,7 +80,7 @@ class Music {
         this.lavaSearch = async (query, retry = 5) => {
             let res;
             res = await this.client.manager.search(query, this.interaction.user.id);
-            if (res.loadType === "error" && retry > 0) {
+            if (res.loadType === 'error' && retry > 0) {
                 this.client.logger.warn(`[MUSIC] Error searching songs. Retrying... (${retry} attempts left)`);
                 return this.lavaSearch(query, retry - 1);
             }
@@ -89,38 +89,31 @@ class Music {
         this.searchResults = async (res, player) => {
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             switch (res.loadType) {
-                case "empty":
-                    {
-                        if (!player.queue.current)
-                            player.destroy();
-                        await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_results'), this.locale)] });
+                case 'empty': {
+                    if (!player.queue.current)
+                        player.destroy();
+                    await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_results'), this.locale)] });
+                    break;
+                }
+                case 'track':
+                case 'search': {
+                    const track = res.tracks[0];
+                    player.queue.add(track);
+                    if (!player.playing && !player.paused && !player.queue.size)
+                        player.play();
+                    await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, player.queue.size, this.locale)] });
+                    break;
+                }
+                case 'playlist': {
+                    if (!res.playlist)
                         break;
-                    }
-                    ;
-                case "track":
-                case "search":
-                    {
-                        const track = res.tracks[0];
-                        player.queue.add(track);
-                        if (!player.playing && !player.paused && !player.queue.size)
-                            player.play();
-                        await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, player.queue.size, this.locale)] });
-                        break;
-                    }
-                    ;
-                case "playlist":
-                    {
-                        if (!res.playlist)
-                            break;
-                        res.playlist.tracks.forEach((track) => player.queue.add(track));
-                        if (!player.playing && !player.paused && player.queue.totalSize === res.playlist.tracks.length)
-                            player.play();
-                        await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
-                        break;
-                    }
-                    ;
+                    res.playlist.tracks.forEach((track) => player.queue.add(track));
+                    if (!player.playing && !player.paused && player.queue.totalSize === res.playlist.tracks.length)
+                        player.play();
+                    await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)], components: [responseHandler.getMusicButton(false, this.locale)] });
+                    break;
+                }
             }
-            ;
         };
         this.play = async () => {
             await this.interaction.deferReply();
@@ -131,24 +124,21 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const query = this.interaction.options.getString("song") || this.t('responses.default_search');
-            const nodeChoice = this.interaction.options.getString("lavalink_node") || undefined;
+            const query = this.interaction.options.getString('song') || this.t('responses.default_search');
+            const nodeChoice = this.interaction.options.getString('lavalink_node') || undefined;
             const nodeCheck = await this.validateLavalinkNode(nodeChoice);
             if (nodeCheck)
                 return await this.interaction.editReply({ embeds: [nodeCheck] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
-            for (const check of [
-                validator.validateGuildContext(),
-                validator.validateVoiceConnection(),
-            ]) {
+            for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection()]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
                     return await this.interaction.editReply({ embeds: [embed] });
             }
             const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
             const player = this.client.manager.create({
-                guildId: this.interaction.guildId || "",
-                voiceChannelId: guildMember?.voice.channelId || "",
+                guildId: this.interaction.guildId || '',
+                voiceChannelId: guildMember?.voice.channelId || '',
                 textChannelId: this.interaction.channelId,
                 node: nodeChoice,
                 ...exports.MUSIC_CONFIG.PLAYER_OPTIONS,
@@ -160,14 +150,14 @@ class Music {
             const [queueValid, queueError] = await musicValidator.validateMusicSource(query, this.interaction);
             if (!queueValid && queueError)
                 return this.interaction.editReply({ embeds: [queueError] });
-            if (!["CONNECTING", "CONNECTED"].includes(player.state)) {
+            if (!['CONNECTING', 'CONNECTED'].includes(player.state)) {
                 player.connect();
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)], });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)] });
             }
             try {
                 const res = await this.lavaSearch(query);
-                if (res.loadType === "error")
-                    throw new Error("No results found | loadType: error");
+                if (res.loadType === 'error')
+                    throw new Error('No results found | loadType: error');
                 await this.searchResults(res, player);
             }
             catch (error) {
@@ -182,21 +172,15 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || "");
+            const player = this.client.manager.get(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
-            for (const check of [
-                validator.validateGuildContext(),
-                validator.validateVoiceConnection(),
-                validator.validateMusicPlaying(player),
-                validator.validateVoiceSameChannel(player),
-            ]) {
+            for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection(), validator.validateMusicPlaying(player), validator.validateVoiceSameChannel(player)]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
                     return await this.interaction.editReply({ embeds: [embed] });
             }
-            ;
             try {
                 player.destroy();
                 await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'), this.locale)], components: [responseHandler.getMusicButton(true, this.locale)] });
@@ -213,21 +197,15 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || "");
+            const player = this.client.manager.get(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
-            for (const check of [
-                validator.validateGuildContext(),
-                validator.validateVoiceConnection(),
-                validator.validateMusicPlaying(player),
-                validator.validateVoiceSameChannel(player),
-            ]) {
+            for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection(), validator.validateMusicPlaying(player), validator.validateVoiceSameChannel(player)]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
                     return await this.interaction.editReply({ embeds: [embed] });
             }
-            ;
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
             const [isValid, errorEmbed] = await musicValidator.validatePauseState(this.interaction);
             if (!isValid && errorEmbed)
@@ -248,21 +226,15 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || "");
+            const player = this.client.manager.get(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
-            for (const check of [
-                validator.validateGuildContext(),
-                validator.validateVoiceConnection(),
-                validator.validateMusicPlaying(player),
-                validator.validateVoiceSameChannel(player),
-            ]) {
+            for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection(), validator.validateMusicPlaying(player), validator.validateVoiceSameChannel(player)]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
                     return await this.interaction.editReply({ embeds: [embed] });
             }
-            ;
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
             const [isValid, errorEmbed] = await musicValidator.validateResumeState(this.interaction);
             if (!isValid && errorEmbed)
@@ -283,21 +255,15 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || "");
+            const player = this.client.manager.get(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
-            for (const check of [
-                validator.validateGuildContext(),
-                validator.validateVoiceConnection(),
-                validator.validateMusicPlaying(player),
-                validator.validateVoiceSameChannel(player),
-            ]) {
+            for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection(), validator.validateMusicPlaying(player), validator.validateVoiceSameChannel(player)]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
                     return await this.interaction.editReply({ embeds: [embed] });
             }
-            ;
             const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
             const [isValid, errorEmbed] = await musicValidator.validateQueueSize(1, this.interaction);
             if (!isValid && errorEmbed)
@@ -320,21 +286,15 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || "");
+            const player = this.client.manager.get(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
-            for (const check of [
-                validator.validateGuildContext(),
-                validator.validateVoiceConnection(),
-                validator.validateMusicPlaying(player),
-                validator.validateVoiceSameChannel(player),
-            ]) {
+            for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection(), validator.validateMusicPlaying(player), validator.validateVoiceSameChannel(player)]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
                     return await this.interaction.editReply({ embeds: [embed] });
             }
-            ;
             try {
                 player.setTrackRepeat(!player.trackRepeat);
                 const message = player.trackRepeat ? this.t('responses.music.loop_enabled') : this.t('responses.music.loop_disabled');
@@ -352,21 +312,15 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || "");
+            const player = this.client.manager.get(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
-            for (const check of [
-                validator.validateGuildContext(),
-                validator.validateVoiceConnection(),
-                validator.validateMusicPlaying(player),
-                validator.validateVoiceSameChannel(player),
-            ]) {
+            for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection(), validator.validateMusicPlaying(player), validator.validateVoiceSameChannel(player)]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
                     return await this.interaction.editReply({ embeds: [embed] });
             }
-            ;
             if (!this.isDeferred && !this.interaction.deferred) {
                 await this.interaction.deferReply();
                 this.isDeferred = true;
@@ -396,16 +350,11 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || "");
+            const player = this.client.manager.get(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
-            for (const check of [
-                validator.validateGuildContext(),
-                validator.validateVoiceConnection(),
-                validator.validateMusicPlaying(player),
-                validator.validateVoiceSameChannel(player),
-            ]) {
+            for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection(), validator.validateMusicPlaying(player), validator.validateVoiceSameChannel(player)]) {
                 const [isValid, embed] = await check;
                 if (!isValid)
                     return await this.interaction.editReply({ embeds: [embed] });
@@ -424,57 +373,55 @@ class Music {
                     player.filters = new magmastream_1.default.Filters(player);
                 }
                 switch (filterName) {
-                    case "clear":
+                    case 'clear':
                         await player.filters.clearFilters();
                         success = true;
                         break;
-                    case "bassboost":
+                    case 'bassboost':
                         await player.filters.bassBoost(2);
                         success = true;
                         break;
-                    case "nightcore":
+                    case 'nightcore':
                         await player.filters.nightcore(true);
                         success = true;
                         break;
-                    case "vaporwave":
+                    case 'vaporwave':
                         await player.filters.vaporwave(true);
                         success = true;
                         break;
-                    case "pop":
+                    case 'pop':
                         await player.filters.pop(true);
                         success = true;
                         break;
-                    case "soft":
+                    case 'soft':
                         await player.filters.soft(true);
                         success = true;
                         break;
-                    case "treblebass":
+                    case 'treblebass':
                         await player.filters.trebleBass(true);
                         success = true;
                         break;
-                    case "eightd":
+                    case 'eightd':
                         await player.filters.eightD(true);
                         success = true;
                         break;
-                    case "karaoke":
+                    case 'karaoke':
                         await player.filters.setKaraoke({ level: 1.0, monoLevel: 1.0, filterBand: 220, filterWidth: 100 });
                         success = true;
                         break;
-                    case "vibrato":
+                    case 'vibrato':
                         await player.filters.setVibrato({ frequency: 4, depth: 0.75 });
                         success = true;
                         break;
-                    case "tremolo":
+                    case 'tremolo':
                         await player.filters.tremolo(true);
                         success = true;
                         break;
                 }
-                ;
                 if (!success) {
                     const embed = responseHandler.createErrorEmbed(this.t('responses.errors.filter_not_found', { filter: filterName }), this.locale);
                     return await this.interaction.editReply({ embeds: [embed] });
                 }
-                ;
                 const filter = exports.MUSIC_CONFIG.AUDIO_FILTERS[filterName];
                 const embed = responseHandler.createSuccessEmbed(this.t('responses.music.filter_applied', { filter: filter.name }), this.locale);
                 await this.interaction.editReply({ embeds: [embed] });
@@ -483,7 +430,7 @@ class Music {
                 this.client.logger.error(`[FILTER] Command error: ${error}`);
                 await this.interaction.editReply({
                     embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.filter_error'), this.locale, true)],
-                    components: [responseHandler.getSupportButton(this.locale)]
+                    components: [responseHandler.getSupportButton(this.locale)],
                 });
             }
         };
@@ -492,7 +439,5 @@ class Music {
         this.localeDetector = new locales_1.LocaleDetector();
         this.isDeferred = interaction.deferred;
     }
-    ;
 }
 exports.Music = Music;
-;

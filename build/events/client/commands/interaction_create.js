@@ -12,10 +12,9 @@ const cooldown = new discord_js_1.default.Collection();
 const localeDetector = new locales_1.LocaleDetector();
 const validateInteraction = (interaction, client) => {
     if (!interaction) {
-        client.logger.warn("[INTERACTION_CREATE] Interaction is undefined.");
+        client.logger.warn('[INTERACTION_CREATE] Interaction is undefined.');
         return false;
     }
-    ;
     if (!interaction.isChatInputCommand())
         return false;
     return true;
@@ -44,7 +43,7 @@ const sendErrorReply = async (client, interaction, messageKey, data) => {
             if (!interaction.replied && !interaction.deferred) {
                 await interaction.reply({
                     embeds: [new music_1.MusicResponseHandler(client).createErrorEmbed(messageKey)],
-                    flags: discord_js_1.default.MessageFlags.Ephemeral
+                    flags: discord_js_1.default.MessageFlags.Ephemeral,
                 });
             }
         }
@@ -62,39 +61,31 @@ const handleCommandPrerequisites = async (command, interaction, client, music_gu
         if (cooldown.has(cooldownKey)) {
             const cooldownTime = cooldown.get(cooldownKey);
             const remainingTime = cooldownTime ? cooldownTime - Date.now() : 0;
-            const coolMsg = client.config.bot.command.cooldown_message.replace("<duration>", (0, ms_1.default)(remainingTime));
+            const coolMsg = client.config.bot.command.cooldown_message.replace('<duration>', (0, ms_1.default)(remainingTime));
             if (remainingTime > 0) {
                 await sendErrorReply(client, interaction, coolMsg);
                 return false;
             }
-            ;
         }
-        ;
     }
-    ;
     if (command.owner && !client.config.bot.owners.includes(interaction.user.id)) {
         await sendErrorReply(client, interaction, 'responses.errors.no_permission', { user: interaction.user.toString() });
         return false;
     }
-    ;
     if (command.userPerms && interaction.guild) {
         const member = await interaction.guild.members.fetch(interaction.user.id);
         if (!member.permissions.has(command.userPerms)) {
-            await sendErrorReply(client, interaction, 'responses.errors.missing_user_perms', { permissions: command.userPerms.join(", ") });
+            await sendErrorReply(client, interaction, 'responses.errors.missing_user_perms', { permissions: command.userPerms.join(', ') });
             return false;
         }
-        ;
     }
-    ;
     if (command.botPerms && interaction.guild) {
         const botMember = await interaction.guild.members.fetch(client.user.id);
         if (!botMember.permissions.has(command.botPerms)) {
-            await sendErrorReply(client, interaction, 'responses.errors.missing_bot_perms', { permissions: command.botPerms.join(", ") });
+            await sendErrorReply(client, interaction, 'responses.errors.missing_bot_perms', { permissions: command.botPerms.join(', ') });
             return false;
         }
-        ;
     }
-    ;
     return true;
 };
 const executeCommand = async (command, interaction, client) => {
@@ -116,7 +107,6 @@ const executeCommand = async (command, interaction, client) => {
             cooldown.set(cooldownKey, Date.now() + cooldownAmount);
             setTimeout(() => cooldown.delete(cooldownKey), cooldownAmount);
         }
-        ;
     }
     catch (error) {
         const executionTime = Date.now() - startTime;
@@ -132,7 +122,9 @@ const executeCommand = async (command, interaction, client) => {
                 const t = await localeDetector.getTranslator(interaction);
                 const message = t('responses.errors.general_error');
                 const embed = new music_1.MusicResponseHandler(client).createErrorEmbed(message, locale, true);
-                await interaction.editReply({ embeds: [embed] }).catch((editError) => { client.logger.error(`[INTERACTION_CREATE] Failed to edit reply: ${editError}`); });
+                await interaction.editReply({ embeds: [embed] }).catch((editError) => {
+                    client.logger.error(`[INTERACTION_CREATE] Failed to edit reply: ${editError}`);
+                });
             }
         }
         catch (replyError) {
@@ -142,8 +134,8 @@ const executeCommand = async (command, interaction, client) => {
 };
 const handleModalSubmit = async (interaction, client) => {
     try {
-        if (interaction.customId === "feedback_modal") {
-            const feedbackCommand = client.commands.get("feedback");
+        if (interaction.customId === 'feedback_modal') {
+            const feedbackCommand = client.commands.get('feedback');
             if (feedbackCommand?.modal)
                 return await feedbackCommand.modal(interaction);
         }
@@ -159,7 +151,7 @@ const handleModalSubmit = async (interaction, client) => {
                 await interaction.reply({ content: `❌ ${message}`, flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
             catch (localeError) {
-                await interaction.reply({ content: "❌ An error occurred while processing your request.", flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
+                await interaction.reply({ content: '❌ An error occurred while processing your request.', flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
         }
     }
@@ -190,7 +182,6 @@ const event = {
                 }
                 return;
             }
-            ;
             if (!validateInteraction(interaction, client))
                 return;
             if (!interaction.isChatInputCommand())
@@ -207,6 +198,6 @@ const event = {
             if (interaction.isRepliable() && !interaction.replied && !interaction.deferred)
                 await sendErrorReply(client, interaction, 'responses.errors.general_error');
         }
-    }
+    },
 };
 exports.default = event;

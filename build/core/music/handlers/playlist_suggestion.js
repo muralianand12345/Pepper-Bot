@@ -10,17 +10,17 @@ class PlaylistSuggestion {
         this.convertTrackToISongs = (track) => {
             const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
             return {
-                track: track.title || "Unknown Track",
-                artworkUrl: track.artworkUrl || "",
-                sourceName: track.sourceName || "unknown",
-                title: track.title || "Unknown Track",
+                track: track.title || 'Unknown Track',
+                artworkUrl: track.artworkUrl || '',
+                sourceName: track.sourceName || 'unknown',
+                title: track.title || 'Unknown Track',
                 identifier: track.identifier || `unknown_${Date.now()}`,
-                author: track.author || "Unknown Artist",
+                author: track.author || 'Unknown Artist',
                 duration: track.duration || 0,
-                isrc: track.isrc || "",
+                isrc: track.isrc || '',
                 isSeekable: track.isSeekable !== undefined ? track.isSeekable : true,
                 isStream: track.isStream !== undefined ? track.isStream : false,
-                uri: track.uri || "",
+                uri: track.uri || '',
                 thumbnail: track.thumbnail || null,
                 requester: requesterData,
                 played_number: 1,
@@ -86,7 +86,7 @@ class PlaylistSuggestion {
                     suggestions.push(...magmastreamSuggestions);
                     this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${magmastreamSuggestions.length} Magmastream suggestions`);
                 }
-                const validSuggestions = suggestions.filter((track) => track && track.uri && track.uri.trim() !== "");
+                const validSuggestions = suggestions.filter((track) => track && track.uri && track.uri.trim() !== '');
                 return this.shuffleArray(validSuggestions).slice(0, limit);
             }
             catch (error) {
@@ -100,14 +100,14 @@ class PlaylistSuggestion {
             try {
                 const manager = this.client.manager;
                 if (!manager)
-                    throw new Error("Manager not available for link conversion");
+                    throw new Error('Manager not available for link conversion');
                 const enhancedTracks = await Promise.all(tracks.map(async (track) => {
                     if (!track)
                         return null;
-                    if (!track.uri || track.uri.includes("spotify.com"))
+                    if (!track.uri || track.uri.includes('spotify.com'))
                         return track;
                     try {
-                        const searchQuery = `${track.author || ""} - ${track.title || ""}`.trim();
+                        const searchQuery = `${track.author || ''} - ${track.title || ''}`.trim();
                         if (!searchQuery)
                             return track;
                         const spotifySearch = await manager.search(`spsearch:${searchQuery}`);
@@ -117,12 +117,12 @@ class PlaylistSuggestion {
                         }
                     }
                     catch (error) {
-                        this.client.logger.warn(`[PLAYLIST_SUGGESTION] Failed to convert track "${track.title || "Unknown"}" to Spotify: ${error}`);
+                        this.client.logger.warn(`[PLAYLIST_SUGGESTION] Failed to convert track "${track.title || 'Unknown'}" to Spotify: ${error}`);
                     }
                     return track;
                 }));
                 const validTracks = enhancedTracks.filter((track) => track !== null && track.uri);
-                const spotifyCount = validTracks.filter((track) => track.uri && track.uri.includes("spotify.com")).length;
+                const spotifyCount = validTracks.filter((track) => track.uri && track.uri.includes('spotify.com')).length;
                 this.client.logger.info(`[PLAYLIST_SUGGESTION] Converted ${spotifyCount} of ${validTracks.length} tracks to Spotify links`);
                 return validTracks;
             }
@@ -138,12 +138,12 @@ class PlaylistSuggestion {
                 const existingUris = new Set(existingTracks.filter((t) => t && t.uri).map((t) => t.uri));
                 const manager = this.client.manager;
                 if (!manager)
-                    throw new Error("Manager not available");
+                    throw new Error('Manager not available');
                 const guildIds = Array.from(manager.players.keys());
                 if (guildIds.length === 0)
-                    throw new Error("No active players available");
+                    throw new Error('No active players available');
                 const player = manager.get(guildIds[0]);
-                if (!player || typeof player.getRecommendedTracks !== "function")
+                if (!player || typeof player.getRecommendedTracks !== 'function')
                     throw new Error("Player doesn't support recommendations");
                 const searchQuery = `${track.author} - ${track.title}`;
                 let searchResult;
@@ -151,7 +151,7 @@ class PlaylistSuggestion {
                 if (!searchResult?.tracks?.length) {
                     searchResult = await manager.search(searchQuery);
                     if (!searchResult?.tracks?.length)
-                        throw new Error("No searchable track found");
+                        throw new Error('No searchable track found');
                     const seedTrack = searchResult.tracks[0];
                     const recommendations = await player.getRecommendedTracks(seedTrack);
                     if (!recommendations?.length)
@@ -194,7 +194,7 @@ class PlaylistSuggestion {
                         return false;
                     const titleSimilarity = this.calculateSimilarity(track.title, s.title);
                     const authorSimilarity = this.calculateSimilarity(track.author, s.author);
-                    return (titleSimilarity > this.similarityThreshold || authorSimilarity > 0.7);
+                    return titleSimilarity > this.similarityThreshold || authorSimilarity > 0.7;
                 });
                 const uniqueTracks = this.removeDuplicates(similarTracks);
                 if (uniqueTracks.length < limit) {
@@ -277,12 +277,13 @@ class PlaylistSuggestion {
                     .sort((a, b) => {
                     try {
                         const recencyScore = new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-                        return (0.7 * ((b.played_number || 0) - (a.played_number || 0)) + 0.3 * recencyScore);
+                        return 0.7 * ((b.played_number || 0) - (a.played_number || 0)) + 0.3 * recencyScore;
                     }
                     catch (err) {
                         return (b.played_number || 0) - (a.played_number || 0);
                     }
-                }).slice(0, limit);
+                })
+                    .slice(0, limit);
             }
             catch (error) {
                 this.client.logger.error(`[PLAYLIST_SUGGESTION] Guild recommendations error: ${error}`);
@@ -324,7 +325,9 @@ class PlaylistSuggestion {
                 return 1;
             const len1 = s1.length;
             const len2 = s2.length;
-            const matrix = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(0));
+            const matrix = Array(len1 + 1)
+                .fill(null)
+                .map(() => Array(len2 + 1).fill(0));
             for (let i = 0; i <= len1; i++)
                 matrix[i][0] = i;
             for (let j = 0; j <= len2; j++)
@@ -341,15 +344,13 @@ class PlaylistSuggestion {
         this.extractKeywords = (title) => {
             if (!title)
                 return [];
-            const stopWords = new Set(["a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "by", "about", "of", "from", "as", "ft", "feat", "featuring"]);
+            const stopWords = new Set(['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'with', 'by', 'about', 'of', 'from', 'as', 'ft', 'feat', 'featuring']);
             return title
                 .toLowerCase()
-                .replace(/\([^)]*\)|\[[^\]]*\]/g, "")
-                .replace(/[^\w\s]/g, "")
+                .replace(/\([^)]*\)|\[[^\]]*\]/g, '')
+                .replace(/[^\w\s]/g, '')
                 .split(/\s+/)
-                .filter((word) => word.length > 2 &&
-                !stopWords.has(word) &&
-                !/^\d+$/.test(word));
+                .filter((word) => word.length > 2 && !stopWords.has(word) && !/^\d+$/.test(word));
         };
         this.removeDuplicates = (tracks) => {
             const seen = new Set();
@@ -376,4 +377,3 @@ class PlaylistSuggestion {
     }
 }
 exports.PlaylistSuggestion = PlaylistSuggestion;
-;

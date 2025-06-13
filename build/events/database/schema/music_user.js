@@ -14,7 +14,7 @@ const musicUserSchema = new mongoose_1.Schema({
             identifier: { type: String, required: true },
             author: { type: String, required: true },
             duration: { type: Number, required: true },
-            isrc: { type: String, required: false, default: "" },
+            isrc: { type: String, required: false, default: '' },
             isSeekable: { type: Boolean, required: true },
             isStream: { type: Boolean, required: true },
             uri: { type: String, required: true },
@@ -25,4 +25,4 @@ const musicUserSchema = new mongoose_1.Schema({
         },
     ],
 });
-exports.default = (0, mongoose_1.model)("music-users", musicUserSchema);
+exports.default = (0, mongoose_1.model)('music-users', musicUserSchema);

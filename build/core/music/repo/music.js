@@ -16,7 +16,7 @@ MusicDB.addMusicDB = async (data, songs_data) => {
     try {
         if (!data.songs)
             data.songs = [];
-        songs_data.artworkUrl = songs_data.artworkUrl || songs_data.thumbnail || "https://www.shutterstock.com/image-illustration/no-music-sound-sign-symbol-260nw-1102194074.jpg";
+        songs_data.artworkUrl = songs_data.artworkUrl || songs_data.thumbnail || 'https://www.shutterstock.com/image-illustration/no-music-sound-sign-symbol-260nw-1102194074.jpg';
         const songExists = data.songs.find((song) => song.uri === songs_data.uri);
         if (songExists) {
             songExists.played_number += 1;
@@ -34,7 +34,7 @@ MusicDB.addMusicDB = async (data, songs_data) => {
 MusicDB.addMusicUserData = async (userId, data) => {
     try {
         if (!userId)
-            throw new Error("User ID is required to add music data");
+            throw new Error('User ID is required to add music data');
         let user = await music_user_1.default.findOne({ userId });
         if (!user) {
             user = new music_user_1.default({ userId, songs: [data] });
@@ -56,9 +56,9 @@ MusicDB.userExists = async (userId) => {
 };
 MusicDB.atomicAddMusicUserData = async (userId, songData) => {
     try {
-        const user = await music_user_1.default.findOne({ userId, "songs.uri": songData.uri });
+        const user = await music_user_1.default.findOne({ userId, 'songs.uri': songData.uri });
         if (user) {
-            await music_user_1.default.updateOne({ userId, "songs.uri": songData.uri }, { $inc: { "songs.$.played_number": 1 }, $set: { "songs.$.timestamp": new Date() } });
+            await music_user_1.default.updateOne({ userId, 'songs.uri': songData.uri }, { $inc: { 'songs.$.played_number': 1 }, $set: { 'songs.$.timestamp': new Date() } });
         }
         else {
             const userExists = await _a.userExists(userId);
@@ -77,10 +77,10 @@ MusicDB.atomicAddMusicUserData = async (userId, songData) => {
 MusicDB.addMusicGuildData = async (guildId, data) => {
     try {
         if (!guildId)
-            throw new Error("Guild ID is required to add music data");
+            throw new Error('Guild ID is required to add music data');
         let guild = await music_guild_1.default.findOne({ guildId });
         if (!guild) {
-            guild = new music_guild_1.default({ guildId, songs: [data], });
+            guild = new music_guild_1.default({ guildId, songs: [data] });
             await guild.save();
         }
         else {
@@ -94,7 +94,7 @@ MusicDB.addMusicGuildData = async (guildId, data) => {
 MusicDB.getUserMusicHistory = async (userId) => {
     try {
         if (!userId)
-            throw new Error("User ID is required to get music history");
+            throw new Error('User ID is required to get music history');
         const user = await music_user_1.default.findOne({ userId });
         if (!user)
             return null;
@@ -107,7 +107,7 @@ MusicDB.getUserMusicHistory = async (userId) => {
 MusicDB.getGuildMusicHistory = async (guildId) => {
     try {
         if (!guildId)
-            throw new Error("Guild ID is required to get music history");
+            throw new Error('Guild ID is required to get music history');
         const guild = await music_guild_1.default.findOne({ guildId });
         if (!guild)
             return null;
@@ -138,8 +138,8 @@ MusicDB.getGlobalMusicHistory = async () => {
                 else {
                     combinedSongs[key] = {
                         ...song,
-                        title: song.title || "Unknown Title",
-                        author: song.author || "Unknown Artist",
+                        title: song.title || 'Unknown Title',
+                        author: song.author || 'Unknown Artist',
                         played_number: song.played_number || 0,
                         duration: song.duration || 0,
                         timestamp: song.timestamp || new Date(),
@@ -147,7 +147,9 @@ MusicDB.getGlobalMusicHistory = async () => {
                 }
             });
         });
-        const globalSongs = Object.values(combinedSongs).filter((song) => song.played_number > 0).sort((a, b) => b.played_number - a.played_number);
+        const globalSongs = Object.values(combinedSongs)
+            .filter((song) => song.played_number > 0)
+            .sort((a, b) => b.played_number - a.played_number);
         return { songs: globalSongs };
     }
     catch (err) {
@@ -157,7 +159,7 @@ MusicDB.getGlobalMusicHistory = async () => {
 MusicDB.removeUserSong = async (userId, uri) => {
     try {
         if (!userId)
-            throw new Error("User ID is required to remove song");
+            throw new Error('User ID is required to remove song');
         const user = await music_user_1.default.findOne({ userId });
         if (!user || !user.songs)
             return false;
@@ -175,7 +177,7 @@ MusicDB.removeUserSong = async (userId, uri) => {
 MusicDB.removeGuildSong = async (guildId, uri) => {
     try {
         if (!guildId)
-            throw new Error("Guild ID is required to remove song");
+            throw new Error('Guild ID is required to remove song');
         const guild = await music_guild_1.default.findOne({ guildId });
         if (!guild || !guild.songs)
             return false;
@@ -193,7 +195,7 @@ MusicDB.removeGuildSong = async (guildId, uri) => {
 MusicDB.clearUserHistory = async (userId) => {
     try {
         if (!userId)
-            throw new Error("User ID is required to clear history");
+            throw new Error('User ID is required to clear history');
         const result = await music_user_1.default.findOneAndUpdate({ userId }, { $set: { songs: [] } });
         return !!result;
     }
@@ -204,7 +206,7 @@ MusicDB.clearUserHistory = async (userId) => {
 MusicDB.clearGuildHistory = async (guildId) => {
     try {
         if (!guildId)
-            throw new Error("Guild ID is required to clear history");
+            throw new Error('Guild ID is required to clear history');
         const result = await music_guild_1.default.findOneAndUpdate({ guildId }, { $set: { songs: [] } });
         return !!result;
     }
@@ -215,13 +217,11 @@ MusicDB.clearGuildHistory = async (guildId) => {
 MusicDB.getUserTopSongs = async (userId, limit = 10) => {
     try {
         if (!userId)
-            throw new Error("User ID is required to get top songs");
+            throw new Error('User ID is required to get top songs');
         const user = await music_user_1.default.findOne({ userId });
         if (!user || !user.songs || !Array.isArray(user.songs))
             return [];
-        return user.songs
-            .sort((a, b) => (b.played_number || 0) - (a.played_number || 0))
-            .slice(0, limit);
+        return user.songs.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit);
     }
     catch (err) {
         return [];
@@ -230,7 +230,7 @@ MusicDB.getUserTopSongs = async (userId, limit = 10) => {
 MusicDB.getGuildTopSongs = async (guildId, limit = 10) => {
     try {
         if (!guildId)
-            throw new Error("Guild ID is required to get top songs");
+            throw new Error('Guild ID is required to get top songs');
         const guild = await music_guild_1.default.findOne({ guildId });
         if (!guild || !guild.songs || !Array.isArray(guild.songs))
             return [];
@@ -243,25 +243,24 @@ MusicDB.getGuildTopSongs = async (guildId, limit = 10) => {
 MusicDB.getSongTextChannelId = async (client, guildId, userId) => {
     try {
         if (!guildId)
-            throw new Error("Guild ID is required to get song text channel");
+            throw new Error('Guild ID is required to get song text channel');
         if (!userId)
-            throw new Error("User ID is required to get song text channel");
+            throw new Error('User ID is required to get song text channel');
         const guild = client.guilds.cache.get(guildId);
         if (!guild)
-            throw new Error("Guild not found");
-        const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
+            throw new Error('Guild not found');
+        const member = guild.members.cache.get(userId) || (await guild.members.fetch(userId));
         if (member && member.voice.channel)
             return member.voice.channel.id;
         const systemChannel = guild.systemChannelId;
         if (systemChannel)
             return systemChannel;
-        const textChannel = guild.channels.cache.find(c => c.type === discord_js_1.default.ChannelType.GuildText);
+        const textChannel = guild.channels.cache.find((c) => c.type === discord_js_1.default.ChannelType.GuildText);
         if (textChannel)
             return textChannel.id;
-        throw new Error("No suitable text channel found in the guild");
+        throw new Error('No suitable text channel found in the guild');
     }
     catch (err) {
         throw new Error(`Failed to get song text channel ID: ${err}`);
     }
 };
-;

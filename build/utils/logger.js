@@ -14,7 +14,7 @@ const configManager = config_1.ConfigManager.getInstance();
  * Logs are stored in a structured directory based on date.
  */
 class Logger {
-    constructor(baseDirPath = "../../logs") {
+    constructor(baseDirPath = '../../logs') {
         this.getCurrentTimestamp = () => {
             const date = new Date();
             return `[${date.toISOString()}]`;
@@ -26,19 +26,17 @@ class Logger {
             return message;
         };
         this.writeToLogFile = (logMessage) => {
-            const logWithoutColor = logMessage.replace(/\u001b\[\d+m/g, "");
-            fs_1.default.appendFileSync(this.logFilePath, logWithoutColor + "\n", "utf8");
+            const logWithoutColor = logMessage.replace(/\u001b\[\d+m/g, '');
+            fs_1.default.appendFileSync(this.logFilePath, logWithoutColor + '\n', 'utf8');
         };
         this.generateLogFilePath = () => {
             const now = new Date();
             const year = now.getFullYear();
-            const month = now.toLocaleDateString("default", {
-                month: "long",
+            const month = now.toLocaleDateString('default', {
+                month: 'long',
             });
             const day = now.getDate();
-            const formattedDate = `${year}-${(now.getMonth() + 1)
-                .toString()
-                .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+            const formattedDate = `${year}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             const yearFolderPath = path_1.default.join(this.logsBasePath, year.toString());
             const monthFolderPath = path_1.default.join(yearFolderPath, month);
             [yearFolderPath, monthFolderPath].forEach((dirPath) => {
@@ -65,29 +63,29 @@ class Logger {
             this.writeToLogFile(logMessage);
         };
         this.success = (message) => {
-            this.logWithLevel("SUCCESS", chalk_1.default.green, message);
+            this.logWithLevel('SUCCESS', chalk_1.default.green, message);
         };
         this.log = (message) => {
-            this.logWithLevel("LOG", chalk_1.default.blue, message);
+            this.logWithLevel('LOG', chalk_1.default.blue, message);
         };
         this.error = (message) => {
-            this.logWithLevel("ERROR", chalk_1.default.red, message);
+            this.logWithLevel('ERROR', chalk_1.default.red, message);
         };
         this.warn = (message) => {
-            this.logWithLevel("WARN", chalk_1.default.yellow, message);
+            this.logWithLevel('WARN', chalk_1.default.yellow, message);
         };
         this.info = (message) => {
-            this.logWithLevel("INFO", chalk_1.default.cyan, message);
+            this.logWithLevel('INFO', chalk_1.default.cyan, message);
         };
         this.debug = (message) => {
-            this.logWithLevel("DEBUG", chalk_1.default.magenta, message, false);
+            this.logWithLevel('DEBUG', chalk_1.default.magenta, message, false);
         };
         this.logsBasePath = path_1.default.join(__dirname, baseDirPath);
         this.initializeLogDirectory();
         this.logFilePath = this.generateLogFilePath();
         this.isDebugEnabled = configManager.isDebugMode();
         if (this.isDebugEnabled) {
-            this.info("Debug mode is enabled");
+            this.info('Debug mode is enabled');
         }
     }
 }

@@ -8,7 +8,7 @@ const discord_js_1 = __importDefault(require("discord.js"));
 const promises_1 = __importDefault(require("timers/promises"));
 const sendTempMessage = async (channel, embed, duration = 10000) => {
     if (!channel.isTextBased())
-        throw new Error("Channel is not text-based");
+        throw new Error('Channel is not text-based');
     const message = await channel.send({ embeds: [embed] }).catch((error) => {
         if (error.code === 50001)
             return null;
@@ -18,7 +18,8 @@ const sendTempMessage = async (channel, embed, duration = 10000) => {
         return;
     setTimeout(() => {
         message.delete().catch((deleteError) => {
-            if (deleteError.code !== 10008) { }
+            if (deleteError.code !== 10008) {
+            }
         });
     }, duration);
 };
@@ -30,17 +31,17 @@ exports.wait = wait;
 const getRequester = (client, user) => {
     if (!user)
         return null;
-    if (typeof user === "string") {
+    if (typeof user === 'string') {
         const cachedUser = client.users.cache.get(user);
         if (cachedUser)
             user = cachedUser;
         else
-            return { id: user, username: "Unknown", discriminator: "0000", avatar: undefined };
+            return { id: user, username: 'Unknown', discriminator: '0000', avatar: undefined };
     }
     if (user instanceof discord_js_1.default.ClientUser)
         return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
     if (user instanceof discord_js_1.default.User)
         return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
-    return { id: user, username: "Unknown", discriminator: "0000", avatar: undefined };
+    return { id: user, username: 'Unknown', discriminator: '0000', avatar: undefined };
 };
 exports.getRequester = getRequester;

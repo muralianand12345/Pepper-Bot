@@ -13,8 +13,8 @@ const EnvSchema = zod_1.z.object({
     TOKEN: zod_1.z.string(),
     MONGO_URI: zod_1.z.string(),
     DEBUG_MODE: zod_1.z.union([zod_1.z.boolean(), zod_1.z.string()]).transform((val) => {
-        if (typeof val === "string") {
-            return val.toLowerCase() === "true";
+        if (typeof val === 'string') {
+            return val.toLowerCase() === 'true';
         }
         return val;
     }),
@@ -70,8 +70,8 @@ class ConfigManager {
         }
         catch (error) {
             if (error instanceof zod_1.z.ZodError) {
-                const missingVars = error.issues.map((issue) => issue.path.join("."));
-                throw new Error(`Missing required environment variables: ${missingVars.join(", ")}`);
+                const missingVars = error.issues.map((issue) => issue.path.join('.'));
+                throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
             }
             throw error;
         }
@@ -84,11 +84,10 @@ ConfigManager.getInstance = () => {
     }
     return ConfigManager.instance;
 };
-;
 const loadConfig = (client) => {
     try {
-        const configPath = path_1.default.join(__dirname, "../../config/config.yml");
-        const file = fs_1.default.readFileSync(configPath, "utf8");
+        const configPath = path_1.default.join(__dirname, '../../config/config.yml');
+        const file = fs_1.default.readFileSync(configPath, 'utf8');
         return yaml_1.default.parse(file);
     }
     catch (error) {

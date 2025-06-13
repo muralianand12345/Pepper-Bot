@@ -10,13 +10,13 @@ const localizationManager = locales_1.LocalizationManager.getInstance();
 const stopCommand = {
     cooldown: 2,
     data: new discord_js_1.default.SlashCommandBuilder()
-        .setName("stop")
-        .setDescription("Stop the music and disconnect from voice channel")
+        .setName('stop')
+        .setDescription('Stop the music and disconnect from voice channel')
         .setNameLocalizations(localizationManager.getCommandLocalizations('commands.stop.name'))
         .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.stop.description')),
     execute: async (interaction, client) => {
         const music = new music_1.Music(client, interaction);
         await music.stop();
-    }
+    },
 };
 exports.default = stopCommand;

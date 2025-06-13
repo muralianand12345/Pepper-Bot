@@ -40,16 +40,16 @@ class LocaleDetector {
                 { code: 'th', name: 'ไทย' },
                 { code: 'vi', name: 'Tiếng Việt' },
                 { code: 'hi', name: 'हिन्दी' },
-                { code: 'id', name: 'Bahasa Indonesia' }
+                { code: 'id', name: 'Bahasa Indonesia' },
             ];
             const supportedCodes = this.localizationManager.getSupportedLocales();
-            const filteredLanguages = allLanguages.filter(lang => supportedCodes.includes(lang.code));
+            const filteredLanguages = allLanguages.filter((lang) => supportedCodes.includes(lang.code));
             return filteredLanguages;
         };
         this.validateLanguageCode = (language) => {
             if (!language || typeof language !== 'string')
                 return false;
-            return this.supportedLanguages.some(lang => lang.code === language);
+            return this.supportedLanguages.some((lang) => lang.code === language);
         };
         this.getUserLanguage = async (userId) => {
             try {
@@ -146,13 +146,9 @@ class LocaleDetector {
             return [...this.supportedLanguages];
         };
         this.getLanguageStats = () => {
-            const allCodes = [
-                'en', 'es', 'fr', 'de', 'pt', 'ja', 'ko', 'zh', 'ru', 'it',
-                'nl', 'pl', 'tr', 'sv', 'no', 'da', 'fi', 'cs', 'bg', 'uk',
-                'hr', 'ro', 'lt', 'el', 'hu', 'th', 'vi', 'hi', 'id'
-            ];
-            const supportedCodes = this.supportedLanguages.map(lang => lang.code);
-            const missingCodes = allCodes.filter(code => !supportedCodes.includes(code));
+            const allCodes = ['en', 'es', 'fr', 'de', 'pt', 'ja', 'ko', 'zh', 'ru', 'it', 'nl', 'pl', 'tr', 'sv', 'no', 'da', 'fi', 'cs', 'bg', 'uk', 'hr', 'ro', 'lt', 'el', 'hu', 'th', 'vi', 'hi', 'id'];
+            const supportedCodes = this.supportedLanguages.map((lang) => lang.code);
+            const missingCodes = allCodes.filter((code) => !supportedCodes.includes(code));
             return { total: allCodes.length, supported: supportedCodes.length, missing: missingCodes.length, supportedCodes, missingCodes };
         };
         this.validateUserLanguage = async (userId) => {
@@ -171,7 +167,7 @@ class LocaleDetector {
         };
         this.getAvailableLanguagesForUser = (query = '') => {
             const lowerQuery = query.toLowerCase();
-            return this.supportedLanguages.filter(lang => lang.name.toLowerCase().includes(lowerQuery) || lang.code.toLowerCase().includes(lowerQuery));
+            return this.supportedLanguages.filter((lang) => lang.name.toLowerCase().includes(lowerQuery) || lang.code.toLowerCase().includes(lowerQuery));
         };
         this.getLocaleFromDiscordLocale = (discordLocale) => {
             const mappedLocale = this.localizationManager.mapDiscordLocaleToOurs(discordLocale);

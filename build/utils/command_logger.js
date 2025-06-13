@@ -11,8 +11,8 @@ const discord_js_1 = __importDefault(require("discord.js"));
  * Handles both file-based logging and Discord channel logging with embeds.
  */
 class CommandLogger {
-    constructor(logsPath = "../../logs") {
-        this.logFilePath = path_1.default.join(__dirname, logsPath, "bot-user-log.log");
+    constructor(logsPath = '../../logs') {
+        this.logFilePath = path_1.default.join(__dirname, logsPath, 'bot-user-log.log');
         this.ensureLogDirectory();
     }
     ensureLogDirectory() {
@@ -25,39 +25,43 @@ class CommandLogger {
         return `[${now.toISOString()}]`;
     }
     writeToLogFile(logMessage) {
-        const logWithoutColor = logMessage.replace(/\x1b\[[0-9;]*m/g, "");
-        fs_1.default.appendFileSync(this.logFilePath, logWithoutColor + "\n", "utf8");
+        const logWithoutColor = logMessage.replace(/\x1b\[[0-9;]*m/g, '');
+        fs_1.default.appendFileSync(this.logFilePath, logWithoutColor + '\n', 'utf8');
     }
     async createLogEmbed(options) {
         const { client, user, commandName, guild, channel } = options;
         const embed = new discord_js_1.default.EmbedBuilder()
-            .setColor("Green")
-            .setAuthor({ name: "Command Log" })
+            .setColor('Green')
+            .setAuthor({ name: 'Command Log' })
             .setTimestamp()
-            .addFields({ name: "User", value: user ? `${user.tag} (<@${user.id}>)` : "N/A" }, { name: "Command", value: commandName || "N/A" });
+            .addFields({ name: 'User', value: user ? `${user.tag} (<@${user.id}>)` : 'N/A' }, { name: 'Command', value: commandName || 'N/A' });
         if (!guild) {
-            embed.addFields({ name: "Guild", value: "DM" });
+            embed.addFields({ name: 'Guild', value: 'DM' });
         }
         else {
-            const botGuildNickname = await client.guilds.cache.get(guild.id)?.members.fetch(client.user.id).then((member) => member.displayName).catch(() => "N/A");
-            embed.addFields({ name: "Guild", value: `${guild.name} (${guild.id})` }, { name: "Bot Nickname", value: `${botGuildNickname}` });
+            const botGuildNickname = await client.guilds.cache
+                .get(guild.id)
+                ?.members.fetch(client.user.id)
+                .then((member) => member.displayName)
+                .catch(() => 'N/A');
+            embed.addFields({ name: 'Guild', value: `${guild.name} (${guild.id})` }, { name: 'Bot Nickname', value: `${botGuildNickname}` });
         }
         if (!channel) {
-            embed.addFields({ name: "Channel", value: "DM" });
+            embed.addFields({ name: 'Channel', value: 'DM' });
         }
         else {
-            embed.addFields({ name: "Channel", value: `${channel.name} (<#${channel.id}>)` });
+            embed.addFields({ name: 'Channel', value: `${channel.name} (<#${channel.id}>)` });
         }
         return embed;
     }
     createLogMessage(options) {
         const { user, commandName, guild, channel } = options;
-        return `${this.getCurrentTimestamp()} '[COMMAND]' ${user?.tag} (${user?.id}) used command ${commandName || "N/A"} in ${guild ? guild.name : "DM"} [#${channel ? channel.name : "DM"}]`;
+        return `${this.getCurrentTimestamp()} '[COMMAND]' ${user?.tag} (${user?.id}) used command ${commandName || 'N/A'} in ${guild ? guild.name : 'DM'} [#${channel ? channel.name : 'DM'}]`;
     }
     async log(options) {
         const { client, user, commandName } = options;
         if (!client?.config?.bot?.log?.command)
-            return client.logger.error("[COMMAND_LOG] Missing log channel configuration");
+            return client.logger.error('[COMMAND_LOG] Missing log channel configuration');
         if (!user)
             client.logger.error(`[COMMAND_LOG] User is undefined! ${commandName}`);
         const logChannel = client.channels.cache.get(client.config.bot.log.command.toString());

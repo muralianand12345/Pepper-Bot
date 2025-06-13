@@ -10,13 +10,13 @@ const localizationManager = locales_1.LocalizationManager.getInstance();
 const loopCommand = {
     cooldown: 1,
     data: new discord_js_1.default.SlashCommandBuilder()
-        .setName("loop")
-        .setDescription("Toggle loop mode for the current track")
+        .setName('loop')
+        .setDescription('Toggle loop mode for the current track')
         .setNameLocalizations(localizationManager.getCommandLocalizations('commands.loop.name'))
         .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.loop.description')),
     execute: async (interaction, client) => {
         const music = new music_1.Music(client, interaction);
         await music.loop();
-    }
+    },
 };
 exports.default = loopCommand;

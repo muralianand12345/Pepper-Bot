@@ -14,14 +14,14 @@ const ACTIVITY_TYPE_MAP = {
 };
 const processActivityName = (name, client) => {
     const replacements = {
-        "<version>": package_json_1.version,
-        "<clientname>": client.user?.username,
-        "<usersize>": client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0).toString(),
-        "<playersize>": client.manager.players.size.toString(),
-        "<guildsize>": client.guilds.cache.size.toString(),
-        "<channelsize>": client.channels.cache.size.toString(),
+        '<version>': package_json_1.version,
+        '<clientname>': client.user?.username,
+        '<usersize>': client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0).toString(),
+        '<playersize>': client.manager.players.size.toString(),
+        '<guildsize>': client.guilds.cache.size.toString(),
+        '<channelsize>': client.channels.cache.size.toString(),
     };
-    return Object.entries(replacements).reduce((acc, [token, value]) => acc.replace(new RegExp(token, "g"), value ?? ""), name);
+    return Object.entries(replacements).reduce((acc, [token, value]) => acc.replace(new RegExp(token, 'g'), value ?? ''), name);
 };
 const createActivityList = (client, activities) => activities.map((activity) => ({ name: processActivityName(activity.name, client), type: ACTIVITY_TYPE_MAP[activity.type] || discord_js_1.default.ActivityType.Playing }));
 const event = {

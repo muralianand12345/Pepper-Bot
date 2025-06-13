@@ -16,11 +16,11 @@ const lavalinkEvent = {
                 if (channel?.isTextBased()) {
                     let guildLocale = 'en';
                     try {
-                        guildLocale = await localeDetector.getGuildLanguage(player.guildId) || 'en';
+                        guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
                     }
                     catch (error) { }
                     const responseHandler = new music_1.MusicResponseHandler(client);
-                    const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || "🔌 Music player disconnected", guildLocale);
+                    const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected', guildLocale);
                     const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
                     await channel.send({ embeds: [disconnectEmbed], components: [disabledButtons] });
                     client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent with disabled buttons for guild ${player.guildId}`);

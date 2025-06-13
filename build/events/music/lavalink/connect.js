@@ -8,12 +8,12 @@ const discord_js_1 = __importDefault(require("discord.js"));
 const fs_1 = require("fs");
 const loadLavalinkEvents = async (client, eventsPath) => {
     try {
-        const eventFiles = (await fs_1.promises.readdir(eventsPath)).filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
+        const eventFiles = (await fs_1.promises.readdir(eventsPath)).filter((file) => file.endsWith('.js') || file.endsWith('.ts'));
         for (const file of eventFiles) {
             try {
                 const filePath = path_1.default.join(eventsPath, file);
                 const event = require(filePath).default;
-                if (!event?.name || typeof event?.execute !== "function") {
+                if (!event?.name || typeof event?.execute !== 'function') {
                     client.logger.warn(`[LAVALINK_EVENT] Invalid event file structure: ${file}`);
                     continue;
                 }
@@ -36,12 +36,12 @@ const event = {
     execute: async (client) => {
         try {
             if (!client.user)
-                throw new Error("[LAVALINK] Client user is not defined");
+                throw new Error('[LAVALINK] Client user is not defined');
             if (!client.config.music.enabled)
-                return client.logger.info("[LAVALINK] Music functionality is disabled");
+                return client.logger.info('[LAVALINK] Music functionality is disabled');
             client.manager.init(client.user.id);
-            await loadLavalinkEvents(client, path_1.default.join(__dirname, "lavalink_events"));
-            client.logger.info("[LAVALINK] Successfully initialized and loaded all events");
+            await loadLavalinkEvents(client, path_1.default.join(__dirname, 'lavalink_events'));
+            client.logger.info('[LAVALINK] Successfully initialized and loaded all events');
         }
         catch (error) {
             client.logger.error(`[LAVALINK] Initialization failed: ${error instanceof Error ? error.message : String(error)}`);

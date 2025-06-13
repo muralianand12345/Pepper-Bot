@@ -6,13 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const music_1 = require("../../../core/music");
 const locales_1 = require("../../../core/locales");
-const MUSIC_BUTTON_IDS = [
-    "pause-music",
-    "resume-music",
-    "skip-music",
-    "stop-music",
-    "loop-music"
-];
+const MUSIC_BUTTON_IDS = ['pause-music', 'resume-music', 'skip-music', 'stop-music', 'loop-music'];
 const localeDetector = new locales_1.LocaleDetector();
 const validateButtonInteraction = (interaction) => {
     return interaction.isButton() && MUSIC_BUTTON_IDS.includes(interaction.customId);
@@ -21,19 +15,19 @@ const handleMusicButtonAction = async (interaction, client) => {
     try {
         const music = new music_1.Music(client, interaction);
         switch (interaction.customId) {
-            case "pause-music":
+            case 'pause-music':
                 await music.pause();
                 break;
-            case "resume-music":
+            case 'resume-music':
                 await music.resume();
                 break;
-            case "skip-music":
+            case 'skip-music':
                 await music.skip();
                 break;
-            case "stop-music":
+            case 'stop-music':
                 await music.stop();
                 break;
-            case "loop-music":
+            case 'loop-music':
                 await music.loop();
                 break;
             default:
@@ -48,13 +42,15 @@ const handleMusicButtonAction = async (interaction, client) => {
                 const locale = await localeDetector.detectLocale(interaction);
                 const t = await localeDetector.getTranslator(interaction);
                 const message = t('responses.errors.general_error');
-                await interaction.reply({
+                await interaction
+                    .reply({
                     content: `❌ ${message}`,
-                    flags: discord_js_1.default.MessageFlags.Ephemeral
-                }).catch(() => { });
+                    flags: discord_js_1.default.MessageFlags.Ephemeral,
+                })
+                    .catch(() => { });
             }
             catch (localeError) {
-                await interaction.reply({ content: "❌ An error occurred while processing your request.", flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
+                await interaction.reply({ content: '❌ An error occurred while processing your request.', flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
         }
     }
@@ -72,14 +68,16 @@ const event = {
                 await interaction.reply({ content: `❌ ${message}`, flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
             catch (localeError) {
-                await interaction.reply({
-                    content: "❌ Music is currently disabled.",
-                    flags: discord_js_1.default.MessageFlags.Ephemeral
-                }).catch(() => { });
+                await interaction
+                    .reply({
+                    content: '❌ Music is currently disabled.',
+                    flags: discord_js_1.default.MessageFlags.Ephemeral,
+                })
+                    .catch(() => { });
             }
             return;
         }
         await handleMusicButtonAction(interaction, client);
-    }
+    },
 };
 exports.default = event;

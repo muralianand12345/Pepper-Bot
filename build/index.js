@@ -7,11 +7,11 @@ const path_1 = __importDefault(require("path"));
 const discord_js_1 = __importDefault(require("discord.js"));
 const logger_1 = __importDefault(require("./utils/logger"));
 const config_1 = require("./utils/config");
-const botPath = path_1.default.join(__dirname, "main.js");
+const botPath = path_1.default.join(__dirname, 'main.js');
 const configManager = config_1.ConfigManager.getInstance();
 const logger = new logger_1.default();
 const manager = new discord_js_1.default.ShardingManager(botPath, { token: configManager.getToken() });
-manager.on("shardCreate", (shard) => logger.info(`[INDEX] Launched shard ${shard.id}`));
+manager.on('shardCreate', (shard) => logger.info(`[INDEX] Launched shard ${shard.id}`));
 manager
     .spawn()
     .then((shards) => {

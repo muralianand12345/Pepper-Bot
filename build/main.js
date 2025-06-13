@@ -10,7 +10,7 @@ const config_1 = require("./utils/config");
 const configManager = config_1.ConfigManager.getInstance();
 const loadHandlers = async (client, handlersPath) => {
     try {
-        const handlerFiles = fs_1.default.readdirSync(handlersPath).filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
+        const handlerFiles = fs_1.default.readdirSync(handlersPath).filter((file) => file.endsWith('.js') || file.endsWith('.ts'));
         for (const file of handlerFiles) {
             try {
                 const filePath = path_1.default.join(handlersPath, file);
@@ -32,20 +32,20 @@ const loadHandlers = async (client, handlersPath) => {
         throw error;
     }
 };
-const loadEvents = async (client, basePath, currentPath = basePath, ignoreFolders = ["entities", "repo"]) => {
+const loadEvents = async (client, basePath, currentPath = basePath, ignoreFolders = ['entities', 'repo']) => {
     try {
         const items = fs_1.default.readdirSync(currentPath, { withFileTypes: true });
         for (const item of items) {
             const itemPath = path_1.default.join(currentPath, item.name);
             const relativePath = path_1.default.relative(basePath, itemPath);
             if (item.isDirectory()) {
-                if (ignoreFolders.some(folder => item.name.toLowerCase().endsWith(folder.toLowerCase()))) {
+                if (ignoreFolders.some((folder) => item.name.toLowerCase().endsWith(folder.toLowerCase()))) {
                     client.logger.debug(`[MAIN] Skipping ignored folder: ${item.name}`);
                     continue;
                 }
                 await loadEvents(client, basePath, itemPath, ignoreFolders);
             }
-            else if (item.isFile() && (item.name.endsWith(".js") || item.name.endsWith(".ts")) && !item.name.endsWith(".d.ts")) {
+            else if (item.isFile() && (item.name.endsWith('.js') || item.name.endsWith('.ts')) && !item.name.endsWith('.d.ts')) {
                 try {
                     const event = require(itemPath).default;
                     if (!event?.name || !event?.execute) {
@@ -71,19 +71,19 @@ const loadEvents = async (client, basePath, currentPath = basePath, ignoreFolder
     }
 };
 const setupErrorHandlers = (client) => {
-    process.on("unhandledRejection", (error) => {
+    process.on('unhandledRejection', (error) => {
         client.logger.error(`[UNHANDLED-REJECTION] ${error.name}: ${error.message}`);
         client.logger.error(`Stack trace: ${error.stack}`);
     });
-    process.on("uncaughtException", (error, origin) => {
+    process.on('uncaughtException', (error, origin) => {
         client.logger.error(`[UNCAUGHT-EXCEPTION] ${error.name}: ${error.message}`);
         client.logger.error(`[UNCAUGHT-EXCEPTION] Origin: ${origin}`);
         client.logger.error(`[UNCAUGHT-EXCEPTION] Stack trace: ${error.stack}`);
     });
 };
 const initializeBot = async (client) => {
-    const handlersPath = path_1.default.join(__dirname, "handlers");
-    const eventsPath = path_1.default.join(__dirname, "events");
+    const handlersPath = path_1.default.join(__dirname, 'handlers');
+    const eventsPath = path_1.default.join(__dirname, 'events');
     try {
         await loadHandlers(client, handlersPath);
         await loadEvents(client, eventsPath);

@@ -54,11 +54,11 @@ const event = {
     execute: async (client) => {
         const clientId = client.user?.id;
         if (!clientId)
-            return client.logger.error("[COMMAND] Client Id is undefined");
+            return client.logger.error('[COMMAND] Client Id is undefined');
         const commands = new discord_js_1.default.Collection();
         const slashCommands = [];
-        const slashCommandsDir = path_1.default.join(__dirname, "../commands");
-        const loadedSlashCommands = (await loadCommands(slashCommandsDir, (file) => file.endsWith(".js") || file.endsWith(".ts")));
+        const slashCommandsDir = path_1.default.join(__dirname, '../commands');
+        const loadedSlashCommands = (await loadCommands(slashCommandsDir, (file) => file.endsWith('.js') || file.endsWith('.ts')));
         loadedSlashCommands.forEach((command) => {
             client.commands.set(command.data.name, command);
             slashCommands.push(command.data);
@@ -66,13 +66,13 @@ const event = {
         });
         client.logger.info(`[COMMAND] Loaded ${client.commands.size} commands.`);
         try {
-            const rest = new discord_js_1.default.REST({ version: "10" }).setToken(configManager.getToken() ?? "");
+            const rest = new discord_js_1.default.REST({ version: '10' }).setToken(configManager.getToken() ?? '');
             await rest.put(discord_js_1.default.Routes.applicationCommands(clientId), { body: slashCommands.map((command) => command.toJSON()) });
-            client.logger.success("[COMMAND] Successfully registered application commands.");
+            client.logger.success('[COMMAND] Successfully registered application commands.');
         }
         catch (error) {
             client.logger.error(`[COMMAND] Failed to register application commands: ${error}`);
         }
-    }
+    },
 };
 exports.default = event;

@@ -11,14 +11,14 @@ const discord_js_1 = __importDefault(require("discord.js"));
 class LocalizationManager {
     constructor() {
         this.locales = new Map();
-        this.defaultLocale = "en";
+        this.defaultLocale = 'en';
         this.validationErrors = new Map();
         this.loadAllLocales = () => {
             if (!fs_1.default.existsSync(this.localesPath)) {
                 fs_1.default.mkdirSync(this.localesPath, { recursive: true });
                 return;
             }
-            const files = fs_1.default.readdirSync(this.localesPath).filter(file => file.endsWith('.yml') || file.endsWith('.yaml'));
+            const files = fs_1.default.readdirSync(this.localesPath).filter((file) => file.endsWith('.yml') || file.endsWith('.yaml'));
             if (files.length === 0)
                 return;
             for (const file of files) {
@@ -52,8 +52,8 @@ class LocalizationManager {
                 if (locale === this.defaultLocale)
                     continue;
                 const localeKeys = this.getAllKeys(data);
-                const missingKeys = englishKeys.filter(key => !localeKeys.includes(key));
-                const extraKeys = localeKeys.filter(key => !englishKeys.includes(key));
+                const missingKeys = englishKeys.filter((key) => !localeKeys.includes(key));
+                const extraKeys = localeKeys.filter((key) => !englishKeys.includes(key));
                 if (missingKeys.length > 0 || extraKeys.length > 0) {
                     const errors = [];
                     if (missingKeys.length > 0)
@@ -146,35 +146,35 @@ class LocalizationManager {
         };
         this.mapToDiscordLocale = (locale) => {
             const mapping = {
-                'en': discord_js_1.default.Locale.EnglishUS,
-                'es': discord_js_1.default.Locale.SpanishES,
-                'fr': discord_js_1.default.Locale.French,
-                'de': discord_js_1.default.Locale.German,
-                'pt': discord_js_1.default.Locale.PortugueseBR,
-                'ja': discord_js_1.default.Locale.Japanese,
-                'ko': discord_js_1.default.Locale.Korean,
-                'zh': discord_js_1.default.Locale.ChineseCN,
-                'ru': discord_js_1.default.Locale.Russian,
-                'it': discord_js_1.default.Locale.Italian,
-                'nl': discord_js_1.default.Locale.Dutch,
-                'pl': discord_js_1.default.Locale.Polish,
-                'tr': discord_js_1.default.Locale.Turkish,
-                'sv': discord_js_1.default.Locale.Swedish,
-                'no': discord_js_1.default.Locale.Norwegian,
-                'da': discord_js_1.default.Locale.Danish,
-                'fi': discord_js_1.default.Locale.Finnish,
-                'cs': discord_js_1.default.Locale.Czech,
-                'bg': discord_js_1.default.Locale.Bulgarian,
-                'uk': discord_js_1.default.Locale.Ukrainian,
-                'hr': discord_js_1.default.Locale.Croatian,
-                'ro': discord_js_1.default.Locale.Romanian,
-                'lt': discord_js_1.default.Locale.Lithuanian,
-                'el': discord_js_1.default.Locale.Greek,
-                'hu': discord_js_1.default.Locale.Hungarian,
-                'th': discord_js_1.default.Locale.Thai,
-                'vi': discord_js_1.default.Locale.Vietnamese,
-                'hi': discord_js_1.default.Locale.Hindi,
-                'id': discord_js_1.default.Locale.Indonesian,
+                en: discord_js_1.default.Locale.EnglishUS,
+                es: discord_js_1.default.Locale.SpanishES,
+                fr: discord_js_1.default.Locale.French,
+                de: discord_js_1.default.Locale.German,
+                pt: discord_js_1.default.Locale.PortugueseBR,
+                ja: discord_js_1.default.Locale.Japanese,
+                ko: discord_js_1.default.Locale.Korean,
+                zh: discord_js_1.default.Locale.ChineseCN,
+                ru: discord_js_1.default.Locale.Russian,
+                it: discord_js_1.default.Locale.Italian,
+                nl: discord_js_1.default.Locale.Dutch,
+                pl: discord_js_1.default.Locale.Polish,
+                tr: discord_js_1.default.Locale.Turkish,
+                sv: discord_js_1.default.Locale.Swedish,
+                no: discord_js_1.default.Locale.Norwegian,
+                da: discord_js_1.default.Locale.Danish,
+                fi: discord_js_1.default.Locale.Finnish,
+                cs: discord_js_1.default.Locale.Czech,
+                bg: discord_js_1.default.Locale.Bulgarian,
+                uk: discord_js_1.default.Locale.Ukrainian,
+                hr: discord_js_1.default.Locale.Croatian,
+                ro: discord_js_1.default.Locale.Romanian,
+                lt: discord_js_1.default.Locale.Lithuanian,
+                el: discord_js_1.default.Locale.Greek,
+                hu: discord_js_1.default.Locale.Hungarian,
+                th: discord_js_1.default.Locale.Thai,
+                vi: discord_js_1.default.Locale.Vietnamese,
+                hi: discord_js_1.default.Locale.Hindi,
+                id: discord_js_1.default.Locale.Indonesian,
             };
             return mapping[locale] || null;
         };
@@ -220,8 +220,8 @@ class LocalizationManager {
                 return { missingKeys: [], extraKeys: [], isComplete: false };
             const englishKeys = this.getAllKeys(englishLocale);
             const targetKeys = this.getAllKeys(targetLocale);
-            const missingKeys = englishKeys.filter(key => !targetKeys.includes(key));
-            const extraKeys = targetKeys.filter(key => !englishKeys.includes(key));
+            const missingKeys = englishKeys.filter((key) => !targetKeys.includes(key));
+            const extraKeys = targetKeys.filter((key) => !englishKeys.includes(key));
             return { missingKeys, extraKeys, isComplete: missingKeys.length === 0 && extraKeys.length === 0 };
         };
         this.getLocaleStats = () => {
@@ -241,7 +241,7 @@ class LocalizationManager {
             }
             return stats;
         };
-        this.localesPath = path_1.default.join(__dirname, "../../../locales");
+        this.localesPath = path_1.default.join(__dirname, '../../../locales');
         this.loadAllLocales();
         this.validateAllLocales();
     }

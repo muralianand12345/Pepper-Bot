@@ -6,7 +6,7 @@ const music_1 = require("../../../../core/music");
 const localeDetector = new locales_1.LocaleDetector();
 const createQueueEndEmbed = (client, locale = 'en') => {
     const responseHandler = new music_1.MusicResponseHandler(client);
-    return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || "🎵 Played all music in queue", locale);
+    return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue', locale);
 };
 const shouldAutoplayKeepAlive = (player, guildId, client) => {
     try {
@@ -55,11 +55,10 @@ const lavalinkEvent = {
                 if (processed)
                     return client.logger.info(`[QUEUE_END] Autoplay added tracks for guild ${player.guildId}`);
             }
-            ;
             try {
                 let guildLocale = 'en';
                 try {
-                    guildLocale = await localeDetector.getGuildLanguage(player.guildId) || 'en';
+                    guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
                 }
                 catch (error) { }
                 const queueEndEmbed = createQueueEndEmbed(client, guildLocale);

@@ -16,7 +16,7 @@ class Autoplay {
         this.enable = (userId) => {
             this.enabled = true;
             this.autoplayOwnerId = userId || null;
-            this.client.logger.info(`[AUTOPLAY] Enabled for guild ${this.guildId} by user ${userId || "Unknown"}`);
+            this.client.logger.info(`[AUTOPLAY] Enabled for guild ${this.guildId} by user ${userId || 'Unknown'}`);
             return true;
         };
         this.disable = () => {
@@ -64,7 +64,7 @@ class Autoplay {
         this.addRecommendationsToQueue = async (seedTrack) => {
             try {
                 const userId = this.autoplayOwnerId || seedTrack.requester?.id || this.client.user?.id || null;
-                const { recommendations } = await this.recommendationEngine.getSuggestionsFromUserTopSong(userId || "", this.guildId, this.recommendationCount * 2);
+                const { recommendations } = await this.recommendationEngine.getSuggestionsFromUserTopSong(userId || '', this.guildId, this.recommendationCount * 2);
                 if (!recommendations || recommendations.length === 0) {
                     this.client.logger.warn(`[AUTOPLAY] No recommendations found for guild ${this.guildId}`);
                     return 0;
@@ -152,4 +152,3 @@ Autoplay.removeInstance = (guildId) => {
         _a.instances.delete(guildId);
     }
 };
-;

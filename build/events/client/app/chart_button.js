@@ -8,24 +8,24 @@ const music_1 = require("../../../core/music");
 const format_1 = __importDefault(require("../../../utils/format"));
 const locales_1 = require("../../../core/locales");
 const music_2 = require("../../../core/music");
-const CHART_BUTTON_IDS = ["chart_refresh", "chart_export"];
+const CHART_BUTTON_IDS = ['chart_refresh', 'chart_export'];
 const localeDetector = new locales_1.LocaleDetector();
 const validateChartButtonInteraction = (interaction) => {
     return interaction.isButton() && CHART_BUTTON_IDS.includes(interaction.customId);
 };
 const extractChartDataFromEmbed = (embed) => {
     try {
-        const title = embed.title || "";
-        let scope = "user";
-        if (title.includes("Global")) {
-            scope = "global";
+        const title = embed.title || '';
+        let scope = 'user';
+        if (title.includes('Global')) {
+            scope = 'global';
         }
-        else if (title.includes("Server")) {
-            scope = "guild";
+        else if (title.includes('Server')) {
+            scope = 'guild';
         }
-        const description = embed.description || "";
+        const description = embed.description || '';
         const lines = description.split('\n');
-        const totalTracksLine = lines.find(line => line.includes("total tracks"));
+        const totalTracksLine = lines.find((line) => line.includes('total tracks'));
         let limit = 10;
         if (totalTracksLine) {
             const match = totalTracksLine.match(/\*\*(\d+)\*\*/);
@@ -40,17 +40,17 @@ const extractChartDataFromEmbed = (embed) => {
 };
 const generateChartData = async (scope, userId, guildId, limit) => {
     switch (scope) {
-        case "user": {
+        case 'user': {
             const userHistory = await music_1.MusicDB.getUserMusicHistory(userId);
             return userHistory?.songs?.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit) || [];
         }
-        case "guild": {
+        case 'guild': {
             if (!guildId)
                 return [];
             const guildHistory = await music_1.MusicDB.getGuildMusicHistory(guildId);
             return guildHistory?.songs?.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit) || [];
         }
-        case "global": {
+        case 'global': {
             const globalHistory = await music_1.MusicDB.getGlobalMusicHistory();
             return globalHistory?.songs?.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit) || [];
         }
@@ -59,14 +59,14 @@ const generateChartData = async (scope, userId, guildId, limit) => {
     }
 };
 const createExportData = (chartData, scope, username, guildName) => {
-    let csvContent = "Rank,Song Title,Artist,Play Count,Duration,Source,Last Played\n";
+    let csvContent = 'Rank,Song Title,Artist,Play Count,Duration,Source,Last Played\n';
     chartData.forEach((song, index) => {
         const rank = index + 1;
-        const title = song.title?.replace(/,/g, ';') || "Unknown";
-        const artist = song.author?.replace(/,/g, ';') || "Unknown";
+        const title = song.title?.replace(/,/g, ';') || 'Unknown';
+        const artist = song.author?.replace(/,/g, ';') || 'Unknown';
         const playCount = song.played_number || 0;
         const duration = format_1.default.msToTime(song.duration || 0);
-        const source = song.sourceName || "Unknown";
+        const source = song.sourceName || 'Unknown';
         const lastPlayed = new Date(song.timestamp).toLocaleDateString();
         csvContent += `${rank},"${title}","${artist}",${playCount},"${duration}","${source}","${lastPlayed}"\n`;
     });
@@ -91,15 +91,15 @@ const refreshChartEmbed = async (interaction, originalEmbed, client) => {
         }
         const analytics = {
             totalSongs: chartData.length,
-            uniqueArtists: new Set(chartData.map(song => song.author?.toLowerCase())).size,
-            totalPlaytime: chartData.reduce((acc, song) => acc + (song.duration * song.played_number), 0),
+            uniqueArtists: new Set(chartData.map((song) => song.author?.toLowerCase())).size,
+            totalPlaytime: chartData.reduce((acc, song) => acc + song.duration * song.played_number, 0),
             topGenres: {},
-            recentActivity: chartData.filter(song => {
+            recentActivity: chartData.filter((song) => {
                 const songDate = new Date(song.timestamp);
                 const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
                 return songDate > weekAgo;
             }).length,
-            averagePlayCount: chartData.reduce((acc, song) => acc + song.played_number, 0) / chartData.length || 0
+            averagePlayCount: chartData.reduce((acc, song) => acc + song.played_number, 0) / chartData.length || 0,
         };
         const genres = {};
         chartData.forEach((song) => {
@@ -110,67 +110,51 @@ const refreshChartEmbed = async (interaction, originalEmbed, client) => {
         let embedTitle;
         let embedColor;
         switch (chartInfo.scope) {
-            case "user":
+            case 'user':
                 embedTitle = t('responses.chart.user_title', { user: interaction.user.displayName });
-                embedColor = "#43b581";
+                embedColor = '#43b581';
                 break;
-            case "guild":
+            case 'guild':
                 embedTitle = t('responses.chart.guild_title', { guild: interaction.guild?.name || 'Server' });
-                embedColor = "#f1c40f";
+                embedColor = '#f1c40f';
                 break;
-            case "global":
+            case 'global':
                 embedTitle = t('responses.chart.global_title');
-                embedColor = "#e74c3c";
+                embedColor = '#e74c3c';
                 break;
             default:
-                embedTitle = "Music Chart";
-                embedColor = "#5865f2";
+                embedTitle = 'Music Chart';
+                embedColor = '#5865f2';
         }
         const totalTimeFormatted = format_1.default.formatListeningTime(analytics.totalPlaytime / 1000);
         const avgPlayCount = Math.round(analytics.averagePlayCount * 10) / 10;
-        const description = [
-            `🎵 **${analytics.totalSongs}** ${t('responses.chart.total_tracks')}`,
-            `🎤 **${analytics.uniqueArtists}** ${t('responses.chart.unique_artists')}`,
-            `⏱️ **${totalTimeFormatted}** ${t('responses.chart.total_listening_time')}`,
-            `📈 **${avgPlayCount}** ${t('responses.chart.average_plays')}`,
-            `🔥 **${analytics.recentActivity}** ${t('responses.chart.recent_activity')}`
-        ].join('\n');
-        const tracksList = chartData.slice(0, 10).map((song, index) => {
+        const description = [`🎵 **${analytics.totalSongs}** ${t('responses.chart.total_tracks')}`, `🎤 **${analytics.uniqueArtists}** ${t('responses.chart.unique_artists')}`, `⏱️ **${totalTimeFormatted}** ${t('responses.chart.total_listening_time')}`, `📈 **${avgPlayCount}** ${t('responses.chart.average_plays')}`, `🔥 **${analytics.recentActivity}** ${t('responses.chart.recent_activity')}`].join('\n');
+        const tracksList = chartData
+            .slice(0, 10)
+            .map((song, index) => {
             const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `**${index + 1}.**`;
             const title = format_1.default.truncateText(song.title, 35);
             const artist = format_1.default.truncateText(song.author, 25);
             const plays = song.played_number;
             const duration = format_1.default.msToTime(song.duration);
             return `${medal} **${title}** - ${artist}\n└ ${plays} ${t('responses.chart.plays')} • ${duration}`;
-        }).join('\n\n');
-        const totalHours = Math.round(analytics.totalPlaytime / (1000 * 60 * 60) * 10) / 10;
-        const avgSongLength = analytics.totalSongs > 0 ? format_1.default.msToTime(analytics.totalPlaytime / analytics.totalSongs) : "0:00:00";
+        })
+            .join('\n\n');
+        const totalHours = Math.round((analytics.totalPlaytime / (1000 * 60 * 60)) * 10) / 10;
+        const avgSongLength = analytics.totalSongs > 0 ? format_1.default.msToTime(analytics.totalPlaytime / analytics.totalSongs) : '0:00:00';
         const embed = new discord_js_1.default.EmbedBuilder()
             .setColor(embedColor)
             .setTitle(`📊 ${embedTitle} 🔄`)
             .setDescription(description)
             .addFields([
-            { name: `🎶 ${t('responses.chart.top_tracks')}`, value: tracksList.length > 1024 ? tracksList.substring(0, 1021) + "..." : tracksList, inline: false },
-            { name: `⏰ ${t('responses.chart.listening_stats')}`, value: [`${t('responses.chart.total_hours')}: **${totalHours}h**`, `${t('responses.chart.avg_song_length')}: **${avgSongLength}**`, `${t('responses.chart.this_week')}: **${analytics.recentActivity}** ${t('responses.chart.tracks')}`].join('\n'), inline: true }
+            { name: `🎶 ${t('responses.chart.top_tracks')}`, value: tracksList.length > 1024 ? tracksList.substring(0, 1021) + '...' : tracksList, inline: false },
+            { name: `⏰ ${t('responses.chart.listening_stats')}`, value: [`${t('responses.chart.total_hours')}: **${totalHours}h**`, `${t('responses.chart.avg_song_length')}: **${avgSongLength}**`, `${t('responses.chart.this_week')}: **${analytics.recentActivity}** ${t('responses.chart.tracks')}`].join('\n'), inline: true },
         ])
             .setTimestamp()
             .setFooter({ text: `${t('responses.chart.footer')} • ${t('responses.chart.buttons.refresh')}ed`, iconURL: client.user?.displayAvatarURL() });
         if (chartData[0]?.artworkUrl || chartData[0]?.thumbnail)
             embed.setThumbnail(chartData[0].artworkUrl || chartData[0].thumbnail);
-        const actionRow = new discord_js_1.default.ActionRowBuilder()
-            .addComponents(new discord_js_1.default.ButtonBuilder()
-            .setCustomId("chart_refresh")
-            .setLabel(t('responses.chart.buttons.refresh'))
-            .setStyle(discord_js_1.default.ButtonStyle.Primary)
-            .setEmoji("🔄"), new discord_js_1.default.ButtonBuilder()
-            .setCustomId("chart_export")
-            .setLabel(t('responses.chart.buttons.export'))
-            .setStyle(discord_js_1.default.ButtonStyle.Secondary)
-            .setEmoji("📊"), new discord_js_1.default.ButtonBuilder()
-            .setLabel(t('responses.buttons.support_server'))
-            .setStyle(discord_js_1.default.ButtonStyle.Link)
-            .setURL("https://discord.gg/XzE9hSbsNb")
-            .setEmoji("🔧"));
+        const actionRow = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('chart_refresh').setLabel(t('responses.chart.buttons.refresh')).setStyle(discord_js_1.default.ButtonStyle.Primary).setEmoji('🔄'), new discord_js_1.default.ButtonBuilder().setCustomId('chart_export').setLabel(t('responses.chart.buttons.export')).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji('📊'), new discord_js_1.default.ButtonBuilder().setLabel(t('responses.buttons.support_server')).setStyle(discord_js_1.default.ButtonStyle.Link).setURL('https://discord.gg/XzE9hSbsNb').setEmoji('🔧'));
         await interaction.editReply({ embeds: [embed], components: [actionRow] });
     }
     catch (error) {
@@ -222,10 +206,10 @@ const handleChartButtonAction = async (interaction, client) => {
             return;
         }
         switch (interaction.customId) {
-            case "chart_refresh":
+            case 'chart_refresh':
                 await refreshChartEmbed(interaction, originalEmbed, client);
                 break;
-            case "chart_export":
+            case 'chart_export':
                 await exportChartData(interaction, originalEmbed, client);
                 break;
             default:
@@ -242,7 +226,7 @@ const handleChartButtonAction = async (interaction, client) => {
                 await interaction.reply({ content: `❌ ${message}`, flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
             catch (localeError) {
-                await interaction.reply({ content: "❌ An error occurred while processing your request.", flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
+                await interaction.reply({ content: '❌ An error occurred while processing your request.', flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
         }
     }
@@ -253,6 +237,6 @@ const event = {
         if (!validateChartButtonInteraction(interaction))
             return;
         await handleChartButtonAction(interaction, client);
-    }
+    },
 };
 exports.default = event;

@@ -12,7 +12,7 @@ const logTrackStart = (track, player, client) => {
     if (!requesterData)
         return client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId})`);
     client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` + `By ${requesterData.username} (${requesterData.id})`);
-    client.logger.info(`[LAVALINK] User: ${requesterData.username} (${requesterData.id}) requested song uri ${track.uri} ` + `in ${guildName} (${player.guildId}) using Node ${player.node.options.identifier} (${player.node.options.host}:${player.node.options.port || ""})`);
+    client.logger.info(`[LAVALINK] User: ${requesterData.username} (${requesterData.id}) requested song uri ${track.uri} ` + `in ${guildName} (${player.guildId}) using Node ${player.node.options.identifier} (${player.node.options.host}:${player.node.options.port || ''})`);
 };
 const lavalinkEvent = {
     name: magmastream_1.ManagerEventTypes.TrackStart,
@@ -25,7 +25,7 @@ const lavalinkEvent = {
                 return;
             let guildLocale = 'en';
             try {
-                guildLocale = await localeDetector.getGuildLanguage(player.guildId) || 'en';
+                guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
             }
             catch (error) { }
             const requesterData = track.requester ? (0, music_1.getRequester)(client, track.requester) : null;
@@ -35,7 +35,7 @@ const lavalinkEvent = {
                     player.stop(1);
                     client.logger.warn(`[LAVALINK] Skipping YouTube track: ${track.uri}`);
                     const responseHandler = new response_1.MusicResponseHandler(client);
-                    const embed = responseHandler.createWarningEmbed(client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || "⚠️ Skipping song! Youtube source detected.", guildLocale).setFooter({ text: client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.", iconURL: client.user?.displayAvatarURL() || "" });
+                    const embed = responseHandler.createWarningEmbed(client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || '⚠️ Skipping song! Youtube source detected.', guildLocale).setFooter({ text: client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.", iconURL: client.user?.displayAvatarURL() || '' });
                     return await channel.send({ embeds: [embed] }).then((msg) => (0, music_1.wait)(5000).then(() => msg.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));
                 }
                 else {
@@ -44,16 +44,16 @@ const lavalinkEvent = {
             }
             const songData = {
                 track: track.title,
-                artworkUrl: track.artworkUrl || "",
-                sourceName: track.sourceName || "unknown",
-                title: track.title || "Unknown",
+                artworkUrl: track.artworkUrl || '',
+                sourceName: track.sourceName || 'unknown',
+                title: track.title || 'Unknown',
                 identifier: track.identifier || `unknown_${Date.now()}`,
-                author: track.author || "Unknown",
+                author: track.author || 'Unknown',
                 duration: track.duration || 0,
-                isrc: track.isrc || "",
+                isrc: track.isrc || '',
                 isSeekable: track.isSeekable !== undefined ? track.isSeekable : true,
                 isStream: track.isStream !== undefined ? track.isStream : false,
-                uri: track.uri || "",
+                uri: track.uri || '',
                 thumbnail: track.thumbnail || null,
                 requester: requesterData,
                 played_number: 1,

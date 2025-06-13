@@ -11,7 +11,7 @@ const localeDetector = new locales_1.LocaleDetector();
 const pingCommand = {
     cooldown: 5,
     data: new discord_js_1.default.SlashCommandBuilder()
-        .setName("ping")
+        .setName('ping')
         .setDescription("Check the bot's latency and connection status")
         .setNameLocalizations(localizationManager.getCommandLocalizations('commands.ping.name'))
         .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.ping.description')),
@@ -37,37 +37,64 @@ const pingCommand = {
         const dbLatency = await getDatabaseLatency();
         const getLatencyEmoji = (latency) => {
             if (latency === -1)
-                return "❌";
+                return '❌';
             if (latency < 100)
-                return "🟢";
+                return '🟢';
             if (latency < 200)
-                return "🟡";
-            return "🔴";
+                return '🟡';
+            return '🔴';
         };
         const getNodeStatus = () => {
-            const connectedNodes = client.manager.nodes.filter(node => node.connected);
+            const connectedNodes = client.manager.nodes.filter((node) => node.connected);
             const totalNodes = client.manager.nodes.size;
             if (connectedNodes.size === 0)
-                return "❌ No nodes connected";
+                return '❌ No nodes connected';
             if (connectedNodes.size === totalNodes)
-                return "🟢 All nodes connected";
+                return '🟢 All nodes connected';
             return `🟡 ${connectedNodes.size}/${totalNodes} nodes connected`;
         };
         const embed = new discord_js_1.default.EmbedBuilder()
-            .setColor("#5865f2")
+            .setColor('#5865f2')
             .setTitle(t('responses.ping.title'))
             .setDescription(t('responses.ping.description'))
             .addFields([
-            { name: t('responses.ping.api_latency'), value: `${getLatencyEmoji(apiLatency)} ${apiLatency}ms`, inline: true },
-            { name: t('responses.ping.websocket_latency'), value: `${getLatencyEmoji(wsLatency)} ${wsLatency}ms`, inline: true },
-            { name: t('responses.ping.database_latency'), value: dbLatency === -1 ? "❌ Connection failed" : `${getLatencyEmoji(dbLatency)} ${dbLatency}ms`, inline: true },
-            { name: t('responses.ping.music_nodes'), value: getNodeStatus(), inline: false },
-            { name: t('responses.ping.uptime'), value: `<t:${Math.floor((Date.now() - (client.uptime || 0)) / 1000)}:R>`, inline: true },
-            { name: t('responses.ping.memory_usage'), value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`, inline: true }
+            {
+                name: t('responses.ping.api_latency'),
+                value: `${getLatencyEmoji(apiLatency)} ${apiLatency}ms`,
+                inline: true,
+            },
+            {
+                name: t('responses.ping.websocket_latency'),
+                value: `${getLatencyEmoji(wsLatency)} ${wsLatency}ms`,
+                inline: true,
+            },
+            {
+                name: t('responses.ping.database_latency'),
+                value: dbLatency === -1 ? '❌ Connection failed' : `${getLatencyEmoji(dbLatency)} ${dbLatency}ms`,
+                inline: true,
+            },
+            {
+                name: t('responses.ping.music_nodes'),
+                value: getNodeStatus(),
+                inline: false,
+            },
+            {
+                name: t('responses.ping.uptime'),
+                value: `<t:${Math.floor((Date.now() - (client.uptime || 0)) / 1000)}:R>`,
+                inline: true,
+            },
+            {
+                name: t('responses.ping.memory_usage'),
+                value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+                inline: true,
+            },
         ])
-            .setFooter({ text: t('responses.ping.footer'), iconURL: client.user?.displayAvatarURL() })
+            .setFooter({
+            text: t('responses.ping.footer'),
+            iconURL: client.user?.displayAvatarURL(),
+        })
             .setTimestamp();
         await interaction.editReply({ embeds: [embed] });
-    }
+    },
 };
 exports.default = pingCommand;
