@@ -1,26 +1,14 @@
 import discord from "discord.js";
 import magmastream, { ManagerEventTypes } from "magmastream";
 
+import { LavalinkEvent } from "../../../../types";
 import { LocaleDetector } from "../../../../core/locales";
-import { LavalinkEvent, ISongsUser } from "../../../../types";
-import { wait, MusicDB, NowPlayingManager } from "../../../../core/music";
+import { wait, MusicDB, NowPlayingManager, getRequester } from "../../../../core/music";
 import { MusicResponseHandler } from "../../../../core/music/handlers/response";
 
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 const localeDetector = new LocaleDetector();
-
-const getRequester = (client: discord.Client, user: discord.User | discord.ClientUser | string | null): ISongsUser | null => {
-    if (!user) return null;
-    if (typeof user === "string") {
-        const cachedUser = client.users.cache.get(user);
-        if (cachedUser) user = cachedUser;
-        else return { id: user, username: "Unknown", discriminator: "0000", avatar: undefined };
-    }
-    if (user instanceof discord.ClientUser) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
-    if (user instanceof discord.User) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
-    return { id: user, username: "Unknown", discriminator: "0000", avatar: undefined };
-};
 
 const logTrackStart = (track: magmastream.Track, player: magmastream.Player, client: discord.Client): void => {
     const guildName = client.guilds.cache.get(player.guildId)?.name;

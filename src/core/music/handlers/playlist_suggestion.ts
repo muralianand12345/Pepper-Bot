@@ -2,6 +2,7 @@ import discord from "discord.js";
 import magmastream from "magmastream";
 
 import { MusicDB } from "../repo";
+import { getRequester } from "../func";
 import { ISongs, ISongsUser } from "../../../types";
 
 
@@ -15,17 +16,7 @@ export class PlaylistSuggestion {
     }
 
     private convertTrackToISongs = (track: magmastream.Track): ISongs => {
-        const requester = track.requester as discord.User;
-
-        let requesterData: ISongsUser | null = null;
-        if (requester) {
-            requesterData = {
-                id: requester.id,
-                username: requester.username,
-                discriminator: requester.discriminator || "0",
-                avatar: requester.avatar || undefined,
-            };
-        }
+        const requesterData = track.requester ? getRequester(this.client, track.requester) : null;
 
         return {
             track: track.title || "Unknown Track",

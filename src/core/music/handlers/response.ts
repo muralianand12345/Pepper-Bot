@@ -1,6 +1,7 @@
 import discord from "discord.js";
 import magmastream from "magmastream";
 
+import { getRequester } from "../func";
 import Formatter from "../../../utils/format";
 import { ITrackProgress } from "../../../types";
 import { LocalizationManager } from "../../locales";
@@ -65,6 +66,7 @@ export class MusicResponseHandler {
     };
 
     public createMusicEmbed = (track: magmastream.Track, player?: magmastream.Player, locale: string = 'en'): discord.EmbedBuilder => {
+        const requesterData = track.requester ? getRequester(this.client, track.requester) : null;
         const trackImg = track.thumbnail || track.artworkUrl;
         const trackTitle = Formatter.truncateText(track.title, 60);
         const trackAuthor = track.author || "Unknown";
@@ -95,7 +97,7 @@ export class MusicResponseHandler {
 
         if (progressText) {
             embed.addFields([{ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false }]);
-            embed.setFooter({ text: `${track.sourceName || 'Unknown'} • ${track.requester?.tag || 'Unknown'}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
+            embed.setFooter({ text: `${track.sourceName || 'Unknown'} • ${requesterData?.username || 'Unknown'}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
             return embed;
         }
 
@@ -103,6 +105,7 @@ export class MusicResponseHandler {
     };
 
     public createTrackEmbed = (track: magmastream.Track, position?: number | null, locale: string = 'en'): discord.EmbedBuilder => {
+        const requesterData = track.requester ? getRequester(this.client, track.requester) : null;
         const title = Formatter.truncateText(track.title, 60);
         const url = track.uri || "https://google.com";
         const author = track.author || "Unknown";
@@ -118,7 +121,7 @@ export class MusicResponseHandler {
         const fields = [
             { name: this.localizationManager.translate('responses.fields.duration', locale), value: duration, inline: true },
             { name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName || "Unknown", inline: true },
-            { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: track.requester?.tag || "Unknown", inline: true }
+            { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData?.username || "Unknown", inline: true }
         ];
 
         if (queueInfo) {
