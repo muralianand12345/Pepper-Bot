@@ -11,12 +11,7 @@ const localeDetector = new LocaleDetector();
 
 const feedbackCommand: Command = {
 	cooldown: 30,
-	data: new discord.SlashCommandBuilder()
-		.setName('feedback')
-		.setDescription('Send feedback to the developers')
-		.setNameLocalizations(localizationManager.getCommandLocalizations('commands.feedback.name'))
-		.setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.feedback.description')),
-
+	data: new discord.SlashCommandBuilder().setName('feedback').setDescription('Send feedback to the developers').setNameLocalizations(localizationManager.getCommandLocalizations('commands.feedback.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.feedback.description')),
 	modal: async (interaction: discord.ModalSubmitInteraction): Promise<void> => {
 		const t = await localeDetector.getTranslator(interaction);
 		const locale = await localeDetector.detectLocale(interaction);
@@ -34,27 +29,12 @@ const feedbackCommand: Command = {
 				.setTitle('📝 New Feedback Received')
 				.setDescription(`**Type:** ${feedbackType}\n**Feedback:**\n${feedbackText}`)
 				.addFields([
-					{
-						name: 'User',
-						value: `${interaction.user.tag} (${interaction.user.id})`,
-						inline: true,
-					},
-					{
-						name: 'Guild',
-						value: interaction.guild ? `${interaction.guild.name} (${interaction.guild.id})` : 'Direct Message',
-						inline: true,
-					},
-					{
-						name: 'Timestamp',
-						value: `<t:${Math.floor(Date.now() / 1000)}:F>`,
-						inline: false,
-					},
+					{ name: 'User', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
+					{ name: 'Guild', value: interaction.guild ? `${interaction.guild.name} (${interaction.guild.id})` : 'Direct Message', inline: true },
+					{ name: 'Timestamp', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: false },
 				])
 				.setThumbnail(interaction.user.displayAvatarURL())
-				.setFooter({
-					text: 'Feedback System',
-					iconURL: interaction.client.user?.displayAvatarURL(),
-				})
+				.setFooter({ text: 'Feedback System', iconURL: interaction.client.user?.displayAvatarURL() })
 				.setTimestamp();
 
 			await webhook.send({
@@ -90,21 +70,9 @@ const feedbackCommand: Command = {
 
 		const modal = new discord.ModalBuilder().setCustomId('feedback_modal').setTitle(t('modals.feedback.title'));
 
-		const feedbackTypeInput = new discord.TextInputBuilder()
-			.setCustomId('feedback_type')
-			.setLabel(t('modals.feedback.type_label'))
-			.setPlaceholder(t('modals.feedback.type_placeholder'))
-			.setStyle(discord.TextInputStyle.Short)
-			.setMaxLength(50)
-			.setRequired(true);
+		const feedbackTypeInput = new discord.TextInputBuilder().setCustomId('feedback_type').setLabel(t('modals.feedback.type_label')).setPlaceholder(t('modals.feedback.type_placeholder')).setStyle(discord.TextInputStyle.Short).setMaxLength(50).setRequired(true);
 
-		const feedbackInput = new discord.TextInputBuilder()
-			.setCustomId('feedback_input')
-			.setLabel(t('modals.feedback.feedback_label'))
-			.setPlaceholder(t('modals.feedback.feedback_placeholder'))
-			.setStyle(discord.TextInputStyle.Paragraph)
-			.setMaxLength(1000)
-			.setRequired(true);
+		const feedbackInput = new discord.TextInputBuilder().setCustomId('feedback_input').setLabel(t('modals.feedback.feedback_label')).setPlaceholder(t('modals.feedback.feedback_placeholder')).setStyle(discord.TextInputStyle.Paragraph).setMaxLength(1000).setRequired(true);
 
 		const firstRow = new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(feedbackTypeInput);
 		const secondRow = new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(feedbackInput);
