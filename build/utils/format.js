@@ -5,6 +5,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 class Formatter {
 }
+/**
+ * Converts milliseconds to a formatted time string (HH:MM:SS)
+ * @param ms - Time in milliseconds
+ * @returns Formatted time string
+ */
 Formatter.msToTime = (ms) => {
     const seconds = Math.floor(ms / 1000);
     const hours = Math.floor(seconds / 3600);
@@ -15,6 +20,11 @@ Formatter.msToTime = (ms) => {
     const formattedSeconds = String(remainingSeconds).padStart(2, '0');
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 };
+/**
+ * Formats a duration in seconds into a human-readable string
+ * @param seconds - Duration in seconds
+ * @returns Formatted duration string
+ */
 Formatter.formatUptime = (seconds) => {
     const years = Math.floor(seconds / 31536000);
     const months = Math.floor(seconds / 2592000);
@@ -34,6 +44,11 @@ Formatter.formatUptime = (seconds) => {
         parts.push(`${minutes}m`);
     return parts.join(' ') || '< 1m';
 };
+/**
+ * Formats a listening time in seconds into a human-readable string
+ * @param seconds - Listening time in seconds
+ * @returns Formatted listening time string
+ */
 Formatter.formatListeningTime = (seconds) => {
     if (seconds < 60)
         return '< 1m';
@@ -74,16 +89,34 @@ Formatter.formatListeningTime = (seconds) => {
     }
     return `${minutes}m`;
 };
+/**
+ * Truncates text to a specified length and appends an ellipsis if necessary
+ * @param text - The text to truncate
+ * @param maxLength - Maximum length of the text
+ * @param ellipsis - String to append if text is truncated
+ * @returns Truncated text
+ */
 Formatter.truncateText = (text, maxLength = 50, ellipsis = '...') => {
     if (Array.from(text).length > maxLength) {
         text = text.slice(0, maxLength) + ellipsis;
     }
     return text;
 };
+/**
+ * Formats a string as a hyperlink
+ * @param text - The text to display
+ * @param url - The URL to link to
+ * @returns Formatted hyperlink string
+ */
 Formatter.hyperlink = (text, url) => {
     const escapedText = text.replace(/\[/g, '［').replace(/\]/g, '］');
     return `[${escapedText}](${url})`;
 };
+/**
+ * Creates a progress bar for the current position in a track
+ * @param player - The player object containing position and queue information
+ * @returns Formatted progress bar string
+ */
 Formatter.createProgressBar = (player) => {
     const progress = (Math.floor(player.position / 1000) / Math.floor(player.queue.current.duration / 1000)) * 100;
     const progressBlocks = Math.floor((progress * 1.5) / 10);
@@ -92,6 +125,11 @@ Formatter.createProgressBar = (player) => {
     bar += '▬'.repeat(Math.max(0, 15 - progressBlocks));
     return `**[ ${bar} ]**`;
 };
+/**
+ * Formats a number of bytes into a human-readable string
+ * @param bytes - The number of bytes
+ * @returns Formatted byte string
+ */
 Formatter.formatBytes = (bytes) => {
     if (bytes === 0)
         return '0 B';
