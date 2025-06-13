@@ -40,9 +40,7 @@ export class Autoplay {
         }
     }
 
-    private setupListeners = (): void => {
-        this.client.logger.debug(`[AUTOPLAY] Setup listeners for guild ${this.guildId}`);
-    }
+    private setupListeners = (): void => this.client.logger.debug(`[AUTOPLAY] Setup listeners for guild ${this.guildId}`);
 
     public enable = (userId: string | undefined): boolean => {
         this.enabled = true;

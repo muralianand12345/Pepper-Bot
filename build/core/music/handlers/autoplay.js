@@ -12,9 +12,7 @@ class Autoplay {
         this.recommendationCount = 3;
         this.recentlyPlayedTracks = new Set();
         this.maxHistorySize = 20;
-        this.setupListeners = () => {
-            this.client.logger.debug(`[AUTOPLAY] Setup listeners for guild ${this.guildId}`);
-        };
+        this.setupListeners = () => this.client.logger.debug(`[AUTOPLAY] Setup listeners for guild ${this.guildId}`);
         this.enable = (userId) => {
             this.enabled = true;
             this.autoplayOwnerId = userId || null;

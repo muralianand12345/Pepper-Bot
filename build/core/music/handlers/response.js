@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MusicResponseHandler = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
+const func_1 = require("../func");
 const format_1 = __importDefault(require("../../../utils/format"));
 const locales_1 = require("../../locales");
 class MusicResponseHandler {
@@ -52,6 +53,7 @@ class MusicResponseHandler {
                 .setFooter({ text: this.client.user?.username || "Music Bot", iconURL: this.client.user?.displayAvatarURL() });
         };
         this.createMusicEmbed = (track, player, locale = 'en') => {
+            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
             const trackImg = track.thumbnail || track.artworkUrl;
             const trackTitle = format_1.default.truncateText(track.title, 60);
             const trackAuthor = track.author || "Unknown";
@@ -79,12 +81,13 @@ class MusicResponseHandler {
                 .setThumbnail(trackImg);
             if (progressText) {
                 embed.addFields([{ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false }]);
-                embed.setFooter({ text: `${track.sourceName || 'Unknown'} • ${track.requester?.tag || 'Unknown'}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
+                embed.setFooter({ text: `${track.sourceName || 'Unknown'} • ${requesterData?.username || 'Unknown'}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
                 return embed;
             }
             return embed;
         };
         this.createTrackEmbed = (track, position, locale = 'en') => {
+            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
             const title = format_1.default.truncateText(track.title, 60);
             const url = track.uri || "https://google.com";
             const author = track.author || "Unknown";
@@ -99,7 +102,7 @@ class MusicResponseHandler {
             const fields = [
                 { name: this.localizationManager.translate('responses.fields.duration', locale), value: duration, inline: true },
                 { name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName || "Unknown", inline: true },
-                { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: track.requester?.tag || "Unknown", inline: true }
+                { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData?.username || "Unknown", inline: true }
             ];
             if (queueInfo) {
                 fields.push({

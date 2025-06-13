@@ -2,21 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlaylistSuggestion = void 0;
 const repo_1 = require("../repo");
+const func_1 = require("../func");
 class PlaylistSuggestion {
     constructor(client) {
         this.defaultLimit = 20;
         this.similarityThreshold = 0.4;
         this.convertTrackToISongs = (track) => {
-            const requester = track.requester;
-            let requesterData = null;
-            if (requester) {
-                requesterData = {
-                    id: requester.id,
-                    username: requester.username,
-                    discriminator: requester.discriminator || "0",
-                    avatar: requester.avatar || undefined,
-                };
-            }
+            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
             return {
                 track: track.title || "Unknown Track",
                 artworkUrl: track.artworkUrl || "",
