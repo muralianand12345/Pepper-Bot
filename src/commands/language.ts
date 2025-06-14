@@ -39,15 +39,7 @@ const langCommand: Command = {
 					}
 				)
 		)
-		.addStringOption((option) =>
-			option
-				.setName('language')
-				.setDescription('Choose your preferred language')
-				.setNameLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.name'))
-				.setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.description'))
-				.setRequired(false)
-				.setAutocomplete(true)
-		),
+		.addStringOption((option) => option.setName('language').setDescription('Choose your preferred language').setNameLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.description')).setRequired(false).setAutocomplete(true)),
 
 	autocomplete: async (interaction: discord.AutocompleteInteraction, client: discord.Client): Promise<void> => {
 		const focused = interaction.options.getFocused(true);

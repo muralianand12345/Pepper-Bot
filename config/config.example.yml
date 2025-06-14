@@ -33,6 +33,12 @@ bot:
 # Music playback configuration
 music:
     enabled: true # Whether music functionality is enabled
+    cache:
+        enabled: true # Whether to enable caching for music data
+        max_size: 500 # Maximum number of cached items
+        default_search_ttl: 600000 # Default TTL for search results in ms (10 minutes)
+        default_url_ttl: 1800000 # Default TTL for URL results in ms (30 minutes)
+        cleanup_interval: 300000 # Interval for cleaning up cache in ms (5 minutes)
     # Lavalink audio node configuration
     lavalink:
         default_search:
