@@ -226,6 +226,7 @@ responses:
         music_nodes: "Nós musicais"
         uptime: "Tempo ativo"
         memory_usage: "Uso de memória"
+        active_players: "Players ativos"
         footer: "Todos os sistemas operacionais"
     help:
         title: "📚 Ajuda de comandos"

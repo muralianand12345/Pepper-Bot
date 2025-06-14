@@ -226,6 +226,7 @@ responses:
         music_nodes: "Music Nodes"
         uptime: "Uptime"
         memory_usage: "Memory Usage"
+        active_players: "Active Players"
         footer: "All systems operational"
     help:
         title: "📚 Command Help"

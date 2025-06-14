@@ -10,13 +10,10 @@ const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const pingCommand = {
     cooldown: 5,
-    data: new discord_js_1.default.SlashCommandBuilder()
-        .setName('ping')
-        .setDescription("Check the bot's latency and connection status")
-        .setNameLocalizations(localizationManager.getCommandLocalizations('commands.ping.name'))
-        .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.ping.description')),
+    data: new discord_js_1.default.SlashCommandBuilder().setName('ping').setDescription("Check the bot's latency and connection status").setNameLocalizations(localizationManager.getCommandLocalizations('commands.ping.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.ping.description')),
     execute: async (interaction, client) => {
         const t = await localeDetector.getTranslator(interaction);
+        const isOwner = client.config.bot.owners.includes(interaction.user.id);
         const startTime = Date.now();
         await interaction.deferReply();
         const endTime = Date.now();
@@ -52,6 +49,26 @@ const pingCommand = {
             if (connectedNodes.size === totalNodes)
                 return '🟢 All nodes connected';
             return `🟡 ${connectedNodes.size}/${totalNodes} nodes connected`;
+        };
+        const getPlayerInfo = () => {
+            if (!isOwner)
+                return '';
+            const players = Array.from(client.manager.players.values());
+            if (players.length === 0)
+                return 'No active players';
+            return players
+                .map((player) => {
+                const guild = client.guilds.cache.get(player.guildId);
+                const voiceChannel = client.channels.cache.get(player.voiceChannelId || '');
+                const currentTrack = player.queue.current;
+                const guildName = guild?.name || 'Unknown Guild';
+                const channelName = voiceChannel && 'name' in voiceChannel ? voiceChannel.name : 'Unknown Channel';
+                const trackInfo = currentTrack ? `${currentTrack.title} - ${currentTrack.author}`.slice(0, 50) : 'No track playing';
+                const status = player.playing ? '▶️' : player.paused ? '⏸️' : '⏹️';
+                const queueSize = player.queue.size;
+                return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize} songs\n` + `└ Node: ${player.node.options.identifier}`;
+            })
+                .join('\n\n');
         };
         const embed = new discord_js_1.default.EmbedBuilder()
             .setColor('#5865f2')
@@ -94,6 +111,16 @@ const pingCommand = {
             iconURL: client.user?.displayAvatarURL(),
         })
             .setTimestamp();
+        if (isOwner) {
+            const playerInfo = getPlayerInfo();
+            embed.addFields([
+                {
+                    name: t('responses.ping.active_players'),
+                    value: playerInfo.length > 1024 ? playerInfo.substring(0, 1021) + '...' : playerInfo || 'No active players',
+                    inline: false,
+                },
+            ]);
+        }
         await interaction.editReply({ embeds: [embed] });
     },
 };

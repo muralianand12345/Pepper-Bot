@@ -226,6 +226,7 @@ responses:
         music_nodes: "Musik-Knoten"
         uptime: "Betriebszeit"
         memory_usage: "Speicherverbrauch"
+        active_players: "Aktive Player"
         footer: "Alle Systeme betriebsbereit"
     help:
         title: "📚 Befehls-Hilfe"
