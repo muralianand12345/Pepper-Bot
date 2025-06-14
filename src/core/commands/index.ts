@@ -5,6 +5,8 @@ import discord from 'discord.js';
 import { Command } from '../../types';
 import { ConfigManager } from '../../utils/config';
 
+export * from './interaction';
+
 const configManager = ConfigManager.getInstance();
 
 export class CommandManager {

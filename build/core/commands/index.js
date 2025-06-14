@@ -15,6 +15,9 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 var __importStar = (this && this.__importStar) || (function () {
     var ownKeys = function(o) {
         ownKeys = Object.getOwnPropertyNames || function (o) {
@@ -41,6 +44,7 @@ const path_1 = __importDefault(require("path"));
 const promises_1 = __importDefault(require("fs/promises"));
 const discord_js_1 = __importDefault(require("discord.js"));
 const config_1 = require("../../utils/config");
+__exportStar(require("./interaction"), exports);
 const configManager = config_1.ConfigManager.getInstance();
 class CommandManager {
     constructor(client) {

@@ -34,13 +34,7 @@ const langCommand = {
         value: 'reset',
         name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.reset'),
     }))
-        .addStringOption((option) => option
-        .setName('language')
-        .setDescription('Choose your preferred language')
-        .setNameLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.name'))
-        .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.description'))
-        .setRequired(false)
-        .setAutocomplete(true)),
+        .addStringOption((option) => option.setName('language').setDescription('Choose your preferred language').setNameLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.description')).setRequired(false).setAutocomplete(true)),
     autocomplete: async (interaction, client) => {
         const focused = interaction.options.getFocused(true);
         if (focused.name === 'language') {
