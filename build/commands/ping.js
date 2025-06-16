@@ -35,9 +35,9 @@ const pingCommand = {
         const getLatencyEmoji = (latency) => {
             if (latency === -1)
                 return '❌';
-            if (latency < 100)
+            if (latency < 150)
                 return '🟢';
-            if (latency < 200)
+            if (latency < 350)
                 return '🟡';
             return '🔴';
         };
