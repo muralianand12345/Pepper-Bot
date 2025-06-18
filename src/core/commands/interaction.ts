@@ -3,8 +3,8 @@ import discord from 'discord.js';
 
 import { LocaleDetector } from '../locales';
 import { MusicResponseHandler } from '../music';
-import music_guild from '../../events/database/schema/music_guild';
 import { IMusicGuild, Command } from '../../types';
+import music_guild from '../../events/database/schema/music_guild';
 
 export class CommandInteractionHandler {
 	private static cooldown: discord.Collection<string, number> = new discord.Collection();
@@ -170,6 +170,7 @@ export class CommandInteractionHandler {
 				guild: this.interaction.guild,
 				user: this.interaction.user,
 				channel: this.interaction.channel as discord.TextChannel | null,
+				locale: await this.localeDetector.detectLocale(this.interaction),
 			});
 
 			if (command.cooldown) {

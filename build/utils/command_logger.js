@@ -29,7 +29,7 @@ class CommandLogger {
         fs_1.default.appendFileSync(this.logFilePath, logWithoutColor + '\n', 'utf8');
     }
     async createLogEmbed(options) {
-        const { client, user, commandName, guild, channel } = options;
+        const { client, user, commandName, guild, channel, locale } = options;
         const embed = new discord_js_1.default.EmbedBuilder()
             .setColor('Green')
             .setAuthor({ name: 'Command Log' })
@@ -52,11 +52,14 @@ class CommandLogger {
         else {
             embed.addFields({ name: 'Channel', value: `${channel.name} (<#${channel.id}>)` });
         }
+        if (locale) {
+            embed.setFooter({ text: `Locale: ${locale}` });
+        }
         return embed;
     }
     createLogMessage(options) {
-        const { user, commandName, guild, channel } = options;
-        return `${this.getCurrentTimestamp()} '[COMMAND]' ${user?.tag} (${user?.id}) used command ${commandName || 'N/A'} in ${guild ? guild.name : 'DM'} [#${channel ? channel.name : 'DM'}]`;
+        const { user, commandName, guild, channel, locale } = options;
+        return `${this.getCurrentTimestamp()} '[COMMAND]' ${user?.tag} (${user?.id}) used command ${commandName || 'N/A'} in ${guild ? guild.name : 'DM'} [#${channel ? channel.name : 'DM'}] ${locale ? `[${locale}]` : ''}`;
     }
     async log(options) {
         const { client, user, commandName } = options;

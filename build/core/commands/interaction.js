@@ -156,6 +156,7 @@ class CommandInteractionHandler {
                     guild: this.interaction.guild,
                     user: this.interaction.user,
                     channel: this.interaction.channel,
+                    locale: await this.localeDetector.detectLocale(this.interaction),
                 });
                 if (command.cooldown) {
                     if (this.client.config.bot.owners.includes(this.interaction.user.id))

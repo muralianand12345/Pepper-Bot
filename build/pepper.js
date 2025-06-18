@@ -12,14 +12,14 @@ const config_1 = require("./utils/config");
 const configManager = config_1.ConfigManager.getInstance();
 const initializeManager = (config, client) => {
     return new magmastream_1.Manager({
-        usePriority: true,
-        useNode: magmastream_1.UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
-        nodes: config.music.lavalink.nodes,
         autoPlay: true,
         defaultSearchPlatform: config.music.lavalink.default_search,
         lastFmApiKey: configManager.getLastFmApiKey(),
-        send: (id, payload) => {
-            const guild = client.guilds.cache.get(id);
+        nodes: config.music.lavalink.nodes,
+        useNode: magmastream_1.UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
+        usePriority: true,
+        send: (guildId, payload) => {
+            const guild = client.guilds.cache.get(guildId);
             if (guild)
                 guild.shard.send(payload);
         },

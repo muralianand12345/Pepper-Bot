@@ -15,6 +15,7 @@ export interface ICommandLoggerOptions {
 	guild: discord.Guild | null;
 	user: discord.User | null;
 	channel: discord.TextChannel | null;
+	locale?: string | null;
 }
 
 export interface ICommandLogger {

@@ -32,7 +32,7 @@ class CommandLogger implements ICommandLogger {
 	}
 
 	private async createLogEmbed(options: ICommandLoggerOptions): Promise<discord.EmbedBuilder> {
-		const { client, user, commandName, guild, channel } = options;
+		const { client, user, commandName, guild, channel, locale } = options;
 
 		const embed = new discord.EmbedBuilder()
 			.setColor('Green')
@@ -57,12 +57,16 @@ class CommandLogger implements ICommandLogger {
 			embed.addFields({ name: 'Channel', value: `${channel.name} (<#${channel.id}>)` });
 		}
 
+		if (locale) {
+			embed.setFooter({ text: `Locale: ${locale}` });
+		}
+
 		return embed;
 	}
 
 	private createLogMessage(options: ICommandLoggerOptions): string {
-		const { user, commandName, guild, channel } = options;
-		return `${this.getCurrentTimestamp()} '[COMMAND]' ${user?.tag} (${user?.id}) used command ${commandName || 'N/A'} in ${guild ? guild.name : 'DM'} [#${channel ? channel.name : 'DM'}]`;
+		const { user, commandName, guild, channel, locale } = options;
+		return `${this.getCurrentTimestamp()} '[COMMAND]' ${user?.tag} (${user?.id}) used command ${commandName || 'N/A'} in ${guild ? guild.name : 'DM'} [#${channel ? channel.name : 'DM'}] ${locale ? `[${locale}]` : ''}`;
 	}
 
 	public async log(options: ICommandLoggerOptions): Promise<void> {
