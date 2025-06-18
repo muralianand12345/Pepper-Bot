@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import { Manager, UseNodeOptions, Payload } from 'magmastream';
+import magmastream from 'magmastream';
 
 import Logger from './utils/logger';
 import { Command, IConfig } from './types';
@@ -10,15 +10,19 @@ import { ConfigManager, loadConfig } from './utils/config';
 const configManager = ConfigManager.getInstance();
 
 const initializeManager = (config: IConfig, client: discord.Client) => {
-	return new Manager({
-		usePriority: true,
-		useNode: UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
-		nodes: config.music.lavalink.nodes,
+	return new magmastream.Manager({
 		autoPlay: true,
+		autoPlaySearchPlatform: magmastream.SearchPlatform.Jiosaavn,
+		clientId: client.user?.id,
+		clientName: client.user?.username,
 		defaultSearchPlatform: config.music.lavalink.default_search,
 		lastFmApiKey: configManager.getLastFmApiKey(),
-		send: (id: string, payload: Payload) => {
-			const guild = client.guilds.cache.get(id);
+		nodes: config.music.lavalink.nodes,
+		replaceYouTubeCredentials: true,
+		useNode: magmastream.UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
+		usePriority: true,
+		send: (guildId: string, payload: magmastream.Payload): void => {
+			const guild = client.guilds.cache.get(guildId);
 			if (guild) guild.shard.send(payload);
 		},
 	});
