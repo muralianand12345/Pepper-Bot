@@ -4,23 +4,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
-const magmastream_1 = __importDefault(require("magmastream"));
+const magmastream_1 = require("magmastream");
 const logger_1 = __importDefault(require("./utils/logger"));
 const command_logger_1 = __importDefault(require("./utils/command_logger"));
 const locales_1 = require("./core/locales");
 const config_1 = require("./utils/config");
 const configManager = config_1.ConfigManager.getInstance();
 const initializeManager = (config, client) => {
-    return new magmastream_1.default.Manager({
+    return new magmastream_1.Manager({
         autoPlay: true,
-        autoPlaySearchPlatform: magmastream_1.default.SearchPlatform.Jiosaavn,
+        autoPlaySearchPlatform: magmastream_1.SearchPlatform.Jiosaavn,
         clientId: client.user?.id,
         clientName: client.user?.username,
         defaultSearchPlatform: config.music.lavalink.default_search,
         lastFmApiKey: configManager.getLastFmApiKey(),
         nodes: config.music.lavalink.nodes,
         replaceYouTubeCredentials: true,
-        useNode: magmastream_1.default.UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
+        useNode: magmastream_1.UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
         usePriority: true,
         send: (guildId, payload) => {
             const guild = client.guilds.cache.get(guildId);

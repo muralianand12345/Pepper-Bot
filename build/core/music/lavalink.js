@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LavaLink = void 0;
-const magmastream_1 = __importDefault(require("magmastream"));
 const music_user_1 = __importDefault(require("../../events/database/schema/music_user"));
 class LavaLink {
     constructor(client) {
@@ -12,9 +11,8 @@ class LavaLink {
         this.addUserLavalink = async (userId, config) => {
             try {
                 const testResult = await this.testConnection(config);
-                if (!testResult.success) {
+                if (!testResult.success)
                     return { success: false, error: testResult.error };
-                }
                 const identifier = `user_${userId}_${Date.now()}`;
                 const nodeConfig = {
                     ...config,
@@ -25,9 +23,8 @@ class LavaLink {
                 };
                 await music_user_1.default.findOneAndUpdate({ userId }, { lavalink: nodeConfig }, { upsert: true, new: true });
                 const success = await this.registerNodeWithManager(userId, nodeConfig);
-                if (!success) {
+                if (!success)
                     return { success: false, error: 'Failed to register node with manager' };
-                }
                 this.client.logger.info(`[LAVALINK] User ${userId} added personal Lavalink: ${identifier}`);
                 return { success: true, nodeId: identifier };
             }
@@ -39,15 +36,13 @@ class LavaLink {
         this.removeUserLavalink = async (userId) => {
             try {
                 const user = await music_user_1.default.findOne({ userId });
-                if (!user?.lavalink?.identifier) {
+                if (!user?.lavalink?.identifier)
                     return { success: false, error: 'No personal Lavalink found' };
-                }
                 const nodeId = user.lavalink.identifier;
                 const activePlayer = Array.from(this.client.manager.players.values()).find((player) => player.node.options.identifier === nodeId);
-                if (activePlayer) {
+                if (activePlayer)
                     return { success: false, error: 'Cannot remove Lavalink while music is playing on it' };
-                }
-                this.unregisterNodeFromManager(nodeId);
+                await this.unregisterNodeFromManager(nodeId);
                 await music_user_1.default.findOneAndUpdate({ userId }, { $unset: { lavalink: 1 } });
                 this.client.logger.info(`[LAVALINK] User ${userId} removed personal Lavalink: ${nodeId}`);
                 return { success: true };
@@ -69,15 +64,13 @@ class LavaLink {
         };
         this.getOptimalNodeForUser = async (userId, guildId) => {
             const existingPlayer = this.client.manager.get(guildId);
-            if (existingPlayer) {
+            if (existingPlayer)
                 return existingPlayer.node.options.identifier || null;
-            }
             const userLavalink = await this.getUserLavalink(userId);
             if (userLavalink?.isActive && userLavalink.identifier) {
                 const node = this.client.manager.nodes.find((n) => n.options.identifier === userLavalink.identifier);
-                if (node?.connected) {
+                if (node?.connected)
                     return userLavalink.identifier;
-                }
             }
             return null;
         };
@@ -93,11 +86,7 @@ class LavaLink {
                     return;
                 const newRetryCount = (user.lavalink.retryCount || 0) + 1;
                 if (newRetryCount >= this.maxRetries && user.lavalink.autoFallback) {
-                    await music_user_1.default.findOneAndUpdate({ userId }, {
-                        'lavalink.isActive': false,
-                        'lavalink.retryCount': newRetryCount,
-                        'lavalink.lastError': 'Exceeded retry limit - auto-disabled',
-                    });
+                    await music_user_1.default.findOneAndUpdate({ userId }, { 'lavalink.isActive': false, 'lavalink.retryCount': newRetryCount, 'lavalink.lastError': 'Exceeded retry limit - auto-disabled' });
                     this.client.logger.warn(`[LAVALINK] Auto-disabled user Lavalink for ${userId} after ${this.maxRetries} failures`);
                 }
                 else {
@@ -120,9 +109,8 @@ class LavaLink {
             try {
                 const usersWithLavalink = await music_user_1.default.find({ 'lavalink.isActive': true });
                 for (const user of usersWithLavalink) {
-                    if (user.lavalink) {
+                    if (user.lavalink)
                         await this.registerNodeWithManager(user.userId, user.lavalink);
-                    }
                 }
                 this.client.logger.info(`[LAVALINK] Initialized ${usersWithLavalink.length} user Lavalink nodes`);
             }
@@ -132,31 +120,34 @@ class LavaLink {
         };
         this.testConnection = async (config) => {
             try {
-                const testNode = new magmastream_1.default.Node({
+                const testNodeOptions = {
                     identifier: `test_${Date.now()}`,
                     host: config.host,
                     port: config.port,
                     password: config.password,
                     secure: config.secure || false,
                     retryAmount: 1,
-                    retrydelay: 3000,
+                    retryDelay: 3000,
                     requestTimeout: 5000,
-                });
+                };
+                const testNode = this.client.manager.createNode(testNodeOptions);
                 return new Promise((resolve) => {
                     const timeout = setTimeout(() => {
+                        this.client.manager.destroyNode(testNodeOptions.identifier);
                         resolve({ success: false, error: 'Connection timeout' });
                     }, 10000);
-                    testNode.once('connect', () => {
-                        clearTimeout(timeout);
-                        testNode.destroy();
-                        resolve({ success: true });
-                    });
-                    testNode.once('error', (error) => {
-                        clearTimeout(timeout);
-                        testNode.destroy();
-                        resolve({ success: false, error: error.message });
-                    });
+                    const checkConnection = () => {
+                        if (testNode.connected) {
+                            clearTimeout(timeout);
+                            this.client.manager.destroyNode(testNodeOptions.identifier);
+                            resolve({ success: true });
+                        }
+                        else {
+                            setTimeout(checkConnection, 100);
+                        }
+                    };
                     testNode.connect();
+                    setTimeout(checkConnection, 100);
                 });
             }
             catch (error) {
@@ -168,9 +159,8 @@ class LavaLink {
                 if (!config.identifier)
                     return false;
                 const existingNode = this.client.manager.nodes.find((n) => n.options.identifier === config.identifier);
-                if (existingNode) {
-                    this.client.manager.removeNode(config.identifier);
-                }
+                if (existingNode)
+                    await this.client.manager.destroyNode(config.identifier);
                 const nodeOptions = {
                     identifier: config.identifier,
                     host: config.host,
@@ -181,19 +171,8 @@ class LavaLink {
                     retryDelay: 5000,
                     requestTimeout: 10000,
                 };
-                const node = this.client.manager.addNode(nodeOptions);
-                node.on('connect', () => {
-                    this.client.logger.info(`[LAVALINK] User node connected: ${config.identifier}`);
-                    this.resetRetryCount(userId);
-                });
-                node.on('error', (error) => {
-                    this.client.logger.error(`[LAVALINK] User node error: ${config.identifier} - ${error.message}`);
-                    this.handleNodeFailure(config.identifier);
-                });
-                node.on('disconnect', () => {
-                    this.client.logger.warn(`[LAVALINK] User node disconnected: ${config.identifier}`);
-                    this.handleNodeFailure(config.identifier);
-                });
+                const node = this.client.manager.createNode(nodeOptions);
+                this.setupNodeEventHandlers(node, userId, config.identifier);
                 return true;
             }
             catch (error) {
@@ -201,11 +180,29 @@ class LavaLink {
                 return false;
             }
         };
-        this.unregisterNodeFromManager = (nodeId) => {
+        this.setupNodeEventHandlers = (node, userId, identifier) => {
+            const checkConnectionStatus = () => {
+                if (node.connected) {
+                    this.client.logger.info(`[LAVALINK] User node connected: ${identifier}`);
+                    this.resetRetryCount(userId);
+                }
+                else {
+                    this.client.logger.warn(`[LAVALINK] User node disconnected: ${identifier}`);
+                    this.handleNodeFailure(identifier);
+                }
+            };
+            const connectionInterval = setInterval(() => {
+                checkConnectionStatus();
+            }, 5000);
+            setTimeout(() => {
+                clearInterval(connectionInterval);
+            }, 60000);
+        };
+        this.unregisterNodeFromManager = async (nodeId) => {
             try {
                 const node = this.client.manager.nodes.find((n) => n.options.identifier === nodeId);
                 if (node) {
-                    this.client.manager.removeNode(nodeId);
+                    await this.client.manager.destroyNode(nodeId);
                     this.client.logger.info(`[LAVALINK] Unregistered user node: ${nodeId}`);
                 }
             }

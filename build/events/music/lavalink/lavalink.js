@@ -9,10 +9,8 @@ const event = {
     name: discord_js_1.default.Events.ClientReady,
     execute: async (client) => {
         try {
-            if (!client.config.music.enabled) {
-                client.logger.info('[LAVALINK] Music is disabled, skipping user node initialization');
-                return;
-            }
+            if (!client.config.music.enabled)
+                return client.logger.info('[LAVALINK] Music is disabled, skipping user node initialization');
             client.logger.info('[LAVALINK] Initializing user Lavalink nodes...');
             const lavalink = new music_1.LavaLink(client);
             await lavalink.initializeUserNodes();

@@ -157,19 +157,9 @@ const lavalinkCommand = {
                             inline: true,
                         },
                     ])
-                        .setFooter({
-                        text: userLavalink.addedAt ? t('responses.lavalink.added_on', { date: userLavalink.addedAt.toLocaleDateString() }) : t('responses.lavalink.no_date'),
-                        iconURL: client.user?.displayAvatarURL(),
-                    });
-                    if (userLavalink.lastError) {
-                        embed.addFields([
-                            {
-                                name: t('responses.lavalink.fields.last_error'),
-                                value: userLavalink.lastError,
-                                inline: false,
-                            },
-                        ]);
-                    }
+                        .setFooter({ text: userLavalink.addedAt ? t('responses.lavalink.added_on', { date: userLavalink.addedAt.toLocaleDateString() }) : t('responses.lavalink.no_date'), iconURL: client.user?.displayAvatarURL() });
+                    if (userLavalink.lastError)
+                        embed.addFields([{ name: t('responses.lavalink.fields.last_error'), value: userLavalink.lastError, inline: false }]);
                     const actionButtons = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('refresh_lavalink_status').setLabel(t('responses.lavalink.buttons.refresh')).setStyle(discord_js_1.default.ButtonStyle.Primary).setEmoji('🔄'), new discord_js_1.default.ButtonBuilder().setCustomId('remove_lavalink_quick').setLabel(t('responses.lavalink.buttons.remove')).setStyle(discord_js_1.default.ButtonStyle.Danger).setEmoji('🗑️'));
                     await interaction.editReply({ embeds: [embed], components: [actionButtons] });
                     break;

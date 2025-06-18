@@ -49,25 +49,12 @@ const handleLavalinkButtonAction = async (interaction, client) => {
                         inline: true,
                     },
                 ])
-                    .setFooter({
-                    text: userLavalink.addedAt ? t('responses.lavalink.added_on', { date: userLavalink.addedAt.toLocaleDateString() }) : t('responses.lavalink.no_date'),
-                    iconURL: client.user?.displayAvatarURL(),
-                })
+                    .setFooter({ text: userLavalink.addedAt ? t('responses.lavalink.added_on', { date: userLavalink.addedAt.toLocaleDateString() }) : t('responses.lavalink.no_date'), iconURL: client.user?.displayAvatarURL() })
                     .setTimestamp();
-                if (userLavalink.lastError) {
-                    embed.addFields([
-                        {
-                            name: t('responses.lavalink.fields.last_error'),
-                            value: userLavalink.lastError,
-                            inline: false,
-                        },
-                    ]);
-                }
+                if (userLavalink.lastError)
+                    embed.addFields([{ name: t('responses.lavalink.fields.last_error'), value: userLavalink.lastError, inline: false }]);
                 const actionButtons = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('refresh_lavalink_status').setLabel(t('responses.lavalink.buttons.refresh')).setStyle(discord_js_1.default.ButtonStyle.Primary).setEmoji('🔄'), new discord_js_1.default.ButtonBuilder().setCustomId('remove_lavalink_quick').setLabel(t('responses.lavalink.buttons.remove')).setStyle(discord_js_1.default.ButtonStyle.Danger).setEmoji('🗑️'));
-                await interaction.editReply({
-                    embeds: [embed],
-                    components: [actionButtons],
-                });
+                await interaction.editReply({ embeds: [embed], components: [actionButtons] });
                 break;
             }
             case 'remove_lavalink_quick': {
@@ -80,17 +67,10 @@ const handleLavalinkButtonAction = async (interaction, client) => {
                 const confirmEmbed = new discord_js_1.default.EmbedBuilder()
                     .setColor('#faa61a')
                     .setTitle('⚠️ ' + t('responses.lavalink.confirm_removal'))
-                    .setDescription(t('responses.lavalink.removal_warning', {
-                    host: userLavalink.host || 'Unknown',
-                    port: userLavalink.port?.toString() || 'Unknown',
-                }))
+                    .setDescription(t('responses.lavalink.removal_warning', { host: userLavalink.host || 'Unknown', port: userLavalink.port?.toString() || 'Unknown' }))
                     .setFooter({ text: t('responses.lavalink.removal_timeout'), iconURL: client.user?.displayAvatarURL() });
                 const confirmButton = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('confirm_lavalink_removal').setLabel(t('responses.lavalink.buttons.confirm')).setStyle(discord_js_1.default.ButtonStyle.Danger).setEmoji('⚠️'), new discord_js_1.default.ButtonBuilder().setCustomId('cancel_lavalink_removal').setLabel(t('responses.lavalink.buttons.cancel')).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji('❌'));
-                await interaction.reply({
-                    embeds: [confirmEmbed],
-                    components: [confirmButton],
-                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                });
+                await interaction.reply({ embeds: [confirmEmbed], components: [confirmButton], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 break;
             }
             case 'confirm_lavalink_removal': {
@@ -122,20 +102,10 @@ const handleLavalinkButtonAction = async (interaction, client) => {
             try {
                 const t = await localeDetector.getTranslator(interaction);
                 const message = t('responses.errors.general_error');
-                await interaction
-                    .reply({
-                    content: `❌ ${message}`,
-                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                })
-                    .catch(() => { });
+                await interaction.reply({ content: `❌ ${message}`, flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
             catch (localeError) {
-                await interaction
-                    .reply({
-                    content: '❌ An error occurred while processing your request.',
-                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                })
-                    .catch(() => { });
+                await interaction.reply({ content: '❌ An error occurred while processing your request.', flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
         }
     }

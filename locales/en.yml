@@ -206,6 +206,7 @@ responses:
         buttons:
             refresh: "Refresh"
             export: "Export Data"
+        export_success: "📊 Successfully exported {scope} chart data with {count} tracks!"
     suggest_songs:
         title: "Smart Music Recommendations"
         fresh_title: "Fresh Music Recommendations"
