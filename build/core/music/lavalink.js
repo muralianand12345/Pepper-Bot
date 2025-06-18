@@ -55,7 +55,9 @@ class LavaLink {
         this.getUserLavalink = async (userId) => {
             try {
                 const user = await music_user_1.default.findOne({ userId });
-                return user?.lavalink || null;
+                if (user?.lavalink?.identifier)
+                    return user.lavalink;
+                return null;
             }
             catch (error) {
                 this.client.logger.error(`[LAVALINK] Error getting user Lavalink: ${error}`);

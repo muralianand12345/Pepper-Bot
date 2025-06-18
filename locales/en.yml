@@ -248,7 +248,7 @@ responses:
         no_results: "Unable To Fetch Results"
         node_invalid: "Invalid Lavalink node"
         node_not_connected: "Lavalink node is not connected"
-        player_exists: "Hmmm, you have an active music player in this server. Please stop the current player before switching Lavalink nodes."
+        player_exists: "Cannot switch to a different Lavalink node while music is already playing. Stop the current player first or let the current song finish."
         no_permission: "🚫 {user}, You don't have permission to use this command!"
         missing_user_perms: "🚫 You don't have `{permissions}` permissions to use this command!"
         missing_bot_perms: "🚫 I need `{permissions}` permissions to execute this command!"
