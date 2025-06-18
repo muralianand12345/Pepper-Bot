@@ -2,6 +2,7 @@ import discord from 'discord.js';
 import magmastream from 'magmastream';
 
 import { LocaleDetector } from '../locales';
+import { LavaLink } from './lavalink';
 import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator, Autoplay } from './handlers';
 
 export * from './func';
@@ -9,6 +10,7 @@ export * from './repo';
 export * from './handlers';
 export * from './auto_search';
 export * from './now_playing';
+export { LavaLink } from './lavalink';
 
 export const MUSIC_CONFIG = {
 	ERROR_SEARCH_TEXT: 'Unable To Fetch Results',
@@ -36,6 +38,7 @@ export class Music {
 	private client: discord.Client;
 	private interaction: discord.ChatInputCommandInteraction | discord.ButtonInteraction;
 	private localeDetector: LocaleDetector;
+	private lavalink: LavaLink;
 	private locale: string = 'en';
 	private t: (key: string, data?: Record<string, string | number>) => string = (key) => key;
 	private isDeferred: boolean = false;
@@ -44,6 +47,7 @@ export class Music {
 		this.client = client;
 		this.interaction = interaction;
 		this.localeDetector = new LocaleDetector();
+		this.lavalink = new LavaLink(client);
 		this.isDeferred = interaction.deferred;
 	}
 
@@ -65,6 +69,12 @@ export class Music {
 		if (!node) return new MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.node_invalid'), this.locale);
 		if (!node.connected) return new MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.node_not_connected'), this.locale);
 		return null;
+	};
+
+	private getOptimalNode = async (): Promise<string | null> => {
+		if (!this.interaction.guild?.id) return null;
+
+		return await this.lavalink.getOptimalNodeForUser(this.interaction.user.id, this.interaction.guild.id);
 	};
 
 	private validateFilterName = (filterName: string): filterName is keyof typeof MUSIC_CONFIG.AUDIO_FILTERS => {
@@ -120,7 +130,11 @@ export class Music {
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
 		const query = this.interaction.options.getString('song') || this.t('responses.default_search');
-		const nodeChoice = this.interaction.options.getString('lavalink_node') || undefined;
+		let nodeChoice = this.interaction.options.getString('lavalink_node') || undefined;
+
+		if (!nodeChoice) {
+			nodeChoice = (await this.getOptimalNode()) || undefined;
+		}
 
 		const nodeCheck = await this.validateLavalinkNode(nodeChoice);
 		if (nodeCheck) return await this.interaction.editReply({ embeds: [nodeCheck] });
@@ -136,7 +150,7 @@ export class Music {
 			guildId: this.interaction.guildId || '',
 			voiceChannelId: guildMember?.voice.channelId || '',
 			textChannelId: this.interaction.channelId,
-			node: nodeChoice,
+			node: nodeChoice || undefined,
 			...MUSIC_CONFIG.PLAYER_OPTIONS,
 		});
 
@@ -149,7 +163,10 @@ export class Music {
 
 		if (!['CONNECTING', 'CONNECTED'].includes(player.state)) {
 			player.connect();
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)] });
+
+			const nodeName = player.node.options.identifier?.startsWith('user_') ? this.t('responses.music.connected_personal', { channelName: guildMember?.voice.channel?.name || 'Unknown' }) : this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' });
+
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(nodeName, this.locale)] });
 		}
 
 		try {

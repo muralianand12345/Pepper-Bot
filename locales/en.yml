@@ -86,10 +86,39 @@ commands:
             count:
                 name: "count"
                 description: "Number of recommendations to get (1-20)"
+    lavalink:
+        name: "lavalink"
+        description: "Manage your personal Lavalink node"
+        add:
+            name: "add"
+            description: "Add your personal Lavalink node"
+            options:
+                host:
+                    name: "host"
+                    description: "Lavalink host/IP address"
+                port:
+                    name: "port"
+                    description: "Lavalink port"
+                password:
+                    name: "password"
+                    description: "Lavalink password"
+                secure:
+                    name: "secure"
+                    description: "Use secure connection (SSL/TLS)"
+                auto_fallback:
+                    name: "auto_fallback"
+                    description: "Auto switch to default nodes if this fails"
+        remove:
+            name: "remove"
+            description: "Remove your personal Lavalink node"
+        info:
+            name: "info"
+            description: "View your personal Lavalink information"
 
 responses:
     music:
         connected: "Connected to {channelName}"
+        connected_personal: "🔧 Connected to {channelName} using your personal Lavalink"
         paused: "Paused the music!"
         resumed: "Resumed the music!"
         skipped: "Skipped the current song!"
@@ -109,6 +138,50 @@ responses:
         youtube_blocked: "⚠️ Skipping song! Youtube source detected."
         youtube_footer: "We do not support Youtube links due to YouTube's TOS."
         filter_applied: "Applied {filter} filter"
+    lavalink:
+        invalid_host: "Invalid host format. Please use a valid hostname or IP address."
+        already_exists: "You already have a personal Lavalink configured. Remove it first to add a new one."
+        testing_connection: "🔄 Testing connection to your Lavalink node..."
+        added_successfully: "✅ **Personal Lavalink Added Successfully!**\n\n**Host:** {host}:{port}\n**Node ID:** {nodeId}\n\nYour personal Lavalink is now active and will be used for your music requests."
+        add_failed: "❌ **Failed to add Lavalink**\n\n**Error:** {error}\n\nPlease check your connection details and try again."
+        not_found: "You don't have any personal Lavalink configured."
+        confirm_removal: "Confirm Lavalink Removal"
+        removal_warning: "Are you sure you want to remove your personal Lavalink?\n\n**Host:** {host}:{port}\n\n⚠️ This action cannot be undone!"
+        removal_timeout: "This confirmation will expire in 30 seconds"
+        removed_successfully: "✅ **Personal Lavalink Removed**\n\nYour personal Lavalink has been successfully removed. Future music requests will use default nodes."
+        remove_failed: "❌ **Failed to remove Lavalink**\n\n**Error:** {error}"
+        removal_cancelled: "Lavalink removal has been cancelled."
+        removal_timeout_msg: "⏰ Confirmation timed out. Lavalink removal was cancelled."
+        no_personal_node: "No Personal Lavalink Configured"
+        setup_instructions: "You haven't set up a personal Lavalink node yet. Personal Lavalinks allow you to use your own music server for better performance and reliability.\n\nUse `/lavalink add` to configure your own node."
+        default_nodes: "Available Default Nodes"
+        no_default_nodes: "No default nodes available"
+        add_personal_footer: "Use /lavalink add to set up your personal node"
+        personal_node_info: "Your Personal Lavalink Information"
+        status:
+            connected: "Connected"
+            disconnected: "Disconnected"
+        fields:
+            connection: "Connection Details"
+            host: "Host"
+            port: "Port"
+            secure: "Secure"
+            status: "Status"
+            settings: "Settings"
+            auto_fallback: "Auto Fallback"
+            retry_count: "Retry Count"
+            last_error: "Last Error"
+        yes: "Yes"
+        no: "No"
+        enabled: "Enabled"
+        disabled: "Disabled"
+        added_on: "Added on {date}"
+        no_date: "No date available"
+        buttons:
+            confirm: "Confirm"
+            cancel: "Cancel"
+            refresh: "Refresh Status"
+            remove: "Remove Node"
     chart:
         user_title: "{user}'s Music Chart"
         guild_title: "{guild} Server Chart"

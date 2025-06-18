@@ -18,20 +18,8 @@ const playCommand = {
         .setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.name'))
         .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.description'))
         .setContexts(discord_js_1.default.InteractionContextType.Guild)
-        .addStringOption((option) => option
-        .setName('song')
-        .setDescription('Song Name/URL')
-        .setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.name'))
-        .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.description'))
-        .setRequired(true)
-        .setAutocomplete(true))
-        .addStringOption((option) => option
-        .setName('lavalink_node')
-        .setDescription('Lavalink to play the song (Optional)')
-        .setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.lavalink_node.name'))
-        .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.lavalink_node.description'))
-        .setRequired(false)
-        .setAutocomplete(true)),
+        .addStringOption((option) => option.setName('song').setDescription('Song Name/URL').setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.description')).setRequired(true).setAutocomplete(true))
+        .addStringOption((option) => option.setName('lavalink_node').setDescription('Lavalink to play the song (Optional)').setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.lavalink_node.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.lavalink_node.description')).setRequired(false).setAutocomplete(true)),
     autocomplete: async (interaction, client) => {
         const focused = interaction.options.getFocused(true);
         const t = await localeDetector.getTranslator(interaction);
@@ -39,13 +27,26 @@ const playCommand = {
         try {
             let suggestions;
             if (focused.name === 'lavalink_node') {
-                const nodes = client.manager.nodes
-                    .filter((node) => node.connected == true)
+                const lavalink = new music_1.LavaLink(client);
+                const userLavalink = await lavalink.getUserLavalink(interaction.user.id);
+                const availableNodes = [];
+                if (userLavalink?.isActive && userLavalink.identifier) {
+                    const userNode = client.manager.nodes.find((node) => node.options.identifier === userLavalink.identifier && node.connected);
+                    if (userNode) {
+                        availableNodes.push({
+                            name: `🔧 ${userLavalink.host}:${userLavalink.port} (Personal)`,
+                            value: userLavalink.identifier,
+                        });
+                    }
+                }
+                const defaultNodes = client.manager.nodes
+                    .filter((node) => node.connected && !node.options.identifier?.startsWith('user_'))
                     .map((node) => ({
                     name: `${node.options.identifier} (${node.options.host})`,
                     value: node.options.identifier || 'Unknown Node',
                 }));
-                suggestions = nodes.filter((option) => option.name.toLowerCase().includes(focused.value.toLowerCase()));
+                availableNodes.push(...defaultNodes);
+                suggestions = availableNodes.filter((option) => option.name.toLowerCase().includes(focused.value.toLowerCase()));
             }
             else if (focused.name === 'song') {
                 if (!focused.value) {

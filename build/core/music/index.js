@@ -17,16 +17,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Music = exports.MUSIC_CONFIG = void 0;
+exports.Music = exports.MUSIC_CONFIG = exports.LavaLink = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = __importDefault(require("magmastream"));
 const locales_1 = require("../locales");
+const lavalink_1 = require("./lavalink");
 const handlers_1 = require("./handlers");
 __exportStar(require("./func"), exports);
 __exportStar(require("./repo"), exports);
 __exportStar(require("./handlers"), exports);
 __exportStar(require("./auto_search"), exports);
 __exportStar(require("./now_playing"), exports);
+var lavalink_2 = require("./lavalink");
+Object.defineProperty(exports, "LavaLink", { enumerable: true, get: function () { return lavalink_2.LavaLink; } });
 exports.MUSIC_CONFIG = {
     ERROR_SEARCH_TEXT: 'Unable To Fetch Results',
     DEFAULT_SEARCH_TEXT: 'Please enter a song name or url',
@@ -73,6 +76,11 @@ class Music {
             if (!node.connected)
                 return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.node_not_connected'), this.locale);
             return null;
+        };
+        this.getOptimalNode = async () => {
+            if (!this.interaction.guild?.id)
+                return null;
+            return await this.lavalink.getOptimalNodeForUser(this.interaction.user.id, this.interaction.guild.id);
         };
         this.validateFilterName = (filterName) => {
             return filterName in exports.MUSIC_CONFIG.AUDIO_FILTERS;
@@ -125,7 +133,10 @@ class Music {
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
             const query = this.interaction.options.getString('song') || this.t('responses.default_search');
-            const nodeChoice = this.interaction.options.getString('lavalink_node') || undefined;
+            let nodeChoice = this.interaction.options.getString('lavalink_node') || undefined;
+            if (!nodeChoice) {
+                nodeChoice = (await this.getOptimalNode()) || undefined;
+            }
             const nodeCheck = await this.validateLavalinkNode(nodeChoice);
             if (nodeCheck)
                 return await this.interaction.editReply({ embeds: [nodeCheck] });
@@ -140,7 +151,7 @@ class Music {
                 guildId: this.interaction.guildId || '',
                 voiceChannelId: guildMember?.voice.channelId || '',
                 textChannelId: this.interaction.channelId,
-                node: nodeChoice,
+                node: nodeChoice || undefined,
                 ...exports.MUSIC_CONFIG.PLAYER_OPTIONS,
             });
             const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
@@ -152,7 +163,8 @@ class Music {
                 return this.interaction.editReply({ embeds: [queueError] });
             if (!['CONNECTING', 'CONNECTED'].includes(player.state)) {
                 player.connect();
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)] });
+                const nodeName = player.node.options.identifier?.startsWith('user_') ? this.t('responses.music.connected_personal', { channelName: guildMember?.voice.channel?.name || 'Unknown' }) : this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(nodeName, this.locale)] });
             }
             try {
                 const res = await this.lavaSearch(query);
@@ -437,6 +449,7 @@ class Music {
         this.client = client;
         this.interaction = interaction;
         this.localeDetector = new locales_1.LocaleDetector();
+        this.lavalink = new lavalink_1.LavaLink(client);
         this.isDeferred = interaction.deferred;
     }
 }

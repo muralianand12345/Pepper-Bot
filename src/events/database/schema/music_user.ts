@@ -6,6 +6,18 @@ import { IMusicUser } from '../../../types';
 const musicUserSchema = new Schema<IMusicUser>({
 	userId: { type: String, required: true },
 	language: { type: String, required: false, default: null },
+	lavalink: {
+		host: { type: String, required: false },
+		port: { type: Number, required: false },
+		password: { type: String, required: false },
+		secure: { type: Boolean, required: false, default: false },
+		identifier: { type: String, required: false },
+		autoFallback: { type: Boolean, required: false, default: true },
+		retryCount: { type: Number, required: false, default: 0 },
+		isActive: { type: Boolean, required: false, default: false },
+		lastError: { type: String, required: false },
+		addedAt: { type: Date, required: false },
+	},
 	songs: [
 		{
 			track: { type: String, required: true },
