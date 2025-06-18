@@ -135,7 +135,7 @@ class Music {
             const query = this.interaction.options.getString('song') || this.t('responses.default_search');
             let nodeChoice = this.interaction.options.getString('lavalink_node') || undefined;
             if (!nodeChoice) {
-                nodeChoice = (await this.getOptimalNode()) || undefined;
+                nodeChoice = await this.getOptimalNode() || undefined;
             }
             const nodeCheck = await this.validateLavalinkNode(nodeChoice);
             if (nodeCheck)

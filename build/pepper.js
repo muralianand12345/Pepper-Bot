@@ -14,12 +14,9 @@ const initializeManager = (config, client) => {
     return new magmastream_1.Manager({
         autoPlay: true,
         autoPlaySearchPlatform: magmastream_1.SearchPlatform.Jiosaavn,
-        clientId: client.user?.id,
-        clientName: client.user?.username,
         defaultSearchPlatform: config.music.lavalink.default_search,
         lastFmApiKey: configManager.getLastFmApiKey(),
         nodes: config.music.lavalink.nodes,
-        replaceYouTubeCredentials: true,
         useNode: magmastream_1.UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
         usePriority: true,
         send: (guildId, payload) => {

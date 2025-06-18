@@ -133,7 +133,7 @@ export class Music {
 		let nodeChoice = this.interaction.options.getString('lavalink_node') || undefined;
 
 		if (!nodeChoice) {
-			nodeChoice = (await this.getOptimalNode()) || undefined;
+			nodeChoice = await this.getOptimalNode() || undefined;
 		}
 
 		const nodeCheck = await this.validateLavalinkNode(nodeChoice);
@@ -163,9 +163,7 @@ export class Music {
 
 		if (!['CONNECTING', 'CONNECTED'].includes(player.state)) {
 			player.connect();
-
 			const nodeName = player.node.options.identifier?.startsWith('user_') ? this.t('responses.music.connected_personal', { channelName: guildMember?.voice.channel?.name || 'Unknown' }) : this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' });
-
 			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(nodeName, this.locale)] });
 		}
 
