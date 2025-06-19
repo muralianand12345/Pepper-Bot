@@ -249,6 +249,12 @@ responses:
         sent: "Obrigado pelo seu comentário! Foi enviado para os desenvolvedores."
     default_search: "Por favor digite um nome de música ou URL"
 
+survey:
+    title: "📋 Ajude-nos a Melhorar!"
+    description: "Sua opinião importa! Ajude-nos a tornar o bot melhor participando da nossa pesquisa rápida. Leva apenas alguns minutos e nos ajuda a entender quais recursos você gostaria de ver."
+    footer: "Obrigado por usar nosso bot!"
+    button: "Fazer Pesquisa"
+
 modals:
     feedback:
         title: "Enviar comentários"

@@ -72,3 +72,10 @@ music:
               resumeStatus: false
               resumeTimeout: 1000
               requestTimeout: 10000
+
+# Survey system configuration (optional)
+survey:
+    enabled: true # Whether to send random surveys to users
+    url: "https://www.surveymonkey.com/r/example" # Survey link to send
+    probability: 0.05 # Probability of sending survey (5% chance)
+    cooldown: 86400000 # Cooldown in milliseconds (24 hours)

@@ -249,6 +249,12 @@ responses:
         sent: "Thank you for your feedback! It has been sent to the developers."
     default_search: "Please enter a song name or url"
 
+survey:
+    title: "📋 Help Us Improve!"
+    description: "Your opinion matters! Help us make the bot better by participating in our quick survey. It only takes a few minutes and helps us understand what features you'd like to see."
+    footer: "Thank you for using our bot!"
+    button: "Take Survey"
+
 modals:
     feedback:
         title: "Send Feedback"
