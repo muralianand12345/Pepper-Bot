@@ -8,9 +8,8 @@ const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
 
 const pingCommand: Command = {
-	cooldown: 5,
+	cooldown: 3600,
 	data: new discord.SlashCommandBuilder().setName('ping').setDescription("Check the bot's latency and connection status").setNameLocalizations(localizationManager.getCommandLocalizations('commands.ping.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.ping.description')),
-
 	execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {
 		const t = await localeDetector.getTranslator(interaction);
 		const isOwner = client.config.bot.owners.includes(interaction.user.id);
@@ -55,20 +54,16 @@ const pingCommand: Command = {
 
 			const players = Array.from(client.manager.players.values());
 			if (players.length === 0) return 'No active players';
-
 			return players
 				.map((player) => {
 					const guild = client.guilds.cache.get(player.guildId);
 					const voiceChannel = client.channels.cache.get(player.voiceChannelId || '');
 					const currentTrack = player.queue.current;
-
 					const guildName = guild?.name || 'Unknown Guild';
 					const channelName = voiceChannel && 'name' in voiceChannel ? voiceChannel.name : 'Unknown Channel';
 					const trackInfo = currentTrack ? `${currentTrack.title} - ${currentTrack.author}`.slice(0, 50) : 'No track playing';
-
 					const status = player.playing ? '▶️' : player.paused ? '⏸️' : '⏹️';
 					const queueSize = player.queue.size;
-
 					return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize} songs\n` + `└ Node: ${player.node.options.identifier}`;
 				})
 				.join('\n\n');
@@ -79,54 +74,20 @@ const pingCommand: Command = {
 			.setTitle(t('responses.ping.title'))
 			.setDescription(t('responses.ping.description'))
 			.addFields([
-				{
-					name: t('responses.ping.api_latency'),
-					value: `${getLatencyEmoji(apiLatency)} ${apiLatency}ms`,
-					inline: true,
-				},
-				{
-					name: t('responses.ping.websocket_latency'),
-					value: `${getLatencyEmoji(wsLatency)} ${wsLatency}ms`,
-					inline: true,
-				},
-				{
-					name: t('responses.ping.database_latency'),
-					value: dbLatency === -1 ? '❌ Connection failed' : `${getLatencyEmoji(dbLatency)} ${dbLatency}ms`,
-					inline: true,
-				},
-				{
-					name: t('responses.ping.music_nodes'),
-					value: getNodeStatus(),
-					inline: false,
-				},
-				{
-					name: t('responses.ping.uptime'),
-					value: `<t:${Math.floor((Date.now() - (client.uptime || 0)) / 1000)}:R>`,
-					inline: true,
-				},
-				{
-					name: t('responses.ping.memory_usage'),
-					value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
-					inline: true,
-				},
+				{ name: t('responses.ping.api_latency'), value: `${getLatencyEmoji(apiLatency)} ${apiLatency}ms`, inline: true },
+				{ name: t('responses.ping.websocket_latency'), value: `${getLatencyEmoji(wsLatency)} ${wsLatency}ms`, inline: true },
+				{ name: t('responses.ping.database_latency'), value: dbLatency === -1 ? '❌ Connection failed' : `${getLatencyEmoji(dbLatency)} ${dbLatency}ms`, inline: true },
+				{ name: t('responses.ping.music_nodes'), value: getNodeStatus(), inline: false },
+				{ name: t('responses.ping.uptime'), value: `<t:${Math.floor((Date.now() - (client.uptime || 0)) / 1000)}:R>`, inline: true },
+				{ name: t('responses.ping.memory_usage'), value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`, inline: true },
 			])
-			.setFooter({
-				text: t('responses.ping.footer'),
-				iconURL: client.user?.displayAvatarURL(),
-			})
+			.setFooter({ text: t('responses.ping.footer'), iconURL: client.user?.displayAvatarURL() })
 			.setTimestamp();
 
 		if (isOwner) {
 			const playerInfo = getPlayerInfo();
-			embed.addFields([
-				{
-					name: t('responses.ping.active_players'),
-					value: playerInfo.length > 1024 ? playerInfo.substring(0, 1021) + '...' : playerInfo || 'No active players',
-					inline: false,
-				},
-			]);
+			embed.addFields([{ name: t('responses.ping.active_players'), value: playerInfo.length > 1024 ? playerInfo.substring(0, 1021) + '...' : playerInfo || 'No active players', inline: false }]);
 		}
-
 		await interaction.editReply({ embeds: [embed] });
 	},
 };

@@ -32,14 +32,12 @@ const lavalinkEvent: LavalinkEvent = {
 			} catch (error) {}
 
 			const requesterData = track.requester ? getRequester(client, track.requester) : null;
-
 			if (YTREGEX.test(track.uri)) {
 				const isFromPlaylist = player.queue && player.queue.size > 0;
 
 				if (!isFromPlaylist) {
 					player.stop(1);
 					client.logger.warn(`[LAVALINK] Skipping YouTube track: ${track.uri}`);
-
 					const responseHandler = new MusicResponseHandler(client);
 					const embed = responseHandler.createWarningEmbed(client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || '⚠️ Skipping song! Youtube source detected.', guildLocale).setFooter({ text: client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.", iconURL: client.user?.displayAvatarURL() || '' });
 					return await channel.send({ embeds: [embed] }).then((msg) => wait(5000).then(() => msg.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));

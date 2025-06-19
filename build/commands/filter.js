@@ -8,7 +8,7 @@ const music_1 = require("../core/music");
 const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const filterCommand = {
-    cooldown: 3,
+    cooldown: 5,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('filter')
         .setDescription('Apply audio filters to enhance your music experience')

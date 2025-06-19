@@ -24,9 +24,7 @@ class Logger implements ILogger {
 		this.initializeLogDirectory();
 		this.logFilePath = this.generateLogFilePath();
 		this.isDebugEnabled = configManager.isDebugMode();
-		if (this.isDebugEnabled) {
-			this.info('Debug mode is enabled');
-		}
+		if (this.isDebugEnabled) this.info('Debug mode is enabled');
 	}
 
 	private getCurrentTimestamp = (): string => {
@@ -35,9 +33,7 @@ class Logger implements ILogger {
 	};
 
 	private formatMessage = (message: LogMessage): string => {
-		if (message instanceof Error) {
-			return `${message.message}\nStack trace:\n${message.stack}`;
-		}
+		if (message instanceof Error) return `${message.message}\nStack trace:\n${message.stack}`;
 		return message;
 	};
 
@@ -49,9 +45,7 @@ class Logger implements ILogger {
 	private generateLogFilePath = (): string => {
 		const now: Date = new Date();
 		const year: number = now.getFullYear();
-		const month: string = now.toLocaleDateString('default', {
-			month: 'long',
-		});
+		const month: string = now.toLocaleDateString('default', { month: 'long' });
 		const day: number = now.getDate();
 		const formattedDate: string = `${year}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 
@@ -59,24 +53,18 @@ class Logger implements ILogger {
 		const monthFolderPath: string = path.join(yearFolderPath, month);
 
 		[yearFolderPath, monthFolderPath].forEach((dirPath) => {
-			if (!fs.existsSync(dirPath)) {
-				fs.mkdirSync(dirPath);
-			}
+			if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath);
 		});
 
 		return path.join(monthFolderPath, `bot-log-${formattedDate}.log`);
 	};
 
 	private initializeLogDirectory = (): void => {
-		if (!fs.existsSync(this.logsBasePath)) {
-			fs.mkdirSync(this.logsBasePath, { recursive: true });
-		}
+		if (!fs.existsSync(this.logsBasePath)) fs.mkdirSync(this.logsBasePath, { recursive: true });
 	};
 
 	private logWithLevel = (level: string, color: (text: string) => string, message: LogMessage, forceLog: boolean = true): void => {
-		if (!forceLog && !this.isDebugEnabled) {
-			return;
-		}
+		if (!forceLog && !this.isDebugEnabled) return;
 
 		const timestamp = this.getCurrentTimestamp();
 		const coloredLevel = color(`[${level}]`);

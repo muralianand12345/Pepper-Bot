@@ -20,9 +20,8 @@ class Logger {
             return `[${date.toISOString()}]`;
         };
         this.formatMessage = (message) => {
-            if (message instanceof Error) {
+            if (message instanceof Error)
                 return `${message.message}\nStack trace:\n${message.stack}`;
-            }
             return message;
         };
         this.writeToLogFile = (logMessage) => {
@@ -32,29 +31,24 @@ class Logger {
         this.generateLogFilePath = () => {
             const now = new Date();
             const year = now.getFullYear();
-            const month = now.toLocaleDateString('default', {
-                month: 'long',
-            });
+            const month = now.toLocaleDateString('default', { month: 'long' });
             const day = now.getDate();
             const formattedDate = `${year}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             const yearFolderPath = path_1.default.join(this.logsBasePath, year.toString());
             const monthFolderPath = path_1.default.join(yearFolderPath, month);
             [yearFolderPath, monthFolderPath].forEach((dirPath) => {
-                if (!fs_1.default.existsSync(dirPath)) {
+                if (!fs_1.default.existsSync(dirPath))
                     fs_1.default.mkdirSync(dirPath);
-                }
             });
             return path_1.default.join(monthFolderPath, `bot-log-${formattedDate}.log`);
         };
         this.initializeLogDirectory = () => {
-            if (!fs_1.default.existsSync(this.logsBasePath)) {
+            if (!fs_1.default.existsSync(this.logsBasePath))
                 fs_1.default.mkdirSync(this.logsBasePath, { recursive: true });
-            }
         };
         this.logWithLevel = (level, color, message, forceLog = true) => {
-            if (!forceLog && !this.isDebugEnabled) {
+            if (!forceLog && !this.isDebugEnabled)
                 return;
-            }
             const timestamp = this.getCurrentTimestamp();
             const coloredLevel = color(`[${level}]`);
             const formattedMessage = this.formatMessage(message);
@@ -84,9 +78,8 @@ class Logger {
         this.initializeLogDirectory();
         this.logFilePath = this.generateLogFilePath();
         this.isDebugEnabled = configManager.isDebugMode();
-        if (this.isDebugEnabled) {
+        if (this.isDebugEnabled)
             this.info('Debug mode is enabled');
-        }
     }
 }
 exports.default = Logger;

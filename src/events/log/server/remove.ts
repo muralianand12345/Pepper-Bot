@@ -52,9 +52,7 @@ const sendFeedbackRequestDM = async (guild: discord.Guild, client: discord.Clien
 
 		await owner
 			.send({ content: `Hello! This is **${client.user?.username}**, the music bot that was recently removed from **${guild.name}**.`, embeds: [feedbackEmbed], components: [actionRow] })
-			.then(() => {
-				client.logger.info(`[FEEDBACK] Sent feedback request DM to ${owner.tag} (${owner.id}) for guild ${guild.name} (${guild.id})`);
-			})
+			.then(() => client.logger.info(`[FEEDBACK] Sent feedback request DM to ${owner.tag} (${owner.id}) for guild ${guild.name} (${guild.id})`))
 			.catch((error) => client.logger.error(`[FEEDBACK] Failed to send DM to owner: ${error}`));
 	} catch (error) {
 		client.logger.error(`[FEEDBACK] Error sending feedback request DM: ${error}`);

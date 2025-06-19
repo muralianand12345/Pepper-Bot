@@ -104,9 +104,7 @@ class Formatter {
 	 * @returns Truncated text
 	 */
 	public static truncateText = (text: string, maxLength: number = 50, ellipsis: string = '...'): string => {
-		if (Array.from(text).length > maxLength) {
-			text = text.slice(0, maxLength) + ellipsis;
-		}
+		if (Array.from(text).length > maxLength) text = text.slice(0, maxLength) + ellipsis;
 		return text;
 	};
 

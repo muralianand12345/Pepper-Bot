@@ -19,9 +19,8 @@ const shouldAutoplayKeepAlive = (player, guildId, client) => {
     }
 };
 const handlePlayerCleanup = async (player, guildId, client) => {
-    if (shouldAutoplayKeepAlive(player, guildId, client)) {
+    if (shouldAutoplayKeepAlive(player, guildId, client))
         return client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
-    }
     const nowPlayingManager = music_1.NowPlayingManager.getInstance(guildId, player, client);
     nowPlayingManager.onStop();
     const CLEANUP_DELAY = 300000;

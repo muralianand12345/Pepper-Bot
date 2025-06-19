@@ -23,10 +23,8 @@ const shouldAutoplayKeepAlive = (player: magmastream.Player, guildId: string, cl
 };
 
 const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, client: discord.Client): Promise<void> => {
-	if (shouldAutoplayKeepAlive(player, guildId, client)) {
-		return client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
-	}
-
+	if (shouldAutoplayKeepAlive(player, guildId, client)) return client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
+	
 	const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, client);
 	nowPlayingManager.onStop();
 
@@ -49,7 +47,6 @@ const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, 
 	Autoplay.removeInstance(guildId);
 
 	client.logger.info(`[QUEUE_END] Performing cleanup for guild ${guildId} after ${CLEANUP_DELAY_MINS} minutes of inactivity`);
-
 	player.destroy();
 };
 

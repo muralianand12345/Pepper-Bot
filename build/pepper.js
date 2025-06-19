@@ -26,9 +26,7 @@ const initializeManager = (config, client) => {
     });
 };
 const createClient = () => {
-    const client = new discord_js_1.default.Client({
-        intents: [discord_js_1.default.GatewayIntentBits.Guilds, discord_js_1.default.GatewayIntentBits.GuildWebhooks, discord_js_1.default.GatewayIntentBits.GuildMessages, discord_js_1.default.GatewayIntentBits.GuildVoiceStates],
-    });
+    const client = new discord_js_1.default.Client({ intents: [discord_js_1.default.GatewayIntentBits.Guilds, discord_js_1.default.GatewayIntentBits.GuildWebhooks, discord_js_1.default.GatewayIntentBits.GuildMessages, discord_js_1.default.GatewayIntentBits.GuildVoiceStates] });
     client.logger = new logger_1.default();
     client.cmdLogger = new command_logger_1.default();
     client.commands = new discord_js_1.default.Collection();

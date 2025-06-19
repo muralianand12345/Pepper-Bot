@@ -14,12 +14,8 @@ const event: BotEvent = {
 		if (!MONGO_URI) throw new Error('[DATABASE] MONGO_URI is not defined');
 		set('strictQuery', false);
 		connect(MONGO_URI)
-			.then(() => {
-				client.logger.success('[DATABASE] Connected to MongoDB');
-			})
-			.catch((error) => {
-				client.logger.error(`[DATABASE] Error connecting to MongoDB: ${error}`);
-			});
+			.then(() => client.logger.success('[DATABASE] Connected to MongoDB'))
+			.catch((error) => client.logger.error(`[DATABASE] Error connecting to MongoDB: ${error}`));
 	},
 };
 

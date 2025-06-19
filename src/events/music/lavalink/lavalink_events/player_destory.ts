@@ -16,7 +16,6 @@ const lavalinkEvent: LavalinkEvent = {
 		try {
 			const nowPlayingManager = NowPlayingManager.getInstance(player.guildId, player, client);
 			nowPlayingManager.onStop();
-
 			if (player.textChannelId) {
 				const channel = (await client.channels.fetch(player.textChannelId)) as discord.TextChannel;
 				if (channel?.isTextBased()) {
@@ -24,7 +23,6 @@ const lavalinkEvent: LavalinkEvent = {
 					try {
 						guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
 					} catch (error) {}
-
 					const responseHandler = new MusicResponseHandler(client);
 					const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected', guildLocale);
 					await channel.send({ embeds: [disconnectEmbed] });

@@ -46,15 +46,9 @@ const handleMusicButtonAction = async (interaction, client) => {
         client.logger.error(`[MUSIC_BUTTON] Error handling button ${interaction.customId}: ${error}`);
         if (!interaction.replied && !interaction.deferred) {
             try {
-                const locale = await localeDetector.detectLocale(interaction);
                 const t = await localeDetector.getTranslator(interaction);
                 const message = t('responses.errors.general_error');
-                await interaction
-                    .reply({
-                    content: `❌ ${message}`,
-                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                })
-                    .catch(() => { });
+                await interaction.reply({ content: `❌ ${message}`, flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
             catch (localeError) {
                 await interaction.reply({ content: '❌ An error occurred while processing your request.', flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
@@ -69,18 +63,12 @@ const event = {
             return;
         if (!client.config.music.enabled) {
             try {
-                const locale = await localeDetector.detectLocale(interaction);
                 const t = await localeDetector.getTranslator(interaction);
                 const message = t('responses.errors.music_disabled');
                 await interaction.reply({ content: `❌ ${message}`, flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
             catch (localeError) {
-                await interaction
-                    .reply({
-                    content: '❌ Music is currently disabled.',
-                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                })
-                    .catch(() => { });
+                await interaction.reply({ content: '❌ Music is currently disabled.', flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
             }
             return;
         }

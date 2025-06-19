@@ -26,17 +26,8 @@ class SurveyHandler {
                 if (!this.shouldSendSurvey(client, interaction.user.id))
                     return;
                 const t = await this.localeDetector.getTranslator(interaction);
-                const surveyEmbed = new discord_js_1.default.EmbedBuilder()
-                    .setColor('#5865f2')
-                    .setTitle(t('survey.title'))
-                    .setDescription(t('survey.description'))
-                    .setFooter({ text: t('survey.footer'), iconURL: client.user?.displayAvatarURL() })
-                    .setTimestamp();
-                const surveyButton = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder()
-                    .setLabel(t('survey.button'))
-                    .setStyle(discord_js_1.default.ButtonStyle.Link)
-                    .setURL(client.config.survey?.url || '')
-                    .setEmoji('📋'), new discord_js_1.default.ButtonBuilder().setLabel(t('responses.buttons.support_server')).setStyle(discord_js_1.default.ButtonStyle.Link).setURL('https://discord.gg/XzE9hSbsNb').setEmoji('🔧'));
+                const surveyEmbed = new discord_js_1.default.EmbedBuilder().setColor('#5865f2').setTitle(t('survey.title')).setDescription(t('survey.description')).setFooter({ text: t('survey.footer'), iconURL: client.user?.displayAvatarURL() }).setTimestamp();
+                const surveyButton = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setLabel(t('survey.button')).setStyle(discord_js_1.default.ButtonStyle.Link).setURL(client.config.survey?.url || '').setEmoji('📋'), new discord_js_1.default.ButtonBuilder().setLabel(t('responses.buttons.support_server')).setStyle(discord_js_1.default.ButtonStyle.Link).setURL('https://discord.gg/XzE9hSbsNb').setEmoji('🔧'));
                 await interaction.followUp({ embeds: [surveyEmbed], components: [surveyButton], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 this.lastSentUsers.add(interaction.user.id);
                 client.logger.info(`[SURVEY] Sent survey to user ${interaction.user.tag} (${interaction.user.id})`);

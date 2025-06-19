@@ -97,9 +97,8 @@ Formatter.formatListeningTime = (seconds) => {
  * @returns Truncated text
  */
 Formatter.truncateText = (text, maxLength = 50, ellipsis = '...') => {
-    if (Array.from(text).length > maxLength) {
+    if (Array.from(text).length > maxLength)
         text = text.slice(0, maxLength) + ellipsis;
-    }
     return text;
 };
 /**

@@ -9,7 +9,7 @@ const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const pingCommand = {
-    cooldown: 5,
+    cooldown: 3600,
     data: new discord_js_1.default.SlashCommandBuilder().setName('ping').setDescription("Check the bot's latency and connection status").setNameLocalizations(localizationManager.getCommandLocalizations('commands.ping.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.ping.description')),
     execute: async (interaction, client) => {
         const t = await localeDetector.getTranslator(interaction);
@@ -75,51 +75,18 @@ const pingCommand = {
             .setTitle(t('responses.ping.title'))
             .setDescription(t('responses.ping.description'))
             .addFields([
-            {
-                name: t('responses.ping.api_latency'),
-                value: `${getLatencyEmoji(apiLatency)} ${apiLatency}ms`,
-                inline: true,
-            },
-            {
-                name: t('responses.ping.websocket_latency'),
-                value: `${getLatencyEmoji(wsLatency)} ${wsLatency}ms`,
-                inline: true,
-            },
-            {
-                name: t('responses.ping.database_latency'),
-                value: dbLatency === -1 ? '❌ Connection failed' : `${getLatencyEmoji(dbLatency)} ${dbLatency}ms`,
-                inline: true,
-            },
-            {
-                name: t('responses.ping.music_nodes'),
-                value: getNodeStatus(),
-                inline: false,
-            },
-            {
-                name: t('responses.ping.uptime'),
-                value: `<t:${Math.floor((Date.now() - (client.uptime || 0)) / 1000)}:R>`,
-                inline: true,
-            },
-            {
-                name: t('responses.ping.memory_usage'),
-                value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
-                inline: true,
-            },
+            { name: t('responses.ping.api_latency'), value: `${getLatencyEmoji(apiLatency)} ${apiLatency}ms`, inline: true },
+            { name: t('responses.ping.websocket_latency'), value: `${getLatencyEmoji(wsLatency)} ${wsLatency}ms`, inline: true },
+            { name: t('responses.ping.database_latency'), value: dbLatency === -1 ? '❌ Connection failed' : `${getLatencyEmoji(dbLatency)} ${dbLatency}ms`, inline: true },
+            { name: t('responses.ping.music_nodes'), value: getNodeStatus(), inline: false },
+            { name: t('responses.ping.uptime'), value: `<t:${Math.floor((Date.now() - (client.uptime || 0)) / 1000)}:R>`, inline: true },
+            { name: t('responses.ping.memory_usage'), value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`, inline: true },
         ])
-            .setFooter({
-            text: t('responses.ping.footer'),
-            iconURL: client.user?.displayAvatarURL(),
-        })
+            .setFooter({ text: t('responses.ping.footer'), iconURL: client.user?.displayAvatarURL() })
             .setTimestamp();
         if (isOwner) {
             const playerInfo = getPlayerInfo();
-            embed.addFields([
-                {
-                    name: t('responses.ping.active_players'),
-                    value: playerInfo.length > 1024 ? playerInfo.substring(0, 1021) + '...' : playerInfo || 'No active players',
-                    inline: false,
-                },
-            ]);
+            embed.addFields([{ name: t('responses.ping.active_players'), value: playerInfo.length > 1024 ? playerInfo.substring(0, 1021) + '...' : playerInfo || 'No active players', inline: false }]);
         }
         await interaction.editReply({ embeds: [embed] });
     },

@@ -73,7 +73,6 @@ const event: BotEvent = {
 						const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
 
 						await textChannel.send({ embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
-
 						NowPlayingManager.removeInstance(player.guildId);
 						currentPlayer.destroy();
 					}

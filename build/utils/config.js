@@ -13,9 +13,8 @@ const EnvSchema = zod_1.z.object({
     TOKEN: zod_1.z.string(),
     MONGO_URI: zod_1.z.string(),
     DEBUG_MODE: zod_1.z.union([zod_1.z.boolean(), zod_1.z.string()]).transform((val) => {
-        if (typeof val === 'string') {
+        if (typeof val === 'string')
             return val.toLowerCase() === 'true';
-        }
         return val;
     }),
     LASTFM_API_KEY: zod_1.z.string(),

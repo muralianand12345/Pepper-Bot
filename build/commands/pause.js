@@ -9,11 +9,7 @@ const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const pauseCommand = {
     cooldown: 1,
-    data: new discord_js_1.default.SlashCommandBuilder()
-        .setName('pause')
-        .setDescription('Pause the currently playing music')
-        .setNameLocalizations(localizationManager.getCommandLocalizations('commands.pause.name'))
-        .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.pause.description')),
+    data: new discord_js_1.default.SlashCommandBuilder().setName('pause').setDescription('Pause the currently playing music').setNameLocalizations(localizationManager.getCommandLocalizations('commands.pause.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.pause.description')),
     execute: async (interaction, client) => {
         const music = new music_1.Music(client, interaction);
         await music.pause();

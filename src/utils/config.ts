@@ -9,9 +9,7 @@ const EnvSchema = z.object({
 	TOKEN: z.string(),
 	MONGO_URI: z.string(),
 	DEBUG_MODE: z.union([z.boolean(), z.string()]).transform((val) => {
-		if (typeof val === 'string') {
-			return val.toLowerCase() === 'true';
-		}
+		if (typeof val === 'string') return val.toLowerCase() === 'true';
 		return val;
 	}),
 	LASTFM_API_KEY: z.string(),

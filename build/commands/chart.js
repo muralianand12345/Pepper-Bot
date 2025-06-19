@@ -11,7 +11,7 @@ const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const chartCommand = {
-    cooldown: 10,
+    cooldown: 60,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('chart')
         .setDescription('Display music analytics and charts')
@@ -23,27 +23,8 @@ const chartCommand = {
         .setNameLocalizations(localizationManager.getCommandLocalizations('commands.chart.options.scope.name'))
         .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.chart.options.scope.description'))
         .setRequired(true)
-        .addChoices({
-        name: 'Personal',
-        value: 'user',
-        name_localizations: localizationManager.getCommandLocalizations('commands.chart.options.scope.choices.user'),
-    }, {
-        name: 'Server',
-        value: 'guild',
-        name_localizations: localizationManager.getCommandLocalizations('commands.chart.options.scope.choices.guild'),
-    }, {
-        name: 'Global',
-        value: 'global',
-        name_localizations: localizationManager.getCommandLocalizations('commands.chart.options.scope.choices.global'),
-    }))
-        .addIntegerOption((option) => option
-        .setName('limit')
-        .setDescription('Number of top items to display (5-20)')
-        .setNameLocalizations(localizationManager.getCommandLocalizations('commands.chart.options.limit.name'))
-        .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.chart.options.limit.description'))
-        .setRequired(false)
-        .setMinValue(5)
-        .setMaxValue(20)),
+        .addChoices({ name: 'Personal', value: 'user', name_localizations: localizationManager.getCommandLocalizations('commands.chart.options.scope.choices.user') }, { name: 'Server', value: 'guild', name_localizations: localizationManager.getCommandLocalizations('commands.chart.options.scope.choices.guild') }, { name: 'Global', value: 'global', name_localizations: localizationManager.getCommandLocalizations('commands.chart.options.scope.choices.global') }))
+        .addIntegerOption((option) => option.setName('limit').setDescription('Number of top items to display (5-20)').setNameLocalizations(localizationManager.getCommandLocalizations('commands.chart.options.limit.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.chart.options.limit.description')).setRequired(false).setMinValue(5).setMaxValue(20)),
     execute: async (interaction, client) => {
         await interaction.deferReply();
         const t = await localeDetector.getTranslator(interaction);
@@ -66,9 +47,7 @@ const chartCommand = {
                     }
                     chartData = userHistory.songs.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit);
                     analytics = calculateAnalytics(userHistory.songs);
-                    embedTitle = t('responses.chart.user_title', {
-                        user: interaction.user.displayName,
-                    });
+                    embedTitle = t('responses.chart.user_title', { user: interaction.user.displayName });
                     embedColor = '#43b581';
                     break;
                 }
@@ -86,9 +65,7 @@ const chartCommand = {
                     }
                     chartData = guildHistory.songs.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit);
                     analytics = calculateAnalytics(guildHistory.songs);
-                    embedTitle = t('responses.chart.guild_title', {
-                        guild: interaction.guild?.name || 'Server',
-                    });
+                    embedTitle = t('responses.chart.guild_title', { guild: interaction.guild?.name || 'Server' });
                     embedColor = '#f1c40f';
                     break;
                 }
@@ -113,10 +90,7 @@ const chartCommand = {
             }
             const embed = createChartEmbed(chartData || [], analytics, embedTitle, embedColor, locale, t, client, scope);
             const actionRow = createChartButtons(locale, t);
-            await interaction.editReply({
-                embeds: [embed],
-                components: [actionRow],
-            });
+            await interaction.editReply({ embeds: [embed], components: [actionRow] });
         }
         catch (error) {
             client.logger.error(`[CHART_COMMAND] Error: ${error}`);
@@ -140,14 +114,7 @@ const calculateAnalytics = (songs) => {
         if (song.sourceName)
             genres[song.sourceName] = (genres[song.sourceName] || 0) + song.played_number;
     });
-    return {
-        totalSongs,
-        uniqueArtists,
-        totalPlaytime,
-        topGenres: genres,
-        recentActivity,
-        averagePlayCount: totalPlays / totalSongs || 0,
-    };
+    return { totalSongs, uniqueArtists, totalPlaytime, topGenres: genres, recentActivity, averagePlayCount: totalPlays / totalSongs || 0 };
 };
 const createChartEmbed = (chartData, analytics, title, color, locale, t, client, scope) => {
     const embed = new discord_js_1.default.EmbedBuilder()
@@ -155,10 +122,7 @@ const createChartEmbed = (chartData, analytics, title, color, locale, t, client,
         .setTitle(`📊 ${title}`)
         .setDescription(createAnalyticsOverview(analytics, t, locale))
         .setTimestamp()
-        .setFooter({
-        text: t('responses.chart.footer'),
-        iconURL: client.user?.displayAvatarURL(),
-    });
+        .setFooter({ text: t('responses.chart.footer'), iconURL: client.user?.displayAvatarURL() });
     if (chartData.length > 0) {
         const topTracksField = createTopTracksField(chartData, t, locale);
         embed.addFields([topTracksField]);
@@ -172,13 +136,7 @@ const createChartEmbed = (chartData, analytics, title, color, locale, t, client,
 const createAnalyticsOverview = (analytics, t, locale) => {
     const totalTimeFormatted = format_1.default.formatListeningTime(analytics.totalPlaytime / 1000);
     const avgPlayCount = Math.round(analytics.averagePlayCount * 10) / 10;
-    return [
-        `🎵 **${analytics.totalSongs}** ${t('responses.chart.total_tracks')}`,
-        `🎤 **${analytics.uniqueArtists}** ${t('responses.chart.unique_artists')}`,
-        `⏱️ **${totalTimeFormatted}** ${t('responses.chart.total_listening_time')}`,
-        `📈 **${avgPlayCount}** ${t('responses.chart.average_plays')}`,
-        `🔥 **${analytics.recentActivity}** ${t('responses.chart.recent_activity')}`,
-    ].join('\n');
+    return [`🎵 **${analytics.totalSongs}** ${t('responses.chart.total_tracks')}`, `🎤 **${analytics.uniqueArtists}** ${t('responses.chart.unique_artists')}`, `⏱️ **${totalTimeFormatted}** ${t('responses.chart.total_listening_time')}`, `📈 **${avgPlayCount}** ${t('responses.chart.average_plays')}`, `🔥 **${analytics.recentActivity}** ${t('responses.chart.recent_activity')}`].join('\n');
 };
 const createTopTracksField = (chartData, t, locale) => {
     const tracksList = chartData
@@ -191,25 +149,13 @@ const createTopTracksField = (chartData, t, locale) => {
         return `${medal} **${title}** - ${artist}\n└ ${plays} ${t('responses.chart.plays')} • ${duration}`;
     })
         .join('\n\n');
-    return {
-        name: `🎶 ${t('responses.chart.top_tracks')}`,
-        value: tracksList.length > 1024 ? tracksList.substring(0, 1021) + '...' : tracksList,
-        inline: false,
-    };
+    return { name: `🎶 ${t('responses.chart.top_tracks')}`, value: tracksList.length > 1024 ? tracksList.substring(0, 1021) + '...' : tracksList, inline: false };
 };
 const createStatsFields = (analytics, t, locale, scope) => {
     const fields = [];
     const totalHours = Math.round((analytics.totalPlaytime / (1000 * 60 * 60)) * 10) / 10;
     const avgSongLength = analytics.totalSongs > 0 ? format_1.default.msToTime(analytics.totalPlaytime / analytics.totalSongs) : '0:00:00';
-    fields.push({
-        name: `⏰ ${t('responses.chart.listening_stats')}`,
-        value: [
-            `${t('responses.chart.total_hours')}: **${totalHours}h**`,
-            `${t('responses.chart.avg_song_length')}: **${avgSongLength}**`,
-            `${t('responses.chart.this_week')}: **${analytics.recentActivity}** ${t('responses.chart.tracks')}`,
-        ].join('\n'),
-        inline: true,
-    });
+    fields.push({ name: `⏰ ${t('responses.chart.listening_stats')}`, value: [`${t('responses.chart.total_hours')}: **${totalHours}h**`, `${t('responses.chart.avg_song_length')}: **${avgSongLength}**`, `${t('responses.chart.this_week')}: **${analytics.recentActivity}** ${t('responses.chart.tracks')}`].join('\n'), inline: true });
     return fields;
 };
 const createChartButtons = (locale, t) => {

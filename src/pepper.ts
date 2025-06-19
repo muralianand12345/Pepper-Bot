@@ -25,9 +25,7 @@ const initializeManager = (config: IConfig, client: discord.Client) => {
 };
 
 const createClient = (): discord.Client => {
-	const client = new discord.Client({
-		intents: [discord.GatewayIntentBits.Guilds, discord.GatewayIntentBits.GuildWebhooks, discord.GatewayIntentBits.GuildMessages, discord.GatewayIntentBits.GuildVoiceStates],
-	});
+	const client = new discord.Client({ intents: [discord.GatewayIntentBits.Guilds, discord.GatewayIntentBits.GuildWebhooks, discord.GatewayIntentBits.GuildMessages, discord.GatewayIntentBits.GuildVoiceStates] });
 
 	client.logger = new Logger();
 	client.cmdLogger = new CommandLogger();

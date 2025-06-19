@@ -11,7 +11,7 @@ const configManager = config_1.ConfigManager.getInstance();
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const feedbackCommand = {
-    cooldown: 30,
+    cooldown: 60,
     data: new discord_js_1.default.SlashCommandBuilder().setName('feedback').setDescription('Send feedback to the developers').setNameLocalizations(localizationManager.getCommandLocalizations('commands.feedback.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.feedback.description')),
     modal: async (interaction) => {
         const t = await localeDetector.getTranslator(interaction);
@@ -34,32 +34,18 @@ const feedbackCommand = {
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter({ text: 'Feedback System', iconURL: interaction.client.user?.displayAvatarURL() })
                 .setTimestamp();
-            await webhook.send({
-                content: `Feedback from ${interaction.user.tag} (${interaction.user.id})`,
-                embeds: [embed],
-                username: 'Feedback Bot',
-                avatarURL: interaction.client.user?.displayAvatarURL(),
-            });
+            await webhook.send({ content: `Feedback from ${interaction.user.tag} (${interaction.user.id})`, embeds: [embed], username: 'Feedback Bot', avatarURL: interaction.client.user?.displayAvatarURL() });
             const successEmbed = responseHandler.createSuccessEmbed(t('responses.feedback.sent'), locale);
-            await interaction.reply({
-                embeds: [successEmbed],
-                flags: discord_js_1.default.MessageFlags.Ephemeral,
-            });
+            await interaction.reply({ embeds: [successEmbed], flags: discord_js_1.default.MessageFlags.Ephemeral });
         }
         catch (error) {
             interaction.client.logger.error(`[FEEDBACK] Error sending feedback: ${error}`);
             const errorEmbed = responseHandler.createErrorEmbed(t('responses.errors.feedback_failed'), locale, true);
             if (!interaction.replied) {
-                await interaction.reply({
-                    embeds: [errorEmbed],
-                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                });
+                await interaction.reply({ embeds: [errorEmbed], flags: discord_js_1.default.MessageFlags.Ephemeral });
             }
             else {
-                await interaction.followUp({
-                    embeds: [errorEmbed],
-                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                });
+                await interaction.followUp({ embeds: [errorEmbed], flags: discord_js_1.default.MessageFlags.Ephemeral });
             }
         }
     },
