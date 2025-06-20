@@ -86,6 +86,13 @@ commands:
             count:
                 name: "count"
                 description: "Número de recomendaciones a obtener (1-20)"
+    lyrics:
+        name: "lyrics"
+        description: "Mostrar la letra de la pista que se está reproduciendo actualmente"
+        options:
+            skip_track_source:
+                name: "skip_track_source"
+                description: "Omitir el uso de la URL fuente de la pista al buscar letras"
 
 responses:
     music:
@@ -191,6 +198,9 @@ responses:
         filter_not_found: "Filtro `{filter}` no encontrado. Filtros disponibles: {available}"
         feedback_not_configured: "El sistema de comentarios no está configurado correctamente"
         feedback_failed: "Error al enviar comentarios. Por favor intenta de nuevo más tarde."
+        no_current_track: "No hay ninguna pista reproduciéndose actualmente"
+        lyrics_plugin_missing: "La funcionalidad de letras no está disponible. El plugin lavalyrics no está instalado en el nodo Lavalink."
+        lyrics_error: "Ocurrió un error al obtener la letra"
     language:
         user_set: "Tu idioma ha sido establecido a **{language}**"
         server_set: "El idioma del servidor ha sido establecido a **{language}** (Solo Admin)"
@@ -245,6 +255,16 @@ responses:
             music: "Comandos de música"
             utility: "Comandos de utilidad"
             other: "Otros comandos"
+    lyrics:
+        title: "Letra"
+        not_found: 'No se encontró letra para "{title}" por {artist}'
+        empty: 'La letra para "{title}" por {artist} está vacía o no disponible'
+        provider: "Proveedor"
+        source: "Fuente"
+        page: "Página"
+        buttons:
+            previous: "Anterior"
+            next: "Siguiente"
     feedback:
         sent: "¡Gracias por tus comentarios! Han sido enviados a los desarrolladores."
     default_search: "Por favor ingresa un nombre de canción o URL"

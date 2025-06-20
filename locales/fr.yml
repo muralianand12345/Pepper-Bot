@@ -86,6 +86,13 @@ commands:
             count:
                 name: "count"
                 description: "Nombre de recommandations à obtenir (1-20)"
+    lyrics:
+        name: "lyrics"
+        description: "Afficher les paroles de la piste actuellement en cours de lecture"
+        options:
+            skip_track_source:
+                name: "skip_track_source"
+                description: "Ignorer l'URL source de la piste lors de la recherche de paroles"
 
 responses:
     music:
@@ -191,6 +198,9 @@ responses:
         filter_not_found: "Filtre `{filter}` non trouvé. Filtres disponibles : {available}"
         feedback_not_configured: "Le système de commentaires n'est pas correctement configuré"
         feedback_failed: "Échec de l'envoi des commentaires. Veuillez réessayer plus tard."
+        no_current_track: "Aucune piste n'est actuellement en cours de lecture"
+        lyrics_plugin_missing: "La fonctionnalité de paroles n'est pas disponible. Le plugin lavalyrics n'est pas installé sur le nœud Lavalink."
+        lyrics_error: "Une erreur s'est produite lors de la récupération des paroles"
     language:
         user_set: "Votre langue a été définie sur **{language}**"
         server_set: "La langue du serveur a été définie sur **{language}** (Admin uniquement)"
@@ -245,6 +255,16 @@ responses:
             music: "Commandes musicales"
             utility: "Commandes utilitaires"
             other: "Autres commandes"
+    lyrics:
+        title: "Paroles"
+        not_found: 'Aucune parole trouvée pour "{title}" par {artist}'
+        empty: 'Les paroles pour "{title}" par {artist} sont vides ou indisponibles'
+        provider: "Fournisseur"
+        source: "Source"
+        page: "Page"
+        buttons:
+            previous: "Précédent"
+            next: "Suivant"
     feedback:
         sent: "Merci pour vos commentaires ! Ils ont été envoyés aux développeurs."
     default_search: "Veuillez entrer un nom de chanson ou une URL"

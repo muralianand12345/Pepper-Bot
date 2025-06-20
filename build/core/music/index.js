@@ -20,6 +20,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Music = exports.MUSIC_CONFIG = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = __importDefault(require("magmastream"));
+const format_1 = __importDefault(require("../../utils/format"));
 const locales_1 = require("../locales");
 const handlers_1 = require("./handlers");
 __exportStar(require("./func"), exports);
@@ -432,6 +433,152 @@ class Music {
                     embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.filter_error'), this.locale, true)],
                     components: [responseHandler.getSupportButton(this.locale)],
                 });
+            }
+        };
+        this.lyrics = async () => {
+            await this.interaction.deferReply();
+            await this.initializeLocale();
+            const responseHandler = new handlers_1.MusicResponseHandler(this.client);
+            const musicCheck = this.validateMusicEnabled();
+            if (musicCheck)
+                return await this.interaction.editReply({ embeds: [musicCheck] });
+            const player = this.client.manager.get(this.interaction.guild?.id || '');
+            if (!player)
+                return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+            const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
+            for (const check of [validator.validateGuildContext(), validator.validateMusicPlaying(player)]) {
+                const [isValid, embed] = await check;
+                if (!isValid)
+                    return await this.interaction.editReply({ embeds: [embed] });
+            }
+            if (!this.isDeferred && !this.interaction.deferred) {
+                await this.interaction.deferReply();
+                this.isDeferred = true;
+            }
+            try {
+                if (!player.queue.current) {
+                    const embed = responseHandler.createErrorEmbed(this.t('responses.errors.no_current_track'), this.locale);
+                    return await this.interaction.editReply({ embeds: [embed] });
+                }
+                const currentTrack = player.queue.current;
+                const skipTrackSource = this.interaction instanceof discord_js_1.default.ChatInputCommandInteraction ? this.interaction.options.getBoolean('skip_track_source') || false : false;
+                const lyricsData = await player.getCurrentLyrics(skipTrackSource);
+                if (!lyricsData || (!lyricsData.text && (!lyricsData.lines || lyricsData.lines.length === 0))) {
+                    const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.not_found', { title: currentTrack.title || 'Unknown Track', artist: currentTrack.author || 'Unknown Artist' }), this.locale);
+                    return await this.interaction.editReply({ embeds: [embed] });
+                }
+                const trackTitle = format_1.default.truncateText(currentTrack.title || 'Unknown Track', 50);
+                const trackArtist = format_1.default.truncateText(currentTrack.author || 'Unknown Artist', 30);
+                let lyricsText = '';
+                if (lyricsData.text) {
+                    lyricsText = lyricsData.text;
+                }
+                else if (lyricsData.lines && lyricsData.lines.length > 0) {
+                    lyricsText = lyricsData.lines
+                        .map((line) => line.line)
+                        .filter((line) => line && line.trim() !== '')
+                        .join('\n');
+                }
+                if (!lyricsText || lyricsText.trim() === '') {
+                    const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.empty', { title: trackTitle, artist: trackArtist }), this.locale);
+                    return await this.interaction.editReply({ embeds: [embed] });
+                }
+                const maxLength = 4000;
+                const chunks = [];
+                if (lyricsText.length <= maxLength) {
+                    chunks.push(lyricsText);
+                }
+                else {
+                    const lines = lyricsText.split('\n');
+                    let currentChunk = '';
+                    for (const line of lines) {
+                        if ((currentChunk + line + '\n').length > maxLength) {
+                            if (currentChunk) {
+                                chunks.push(currentChunk.trim());
+                                currentChunk = '';
+                            }
+                            if (line.length > maxLength) {
+                                chunks.push(line.substring(0, maxLength - 3) + '...');
+                            }
+                            else {
+                                currentChunk = line + '\n';
+                            }
+                        }
+                        else {
+                            currentChunk += line + '\n';
+                        }
+                    }
+                    if (currentChunk.trim())
+                        chunks.push(currentChunk.trim());
+                }
+                const embeds = [];
+                for (let i = 0; i < chunks.length; i++) {
+                    const embed = new discord_js_1.default.EmbedBuilder().setColor('#1DB954').setDescription(chunks[i]).setTimestamp();
+                    if (i === 0) {
+                        embed.setTitle(`🎵 ${this.t('responses.lyrics.title')} - ${trackTitle}`);
+                        embed.setAuthor({ name: trackArtist, iconURL: currentTrack.thumbnail || currentTrack.artworkUrl || undefined });
+                        if (lyricsData.provider)
+                            embed.addFields({ name: this.t('responses.lyrics.provider'), value: lyricsData.provider, inline: true });
+                        if (lyricsData.source)
+                            embed.addFields({ name: this.t('responses.lyrics.source'), value: lyricsData.source, inline: true });
+                        if (currentTrack.thumbnail || currentTrack.artworkUrl)
+                            embed.setThumbnail(currentTrack.thumbnail || currentTrack.artworkUrl);
+                    }
+                    if (chunks.length > 1) {
+                        embed.setFooter({ text: `${this.t('responses.lyrics.page')} ${i + 1}/${chunks.length} • ${this.client.user?.username || 'Music Bot'}`, iconURL: this.client.user?.displayAvatarURL() });
+                    }
+                    else {
+                        embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
+                    }
+                    embeds.push(embed);
+                }
+                if (embeds.length === 1) {
+                    await this.interaction.editReply({ embeds: [embeds[0]] });
+                }
+                else {
+                    let currentPage = 0;
+                    const row = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('lyrics-previous').setLabel(this.t('responses.lyrics.buttons.previous')).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji('⬅️').setDisabled(true), new discord_js_1.default.ButtonBuilder()
+                        .setCustomId('lyrics-next')
+                        .setLabel(this.t('responses.lyrics.buttons.next'))
+                        .setStyle(discord_js_1.default.ButtonStyle.Secondary)
+                        .setEmoji('➡️')
+                        .setDisabled(embeds.length <= 1));
+                    const message = await this.interaction.editReply({ embeds: [embeds[currentPage]], components: [row] });
+                    const collector = message.createMessageComponentCollector({ filter: (i) => i.user.id === this.interaction.user.id, time: 300000 });
+                    collector.on('collect', async (i) => {
+                        if (i.customId === 'lyrics-previous' && currentPage > 0) {
+                            currentPage--;
+                        }
+                        else if (i.customId === 'lyrics-next' && currentPage < embeds.length - 1) {
+                            currentPage++;
+                        }
+                        const updatedRow = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder()
+                            .setCustomId('lyrics-previous')
+                            .setLabel(this.t('responses.lyrics.buttons.previous'))
+                            .setStyle(discord_js_1.default.ButtonStyle.Secondary)
+                            .setEmoji('⬅️')
+                            .setDisabled(currentPage === 0), new discord_js_1.default.ButtonBuilder()
+                            .setCustomId('lyrics-next')
+                            .setLabel(this.t('responses.lyrics.buttons.next'))
+                            .setStyle(discord_js_1.default.ButtonStyle.Secondary)
+                            .setEmoji('➡️')
+                            .setDisabled(currentPage === embeds.length - 1));
+                        await i.update({ embeds: [embeds[currentPage]], components: [updatedRow] });
+                    });
+                    collector.on('end', async () => {
+                        const disabledRow = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('lyrics-previous').setLabel(this.t('responses.lyrics.buttons.previous')).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji('⬅️').setDisabled(true), new discord_js_1.default.ButtonBuilder().setCustomId('lyrics-next').setLabel(this.t('responses.lyrics.buttons.next')).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji('➡️').setDisabled(true));
+                        await this.interaction.editReply({ components: [disabledRow] }).catch(() => { });
+                    });
+                }
+            }
+            catch (error) {
+                this.client.logger.error(`[LYRICS] Command error: ${error}`);
+                if (error instanceof Error && error.message.includes('lavalyrics-plugin')) {
+                    await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.lyrics_plugin_missing'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
+                }
+                else {
+                    await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.lyrics_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
+                }
             }
         };
         this.client = client;

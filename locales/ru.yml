@@ -86,6 +86,13 @@ commands:
             count:
                 name: "count"
                 description: "Количество рекомендаций для получения (1-20)"
+    lyrics:
+        name: "lyrics"
+        description: "Показать текст воспроизводимого трека"
+        options:
+            skip_track_source:
+                name: "skip_track_source"
+                description: "Пропустить использование URL источника трека при поиске текста"
 
 responses:
     music:
@@ -191,6 +198,9 @@ responses:
         filter_not_found: "Фильтр `{filter}` не найден. Доступные фильтры: {available}"
         feedback_not_configured: "Система отзывов не настроена должным образом"
         feedback_failed: "Не удалось отправить отзыв. Пожалуйста, попробуйте позже."
+        no_current_track: "В данный момент никакой трек не воспроизводится"
+        lyrics_plugin_missing: "Функциональность текстов песен недоступна. Плагин lavalyrics не установлен на узле Lavalink."
+        lyrics_error: "Произошла ошибка при получении текста песни"
     language:
         user_set: "Ваш язык установлен на **{language}**"
         server_set: "Язык сервера установлен на **{language}** (Только админ)"
@@ -245,6 +255,16 @@ responses:
             music: "Музыкальные команды"
             utility: "Утилитарные команды"
             other: "Другие команды"
+    lyrics:
+        title: "Текст песни"
+        not_found: 'Текст не найден для "{title}" исполнителя {artist}'
+        empty: 'Текст для "{title}" исполнителя {artist} пуст или недоступен'
+        provider: "Провайдер"
+        source: "Источник"
+        page: "Страница"
+        buttons:
+            previous: "Назад"
+            next: "Далее"
     feedback:
         sent: "Спасибо за ваш отзыв! Он был отправлен разработчикам."
     default_search: "Пожалуйста, введите название песни или URL"

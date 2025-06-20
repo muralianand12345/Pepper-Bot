@@ -86,6 +86,13 @@ commands:
             count:
                 name: "count"
                 description: "Number of recommendations to get (1-20)"
+    lyrics:
+        name: "lyrics"
+        description: "Display lyrics for the currently playing track"
+        options:
+            skip_track_source:
+                name: "skip_track_source"
+                description: "Skip using the track's source URL when searching for lyrics"
 
 responses:
     music:
@@ -191,6 +198,9 @@ responses:
         filter_not_found: "Filter `{filter}` not found. Available filters: {available}"
         feedback_not_configured: "Feedback system is not properly configured"
         feedback_failed: "Failed to send feedback. Please try again later."
+        no_current_track: "No track is currently playing"
+        lyrics_plugin_missing: "Lyrics functionality is not available. The lavalyrics plugin is not installed on the Lavalink node."
+        lyrics_error: "An error occurred while fetching lyrics"
     language:
         user_set: "Your language has been set to **{language}**"
         server_set: "Server language has been set to **{language}** (Admin only)"
@@ -245,6 +255,16 @@ responses:
             music: "Music Commands"
             utility: "Utility Commands"
             other: "Other Commands"
+    lyrics:
+        title: "Lyrics"
+        not_found: 'No lyrics found for "{title}" by {artist}'
+        empty: 'Lyrics for "{title}" by {artist} are empty or unavailable'
+        provider: "Provider"
+        source: "Source"
+        page: "Page"
+        buttons:
+            previous: "Previous"
+            next: "Next"
     feedback:
         sent: "Thank you for your feedback! It has been sent to the developers."
     default_search: "Please enter a song name or url"

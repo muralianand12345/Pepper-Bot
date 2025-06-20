@@ -86,6 +86,13 @@ commands:
             count:
                 name: "count"
                 description: "Anzahl der Empfehlungen (1-20)"
+    lyrics:
+        name: "lyrics"
+        description: "Liedtext für den aktuell spielenden Track anzeigen"
+        options:
+            skip_track_source:
+                name: "skip_track_source"
+                description: "Track-Quell-URL beim Suchen nach Liedtext überspringen"
 
 responses:
     music:
@@ -191,6 +198,9 @@ responses:
         filter_not_found: "Filter `{filter}` nicht gefunden. Verfügbare Filter: {available}"
         feedback_not_configured: "Feedback-System ist nicht ordnungsgemäß konfiguriert"
         feedback_failed: "Feedback konnte nicht gesendet werden. Bitte versuche es später erneut."
+        no_current_track: "Derzeit wird kein Track abgespielt"
+        lyrics_plugin_missing: "Liedtext-Funktionalität ist nicht verfügbar. Das lavalyrics Plugin ist nicht auf dem Lavalink-Knoten installiert."
+        lyrics_error: "Ein Fehler ist beim Abrufen des Liedtexts aufgetreten"
     language:
         user_set: "Deine Sprache wurde auf **{language}** gesetzt"
         server_set: "Server-Sprache wurde auf **{language}** gesetzt (Nur Admin)"
@@ -245,6 +255,16 @@ responses:
             music: "Musik-Befehle"
             utility: "Hilfsprogramm-Befehle"
             other: "Andere Befehle"
+    lyrics:
+        title: "Liedtext"
+        not_found: 'Kein Liedtext gefunden für "{title}" von {artist}'
+        empty: 'Liedtext für "{title}" von {artist} ist leer oder nicht verfügbar'
+        provider: "Anbieter"
+        source: "Quelle"
+        page: "Seite"
+        buttons:
+            previous: "Zurück"
+            next: "Weiter"
     feedback:
         sent: "Danke für dein Feedback! Es wurde an die Entwickler gesendet."
     default_search: "Bitte gib einen Songnamen oder eine URL ein"
