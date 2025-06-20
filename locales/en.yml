@@ -93,6 +93,28 @@ commands:
             skip_track_source:
                 name: "skip_track_source"
                 description: "Skip using the track's source URL when searching for lyrics"
+    level:
+        name: "level"
+        description: "View your XP level and stats"
+        options:
+            user:
+                name: "user"
+                description: "View another user's level (optional)"
+    leaderboard:
+        name: "leaderboard"
+        description: "View XP leaderboards"
+        options:
+            scope:
+                name: "scope"
+                description: "Choose leaderboard scope"
+                choices:
+                    global: "Global"
+                    server: "Server"
+                    daily: "Daily"
+                    weekly: "Weekly"
+            limit:
+                name: "limit"
+                description: "Number of users to display (5-20)"
 
 responses:
     music:
@@ -201,6 +223,9 @@ responses:
         no_current_track: "No track is currently playing"
         lyrics_plugin_missing: "Lyrics functionality is not available on this lavalink node. Please switch to a lavalink node that supports lyrics."
         lyrics_error: "An error occurred while fetching lyrics"
+        xp_error: "An error occurred while processing XP"
+        leaderboard_error: "Failed to load leaderboard"
+        stats_error: "Failed to load user statistics"
     language:
         user_set: "Your language has been set to **{language}**"
         server_set: "Server language has been set to **{language}** (Admin only)"
@@ -265,6 +290,57 @@ responses:
         buttons:
             previous: "Previous"
             next: "Next"
+    xp:
+        level_up: "🎉 **Level Up!** You've reached Level {level}!"
+        xp_gained: "You gained {xp} XP!"
+        xp_gained_action: "You gained {xp} XP for {action}!"
+        no_xp_gain: "No XP gained (cooldown active)"
+        listening_session_start: "Started tracking your listening session for XP!"
+        listening_session_end: "Listening session ended! Gained {xp} XP for {minutes} minutes"
+        streak_bonus: "🔥 Streak bonus applied! ({days} days)"
+        first_time_bonus: "🎁 First time bonus: +{xp} XP!"
+    level:
+        your_stats: "Your Music Stats"
+        user_stats: "{user}'s Music Stats"
+        current_level: "Current Level"
+        total_xp: "Total XP"
+        daily_xp: "Daily XP"
+        weekly_xp: "Weekly XP"
+        monthly_xp: "Monthly XP"
+        xp_to_next: "XP to Next Level"
+        global_rank: "Global Rank"
+        server_rank: "Server Rank"
+        progress: "Progress"
+        listening_time: "Total Listening Time"
+        songs_played: "Songs Played"
+        favorite_source: "Favorite Source"
+        streak_days: "Streak Days"
+        no_stats: "No stats available. Start listening to music to gain XP!"
+    leaderboard:
+        global_title: "🌍 Global XP Leaderboard"
+        server_title: "🏆 {server} XP Leaderboard"
+        daily_title: "📅 Daily XP Leaderboard"
+        weekly_title: "📊 Weekly XP Leaderboard"
+        no_users: "No users found in the leaderboard yet!"
+        statistics: "Statistics"
+        total_users: "users"
+        total_xp: "total XP"
+        average_level: "average level"
+        your_rank: "Your rank: #{rank}"
+        not_ranked: "You're not ranked yet!"
+    gamification:
+        xp_system: "XP System"
+        level_system: "Level System"
+        rewards: "Rewards"
+        listening_reward: "Listening: {xp} XP/minute"
+        command_reward: "Commands: {xp} XP"
+        queue_reward: "Add to Queue: {xp} XP"
+        playlist_reward: "Add Playlist: {xp} XP"
+        share_reward: "Share Song: {xp} XP"
+        daily_bonus: "Daily Streak: +{percent}% bonus"
+        weekly_bonus: "Weekly Streak: +{percent}% bonus"
+        level_formula: "Level Formula: (level² × 100) + (level × 50)"
+        unlimited_levels: "Unlimited levels available!"
     feedback:
         sent: "Thank you for your feedback! It has been sent to the developers."
     default_search: "Please enter a song name or url"

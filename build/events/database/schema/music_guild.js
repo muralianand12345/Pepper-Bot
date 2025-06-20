@@ -5,6 +5,9 @@ const index_1 = require("./index");
 const musicGuildSchema = new mongoose_1.Schema({
     guildId: { type: String, required: true },
     language: { type: String, required: false, default: null },
+    totalGuildXP: { type: Number, default: 0, required: true },
+    activeMembers: { type: Number, default: 0, required: true },
+    lastActivity: { type: Date, default: Date.now },
     songs: [
         {
             track: { type: String, required: true },

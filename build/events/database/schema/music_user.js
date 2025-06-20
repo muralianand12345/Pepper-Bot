@@ -5,6 +5,19 @@ const index_1 = require("./index");
 const musicUserSchema = new mongoose_1.Schema({
     userId: { type: String, required: true },
     language: { type: String, required: false, default: null },
+    totalXP: { type: Number, default: 0, required: true },
+    currentLevel: { type: Number, default: 1, required: true },
+    lastXPGain: { type: Date, default: Date.now },
+    listeningStartTime: { type: Date, default: null },
+    dailyXP: { type: Number, default: 0, required: true },
+    weeklyXP: { type: Number, default: 0, required: true },
+    monthlyXP: { type: Number, default: 0, required: true },
+    lastDailyReset: { type: Date, default: Date.now },
+    lastWeeklyReset: { type: Date, default: Date.now },
+    lastMonthlyReset: { type: Date, default: Date.now },
+    xpMultiplier: { type: Number, default: 1.0, required: true },
+    streakDays: { type: Number, default: 0, required: true },
+    lastActiveDate: { type: Date, default: Date.now },
     songs: [
         {
             track: { type: String, required: true },

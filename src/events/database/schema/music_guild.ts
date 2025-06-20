@@ -6,6 +6,9 @@ import { IMusicGuild } from '../../../types';
 const musicGuildSchema = new Schema<IMusicGuild>({
 	guildId: { type: String, required: true },
 	language: { type: String, required: false, default: null },
+	totalGuildXP: { type: Number, default: 0, required: true },
+	activeMembers: { type: Number, default: 0, required: true },
+	lastActivity: { type: Date, default: Date.now },
 	songs: [
 		{
 			track: { type: String, required: true },

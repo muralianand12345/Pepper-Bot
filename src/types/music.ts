@@ -85,3 +85,43 @@ export interface ICacheConfig {
 	defaultUrlTTL: number;
 	cleanupInterval: number;
 }
+
+export interface IXPAction {
+	type: 'listen' | 'command' | 'queue_add' | 'playlist_add' | 'share' | 'recommend';
+	xpGained: number;
+	timestamp: Date;
+	details?: string;
+}
+
+export interface ILevelInfo {
+	currentLevel: number;
+	currentXP: number;
+	xpForCurrentLevel: number;
+	xpForNextLevel: number;
+	xpToNextLevel: number;
+	progress: number;
+}
+
+export interface ILeaderboardEntry {
+	userId: string;
+	username: string;
+	avatar?: string;
+	totalXP: number;
+	currentLevel: number;
+	rank: number;
+	guildId?: string;
+}
+
+export interface IUserStats {
+	totalXP: number;
+	currentLevel: number;
+	dailyXP: number;
+	weeklyXP: number;
+	monthlyXP: number;
+	streakDays: number;
+	totalListeningTime: number;
+	totalSongs: number;
+	favoriteGenre: string;
+	globalRank: number;
+	guildRank?: number;
+}
