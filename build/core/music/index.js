@@ -572,12 +572,12 @@ class Music {
                 }
             }
             catch (error) {
-                this.client.logger.error(`[LYRICS] Command error: ${error}`);
                 if (error instanceof Error && error.message.includes('lavalyrics-plugin')) {
                     await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.lyrics_plugin_missing'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
                 }
                 else {
                     await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.lyrics_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
+                    this.client.logger.error(`[LYRICS] Command error: ${error}`);
                 }
             }
         };

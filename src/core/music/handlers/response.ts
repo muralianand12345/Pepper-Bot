@@ -94,7 +94,7 @@ export class MusicResponseHandler {
 
 		if (progressText) {
 			embed.addFields([{ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false }]);
-			embed.setFooter({ text: `${track.sourceName || 'Unknown'} • ${requesterData?.username || 'Unknown'}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
+			embed.setFooter({ text: `-> ${player?.node.options.identifier || this.client.user?.username}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
 			return embed;
 		}
 
