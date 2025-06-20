@@ -125,3 +125,36 @@ export interface IUserStats {
 	globalRank: number;
 	guildRank?: number;
 }
+
+export interface UserStats {
+	userId: string;
+	guildId?: string;
+	totalXP: number;
+	currentLevel: number;
+	dailyXP: number;
+	weeklyXP: number;
+	monthlyXP: number;
+	totalSongs: number;
+	totalListeningTime: number;
+	favoriteGenre: string;
+	streakDays: number;
+	globalRank: number;
+	guildRank?: number;
+	lastActive: Date;
+}
+
+export interface LevelInfo {
+	currentLevel: number;
+	xpToNextLevel: number;
+	progress: number;
+	xpForCurrentLevel: number;
+	xpRequiredForNext: number;
+}
+
+export interface XPRewards {
+	LISTEN_PER_MINUTE: number;
+	COMMAND_BASIC: number;
+	COMMAND_MUSIC: number;
+	QUEUE_ADD: number;
+	PLAYLIST_ADD: number;
+}

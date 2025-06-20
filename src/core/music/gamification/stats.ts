@@ -1,148 +1,167 @@
 import discord from 'discord.js';
 
-import { XPUserRepo } from './repo';
-import { XPManager } from './xp_manager';
-import { IUserStats } from '../../../types';
-import Formatter from '../../../utils/format';
-import { LeaderboardManager } from './leaderboard';
+import { UserStats, LevelInfo, XPRewards } from '../../../types';
 
 export class StatsManager {
 	private static instance: StatsManager;
 	private client: discord.Client;
-	private userRepo: XPUserRepo;
-	private xpManager: XPManager;
-	private leaderboardManager: LeaderboardManager;
+	private xpManager: any;
+	private userRepo: any;
 
-	private constructor(client: discord.Client) {
+	constructor(client: discord.Client) {
 		this.client = client;
-		this.userRepo = new XPUserRepo();
-		this.xpManager = XPManager.getInstance(client);
-		this.leaderboardManager = LeaderboardManager.getInstance(client);
 	}
 
-	public static getInstance = (client: discord.Client): StatsManager => {
+	static getInstance = (client: discord.Client): StatsManager => {
 		if (!StatsManager.instance) StatsManager.instance = new StatsManager(client);
 		return StatsManager.instance;
 	};
 
-	public getUserStats = async (userId: string, guildId?: string): Promise<IUserStats | null> => {
+	getUserStats = async (userId: string, guildId?: string): Promise<UserStats | null> => {
 		try {
-			const userData = await this.userRepo.getUser(userId);
-			if (!userData) return null;
+			const stats = await this.userRepo.getUserStats(userId, guildId);
+			if (!stats) return null;
 
-			const totalListeningTime = userData.songs.reduce((total, song) => {
-				return total + song.duration * song.played_number;
-			}, 0);
-
-			const genreCount: { [key: string]: number } = {};
-			userData.songs.forEach((song) => {
-				const genre = song.sourceName || 'Unknown';
-				genreCount[genre] = (genreCount[genre] || 0) + song.played_number;
-			});
-
-			const favoriteGenre = Object.keys(genreCount).reduce((a, b) => (genreCount[a] > genreCount[b] ? a : b), 'None');
-			const ranks = await this.leaderboardManager.getUserRank(userId, guildId);
-			return { totalXP: userData.totalXP, currentLevel: userData.currentLevel, dailyXP: userData.dailyXP, weeklyXP: userData.weeklyXP, monthlyXP: userData.monthlyXP, streakDays: userData.streakDays, totalListeningTime: Math.floor(totalListeningTime / 1000), totalSongs: userData.songs.length, favoriteGenre, globalRank: ranks.globalRank, guildRank: ranks.guildRank };
+			return {
+				userId: stats.userId || userId,
+				guildId: stats.guildId || guildId,
+				totalXP: Number(stats.totalXP) || 0,
+				currentLevel: Number(stats.currentLevel) || 1,
+				dailyXP: Number(stats.dailyXP) || 0,
+				weeklyXP: Number(stats.weeklyXP) || 0,
+				monthlyXP: Number(stats.monthlyXP) || 0,
+				totalSongs: Number(stats.totalSongs) || 0,
+				totalListeningTime: Number(stats.totalListeningTime) || 0,
+				favoriteGenre: stats.favoriteGenre || 'Unknown',
+				streakDays: Number(stats.streakDays) || 0,
+				globalRank: Number(stats.globalRank) || 0,
+				guildRank: stats.guildRank ? Number(stats.guildRank) : undefined,
+				lastActive: stats.lastActive || new Date(),
+			};
 		} catch (error) {
-			this.client.logger.error(`[STATS] Error getting user stats: ${error}`);
+			this.client.logger?.error(`[STATS_MANAGER] Error fetching user stats: ${error}`);
 			return null;
 		}
 	};
 
-	public createStatsEmbed = async (user: discord.User, stats: IUserStats, guildId?: string, locale: string = 'en'): Promise<discord.EmbedBuilder> => {
-		const levelInfo = this.xpManager.getLevelInfo(stats.totalXP);
-		const progressBar = this.createProgressBar(levelInfo.progress);
+	createStatsEmbed = async (user: discord.User, stats: UserStats, guildId?: string, locale: string = 'en'): Promise<discord.EmbedBuilder> => {
+		const safeStats = this.validateStats(stats);
+		const levelInfo = this.xpManager.getLevelInfo(safeStats.totalXP);
+		const safeLevelInfo = this.validateLevelInfo(levelInfo);
+		const progressBar = this.createProgressBar(safeLevelInfo.progress);
+
 		const embed = new discord.EmbedBuilder().setColor('#5865f2').setTitle(`📊 ${user.displayName}'s Music Stats`).setThumbnail(user.displayAvatarURL()).setTimestamp().setFooter({ text: 'Pepper Music XP System', iconURL: this.client.user?.displayAvatarURL() });
 
 		embed.addFields([
-			{ name: '🏆 Level & XP', value: `**Level ${stats.currentLevel}**\n` + `${stats.totalXP.toLocaleString()} XP\n` + `${progressBar}\n` + `${levelInfo.xpToNextLevel.toLocaleString()} XP to Level ${levelInfo.currentLevel + 1}`, inline: true },
-			{ name: '📈 Rankings', value: `Global: **#${stats.globalRank}**\n` + (stats.guildRank ? `Server: **#${stats.guildRank}**` : 'Server: **Not ranked**'), inline: true },
-			{ name: '⚡ Activity', value: `Daily: **${stats.dailyXP}** XP\n` + `Weekly: **${stats.weeklyXP}** XP\n` + `Monthly: **${stats.monthlyXP}** XP`, inline: true },
+			{ name: '🏆 Level & XP', value: `**Level ${safeStats.currentLevel}**\n` + `${safeStats.totalXP.toLocaleString(locale)} XP\n` + `${progressBar}\n` + `${safeLevelInfo.xpToNextLevel.toLocaleString(locale)} XP to Level ${safeLevelInfo.currentLevel + 1}`, inline: true },
+			{ name: '📈 Rankings', value: `Global: **#${safeStats.globalRank || 'Unranked'}**\n` + (safeStats.guildRank ? `Server: **#${safeStats.guildRank}**` : 'Server: **Not ranked**'), inline: true },
+			{ name: '⚡ Activity', value: `Daily: **${safeStats.dailyXP.toLocaleString(locale)}** XP\n` + `Weekly: **${safeStats.weeklyXP.toLocaleString(locale)}** XP\n` + `Monthly: **${safeStats.monthlyXP.toLocaleString(locale)}** XP`, inline: true },
 		]);
 
-		const listeningTime = Formatter.formatListeningTime(stats.totalListeningTime);
-		const avgSongLength = stats.totalSongs > 0 ? Formatter.msToTime((stats.totalListeningTime * 1000) / stats.totalSongs) : '0:00:00';
+		const listeningTime = this.formatListeningTime(safeStats.totalListeningTime);
+		const avgSongLength = safeStats.totalSongs > 0 ? this.msToTime((safeStats.totalListeningTime * 1000) / safeStats.totalSongs) : '0:00:00';
 
 		embed.addFields([
-			{ name: '🎵 Music Statistics', value: `**${stats.totalSongs}** songs played\n` + `**${listeningTime}** total listening time\n` + `**${avgSongLength}** average song length\n` + `**${stats.favoriteGenre}** favorite source`, inline: true },
-			{ name: '🔥 Streak', value: `**${stats.streakDays}** day${stats.streakDays !== 1 ? 's' : ''}\n` + (stats.streakDays >= 7 ? '🎉 Weekly bonus active!' : stats.streakDays >= 1 ? '📈 Daily bonus active!' : '💭 Start your streak!'), inline: true },
+			{ name: '🎵 Music Statistics', value: `**${safeStats.totalSongs.toLocaleString(locale)}** songs played\n` + `**${listeningTime}** total listening time\n` + `**${avgSongLength}** average song length\n` + `**${safeStats.favoriteGenre}** favorite source`, inline: true },
+			{ name: '🔥 Streak', value: `**${safeStats.streakDays}** day${safeStats.streakDays !== 1 ? 's' : ''}\n` + (safeStats.streakDays >= 7 ? '🎉 Weekly bonus active!' : safeStats.streakDays >= 1 ? '📈 Daily bonus active!' : '💭 Start your streak!'), inline: true },
 		]);
-		const xpRewards = this.xpManager.getXPRewards();
+
+		const xpRewards = this.getXPRewards();
 		embed.addFields([{ name: '💎 XP Rewards', value: `Listening: **${xpRewards.LISTEN_PER_MINUTE}** XP/min\n` + `Commands: **${xpRewards.COMMAND_BASIC}-${xpRewards.COMMAND_MUSIC}** XP\n` + `Add to Queue: **${xpRewards.QUEUE_ADD}** XP\n` + `Add Playlist: **${xpRewards.PLAYLIST_ADD}** XP`, inline: false }]);
 		return embed;
 	};
 
-	private createProgressBar = (progress: number): string => {
-		const totalBars = 10;
-		const filledBars = Math.floor((progress / 100) * totalBars);
-		const emptyBars = totalBars - filledBars;
-		return '▬'.repeat(filledBars) + '▬'.repeat(emptyBars) + ` ${Math.round(progress)}%`;
+	private validateStats = (stats: UserStats): UserStats => {
+		return {
+			userId: stats.userId || '',
+			guildId: stats.guildId,
+			totalXP: this.safeNumber(stats.totalXP),
+			currentLevel: this.safeNumber(stats.currentLevel, 1),
+			dailyXP: this.safeNumber(stats.dailyXP),
+			weeklyXP: this.safeNumber(stats.weeklyXP),
+			monthlyXP: this.safeNumber(stats.monthlyXP),
+			totalSongs: this.safeNumber(stats.totalSongs),
+			totalListeningTime: this.safeNumber(stats.totalListeningTime),
+			favoriteGenre: stats.favoriteGenre || 'Unknown',
+			streakDays: this.safeNumber(stats.streakDays),
+			globalRank: this.safeNumber(stats.globalRank),
+			guildRank: stats.guildRank ? this.safeNumber(stats.guildRank) : undefined,
+			lastActive: stats.lastActive || new Date(),
+		};
 	};
 
-	public getDailyStats = async (limit: number = 10): Promise<Array<{ userId: string; username: string; dailyXP: number; rank: number }>> => {
+	private validateLevelInfo = (levelInfo: any): LevelInfo => {
+		return {
+			currentLevel: this.safeNumber(levelInfo?.currentLevel, 1),
+			xpToNextLevel: this.safeNumber(levelInfo?.xpToNextLevel),
+			progress: this.safeNumber(levelInfo?.progress),
+			xpForCurrentLevel: this.safeNumber(levelInfo?.xpForCurrentLevel),
+			xpRequiredForNext: this.safeNumber(levelInfo?.xpRequiredForNext, 100),
+		};
+	};
+
+	private safeNumber = (value: any, fallback: number = 0): number => {
+		const num = Number(value);
+		return isNaN(num) || !isFinite(num) ? fallback : num;
+	};
+
+	private createProgressBar = (progress: number): string => {
+		const safeProgress = this.safeNumber(progress);
+		const totalBars = 10;
+		const filledBars = Math.floor((safeProgress / 100) * totalBars);
+		const emptyBars = totalBars - filledBars;
+		return '▬'.repeat(filledBars) + '▬'.repeat(emptyBars) + ` ${Math.round(safeProgress)}%`;
+	};
+
+	private formatListeningTime = (milliseconds: number): string => {
+		const safeMs = this.safeNumber(milliseconds);
+		if (safeMs === 0) return '0h 0m';
+		const hours = Math.floor(safeMs / (1000 * 60 * 60));
+		const minutes = Math.floor((safeMs % (1000 * 60 * 60)) / (1000 * 60));
+		if (hours === 0) return `${minutes}m`;
+		return `${hours}h ${minutes}m`;
+	};
+
+	private msToTime = (duration: number): string => {
+		const safeDuration = this.safeNumber(duration);
+		if (safeDuration === 0) return '0:00:00';
+		const seconds = Math.floor((safeDuration / 1000) % 60);
+		const minutes = Math.floor((safeDuration / (1000 * 60)) % 60);
+		const hours = Math.floor((safeDuration / (1000 * 60 * 60)) % 24);
+		return [hours, minutes, seconds].map((val) => (val < 10 ? `0${val}` : val)).join(':');
+	};
+
+	private getXPRewards = (): XPRewards => {
+		return this.xpManager?.getXPRewards() || { LISTEN_PER_MINUTE: 5, COMMAND_BASIC: 2, COMMAND_MUSIC: 5, QUEUE_ADD: 10, PLAYLIST_ADD: 25 };
+	};
+
+	getDailyStats = async (limit: number = 10): Promise<Array<{ userId: string; username: string; dailyXP: number; rank: number }>> => {
 		try {
 			const topDailyUsers = await this.userRepo.getTopDailyUsers(limit);
 			const result = [];
 			for (let i = 0; i < topDailyUsers.length; i++) {
 				const userData = topDailyUsers[i];
-				try {
-					const user = await this.client.users.fetch(userData.userId).catch(() => null);
-					result.push({ userId: userData.userId, username: user?.username || 'Unknown User', dailyXP: userData.dailyXP, rank: i + 1 });
-				} catch (error) {
-					continue;
-				}
+				result.push({ userId: userData.userId || '', username: userData.username || 'Unknown User', dailyXP: this.safeNumber(userData.dailyXP), rank: i + 1 });
 			}
 			return result;
 		} catch (error) {
-			this.client.logger.error(`[STATS] Error getting daily stats: ${error}`);
+			this.client.logger?.error(`[STATS_MANAGER] Error fetching daily stats: ${error}`);
 			return [];
 		}
 	};
 
-	public getWeeklyStats = async (limit: number = 10): Promise<Array<{ userId: string; username: string; weeklyXP: number; rank: number }>> => {
+	getWeeklyStats = async (limit: number = 10): Promise<Array<{ userId: string; username: string; weeklyXP: number; rank: number }>> => {
 		try {
 			const topWeeklyUsers = await this.userRepo.getTopWeeklyUsers(limit);
 			const result = [];
 			for (let i = 0; i < topWeeklyUsers.length; i++) {
 				const userData = topWeeklyUsers[i];
-				try {
-					const user = await this.client.users.fetch(userData.userId).catch(() => null);
-					result.push({ userId: userData.userId, username: user?.username || 'Unknown User', weeklyXP: userData.weeklyXP, rank: i + 1 });
-				} catch (error) {
-					continue;
-				}
+				result.push({ userId: userData.userId || '', username: userData.username || 'Unknown User', weeklyXP: this.safeNumber(userData.weeklyXP), rank: i + 1 });
 			}
 			return result;
 		} catch (error) {
-			this.client.logger.error(`[STATS] Error getting weekly stats: ${error}`);
+			this.client.logger?.error(`[STATS_MANAGER] Error fetching weekly stats: ${error}`);
 			return [];
-		}
-	};
-
-	public resetDailyStats = async (): Promise<void> => {
-		try {
-			await this.userRepo.resetDailyXP();
-			this.client.logger.info('[STATS] Daily XP stats reset completed');
-		} catch (error) {
-			this.client.logger.error(`[STATS] Error resetting daily stats: ${error}`);
-		}
-	};
-
-	public resetWeeklyStats = async (): Promise<void> => {
-		try {
-			await this.userRepo.resetWeeklyXP();
-			this.client.logger.info('[STATS] Weekly XP stats reset completed');
-		} catch (error) {
-			this.client.logger.error(`[STATS] Error resetting weekly stats: ${error}`);
-		}
-	};
-
-	public resetMonthlyStats = async (): Promise<void> => {
-		try {
-			await this.userRepo.resetMonthlyXP();
-			this.client.logger.info('[STATS] Monthly XP stats reset completed');
-		} catch (error) {
-			this.client.logger.error(`[STATS] Error resetting monthly stats: ${error}`);
 		}
 	};
 }
