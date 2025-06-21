@@ -116,6 +116,7 @@ responses:
         youtube_blocked: "⚠️ Skipping song! Youtube source detected."
         youtube_footer: "We do not support Youtube links due to YouTube's TOS."
         filter_applied: "Applied {filter} filter"
+
     chart:
         user_title: "{user}'s Music Chart"
         guild_title: "{guild} Server Chart"
@@ -140,6 +141,7 @@ responses:
         buttons:
             refresh: "Refresh"
             export: "Export Data"
+
     suggest_songs:
         title: "Smart Music Recommendations"
         fresh_title: "Fresh Music Recommendations"
@@ -164,6 +166,7 @@ responses:
         errors:
             invalid_track: "Invalid track data for the top recommendation"
             generation_failed: "Failed to generate recommendations"
+
     errors:
         music_disabled: "Music is currently disabled."
         no_player: "No music is currently playing"
@@ -201,6 +204,7 @@ responses:
         no_current_track: "No track is currently playing"
         lyrics_plugin_missing: "Lyrics functionality is not available on this lavalink node. Please switch to a lavalink node that supports lyrics."
         lyrics_error: "An error occurred while fetching lyrics"
+
     language:
         user_set: "Your language has been set to **{language}**"
         server_set: "Server language has been set to **{language}** (Admin only)"
@@ -208,6 +212,7 @@ responses:
         same_language: "Language is already set to **{language}**"
         unsupported: "Language **{language}** is not supported. Supported languages: {languages}"
         no_permission: "You need **Manage Server** permission to change server language"
+
     fields:
         duration: "Duration"
         source: "Source"
@@ -220,6 +225,7 @@ responses:
         avg_duration: "Avg. Duration"
         added_by: "Added by"
         progress: "Progress"
+
     buttons:
         pause: "Pause"
         resume: "Resume"
@@ -227,6 +233,7 @@ responses:
         stop: "Stop"
         loop: "Loop"
         support_server: "Support Server"
+
     ping:
         title: "🏓 Pong!"
         description: "Bot latency and connection information"
@@ -238,6 +245,7 @@ responses:
         memory_usage: "Memory Usage"
         active_players: "Active Players"
         footer: "All systems operational"
+
     help:
         title: "📚 Command Help"
         description: "Here are all {total} available commands. Use `{prefix}help <command>` for detailed information."
@@ -255,6 +263,7 @@ responses:
             music: "Music Commands"
             utility: "Utility Commands"
             other: "Other Commands"
+
     lyrics:
         title: "Lyrics"
         not_found: 'No lyrics found for "{title}" by {artist}'
@@ -265,8 +274,10 @@ responses:
         buttons:
             previous: "Previous"
             next: "Next"
+
     feedback:
         sent: "Thank you for your feedback! It has been sent to the developers."
+
     default_search: "Please enter a song name or url"
 
 survey:
