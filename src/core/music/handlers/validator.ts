@@ -50,11 +50,11 @@ export class VoiceChannelValidator {
 		return [true, await this.createErrorEmbed('')];
 	};
 
-	public async validateGuildContext(): Promise<[boolean, discord.EmbedBuilder]> {
+	public validateGuildContext = async (): Promise<[boolean, discord.EmbedBuilder]> => {
 		return !this.getGuild() ? [false, await this.createErrorEmbed('responses.errors.server_only')] : [true, await this.createErrorEmbed('')];
-	}
+	};
 
-	public async validateVoiceConnection(): Promise<[boolean, discord.EmbedBuilder]> {
+	public validateVoiceConnection = async (): Promise<[boolean, discord.EmbedBuilder]> => {
 		const [isValid, errorEmbed] = await this.validateGuildMember();
 		if (!isValid) return [false, errorEmbed];
 
@@ -69,27 +69,38 @@ export class VoiceChannelValidator {
 
 		if (!botMember?.permissions.has(this.requiredPermissions)) return [false, await this.createErrorEmbed('responses.errors.need_permissions', { channelName: voiceChannel.name })];
 		return !voiceChannel.joinable ? [false, await this.createErrorEmbed('responses.errors.no_permission_join', { channelName: voiceChannel.name })] : [true, await this.createErrorEmbed('')];
-	}
+	};
 
-	public async validateVoiceSameChannel(player: magmastream.Player): Promise<[boolean, discord.EmbedBuilder]> {
+	public validateVoiceSameChannel = async (player: magmastream.Player): Promise<[boolean, discord.EmbedBuilder]> => {
 		const member = await this.getGuildMember();
 		if (!member) return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
 		return member.voice.channelId !== player.voiceChannelId ? [false, await this.createErrorEmbed('responses.errors.not_same_voice')] : [true, await this.createErrorEmbed('')];
-	}
+	};
 
-	public async validatePlayerConnection(player: magmastream.Player): Promise<[boolean, discord.EmbedBuilder]> {
+	public validatePlayerConnection = async (player: magmastream.Player): Promise<[boolean, discord.EmbedBuilder]> => {
 		const [isValid, errorEmbed] = await this.validateGuildMember();
 		if (!isValid) return [false, errorEmbed];
 
 		const member = await this.getGuildMember();
 		if (!member) return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
 
-		return member.voice.channelId !== player.voiceChannelId ? [false, await this.createErrorEmbed('responses.errors.not_same_voice')] : [true, await this.createErrorEmbed('')];
-	}
+		const guild = this.getGuild()!;
+		const botMember = guild.members.me;
+		const isPlayerActuallyConnected = botMember?.voice.channelId === player.voiceChannelId && player.state === 'CONNECTED';
 
-	public async validateMusicPlaying(player: magmastream.Player): Promise<[boolean, discord.EmbedBuilder]> {
+		if (!isPlayerActuallyConnected && player.voiceChannelId) {
+			this.client.logger.warn(`[VALIDATOR] Found stale player for guild ${guild.id}, destroying...`);
+			player.destroy();
+			return [true, await this.createErrorEmbed('')];
+		}
+
+		if (isPlayerActuallyConnected) return member.voice.channelId !== player.voiceChannelId ? [false, await this.createErrorEmbed('responses.errors.not_same_voice')] : [true, await this.createErrorEmbed('')];
+		return [true, await this.createErrorEmbed('')];
+	};
+
+	public validateMusicPlaying = async (player: magmastream.Player): Promise<[boolean, discord.EmbedBuilder]> => {
 		return !player.queue.current ? [false, await this.createErrorEmbed('responses.errors.no_player')] : [true, await this.createErrorEmbed('')];
-	}
+	};
 }
 
 export class MusicPlayerValidator {

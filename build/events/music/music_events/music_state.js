@@ -15,9 +15,27 @@ const event = {
         const player = client.manager.get(newState.guild.id);
         if (!player || player.state !== 'CONNECTED')
             return;
-        if (newState.id === client.user?.id && !newState.channelId) {
+        if (newState.id === client.user?.id && !newState.channelId && oldState.channelId) {
+            client.logger.info(`[VOICE_STATE] Bot was disconnected from voice channel in guild ${newState.guild.id}`);
             player.destroy();
             music_1.NowPlayingManager.removeInstance(player.guildId);
+            const textChannel = client.channels.cache.get(String(player.textChannelId));
+            if (textChannel?.isTextBased()) {
+                let guildLocale = 'en';
+                try {
+                    guildLocale = (await localeDetector.getGuildLanguage(newState.guild.id)) || 'en';
+                }
+                catch (error) { }
+                const responseHandler = new music_1.MusicResponseHandler(client);
+                const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected', guildLocale);
+                await (0, music_1.sendTempMessage)(textChannel, embed, 10000);
+            }
+            return;
+        }
+        if (newState.id === client.user?.id && newState.channelId && oldState.channelId && newState.channelId !== oldState.channelId) {
+            client.logger.info(`[VOICE_STATE] Bot was moved to different voice channel in guild ${newState.guild.id}`);
+            if (player.voiceChannelId !== newState.channelId)
+                player.voiceChannelId = newState.channelId;
             return;
         }
         if (!player.voiceChannelId)

@@ -40,46 +40,56 @@ class VoiceChannelValidator {
                 return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
             return [true, await this.createErrorEmbed('')];
         };
+        this.validateGuildContext = async () => {
+            return !this.getGuild() ? [false, await this.createErrorEmbed('responses.errors.server_only')] : [true, await this.createErrorEmbed('')];
+        };
+        this.validateVoiceConnection = async () => {
+            const [isValid, errorEmbed] = await this.validateGuildMember();
+            if (!isValid)
+                return [false, errorEmbed];
+            const member = await this.getGuildMember();
+            if (!member)
+                return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
+            const voiceChannel = member.voice.channel;
+            if (!voiceChannel)
+                return [false, await this.createErrorEmbed('responses.errors.no_voice_channel')];
+            const guild = this.getGuild();
+            const botMember = guild.members.me;
+            if (!botMember?.permissions.has(this.requiredPermissions))
+                return [false, await this.createErrorEmbed('responses.errors.need_permissions', { channelName: voiceChannel.name })];
+            return !voiceChannel.joinable ? [false, await this.createErrorEmbed('responses.errors.no_permission_join', { channelName: voiceChannel.name })] : [true, await this.createErrorEmbed('')];
+        };
+        this.validateVoiceSameChannel = async (player) => {
+            const member = await this.getGuildMember();
+            if (!member)
+                return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
+            return member.voice.channelId !== player.voiceChannelId ? [false, await this.createErrorEmbed('responses.errors.not_same_voice')] : [true, await this.createErrorEmbed('')];
+        };
+        this.validatePlayerConnection = async (player) => {
+            const [isValid, errorEmbed] = await this.validateGuildMember();
+            if (!isValid)
+                return [false, errorEmbed];
+            const member = await this.getGuildMember();
+            if (!member)
+                return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
+            const guild = this.getGuild();
+            const botMember = guild.members.me;
+            const isPlayerActuallyConnected = botMember?.voice.channelId === player.voiceChannelId && player.state === 'CONNECTED';
+            if (!isPlayerActuallyConnected && player.voiceChannelId) {
+                this.client.logger.warn(`[VALIDATOR] Found stale player for guild ${guild.id}, destroying...`);
+                player.destroy();
+                return [true, await this.createErrorEmbed('')];
+            }
+            if (isPlayerActuallyConnected)
+                return member.voice.channelId !== player.voiceChannelId ? [false, await this.createErrorEmbed('responses.errors.not_same_voice')] : [true, await this.createErrorEmbed('')];
+            return [true, await this.createErrorEmbed('')];
+        };
+        this.validateMusicPlaying = async (player) => {
+            return !player.queue.current ? [false, await this.createErrorEmbed('responses.errors.no_player')] : [true, await this.createErrorEmbed('')];
+        };
         this.client = client;
         this.interaction = interaction;
         this.localeDetector = new locales_1.LocaleDetector();
-    }
-    async validateGuildContext() {
-        return !this.getGuild() ? [false, await this.createErrorEmbed('responses.errors.server_only')] : [true, await this.createErrorEmbed('')];
-    }
-    async validateVoiceConnection() {
-        const [isValid, errorEmbed] = await this.validateGuildMember();
-        if (!isValid)
-            return [false, errorEmbed];
-        const member = await this.getGuildMember();
-        if (!member)
-            return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
-        const voiceChannel = member.voice.channel;
-        if (!voiceChannel)
-            return [false, await this.createErrorEmbed('responses.errors.no_voice_channel')];
-        const guild = this.getGuild();
-        const botMember = guild.members.me;
-        if (!botMember?.permissions.has(this.requiredPermissions))
-            return [false, await this.createErrorEmbed('responses.errors.need_permissions', { channelName: voiceChannel.name })];
-        return !voiceChannel.joinable ? [false, await this.createErrorEmbed('responses.errors.no_permission_join', { channelName: voiceChannel.name })] : [true, await this.createErrorEmbed('')];
-    }
-    async validateVoiceSameChannel(player) {
-        const member = await this.getGuildMember();
-        if (!member)
-            return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
-        return member.voice.channelId !== player.voiceChannelId ? [false, await this.createErrorEmbed('responses.errors.not_same_voice')] : [true, await this.createErrorEmbed('')];
-    }
-    async validatePlayerConnection(player) {
-        const [isValid, errorEmbed] = await this.validateGuildMember();
-        if (!isValid)
-            return [false, errorEmbed];
-        const member = await this.getGuildMember();
-        if (!member)
-            return [false, await this.createErrorEmbed('responses.errors.not_in_server')];
-        return member.voice.channelId !== player.voiceChannelId ? [false, await this.createErrorEmbed('responses.errors.not_same_voice')] : [true, await this.createErrorEmbed('')];
-    }
-    async validateMusicPlaying(player) {
-        return !player.queue.current ? [false, await this.createErrorEmbed('responses.errors.no_player')] : [true, await this.createErrorEmbed('')];
     }
 }
 exports.VoiceChannelValidator = VoiceChannelValidator;
