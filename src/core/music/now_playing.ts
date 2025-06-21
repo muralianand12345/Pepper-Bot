@@ -1,6 +1,7 @@
 import discord from 'discord.js';
 import magmastream from 'magmastream';
 
+import { LocaleDetector } from '../locales';
 import { MusicResponseHandler } from './handlers';
 
 export class NowPlayingManager {
@@ -15,10 +16,12 @@ export class NowPlayingManager {
 	private paused: boolean = false;
 	private destroyed: boolean = false;
 	private stopped: boolean = false;
+	private localeDetector: LocaleDetector;
 
 	private constructor(player: magmastream.Player, client: discord.Client) {
 		this.player = player;
 		this.client = client;
+		this.localeDetector = new LocaleDetector();
 		this.startUpdateInterval();
 	}
 
@@ -99,6 +102,15 @@ export class NowPlayingManager {
 		return playerProxy;
 	};
 
+	private getGuildLocale = async (): Promise<string> => {
+		try {
+			return (await this.localeDetector.getGuildLanguage(this.player.guildId)) || 'en';
+		} catch (error) {
+			this.client.logger?.warn(`[NowPlayingManager] Failed to get guild locale: ${error}`);
+			return 'en';
+		}
+	};
+
 	private updateNowPlaying = async (): Promise<void> => {
 		const now = Date.now();
 		if (now - this.lastUpdateTime < this.MIN_UPDATE_INTERVAL) return;
@@ -111,11 +123,12 @@ export class NowPlayingManager {
 				return;
 			}
 
+			const locale = await this.getGuildLocale();
 			const adjustedPlayer = this.getAdjustedPlayer();
-			const embed = new MusicResponseHandler(this.client).createMusicEmbed(this.player.queue.current, adjustedPlayer);
+			const embed = new MusicResponseHandler(this.client).createMusicEmbed(this.player.queue.current, adjustedPlayer, locale);
 
 			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
-			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons);
+			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
 
 			await this.message.edit({ embeds: [embed], components: [musicButton] });
 			this.lastUpdateTime = Date.now();
@@ -140,16 +153,15 @@ export class NowPlayingManager {
 
 	public updateOrCreateMessage = async (channel: discord.TextChannel, track: magmastream.Track): Promise<void> => {
 		try {
-			const embed = new MusicResponseHandler(this.client).createMusicEmbed(track, this.player);
+			const locale = await this.getGuildLocale();
+			const embed = new MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
 			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
-			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons);
+			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
 
 			if (this.message && this.message.editable) {
 				await this.message
 					.edit({ embeds: [embed], components: [musicButton] })
-					.then(() => {
-						this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`);
-					})
+					.then(() => this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`))
 					.catch(async (error) => {
 						this.client.logger?.warn(`[NowPlayingManager] Failed to edit message: ${error}, creating new one`);
 						this.message = null;
@@ -159,7 +171,10 @@ export class NowPlayingManager {
 			} else {
 				try {
 					const messages = await channel.messages.fetch({ limit: 10 });
-					const botMessages = messages.filter((m) => m.author.id === this.client.user?.id && m.embeds.length > 0 && m.embeds[0].title === 'Now Playing');
+					const nowPlayingTranslation = this.client.localizationManager?.translate('responses.music.now_playing', locale) || 'Now Playing';
+					const botMessages = messages.filter((m) => {
+						return m.author.id === this.client.user?.id && m.embeds.length > 0 && (m.embeds[0].title === 'Now Playing' || m.embeds[0].title === nowPlayingTranslation);
+					});
 					const deletePromises = [];
 					for (const [_, msg] of botMessages) {
 						deletePromises.push(msg.delete().catch(() => {}));

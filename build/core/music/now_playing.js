@@ -2,6 +2,7 @@
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NowPlayingManager = void 0;
+const locales_1 = require("../locales");
 const handlers_1 = require("./handlers");
 class NowPlayingManager {
     constructor(player, client) {
@@ -73,6 +74,15 @@ class NowPlayingManager {
             });
             return playerProxy;
         };
+        this.getGuildLocale = async () => {
+            try {
+                return (await this.localeDetector.getGuildLanguage(this.player.guildId)) || 'en';
+            }
+            catch (error) {
+                this.client.logger?.warn(`[NowPlayingManager] Failed to get guild locale: ${error}`);
+                return 'en';
+            }
+        };
         this.updateNowPlaying = async () => {
             const now = Date.now();
             if (now - this.lastUpdateTime < this.MIN_UPDATE_INTERVAL)
@@ -85,10 +95,11 @@ class NowPlayingManager {
                     this.message = null;
                     return;
                 }
+                const locale = await this.getGuildLocale();
                 const adjustedPlayer = this.getAdjustedPlayer();
-                const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(this.player.queue.current, adjustedPlayer);
+                const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(this.player.queue.current, adjustedPlayer, locale);
                 const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
-                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons);
+                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
                 await this.message.edit({ embeds: [embed], components: [musicButton] });
                 this.lastUpdateTime = Date.now();
             }
@@ -114,15 +125,14 @@ class NowPlayingManager {
         };
         this.updateOrCreateMessage = async (channel, track) => {
             try {
-                const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(track, this.player);
+                const locale = await this.getGuildLocale();
+                const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
                 const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
-                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons);
+                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
                 if (this.message && this.message.editable) {
                     await this.message
                         .edit({ embeds: [embed], components: [musicButton] })
-                        .then(() => {
-                        this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`);
-                    })
+                        .then(() => this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`))
                         .catch(async (error) => {
                         this.client.logger?.warn(`[NowPlayingManager] Failed to edit message: ${error}, creating new one`);
                         this.message = null;
@@ -133,7 +143,10 @@ class NowPlayingManager {
                 else {
                     try {
                         const messages = await channel.messages.fetch({ limit: 10 });
-                        const botMessages = messages.filter((m) => m.author.id === this.client.user?.id && m.embeds.length > 0 && m.embeds[0].title === 'Now Playing');
+                        const nowPlayingTranslation = this.client.localizationManager?.translate('responses.music.now_playing', locale) || 'Now Playing';
+                        const botMessages = messages.filter((m) => {
+                            return m.author.id === this.client.user?.id && m.embeds.length > 0 && (m.embeds[0].title === 'Now Playing' || m.embeds[0].title === nowPlayingTranslation);
+                        });
                         const deletePromises = [];
                         for (const [_, msg] of botMessages) {
                             deletePromises.push(msg.delete().catch(() => { }));
@@ -182,6 +195,7 @@ class NowPlayingManager {
         };
         this.player = player;
         this.client = client;
+        this.localeDetector = new locales_1.LocaleDetector();
         this.startUpdateInterval();
     }
 }

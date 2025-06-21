@@ -21,6 +21,7 @@ const lavalinkEvent: LavalinkEvent = {
 				const lastUpdate = (newPlayer as any).lastUpdateTime || 0;
 				if (now - lastUpdate > 15000 || changeType?.details?.changeType === 'trackChange') {
 					(newPlayer as any).lastUpdateTime = now;
+					if (changeType?.details?.changeType === 'trackChange') NowPlayingManager.removeInstance(player.guildId);
 					const nowPlayingManager = NowPlayingManager.getInstance(player.guildId, newPlayer, client);
 					if (nowPlayingManager.hasMessage()) nowPlayingManager.forceUpdate();
 				}

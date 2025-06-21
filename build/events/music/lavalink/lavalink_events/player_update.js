@@ -19,6 +19,8 @@ const lavalinkEvent = {
                 const lastUpdate = newPlayer.lastUpdateTime || 0;
                 if (now - lastUpdate > 15000 || changeType?.details?.changeType === 'trackChange') {
                     newPlayer.lastUpdateTime = now;
+                    if (changeType?.details?.changeType === 'trackChange')
+                        music_1.NowPlayingManager.removeInstance(player.guildId);
                     const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, newPlayer, client);
                     if (nowPlayingManager.hasMessage())
                         nowPlayingManager.forceUpdate();

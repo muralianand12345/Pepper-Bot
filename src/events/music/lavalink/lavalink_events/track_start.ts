@@ -70,6 +70,7 @@ const lavalinkEvent: LavalinkEvent = {
 			logTrackStart(track, player, client);
 
 			try {
+				NowPlayingManager.removeInstance(player.guildId);
 				const nowPlayingManager = NowPlayingManager.getInstance(player.guildId, player, client);
 				await nowPlayingManager.updateOrCreateMessage(channel, track);
 				client.logger.debug(`[LAVALINK] Now playing message created/updated for ${track.title}`);

@@ -47,12 +47,12 @@ const event = {
         if (!textChannel)
             return;
         const memberCount = playerChannel.members.filter((member) => !member.user.bot).size;
-        const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, player, client);
         let guildLocale = 'en';
         try {
             guildLocale = (await localeDetector.getGuildLanguage(newState.guild.id)) || 'en';
         }
         catch (error) { }
+        const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, player, client);
         if (memberCount === 1 && player.paused) {
             player.pause(false);
             nowPlayingManager.onResume();

@@ -63,6 +63,7 @@ const lavalinkEvent = {
             await music_1.MusicDB.addMusicGuildData(player.guildId, songData);
             logTrackStart(track, player, client);
             try {
+                music_1.NowPlayingManager.removeInstance(player.guildId);
                 const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, player, client);
                 await nowPlayingManager.updateOrCreateMessage(channel, track);
                 client.logger.debug(`[LAVALINK] Now playing message created/updated for ${track.title}`);
