@@ -6,6 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const event = {
     name: discord_js_1.default.Events.Error,
-    execute: async (error, client) => client.logger.error(`[REQUEST] An error occurred: ${error.message}\n` + error),
+    execute: async (error, client) => {
+        client.logger.error(`[REQUEST] An error occurred: ${error.message}\n`);
+        client.logger.error(error);
+    },
 };
 exports.default = event;

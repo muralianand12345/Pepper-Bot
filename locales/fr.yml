@@ -199,7 +199,6 @@ responses:
         contact_dev: "Si le problème persiste, utilise /feedback ou contacte le développeur"
         filter_error: "Erreur lors de l’application du filtre"
         filter_not_found: "Filtre `{filter}` introuvable. Filtres disponibles : {available}"
-        feedback_not_configured: "Le système de feedback n’est pas correctement configuré"
         feedback_failed: "Impossible d’envoyer le feedback. Veuillez réessayer plus tard."
         no_current_track: "Aucun titre en cours de lecture"
         lyrics_plugin_missing: "La fonction paroles n’est pas disponible sur ce nœud Lavalink. Change pour un nœud compatible."

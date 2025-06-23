@@ -199,7 +199,6 @@ responses:
         contact_dev: "問題が解決しない場合は /feedback を使用するか、開発者に連絡してください"
         filter_error: "フィルターの適用中にエラー"
         filter_not_found: "`{filter}` フィルターが見つかりません。使用可能なフィルター: {available}"
-        feedback_not_configured: "フィードバックシステムが正しく構成されていません"
         feedback_failed: "フィードバックを送信できませんでした。後でもう一度お試しください。"
         no_current_track: "現在再生中のトラックはありません"
         lyrics_plugin_missing: "このLavalinkノードでは歌詞機能が使用できません。対応ノードに変更してください。"

@@ -199,7 +199,6 @@ responses:
         contact_dev: "如果问题仍然存在，请使用 /feedback 或联系开发者"
         filter_error: "应用滤镜时出错"
         filter_not_found: "未找到滤镜 `{filter}`。可用滤镜：{available}"
-        feedback_not_configured: "反馈系统未正确配置"
         feedback_failed: "无法发送反馈，请稍后重试。"
         no_current_track: "当前没有正在播放的曲目"
         lyrics_plugin_missing: "此 Lavalink 节点不支持歌词功能。请切换到兼容的节点。"

@@ -199,7 +199,6 @@ responses:
         contact_dev: "If this issue persists, please use /feedback or contact the developer"
         filter_error: "An error occurred while applying the filter"
         filter_not_found: "Filter `{filter}` not found. Available filters: {available}"
-        feedback_not_configured: "Feedback system is not properly configured"
         feedback_failed: "Failed to send feedback. Please try again later."
         no_current_track: "No track is currently playing"
         lyrics_plugin_missing: "Lyrics functionality is not available on this lavalink node. Please switch to a lavalink node that supports lyrics."

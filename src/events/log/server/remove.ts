@@ -18,9 +18,22 @@ const event: BotEvent = {
 				.setFooter({ text: `Now in ${client.guilds.cache.size} servers` })
 				.setTimestamp();
 
-			const logChannel = client.channels.cache.get(client.config.bot.log.server) as discord.TextChannel;
-			if (logChannel?.isTextBased()) await logChannel.send({ embeds: [leaveEmbed] });
-			await sendFeedbackRequestDM(guild, client);
+			try {
+				const logChannel = client.channels.cache.get(client.config.bot.log.server) as discord.TextChannel;
+				if (logChannel?.isTextBased()) {
+					await logChannel.send({ embeds: [leaveEmbed] });
+				} else {
+					client.logger.warn(`[SERVER_LEAVE] Log channel not found or not text-based: ${client.config.bot.log.server}`);
+				}
+			} catch (logError) {
+				client.logger.error(`[SERVER_LEAVE] Failed to send log message: ${logError}`);
+			}
+
+			try {
+				await sendFeedbackRequestDM(guild, client);
+			} catch (feedbackError) {
+				client.logger.error(`[SERVER_LEAVE] Failed to send feedback DM: ${feedbackError}`);
+			}
 		} catch (error) {
 			client.logger.error(`[SERVER_LEAVE] Error handling guild delete event: ${error}`);
 		}
@@ -28,14 +41,10 @@ const event: BotEvent = {
 };
 
 const sendFeedbackRequestDM = async (guild: discord.Guild, client: discord.Client): Promise<void> => {
+	if (!guild.ownerId) return client.logger.warn(`[FEEDBACK] Cannot send feedback DM - no owner ID for guild ${guild.id}`);
+
 	try {
-		if (!guild.ownerId) return client.logger.warn(`[FEEDBACK] Cannot send feedback DM - no owner ID for guild ${guild.id}`);
-
-		const owner = await client.users.fetch(guild.ownerId).catch((error) => {
-			client.logger.error(`[FEEDBACK] Failed to fetch guild owner: ${error}`);
-			return null;
-		});
-
+		const owner = await client.users.fetch(guild.ownerId);
 		if (!owner) return client.logger.warn(`[FEEDBACK] Cannot send feedback DM - owner not found for guild ${guild.id}`);
 
 		const feedbackEmbed = new discord.EmbedBuilder()
@@ -44,18 +53,37 @@ const sendFeedbackRequestDM = async (guild: discord.Guild, client: discord.Clien
 			.setThumbnail(client.user?.displayAvatarURL() || null)
 			.setDescription(`Thank you for trying ${client.user?.username} Music Bot! We noticed the bot is no longer in your server.\n\n` + "We'd love to hear your feedback to improve our service. Your insights are valuable to us!")
 			.setFooter({ text: `${client.user?.username || 'Pepper'} Music Bot`, iconURL: client.user?.displayAvatarURL() || undefined });
+
 		const actionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
 			new discord.ButtonBuilder().setCustomId(`feedback_request_${guild.id}`).setLabel('Share Feedback').setStyle(discord.ButtonStyle.Primary).setEmoji('📝'),
 			new discord.ButtonBuilder().setLabel(`Re-Invite ${client.user?.username} Bot`).setStyle(discord.ButtonStyle.Link).setURL(`https://discord.com/oauth2/authorize?client_id=${client.user?.id}&permissions=8&scope=bot%20applications.commands`).setEmoji('🎵'),
 			new discord.ButtonBuilder().setLabel('Support Server').setStyle(discord.ButtonStyle.Link).setURL('https://discord.gg/XzE9hSbsNb').setEmoji('🔧')
 		);
 
-		await owner
-			.send({ content: `Hello! This is **${client.user?.username}**, the music bot that was recently removed from **${guild.name}**.`, embeds: [feedbackEmbed], components: [actionRow] })
-			.then(() => client.logger.info(`[FEEDBACK] Sent feedback request DM to ${owner.tag} (${owner.id}) for guild ${guild.name} (${guild.id})`))
-			.catch((error) => client.logger.error(`[FEEDBACK] Failed to send DM to owner: ${error}`));
-	} catch (error) {
-		client.logger.error(`[FEEDBACK] Error sending feedback request DM: ${error}`);
+		await owner.send({ content: `Hello! This is **${client.user?.username}**, the music bot that was recently removed from **${guild.name}**.`, embeds: [feedbackEmbed], components: [actionRow] });
+
+		client.logger.info(`[FEEDBACK] Sent feedback request DM to ${owner.tag} (${owner.id}) for guild ${guild.name} (${guild.id})`);
+	} catch (fetchError) {
+		if (fetchError instanceof discord.DiscordAPIError) {
+			switch (fetchError.code) {
+				case 10013:
+					client.logger.warn(`[FEEDBACK] User not found for guild ${guild.id} (owner ID: ${guild.ownerId})`);
+					break;
+				case 50007:
+					client.logger.warn(`[FEEDBACK] Cannot send DM to ${guild.ownerId} - user has DMs disabled`);
+					break;
+				case 50001:
+					client.logger.warn(`[FEEDBACK] Missing access to send DM to ${guild.ownerId}`);
+					break;
+				case 40002:
+					client.logger.warn(`[FEEDBACK] Cannot send DM to ${guild.ownerId} - not friends or in mutual server`);
+					break;
+				default:
+					client.logger.error(`[FEEDBACK] Discord API error ${fetchError.code}: ${fetchError.message}`);
+			}
+		} else {
+			client.logger.error(`[FEEDBACK] Unexpected error sending feedback DM: ${fetchError}`);
+		}
 	}
 };
 

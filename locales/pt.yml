@@ -199,7 +199,6 @@ responses:
         contact_dev: "Se o problema persistir, use /feedback ou entre em contato com o desenvolvedor"
         filter_error: "Erro ao aplicar o filtro"
         filter_not_found: "Filtro `{filter}` não encontrado. Filtros disponíveis: {available}"
-        feedback_not_configured: "O sistema de feedback não está configurado corretamente"
         feedback_failed: "Não foi possível enviar o feedback. Tente novamente mais tarde."
         no_current_track: "Nenhuma faixa está sendo reproduzida no momento"
         lyrics_plugin_missing: "Função de letras não disponível neste nó Lavalink. Mude para um nó compatível."

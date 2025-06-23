@@ -199,7 +199,6 @@ responses:
         contact_dev: "Si el problema persiste, usa /feedback o contacta al desarrollador"
         filter_error: "Error al aplicar el filtro"
         filter_not_found: "Filtro `{filter}` no encontrado. Filtros disponibles: {available}"
-        feedback_not_configured: "El sistema de comentarios no está correctamente configurado"
         feedback_failed: "No se pudo enviar el comentario. Intenta nuevamente más tarde."
         no_current_track: "No hay canción reproduciéndose actualmente"
         lyrics_plugin_missing: "La función de letras no está disponible en este nodo de Lavalink. Cambia a uno que lo admita."

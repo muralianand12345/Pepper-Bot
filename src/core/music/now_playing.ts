@@ -17,6 +17,7 @@ export class NowPlayingManager {
 	private destroyed: boolean = false;
 	private stopped: boolean = false;
 	private localeDetector: LocaleDetector;
+	private isUpdating: boolean = false;
 
 	private constructor(player: magmastream.Player, client: discord.Client) {
 		this.player = player;
@@ -62,7 +63,7 @@ export class NowPlayingManager {
 	private startUpdateInterval = (): void => {
 		if (this.updateInterval) clearInterval(this.updateInterval);
 		this.updateInterval = setInterval(() => {
-			if (this.destroyed || this.stopped) return;
+			if (this.destroyed || this.stopped || this.isUpdating) return;
 			if (!this.player || !this.player.playing || this.paused) return;
 
 			const position = this.player.position;
@@ -112,12 +113,18 @@ export class NowPlayingManager {
 	};
 
 	private updateNowPlaying = async (): Promise<void> => {
+		if (this.isUpdating) return;
+
 		const now = Date.now();
 		if (now - this.lastUpdateTime < this.MIN_UPDATE_INTERVAL) return;
-		if (!this.message || !this.player || !this.player.queue?.current) return;
+
+		const currentMessage = this.message;
+		if (!currentMessage || !this.player || !this.player.queue?.current) return;
+
+		this.isUpdating = true;
 
 		try {
-			if (!this.message.editable) {
+			if (!currentMessage.editable) {
 				this.client.logger?.warn(`[NowPlayingManager] Message is no longer editable, clearing reference`);
 				this.message = null;
 				return;
@@ -130,8 +137,10 @@ export class NowPlayingManager {
 			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
 			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
 
-			await this.message.edit({ embeds: [embed], components: [musicButton] });
-			this.lastUpdateTime = Date.now();
+			if (this.message === currentMessage && currentMessage.editable) {
+				await currentMessage.edit({ embeds: [embed], components: [musicButton] });
+				this.lastUpdateTime = Date.now();
+			}
 		} catch (error) {
 			if (error instanceof Error) {
 				const errorMessage = error.message.toLowerCase();
@@ -148,18 +157,23 @@ export class NowPlayingManager {
 			} else {
 				this.client.logger?.error(`[NowPlayingManager] Unknown update error`);
 			}
+		} finally {
+			this.isUpdating = false;
 		}
 	};
 
 	public updateOrCreateMessage = async (channel: discord.TextChannel, track: magmastream.Track): Promise<void> => {
+		if (this.isUpdating) return;
+
 		try {
 			const locale = await this.getGuildLocale();
 			const embed = new MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
 			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
 			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
+			const currentMessage = this.message;
 
-			if (this.message && this.message.editable) {
-				await this.message
+			if (currentMessage && currentMessage.editable) {
+				await currentMessage
 					.edit({ embeds: [embed], components: [musicButton] })
 					.then(() => this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`))
 					.catch(async (error) => {
@@ -199,6 +213,7 @@ export class NowPlayingManager {
 
 	public destroy = (): void => {
 		this.destroyed = true;
+		this.isUpdating = false;
 		if (this.updateInterval) {
 			clearInterval(this.updateInterval);
 			this.updateInterval = null;
@@ -211,7 +226,7 @@ export class NowPlayingManager {
 	};
 
 	public forceUpdate = (): void => {
-		this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`));
+		if (!this.isUpdating) this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`));
 	};
 
 	public getPlaybackStatus = (): { position: number; duration: number; isPlaying: boolean; isPaused: boolean; track: magmastream.Track | null } => {

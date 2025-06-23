@@ -198,7 +198,6 @@ responses:
         contact_dev: "Wenn das Problem weiterhin besteht, verwende /feedback oder kontaktiere den Entwickler"
         filter_error: "Beim Anwenden des Filters ist ein Fehler aufgetreten"
         filter_not_found: "Filter `{filter}` nicht gefunden. Verfügbare Filter: {available}"
-        feedback_not_configured: "Feedback-System ist nicht richtig konfiguriert"
         feedback_failed: "Feedback konnte nicht gesendet werden. Bitte versuche es später erneut."
         no_current_track: "Kein Titel wird derzeit abgespielt"
         lyrics_plugin_missing: "Songtext-Funktion auf diesem Lavalink-Knoten nicht verfügbar. Bitte wechsle zu einem Knoten, der Lyrics unterstützt."

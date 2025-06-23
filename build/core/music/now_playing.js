@@ -14,6 +14,7 @@ class NowPlayingManager {
         this.paused = false;
         this.destroyed = false;
         this.stopped = false;
+        this.isUpdating = false;
         this.setMessage = (message, forceUpdate = false) => {
             if (message.author.id !== this.client.user?.id)
                 return this.client.logger?.warn(`[NowPlayingManager] Attempted to set message not authored by bot`);
@@ -37,7 +38,7 @@ class NowPlayingManager {
             if (this.updateInterval)
                 clearInterval(this.updateInterval);
             this.updateInterval = setInterval(() => {
-                if (this.destroyed || this.stopped)
+                if (this.destroyed || this.stopped || this.isUpdating)
                     return;
                 if (!this.player || !this.player.playing || this.paused)
                     return;
@@ -84,13 +85,17 @@ class NowPlayingManager {
             }
         };
         this.updateNowPlaying = async () => {
+            if (this.isUpdating)
+                return;
             const now = Date.now();
             if (now - this.lastUpdateTime < this.MIN_UPDATE_INTERVAL)
                 return;
-            if (!this.message || !this.player || !this.player.queue?.current)
+            const currentMessage = this.message;
+            if (!currentMessage || !this.player || !this.player.queue?.current)
                 return;
+            this.isUpdating = true;
             try {
-                if (!this.message.editable) {
+                if (!currentMessage.editable) {
                     this.client.logger?.warn(`[NowPlayingManager] Message is no longer editable, clearing reference`);
                     this.message = null;
                     return;
@@ -100,8 +105,10 @@ class NowPlayingManager {
                 const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(this.player.queue.current, adjustedPlayer, locale);
                 const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
                 const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
-                await this.message.edit({ embeds: [embed], components: [musicButton] });
-                this.lastUpdateTime = Date.now();
+                if (this.message === currentMessage && currentMessage.editable) {
+                    await currentMessage.edit({ embeds: [embed], components: [musicButton] });
+                    this.lastUpdateTime = Date.now();
+                }
             }
             catch (error) {
                 if (error instanceof Error) {
@@ -122,15 +129,21 @@ class NowPlayingManager {
                     this.client.logger?.error(`[NowPlayingManager] Unknown update error`);
                 }
             }
+            finally {
+                this.isUpdating = false;
+            }
         };
         this.updateOrCreateMessage = async (channel, track) => {
+            if (this.isUpdating)
+                return;
             try {
                 const locale = await this.getGuildLocale();
                 const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
                 const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
                 const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
-                if (this.message && this.message.editable) {
-                    await this.message
+                const currentMessage = this.message;
+                if (currentMessage && currentMessage.editable) {
+                    await currentMessage
                         .edit({ embeds: [embed], components: [musicButton] })
                         .then(() => this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`))
                         .catch(async (error) => {
@@ -172,6 +185,7 @@ class NowPlayingManager {
         };
         this.destroy = () => {
             this.destroyed = true;
+            this.isUpdating = false;
             if (this.updateInterval) {
                 clearInterval(this.updateInterval);
                 this.updateInterval = null;
@@ -182,7 +196,8 @@ class NowPlayingManager {
             return this.message !== null && this.message.editable;
         };
         this.forceUpdate = () => {
-            this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`));
+            if (!this.isUpdating)
+                this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`));
         };
         this.getPlaybackStatus = () => {
             return {
