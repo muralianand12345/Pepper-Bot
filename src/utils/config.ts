@@ -16,6 +16,7 @@ const EnvSchema = z.object({
 	SPOTIFY_CLIENT_ID: z.string(),
 	SPOTIFY_CLIENT_SECRET: z.string(),
 	FEEDBACK_WEBHOOK: z.string(),
+	LIVE_SONGS_WEBHOOK: z.string(),
 });
 
 /**
@@ -41,6 +42,7 @@ export class ConfigManager {
 				SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
 				SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
 				FEEDBACK_WEBHOOK: process.env.FEEDBACK_WEBHOOK,
+				LIVE_SONGS_WEBHOOK: process.env.LIVE_SONGS_WEBHOOK,
 			});
 		} catch (error) {
 			if (error instanceof z.ZodError) {
@@ -88,6 +90,10 @@ export class ConfigManager {
 
 	public getFeedbackWebhook = (): string => {
 		return this.config.FEEDBACK_WEBHOOK;
+	};
+
+	public getLiveSongsWebhook = (): string => {
+		return this.config.LIVE_SONGS_WEBHOOK;
 	};
 }
 

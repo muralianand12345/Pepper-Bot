@@ -17,6 +17,7 @@ declare global {
 			SPOTIFY_CLIENT_ID: string;
 			SPOTIFY_CLIENT_SECRET: string;
 			FEEDBACK_WEBHOOK: string;
+			LIVE_SONGS_WEBHOOK: string;
 		}
 	}
 }

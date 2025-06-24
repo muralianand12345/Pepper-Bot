@@ -21,6 +21,7 @@ const EnvSchema = zod_1.z.object({
     SPOTIFY_CLIENT_ID: zod_1.z.string(),
     SPOTIFY_CLIENT_SECRET: zod_1.z.string(),
     FEEDBACK_WEBHOOK: zod_1.z.string(),
+    LIVE_SONGS_WEBHOOK: zod_1.z.string(),
 });
 /**
  * Manages application configuration using environment variables
@@ -53,6 +54,9 @@ class ConfigManager {
         this.getFeedbackWebhook = () => {
             return this.config.FEEDBACK_WEBHOOK;
         };
+        this.getLiveSongsWebhook = () => {
+            return this.config.LIVE_SONGS_WEBHOOK;
+        };
         const result = (0, dotenv_1.config)();
         if (result.error)
             throw new Error(`Failed to load environment variables: ${result.error.message}`);
@@ -65,6 +69,7 @@ class ConfigManager {
                 SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
                 SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
                 FEEDBACK_WEBHOOK: process.env.FEEDBACK_WEBHOOK,
+                LIVE_SONGS_WEBHOOK: process.env.LIVE_SONGS_WEBHOOK,
             });
         }
         catch (error) {

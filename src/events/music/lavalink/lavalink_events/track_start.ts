@@ -1,13 +1,16 @@
 import discord from 'discord.js';
 import magmastream, { ManagerEventTypes } from 'magmastream';
 
+import Formatter from '../../../../utils/format';
 import { LavalinkEvent } from '../../../../types';
+import { ConfigManager } from '../../../../utils/config';
 import { LocaleDetector } from '../../../../core/locales';
-import { wait, MusicDB, NowPlayingManager, getRequester } from '../../../../core/music';
 import { MusicResponseHandler } from '../../../../core/music/handlers/response';
+import { wait, MusicDB, NowPlayingManager, getRequester } from '../../../../core/music';
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 const localeDetector = new LocaleDetector();
+const configManager = ConfigManager.getInstance();
 
 const logTrackStart = (track: magmastream.Track, player: magmastream.Player, client: discord.Client): void => {
 	const guildName = client.guilds.cache.get(player.guildId)?.name;
@@ -15,6 +18,48 @@ const logTrackStart = (track: magmastream.Track, player: magmastream.Player, cli
 	if (!requesterData) return client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId})`);
 	client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` + `By ${requesterData.username} (${requesterData.id})`);
 	client.logger.info(`[LAVALINK] User: ${requesterData.username} (${requesterData.id}) requested song uri ${track.uri} ` + `in ${guildName} (${player.guildId}) using Node ${player.node.options.identifier} (${player.node.options.host}:${player.node.options.port || ''})`);
+};
+
+const webhookLiveSongs = async (client: discord.Client, track: magmastream.Track, player: magmastream.Player): Promise<void> => {
+	try {
+		const webhookUrl = configManager.getLiveSongsWebhook();
+		if (!webhookUrl) return client.logger.warn('[LAVALINK] Live songs webhook URL not configured.');
+
+		const webhookClient = new discord.WebhookClient({ url: webhookUrl });
+		if (!webhookClient) return client.logger.error('[LAVALINK] Live songs webhook client not found.');
+
+		const guild = client.guilds.cache.get(player.guildId);
+		const duration = track.isStream ? 'LIVE STREAM' : Formatter.msToTime(track.duration);
+		const voiceChannel = guild?.channels.cache.get(player.voiceChannelId || '') as discord.VoiceBasedChannel;
+		const voiceMembers = voiceChannel?.members.filter((member) => !member.user.bot).size || 0;
+
+		const embed = new discord.EmbedBuilder()
+			.setColor('#FF0000')
+			.setTitle('🎵 Now Playing Live')
+			.setDescription(`**${track.title || 'Unknown Track'}**\nby **${track.author || 'Unknown Artist'}**`)
+			.setThumbnail(track.artworkUrl || track.thumbnail || null)
+			.addFields([
+				{ name: '⏱️ Duration', value: duration, inline: true },
+				{ name: '📻 Source', value: track.sourceName || 'Unknown', inline: true },
+				{ name: '🔊 Listening', value: `${voiceMembers}`, inline: true },
+				{ name: '🌐 Node', value: player.node.options.identifier || 'Unknown Node', inline: true },
+				{ name: '🆔 Track ID', value: track.identifier || 'Unknown', inline: true },
+			])
+			.setFooter({ text: `${client.user?.username || 'Music Bot'} • Live Song Activity`, iconURL: client.user?.displayAvatarURL() })
+			.setTimestamp();
+
+		if (track.uri && !track.uri.includes('youtube')) embed.setURL(track.uri);
+
+		await webhookClient.send({
+			username: `${client.user?.username || 'Music Bot'} Live Songs`,
+			avatarURL: client.user?.displayAvatarURL(),
+			embeds: [embed],
+		});
+
+		client.logger.debug(`[LAVALINK] Live song activity sent for ${track.title} in ${guild?.name}`);
+	} catch (error) {
+		client.logger.error(`[LAVALINK] Failed to send live song webhook: ${error}`);
+	}
 };
 
 const lavalinkEvent: LavalinkEvent = {
@@ -76,6 +121,12 @@ const lavalinkEvent: LavalinkEvent = {
 				client.logger.debug(`[LAVALINK] Now playing message created/updated for ${track.title}`);
 			} catch (nowPlayingError) {
 				client.logger.error(`[LAVALINK] Failed to create/update now playing message: ${nowPlayingError}`);
+			}
+
+			try {
+				await webhookLiveSongs(client, track, player);
+			} catch (webhookError) {
+				client.logger.error(`[LAVALINK] Failed to send live songs webhook: ${webhookError}`);
 			}
 		} catch (error) {
 			client.logger.error(`[TRACK_START] Error in trackStart event: ${error}`);
