@@ -1,5 +1,6 @@
 import discord from 'discord.js';
 import magmastream from 'magmastream';
+import { Station } from 'radio-browser-api';
 
 import Formatter from '../../utils/format';
 import { LocaleDetector } from '../locales';
@@ -7,6 +8,7 @@ import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator, Auto
 
 export * from './func';
 export * from './repo';
+export * from './radio';
 export * from './handlers';
 export * from './auto_search';
 export * from './now_playing';
@@ -80,6 +82,52 @@ export class Music {
 			return this.lavaSearch(query, retry - 1);
 		}
 		return res;
+	};
+
+	private createRadioEmbed = (station: Station, track: magmastream.Track): discord.EmbedBuilder => {
+		const embed = new discord.EmbedBuilder()
+			.setColor('#FF6B6B')
+			.setTitle('📻 ' + this.t('responses.radio.now_playing'))
+			.setDescription(`**${station.name}**`)
+			.setThumbnail(station.favicon || null)
+			.addFields([
+				{ name: this.t('responses.fields.country'), value: station.country || 'Unknown', inline: true },
+				{ name: this.t('responses.fields.language'), value: station.language.join(', ') || 'Unknown', inline: true },
+				{ name: this.t('responses.fields.bitrate'), value: station.bitrate ? `${station.bitrate} kbps` : 'Unknown', inline: true },
+				{ name: this.t('responses.fields.codec'), value: station.codec || 'Unknown', inline: true },
+				{ name: this.t('responses.fields.votes'), value: station.votes.toString(), inline: true },
+				{ name: this.t('responses.fields.stream_type'), value: this.t('responses.radio.live_stream'), inline: true },
+			])
+			.setFooter({ text: this.t('responses.radio.footer'), iconURL: this.client.user?.displayAvatarURL() })
+			.setTimestamp();
+
+		if (station.tags.length > 0) embed.addFields([{ name: this.t('responses.fields.tags'), value: station.tags.slice(0, 5).join(', '), inline: false }]);
+		return embed;
+	};
+
+	private handleRadioResult = async (res: magmastream.SearchResult, player: magmastream.Player, station: Station): Promise<void> => {
+		const responseHandler = new MusicResponseHandler(this.client);
+
+		switch (res.loadType) {
+			case 'empty': {
+				if (!player.queue.current) player.destroy();
+				await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.radio_not_available'), this.locale)] });
+				break;
+			}
+			case 'track':
+			case 'search': {
+				const track = res.tracks[0];
+
+				player.queue.clear();
+				player.queue.add(track);
+
+				if (!player.playing && !player.paused) player.play();
+
+				const radioEmbed = this.createRadioEmbed(station, track);
+				await this.interaction.editReply({ embeds: [radioEmbed] });
+				break;
+			}
+		}
 	};
 
 	searchResults = async (res: magmastream.SearchResult, player: magmastream.Player): Promise<discord.Message<boolean> | void> => {
@@ -629,5 +677,64 @@ export class Music {
 				this.client.logger.error(`[LYRICS] Command error: ${error}`);
 			}
 		}
+	};
+
+	playRadio = async (station: Station): Promise<discord.Message<boolean> | void> => {
+		if (!this.isDeferred && !this.interaction.deferred) {
+			await this.interaction.deferReply();
+			this.isDeferred = true;
+		}
+
+		await this.initializeLocale();
+		const responseHandler = new MusicResponseHandler(this.client);
+
+		const musicCheck = this.validateMusicEnabled();
+		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
+
+		const validator = new VoiceChannelValidator(this.client, this.interaction);
+		for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection()]) {
+			const [isValid, embed] = await check;
+			if (!isValid) return await this.interaction.editReply({ embeds: [embed] });
+		}
+
+		const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
+		let player = this.client.manager.get(this.interaction.guildId || '');
+
+		if (player) {
+			const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
+			if (!playerValid) return await this.interaction.editReply({ embeds: [playerEmbed] });
+			if (!this.client.manager.get(this.interaction.guildId || '')) player = undefined;
+		}
+
+		if (!player) {
+			player = this.client.manager.create({
+				guildId: this.interaction.guildId || '',
+				voiceChannelId: guildMember?.voice.channelId || '',
+				textChannelId: this.interaction.channelId,
+				...MUSIC_CONFIG.PLAYER_OPTIONS,
+			});
+		}
+
+		const guild = this.interaction.guild!;
+		const botMember = guild.members.me;
+		const needsConnection = !botMember?.voice.channelId || botMember.voice.channelId !== guildMember?.voice.channelId;
+
+		if (needsConnection || !['CONNECTING', 'CONNECTED'].includes(player.state)) {
+			player.connect();
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)] });
+		}
+
+		try {
+			const res = await this.lavaSearch(station.urlResolved);
+			if (res.loadType === 'error') throw new Error('Radio station not accessible');
+			await this.handleRadioResult(res, player, station);
+		} catch (error) {
+			this.client.logger.error(`[RADIO] Play error: ${error}`);
+			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.radio_play_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
+		}
+	};
+
+	stopRadio = async (): Promise<discord.Message<boolean> | void> => {
+		return this.stop();
 	};
 }

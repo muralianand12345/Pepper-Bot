@@ -93,6 +93,35 @@ commands:
             skip_track_source:
                 name: "skip_track_source"
                 description: "Skip using the track's source URL when searching for lyrics"
+    radio:
+        name: "radio"
+        description: "Listen to radio stations from around the world"
+        subcommands:
+            play:
+                name: "play"
+                description: "Play a radio station"
+            search:
+                name: "search"
+                description: "Search for radio stations"
+            popular:
+                name: "popular"
+                description: "Show popular radio stations"
+            stop:
+                name: "stop"
+                description: "Stop the current radio stream"
+        options:
+            station:
+                name: "station"
+                description: "Search for a radio station"
+            query:
+                name: "query"
+                description: "Station name or keyword"
+            country:
+                name: "country"
+                description: "Filter by country code (e.g., US, IN, GB)"
+            language:
+                name: "language"
+                description: "Filter by language"
 
 responses:
     music:
@@ -116,6 +145,28 @@ responses:
         youtube_blocked: "⚠️ Skipping song! Youtube source detected."
         youtube_footer: "We do not support Youtube links due to YouTube's TOS."
         filter_applied: "Applied {filter} filter"
+
+    radio:
+        now_playing: "Radio Station Playing"
+        live_stream: "🔴 LIVE"
+        footer: "Radio powered by Radio-Browser"
+        search_footer: "Use buttons below to play stations"
+        popular_footer: "Most popular stations by votes and clicks"
+        invalid_selection: "Please select a valid radio station from the search results"
+        station_not_found: "Radio station not found or no longer available"
+        no_stations_found: "No radio stations found matching your criteria"
+        no_popular_stations: "No popular stations found for country {country}"
+        search_results: "Radio Station Search Results"
+        popular_title: "Popular Stations in {country}"
+        popular_description: "Top {count} popular radio stations in {country}"
+        found_stations: "Found {count} stations"
+        query: "Search"
+        country: "Country"
+        language: "Language"
+        available_stations: "Available Stations"
+        top_stations: "Top Stations"
+        playing_station: "Now playing radio station: **{station}**"
+        play_error: "Failed to play radio station **{station}**"
 
     chart:
         user_title: "{user}'s Music Chart"
@@ -203,6 +254,8 @@ responses:
         no_current_track: "No track is currently playing"
         lyrics_plugin_missing: "Lyrics functionality is not available on this lavalink node. Please switch to a lavalink node that supports lyrics."
         lyrics_error: "An error occurred while fetching lyrics"
+        radio_play_error: "Failed to play the radio station"
+        radio_not_available: "This radio station is currently not available"
 
     language:
         user_set: "Your language has been set to **{language}**"
@@ -224,6 +277,13 @@ responses:
         avg_duration: "Avg. Duration"
         added_by: "Added by"
         progress: "Progress"
+        country: "Country"
+        language: "Language"
+        bitrate: "Bitrate"
+        codec: "Codec"
+        votes: "Votes"
+        stream_type: "Stream Type"
+        tags: "Tags"
 
     buttons:
         pause: "Pause"
