@@ -21,36 +21,72 @@ const playCommand: Command = {
 		.addStringOption((option) => option.setName('song').setDescription('Song Name/URL').setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.description')).setRequired(true).setAutocomplete(true))
 		.addStringOption((option) => option.setName('lavalink_node').setDescription('Lavalink to play the song (Optional)').setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.lavalink_node.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.lavalink_node.description')).setRequired(false).setAutocomplete(true)),
 	autocomplete: async (interaction: discord.AutocompleteInteraction, client: discord.Client): Promise<void> => {
-		const focused = interaction.options.getFocused(true);
-		const t = await localeDetector.getTranslator(interaction);
-		const user_language = await localeDetector.getUserLanguage(interaction.user.id);
+		let hasResponded = false;
 
-		try {
-			let suggestions;
-
-			if (focused.name === 'lavalink_node') {
-				const nodes: INodeOption[] = client.manager.nodes.filter((node: magmastream.Node) => node.connected == true).map((node: magmastream.Node) => ({ name: `${node.options.identifier} (${node.options.host})`, value: node.options.identifier || 'Unknown Node' }));
-				suggestions = nodes.filter((option: INodeOption) => option.name.toLowerCase().includes(focused.value.toLowerCase()));
-			} else if (focused.name === 'song') {
-				if (!focused.value) {
-					const defaultText = t('responses.default_search');
-					suggestions = [{ name: defaultText.slice(0, 100), value: defaultText }];
-				} else {
-					focused.value = focused.value.split('?')[0].split('#')[0];
-					const isSpotifyLink = focused.value.match(/^(https:\/\/open\.spotify\.com\/|spotify:)/i);
-					const isStringWithoutHttp = focused.value.match(/^(?!https?:\/\/)([a-zA-Z0-9\s]+)$/);
-					if (isSpotifyLink || isStringWithoutHttp) {
-						suggestions = await new SpotifyAutoComplete(client, configManager.getSpotifyClientId(), configManager.getSpotifyClientSecret(), user_language || 'en').getSuggestions(focused.value);
-					} else {
-						suggestions = [{ name: `${focused.value.slice(0, 80)}`, value: focused.value }];
-					}
+		const safeRespond = async (suggestions: discord.ApplicationCommandOptionChoiceData[]): Promise<void> => {
+			if (hasResponded || !interaction.isAutocomplete()) return;
+			try {
+				await interaction.respond(suggestions);
+				hasResponded = true;
+			} catch (error) {
+				if (!hasResponded) {
+					client.logger.warn(`[PLAY_COMMAND] Failed to respond to autocomplete: ${error}`);
 				}
 			}
-			await interaction.respond(suggestions || []);
+		};
+
+		const focused = interaction.options.getFocused(true);
+		try {
+			if (focused.name === 'lavalink_node') {
+				const nodes: INodeOption[] = client.manager.nodes
+					.filter((node: magmastream.Node) => node.connected)
+					.map((node: magmastream.Node) => ({
+						name: `${node.options.identifier} (${node.options.host})`,
+						value: node.options.identifier || 'Unknown Node',
+					}));
+
+				const filteredNodes = nodes.filter((option: INodeOption) => option.name.toLowerCase().includes(focused.value.toLowerCase()));
+				await safeRespond(filteredNodes);
+				return;
+			}
+
+			if (focused.name === 'song') {
+				if (!focused.value?.trim()) {
+					const t = await localeDetector.getTranslator(interaction);
+					const defaultText = t('responses.default_search');
+					await safeRespond([{ name: defaultText.slice(0, 100), value: defaultText }]);
+					return;
+				}
+
+				const cleanValue = focused.value.split('?')[0].split('#')[0].trim();
+				const isSpotifyLink = /^(https:\/\/open\.spotify\.com\/|spotify:)/i.test(cleanValue);
+				const isStringWithoutHttp = /^(?!https?:\/\/)([a-zA-Z0-9\s]+)$/.test(cleanValue);
+
+				if (isSpotifyLink || isStringWithoutHttp) {
+					const timeoutPromise = new Promise<discord.ApplicationCommandOptionChoiceData[]>((_, reject) => setTimeout(() => reject(new Error('Spotify API timeout')), 2000));
+					const user_language = await localeDetector.getUserLanguage(interaction.user.id);
+					const spotifyPromise = new SpotifyAutoComplete(client, configManager.getSpotifyClientId(), configManager.getSpotifyClientSecret(), user_language || 'en').getSuggestions(cleanValue);
+
+					try {
+						const suggestions = await Promise.race([spotifyPromise, timeoutPromise]);
+						await safeRespond(suggestions);
+					} catch (spotifyError) {
+						client.logger.warn(`[PLAY_COMMAND] Spotify autocomplete error: ${spotifyError}`);
+						await safeRespond([{ name: cleanValue.slice(0, 80), value: cleanValue }]);
+					}
+				} else {
+					await safeRespond([{ name: cleanValue.slice(0, 80), value: cleanValue }]);
+				}
+			}
 		} catch (error) {
 			client.logger.error(`[PLAY_COMMAND] Autocomplete error: ${error}`);
-			const errorText = t('responses.errors.no_results');
-			await interaction.respond([{ name: errorText.slice(0, 100), value: errorText }]);
+			if (!hasResponded) {
+				try {
+					await safeRespond([]);
+				} catch (respondError) {
+					client.logger.error(`[PLAY_COMMAND] Failed final respond: ${respondError}`);
+				}
+			}
 		}
 	},
 	execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {

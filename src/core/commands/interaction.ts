@@ -1,11 +1,10 @@
 import ms from 'ms';
 import discord from 'discord.js';
 
+import { Command } from '../../types';
 import { LocaleDetector } from '../locales';
 import { MusicResponseHandler } from '../music';
-import { IMusicGuild, Command } from '../../types';
 import { SurveyHandler } from '../../utils/survey';
-import music_guild from '../../events/database/schema/music_guild';
 
 export class CommandInteractionHandler {
 	private static cooldown: discord.Collection<string, number> = new discord.Collection();
@@ -29,15 +28,17 @@ export class CommandInteractionHandler {
 				const command = this.client.commands.get(this.interaction.commandName);
 				if (command?.autocomplete) {
 					try {
-						const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Autocomplete timeout')), 2500));
+						const timeoutPromise = new Promise<void>((_, reject) => setTimeout(() => reject(new Error('Autocomplete timeout')), 2000));
 						const autocompletePromise = command.autocomplete(this.interaction, this.client);
 						await Promise.race([autocompletePromise, timeoutPromise]);
 					} catch (error) {
 						this.client.logger.warn(`[INTERACTION_CREATE] Autocomplete error: ${error}`);
-						try {
-							await this.interaction.respond([]);
-						} catch (respondError) {
-							this.client.logger.error(`[INTERACTION_CREATE] Failed to respond to autocomplete: ${respondError}`);
+						if (!this.interaction.responded) {
+							try {
+								await this.interaction.respond([]);
+							} catch (respondError) {
+								if (!(respondError instanceof discord.DiscordAPIError && respondError.code === 10062)) this.client.logger.error(`[INTERACTION_CREATE] Failed to respond to autocomplete: ${respondError}`);
+							}
 						}
 					}
 				}
@@ -50,15 +51,18 @@ export class CommandInteractionHandler {
 			const command = this.client.commands.get(this.interaction.commandName);
 			if (!command) return this.client.logger.warn(`[INTERACTION_CREATE] Command ${this.interaction.commandName} not found.`);
 
-			const guild_data = await music_guild.findOne({ guildId: this.interaction.guild?.id });
-			if (await this.handleCommandPrerequisites(command, guild_data)) {
+			if (await this.handleCommandPrerequisites(command)) {
 				await this.executeCommand(command);
 				await this.handleSurveyDelivery();
 			}
 		} catch (error) {
 			this.client.logger.error(`[INTERACTION_CREATE] Error processing interaction command: ${error}`);
 			if (this.interaction.isRepliable() && !this.interaction.replied && !this.interaction.deferred) {
-				await this.sendErrorReply('responses.errors.general_error');
+				try {
+					await this.sendErrorReply('responses.errors.general_error');
+				} catch (replyError) {
+					if (!(replyError instanceof discord.DiscordAPIError && replyError.code === 10062)) this.client.logger.error(`[INTERACTION_CREATE] Critical error reply failed: ${replyError}`);
+				}
 			}
 		}
 	};
@@ -73,48 +77,31 @@ export class CommandInteractionHandler {
 	};
 
 	private sendErrorReply = async (messageKey: string, data?: Record<string, string | number>): Promise<void> => {
-		if (!this.interaction.isRepliable() || this.interaction.replied) return;
+		if (!this.interaction.isRepliable() || this.interaction.replied || this.interaction.deferred) return;
 
 		try {
-			const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2500));
+			const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000));
 			const replyPromise = (async () => {
 				const locale = await this.localeDetector.detectLocale(this.interaction as any);
 				const t = await this.localeDetector.getTranslator(this.interaction as any);
 				const message = t(messageKey, data);
-
-				if (this.interaction.isRepliable()) {
-					await this.interaction.reply({
-						embeds: [new MusicResponseHandler(this.client).createErrorEmbed(message, locale)],
-						flags: discord.MessageFlags.Ephemeral,
-					});
-				}
+				if (this.interaction.isRepliable() && !this.interaction.replied && !this.interaction.deferred) await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed(message, locale)], flags: discord.MessageFlags.Ephemeral });
 			})();
 
 			await Promise.race([replyPromise, timeoutPromise]);
 		} catch (error) {
 			if (error instanceof Error && error.message === 'Timeout') {
 				this.client.logger.warn(`[INTERACTION_CREATE] Reply timeout for interaction ${this.interaction.id}`);
+			} else if (error instanceof discord.DiscordAPIError && error.code === 10062) {
+				this.client.logger.warn(`[INTERACTION_CREATE] Interaction expired: ${this.interaction.id}`);
 			} else {
 				this.client.logger.error(`[INTERACTION_CREATE] Error sending reply: ${error}`);
-			}
-
-			try {
-				if (this.interaction.isRepliable() && !this.interaction.replied && !this.interaction.deferred) {
-					await this.interaction.reply({
-						embeds: [new MusicResponseHandler(this.client).createErrorEmbed(messageKey)],
-						flags: discord.MessageFlags.Ephemeral,
-					});
-				}
-			} catch (fallbackError) {
-				this.client.logger.error(`[INTERACTION_CREATE] Fallback reply failed: ${fallbackError}`);
 			}
 		}
 	};
 
-	private handleCommandPrerequisites = async (command: Command, music_guild_data: IMusicGuild | null): Promise<boolean> => {
+	private handleCommandPrerequisites = async (command: Command): Promise<boolean> => {
 		if (!this.interaction.isChatInputCommand()) return false;
-
-		const t = await this.localeDetector.getTranslator(this.interaction);
 
 		if (command.cooldown) {
 			const cooldownKey = `${command.data.name}${this.interaction.user.id}`;
@@ -137,9 +124,7 @@ export class CommandInteractionHandler {
 		if (command.userPerms && this.interaction.guild) {
 			const member = await this.interaction.guild.members.fetch(this.interaction.user.id);
 			if (!member.permissions.has(command.userPerms)) {
-				await this.sendErrorReply('responses.errors.missing_user_perms', {
-					permissions: command.userPerms.join(', '),
-				});
+				await this.sendErrorReply('responses.errors.missing_user_perms', { permissions: command.userPerms.join(', ') });
 				return false;
 			}
 		}
@@ -147,9 +132,7 @@ export class CommandInteractionHandler {
 		if (command.botPerms && this.interaction.guild) {
 			const botMember = await this.interaction.guild.members.fetch(this.client.user!.id);
 			if (!botMember.permissions.has(command.botPerms)) {
-				await this.sendErrorReply('responses.errors.missing_bot_perms', {
-					permissions: command.botPerms.join(', '),
-				});
+				await this.sendErrorReply('responses.errors.missing_bot_perms', { permissions: command.botPerms.join(', ') });
 				return false;
 			}
 		}
@@ -191,9 +174,7 @@ export class CommandInteractionHandler {
 			const executionTime = Date.now() - startTime;
 			this.client.logger.error(`[INTERACTION_CREATE] Error executing command ${command.data.name} after ${executionTime}ms: ${error}`);
 
-			if (error instanceof Error && error.message === 'Command execution timeout') {
-				this.client.logger.warn(`[INTERACTION_CREATE] Command ${command.data.name} timed out after 25 seconds`);
-			}
+			if (error instanceof Error && error.message === 'Command execution timeout') this.client.logger.warn(`[INTERACTION_CREATE] Command ${command.data.name} timed out after 25 seconds`);
 
 			try {
 				if (!this.interaction.replied && !this.interaction.deferred) {
@@ -203,12 +184,15 @@ export class CommandInteractionHandler {
 					const t = await this.localeDetector.getTranslator(this.interaction);
 					const message = t('responses.errors.general_error');
 					const embed = new MusicResponseHandler(this.client).createErrorEmbed(message, locale, true);
-					await this.interaction.editReply({ embeds: [embed] }).catch((editError) => {
-						this.client.logger.error(`[INTERACTION_CREATE] Failed to edit reply: ${editError}`);
-					});
+
+					if (this.interaction.isRepliable()) {
+						await this.interaction.editReply({ embeds: [embed] }).catch((editError) => {
+							if (!(editError instanceof discord.DiscordAPIError && editError.code === 10062)) this.client.logger.error(`[INTERACTION_CREATE] Failed to edit reply: ${editError}`);
+						});
+					}
 				}
 			} catch (replyError) {
-				this.client.logger.error(`[INTERACTION_CREATE] Failed to send error reply: ${replyError}`);
+				if (!(replyError instanceof discord.DiscordAPIError && replyError.code === 10062)) this.client.logger.error(`[INTERACTION_CREATE] Failed to send error reply: ${replyError}`);
 			}
 		}
 	};
@@ -238,25 +222,18 @@ export class CommandInteractionHandler {
 
 			if (!this.interaction.replied && !this.interaction.deferred) {
 				try {
-					const locale = await this.localeDetector.detectLocale(this.interaction);
 					const t = await this.localeDetector.getTranslator(this.interaction);
 					const message = t('responses.errors.general_error');
 					if (this.interaction.isRepliable()) {
-						await this.interaction
-							.reply({
-								content: `❌ ${message}`,
-								flags: discord.MessageFlags.Ephemeral,
-							})
-							.catch(() => {});
+						await this.interaction.reply({ content: `❌ ${message}`, flags: discord.MessageFlags.Ephemeral }).catch((replyError) => {
+							if (!(replyError instanceof discord.DiscordAPIError && replyError.code === 10062)) this.client.logger.error(`[INTERACTION_CREATE] Modal reply failed: ${replyError}`);
+						});
 					}
 				} catch (localeError) {
 					if (this.interaction.isRepliable()) {
-						await this.interaction
-							.reply({
-								content: '❌ An error occurred while processing your request.',
-								flags: discord.MessageFlags.Ephemeral,
-							})
-							.catch(() => {});
+						await this.interaction.reply({ content: '❌ An error occurred while processing your request.', flags: discord.MessageFlags.Ephemeral }).catch((replyError) => {
+							if (!(replyError instanceof discord.DiscordAPIError && replyError.code === 10062)) this.client.logger.error(`[INTERACTION_CREATE] Modal fallback reply failed: ${replyError}`);
+						});
 					}
 				}
 			}
