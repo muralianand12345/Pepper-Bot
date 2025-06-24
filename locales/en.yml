@@ -167,6 +167,8 @@ responses:
         top_stations: "Top Stations"
         playing_station: "Now playing radio station: **{station}**"
         play_error: "Failed to play radio station **{station}**"
+        loading_station: "Loading radio station..."
+        station_loading: "Please wait while we load the radio station..."
 
     chart:
         user_title: "{user}'s Music Chart"
@@ -256,6 +258,7 @@ responses:
         lyrics_error: "An error occurred while fetching lyrics"
         radio_play_error: "Failed to play the radio station"
         radio_not_available: "This radio station is currently not available"
+        interaction_expired: "This interaction has expired. Please try again."
 
     language:
         user_set: "Your language has been set to **{language}**"
@@ -321,6 +324,7 @@ responses:
         categories:
             music: "Music Commands"
             utility: "Utility Commands"
+            radio: "Radio Commands"
             other: "Other Commands"
 
     lyrics:
