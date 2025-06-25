@@ -8,6 +8,7 @@ const localizationManager = LocalizationManager.getInstance();
 
 const filterCommand: Command = {
 	cooldown: 5,
+	category: ['music'],
 	data: new discord.SlashCommandBuilder()
 		.setName('filter')
 		.setDescription('Apply audio filters to enhance your music experience')

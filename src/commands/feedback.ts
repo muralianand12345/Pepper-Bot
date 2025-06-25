@@ -11,6 +11,7 @@ const localeDetector = new LocaleDetector();
 
 const feedbackCommand: Command = {
 	cooldown: 60,
+	category: ['utility'],
 	data: new discord.SlashCommandBuilder().setName('feedback').setDescription('Send feedback to the developers').setNameLocalizations(localizationManager.getCommandLocalizations('commands.feedback.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.feedback.description')),
 	modal: async (interaction: discord.ModalSubmitInteraction): Promise<void> => {
 		const t = await localeDetector.getTranslator(interaction);

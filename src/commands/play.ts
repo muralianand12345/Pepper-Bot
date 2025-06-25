@@ -12,6 +12,7 @@ const localeDetector = new LocaleDetector();
 
 const playCommand: Command = {
 	cooldown: 1,
+	category: ['music'],
 	data: new discord.SlashCommandBuilder()
 		.setName('play')
 		.setDescription('Play a song via song name or url')

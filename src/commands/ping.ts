@@ -9,6 +9,7 @@ const localeDetector = new LocaleDetector();
 
 const pingCommand: Command = {
 	cooldown: 3600,
+	category: ['utility'],
 	data: new discord.SlashCommandBuilder().setName('ping').setDescription("Check the bot's latency and connection status").setNameLocalizations(localizationManager.getCommandLocalizations('commands.ping.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.ping.description')),
 	execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {
 		const t = await localeDetector.getTranslator(interaction);

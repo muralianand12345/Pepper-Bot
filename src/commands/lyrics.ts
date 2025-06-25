@@ -8,6 +8,7 @@ const localizationManager = LocalizationManager.getInstance();
 
 const lyricsCommand: Command = {
 	cooldown: 5,
+	category: ['music'],
 	data: new discord.SlashCommandBuilder()
 		.setName('lyrics')
 		.setDescription('Display lyrics for the currently playing track')

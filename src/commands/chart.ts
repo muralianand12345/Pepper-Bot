@@ -11,6 +11,7 @@ const localeDetector = new LocaleDetector();
 
 const chartCommand: Command = {
 	cooldown: 60,
+	category: ['music'],
 	data: new discord.SlashCommandBuilder()
 		.setName('chart')
 		.setDescription('Display music analytics and charts')

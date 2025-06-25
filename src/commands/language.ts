@@ -9,6 +9,7 @@ const localeDetector = new LocaleDetector();
 
 const langCommand: Command = {
 	cooldown: 3600,
+	category: ['utility'],
 	data: new discord.SlashCommandBuilder()
 		.setName('language')
 		.setDescription('Set language preferences for the bot')

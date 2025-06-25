@@ -9,6 +9,7 @@ const localeDetector = new LocaleDetector();
 
 const helpCommand: Command = {
 	cooldown: 10,
+	category: ['utility'],
 	data: new discord.SlashCommandBuilder()
 		.setName('help')
 		.setDescription('Display all available commands and their descriptions')
