@@ -6,6 +6,26 @@ export enum CommandCategory {
 	OTHER = 'other',
 }
 
+export interface CommandCategoryInfo {
+	emoji: string;
+	name: string;
+}
+
+export const COMMAND_CATEGORY_MAP: Record<CommandCategory, CommandCategoryInfo> = {
+	[CommandCategory.MUSIC]: {
+		emoji: '🎵',
+		name: 'Music Commands',
+	},
+	[CommandCategory.UTILITY]: {
+		emoji: '🔧',
+		name: 'Utility Commands',
+	},
+	[CommandCategory.OTHER]: {
+		emoji: '📦',
+		name: 'Other Commands',
+	},
+};
+
 export interface Command {
 	data: discord.SlashCommandBuilder | discord.SlashCommandSubcommandsOnlyBuilder | discord.SlashCommandOptionsOnlyBuilder;
 	modal?: (interaction: discord.ModalSubmitInteraction<discord.CacheType>) => Promise<void> | void;

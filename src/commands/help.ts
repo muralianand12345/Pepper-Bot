@@ -1,8 +1,8 @@
 import discord from 'discord.js';
 
-import { Command, CommandCategory } from '../types';
 import { MusicResponseHandler } from '../core/music';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
+import { Command, CommandCategory, COMMAND_CATEGORY_MAP } from '../types';
 
 const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
@@ -54,14 +54,10 @@ const helpCommand: Command = {
 				.setFooter({ text: t('responses.help.command_footer'), iconURL: client.user?.displayAvatarURL() })
 				.setTimestamp();
 
-			if (command.category && command.category.length > 0) {
-				const categoryNames = command.category
-					.map((cat) => {
-						const categoryKey = `responses.help.categories.${cat}`;
-						return t(categoryKey) !== categoryKey ? t(categoryKey) : cat.charAt(0).toUpperCase() + cat.slice(1);
-					})
-					.join(', ');
-				commandEmbed.addFields([{ name: t('responses.help.category'), value: categoryNames, inline: true }]);
+			if (command.category) {
+				const categoryInfo = COMMAND_CATEGORY_MAP[command.category];
+				const categoryName = t(`responses.help.categories.${command.category}`) !== `responses.help.categories.${command.category}` ? t(`responses.help.categories.${command.category}`) : categoryInfo.name;
+				commandEmbed.addFields([{ name: t('responses.help.category'), value: `${categoryInfo.emoji} ${categoryName}`, inline: true }]);
 			}
 
 			const apiData = command.data.toJSON();
@@ -83,22 +79,21 @@ const helpCommand: Command = {
 			.setFooter({ text: t('responses.help.footer'), iconURL: client.user?.displayAvatarURL() })
 			.setTimestamp();
 
-		const categoryOrder = ['music', 'utility', 'other'];
-		const categoryEmojis = { music: '🎵', utility: '🔧', other: '📦' };
+		const categoryOrder = [CommandCategory.MUSIC, CommandCategory.UTILITY, CommandCategory.OTHER];
 
-		categoryOrder.forEach((categoryKey) => {
-			const categoryCommands = categorizedCommands[categoryKey];
+		categoryOrder.forEach((category) => {
+			const categoryCommands = categorizedCommands[category];
 			if (categoryCommands && categoryCommands.length > 0) {
-				const categoryName = t(`responses.help.categories.${categoryKey}`);
-				const emoji = categoryEmojis[categoryKey as keyof typeof categoryEmojis] || '📋';
+				const categoryInfo = COMMAND_CATEGORY_MAP[category];
+				const categoryName = t(`responses.help.categories.${category}`) !== `responses.help.categories.${category}` ? t(`responses.help.categories.${category}`) : categoryInfo.name;
 				const commandList = formatCommands(categoryCommands, t);
-				embed.addFields([{ name: `${emoji} ${categoryName} (${categoryCommands.length})`, value: commandList, inline: false }]);
+				embed.addFields([{ name: `${categoryInfo.emoji} ${categoryName} (${categoryCommands.length})`, value: commandList, inline: false }]);
 			}
 		});
 
 		Object.keys(categorizedCommands).forEach((categoryKey) => {
-			if (!categoryOrder.includes(categoryKey)) {
-				const categoryCommands = categorizedCommands[categoryKey];
+			if (!categoryOrder.includes(categoryKey as CommandCategory)) {
+				const categoryCommands = categorizedCommands[categoryKey as CommandCategory];
 				if (categoryCommands && categoryCommands.length > 0) {
 					const categoryName = categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1);
 					const commandList = formatCommands(categoryCommands, t);
@@ -112,19 +107,17 @@ const helpCommand: Command = {
 	},
 };
 
-const categorizeCommandsByCategory = (commands: Command[]): Record<string, Command[]> => {
-	const categories: Record<string, Command[]> = {};
+const categorizeCommandsByCategory = (commands: Command[]): Record<CommandCategory, Command[]> => {
+	const categories: Record<CommandCategory, Command[]> = {
+		[CommandCategory.MUSIC]: [],
+		[CommandCategory.UTILITY]: [],
+		[CommandCategory.OTHER]: [],
+	};
 
 	commands.forEach((cmd) => {
-		if (cmd.category && cmd.category.length > 0) {
-			cmd.category.forEach((cat) => {
-				if (!categories[cat]) categories[cat] = [];
-				categories[cat].push(cmd);
-			});
-		} else {
-			if (!categories['other']) categories['other'] = [];
-			categories['other'].push(cmd);
-		}
+		const category = cmd.category || CommandCategory.OTHER;
+		if (!categories[category]) categories[category] = [];
+		categories[category].push(cmd);
 	});
 
 	return categories;
