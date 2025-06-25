@@ -5,10 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const music_1 = require("../core/music");
+const types_1 = require("../types");
 const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const autoplayCommand = {
     cooldown: 10,
+    category: types_1.CommandCategory.MUSIC,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('autoplay')
         .setDescription('Toggle smart autoplay based on your music preferences')

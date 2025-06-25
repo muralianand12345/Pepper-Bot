@@ -4,12 +4,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
+const types_1 = require("../types");
 const music_1 = require("../core/music");
 const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const langCommand = {
     cooldown: 3600,
+    category: types_1.CommandCategory.UTILITY,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('language')
         .setDescription('Set language preferences for the bot')

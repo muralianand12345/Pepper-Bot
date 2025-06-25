@@ -253,6 +253,7 @@ responses:
         command_not_found: "Comando `{command}` não encontrado."
         cooldown: "Tempo de recarga"
         permissions: "Permissões"
+        category: "Categoria"
         options: "Opções"
         no_cooldown: "Nenhum"
         owner_only: "Apenas proprietário"

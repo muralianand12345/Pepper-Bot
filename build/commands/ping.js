@@ -5,11 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const discord_js_1 = __importDefault(require("discord.js"));
+const types_1 = require("../types");
 const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const pingCommand = {
     cooldown: 3600,
+    category: types_1.CommandCategory.UTILITY,
     data: new discord_js_1.default.SlashCommandBuilder().setName('ping').setDescription("Check the bot's latency and connection status").setNameLocalizations(localizationManager.getCommandLocalizations('commands.ping.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.ping.description')),
     execute: async (interaction, client) => {
         const t = await localeDetector.getTranslator(interaction);

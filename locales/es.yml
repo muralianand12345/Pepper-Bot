@@ -253,6 +253,7 @@ responses:
         command_not_found: "Comando `{command}` no encontrado."
         cooldown: "Tiempo de reutilización"
         permissions: "Permisos"
+        category: "Categoría"
         options: "Opciones"
         no_cooldown: "Ninguno"
         owner_only: "Solo propietario"

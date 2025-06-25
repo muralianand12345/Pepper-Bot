@@ -3,15 +3,15 @@ import discord from 'discord.js';
 import { MusicDB } from '../core/music';
 import Formatter from '../utils/format';
 import { MusicResponseHandler } from '../core/music';
-import { Command, ChartAnalytics, ISongs } from '../types';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
+import { Command, ChartAnalytics, ISongs, CommandCategory } from '../types';
 
 const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
 
 const chartCommand: Command = {
 	cooldown: 60,
-	category: ['music'],
+	category: CommandCategory.MUSIC,
 	data: new discord.SlashCommandBuilder()
 		.setName('chart')
 		.setDescription('Display music analytics and charts')

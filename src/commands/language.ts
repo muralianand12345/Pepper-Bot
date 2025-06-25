@@ -1,6 +1,6 @@
 import discord from 'discord.js';
 
-import { Command } from '../types';
+import { Command, CommandCategory } from '../types';
 import { MusicResponseHandler } from '../core/music';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 
@@ -9,7 +9,7 @@ const localeDetector = new LocaleDetector();
 
 const langCommand: Command = {
 	cooldown: 3600,
-	category: ['utility'],
+	category: CommandCategory.UTILITY,
 	data: new discord.SlashCommandBuilder()
 		.setName('language')
 		.setDescription('Set language preferences for the bot')

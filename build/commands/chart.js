@@ -8,10 +8,12 @@ const music_1 = require("../core/music");
 const format_1 = __importDefault(require("../utils/format"));
 const music_2 = require("../core/music");
 const locales_1 = require("../core/locales");
+const types_1 = require("../types");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const chartCommand = {
     cooldown: 60,
+    category: types_1.CommandCategory.MUSIC,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('chart')
         .setDescription('Display music analytics and charts')

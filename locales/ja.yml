@@ -253,6 +253,7 @@ responses:
         command_not_found: "コマンド `{command}` が見つかりませんでした。"
         cooldown: "クールダウン"
         permissions: "権限"
+        category: "カテゴリ"
         options: "オプション"
         no_cooldown: "なし"
         owner_only: "所有者限定"

@@ -253,6 +253,7 @@ responses:
         command_not_found: "Команда `{command}` не найдена."
         cooldown: "Перезарядка"
         permissions: "Разрешения"
+        category: "Категория"
         options: "Параметры"
         no_cooldown: "Нет"
         owner_only: "Только для владельца"

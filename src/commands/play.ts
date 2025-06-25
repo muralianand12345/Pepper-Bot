@@ -1,9 +1,9 @@
 import discord from 'discord.js';
 import magmastream from 'magmastream';
 
-import { Command, INodeOption } from '../types';
 import { ConfigManager } from '../utils/config';
 import { Music, SpotifyAutoComplete } from '../core/music';
+import { Command, INodeOption, CommandCategory } from '../types';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 
 const configManager = ConfigManager.getInstance();
@@ -12,7 +12,7 @@ const localeDetector = new LocaleDetector();
 
 const playCommand: Command = {
 	cooldown: 1,
-	category: ['music'],
+	category: CommandCategory.MUSIC,
 	data: new discord.SlashCommandBuilder()
 		.setName('play')
 		.setDescription('Play a song via song name or url')

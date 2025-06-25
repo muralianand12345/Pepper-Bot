@@ -1,7 +1,7 @@
 import discord from 'discord.js';
 
-import { Command } from '../types';
 import { ConfigManager } from '../utils/config';
+import { Command, CommandCategory } from '../types';
 import { MusicResponseHandler } from '../core/music';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 
@@ -11,7 +11,7 @@ const localeDetector = new LocaleDetector();
 
 const feedbackCommand: Command = {
 	cooldown: 60,
-	category: ['utility'],
+	category: CommandCategory.UTILITY,
 	data: new discord.SlashCommandBuilder().setName('feedback').setDescription('Send feedback to the developers').setNameLocalizations(localizationManager.getCommandLocalizations('commands.feedback.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.feedback.description')),
 	modal: async (interaction: discord.ModalSubmitInteraction): Promise<void> => {
 		const t = await localeDetector.getTranslator(interaction);

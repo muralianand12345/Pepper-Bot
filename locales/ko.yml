@@ -253,6 +253,7 @@ responses:
         command_not_found: "`{command}` 명령어를 찾을 수 없습니다."
         cooldown: "재사용 대기시간"
         permissions: "권한"
+        category: "범주"
         options: "옵션"
         no_cooldown: "없음"
         owner_only: "소유자 전용"

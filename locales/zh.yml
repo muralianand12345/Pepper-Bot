@@ -253,6 +253,7 @@ responses:
         command_not_found: "未找到命令 `{command}`。"
         cooldown: "冷却时间"
         permissions: "权限"
+        category: "类别"
         options: "选项"
         no_cooldown: "无"
         owner_only: "仅限拥有者"

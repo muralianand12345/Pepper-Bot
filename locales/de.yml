@@ -252,6 +252,7 @@ responses:
         command_not_found: "Befehl `{command}` nicht gefunden."
         cooldown: "Abklingzeit"
         permissions: "Berechtigungen"
+        category: "Kategorie"
         options: "Optionen"
         no_cooldown: "Keine"
         owner_only: "Nur Besitzer"

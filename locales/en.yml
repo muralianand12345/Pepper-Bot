@@ -253,6 +253,7 @@ responses:
         command_not_found: "Command `{command}` not found."
         cooldown: "Cooldown"
         permissions: "Permissions"
+        category: "Category"
         options: "Options"
         no_cooldown: "None"
         owner_only: "Owner Only"

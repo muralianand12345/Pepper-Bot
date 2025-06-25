@@ -1,6 +1,6 @@
 import discord from 'discord.js';
 
-import { Command } from '../types';
+import { Command, CommandCategory } from '../types';
 import { Music, MUSIC_CONFIG } from '../core/music';
 import { LocalizationManager } from '../core/locales';
 
@@ -8,7 +8,7 @@ const localizationManager = LocalizationManager.getInstance();
 
 const filterCommand: Command = {
 	cooldown: 5,
-	category: ['music'],
+	category: CommandCategory.MUSIC,
 	data: new discord.SlashCommandBuilder()
 		.setName('filter')
 		.setDescription('Apply audio filters to enhance your music experience')

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const config_1 = require("../utils/config");
+const types_1 = require("../types");
 const music_1 = require("../core/music");
 const locales_1 = require("../core/locales");
 const configManager = config_1.ConfigManager.getInstance();
@@ -12,6 +13,7 @@ const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const feedbackCommand = {
     cooldown: 60,
+    category: types_1.CommandCategory.UTILITY,
     data: new discord_js_1.default.SlashCommandBuilder().setName('feedback').setDescription('Send feedback to the developers').setNameLocalizations(localizationManager.getCommandLocalizations('commands.feedback.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.feedback.description')),
     modal: async (interaction) => {
         const t = await localeDetector.getTranslator(interaction);

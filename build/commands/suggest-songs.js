@@ -5,12 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const format_1 = __importDefault(require("../utils/format"));
-const music_1 = require("../core/music");
+const types_1 = require("../types");
 const locales_1 = require("../core/locales");
+const music_1 = require("../core/music");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const suggestSongsCommand = {
     cooldown: 10,
+    category: types_1.CommandCategory.MUSIC,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('suggest-songs')
         .setDescription('Get smart music recommendations based on your listening history')

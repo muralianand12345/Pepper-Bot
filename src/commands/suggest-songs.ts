@@ -1,16 +1,16 @@
 import discord from 'discord.js';
 
-import { Command, ISongs } from '../types';
 import Formatter from '../utils/format';
-import { MusicResponseHandler, PlaylistSuggestion } from '../core/music';
+import { Command, ISongs, CommandCategory } from '../types';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
+import { MusicResponseHandler, PlaylistSuggestion } from '../core/music';
 
 const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
 
 const suggestSongsCommand: Command = {
 	cooldown: 10,
-	category: ['music'],
+	category: CommandCategory.MUSIC,
 	data: new discord.SlashCommandBuilder()
 		.setName('suggest-songs')
 		.setDescription('Get smart music recommendations based on your listening history')

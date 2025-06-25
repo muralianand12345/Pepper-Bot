@@ -253,6 +253,7 @@ responses:
         command_not_found: "Commande `{command}` introuvable."
         cooldown: "Temps de recharge"
         permissions: "Permissions"
+        category: "Catégorie"
         options: "Options"
         no_cooldown: "Aucun"
         owner_only: "Propriétaire uniquement"
