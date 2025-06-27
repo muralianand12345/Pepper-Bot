@@ -630,4 +630,231 @@ export class Music {
 			}
 		}
 	};
+
+	queue = async (): Promise<discord.Message<boolean> | void> => {
+		await this.interaction.deferReply();
+
+		await this.initializeLocale();
+		const responseHandler = new MusicResponseHandler(this.client);
+
+		const musicCheck = this.validateMusicEnabled();
+		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
+
+		const player = this.client.manager.get(this.interaction.guild?.id || '');
+		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+
+		const validator = new VoiceChannelValidator(this.client, this.interaction);
+		const [isValid, embed] = await validator.validateGuildContext();
+		if (!isValid) return await this.interaction.editReply({ embeds: [embed] });
+
+		try {
+			const queue = player.queue;
+			const currentTrack = queue.current;
+			const queueTracks = Array.from(queue);
+
+			if (!currentTrack && queueTracks.length === 0) {
+				const embed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'), this.locale);
+				return await this.interaction.editReply({ embeds: [embed] });
+			}
+
+			const createQueueEmbed = (page: number = 0): discord.EmbedBuilder => {
+				const itemsPerPage = 10;
+				const startIndex = page * itemsPerPage;
+				const endIndex = startIndex + itemsPerPage;
+				const queuePage = queueTracks.slice(startIndex, endIndex);
+
+				const embed = new discord.EmbedBuilder()
+					.setColor('#5865f2')
+					.setTitle(`🎵 ${this.t('responses.queue.title')}`)
+					.setTimestamp()
+					.setFooter({
+						text: queueTracks.length > 0 ? `${this.t('responses.queue.page')} ${page + 1}/${Math.ceil(queueTracks.length / itemsPerPage)} • ${this.client.user?.username || 'Music Bot'}` : `${this.client.user?.username || 'Music Bot'}`,
+						iconURL: this.client.user?.displayAvatarURL(),
+					});
+
+				if (currentTrack) {
+					const currentTitle = Formatter.truncateText(currentTrack.title, 40);
+					const currentArtist = Formatter.truncateText(currentTrack.author, 25);
+					const currentDuration = currentTrack.isStream ? this.t('responses.queue.live') : Formatter.msToTime(currentTrack.duration);
+					const progressBar = player.playing ? Formatter.createProgressBar(player as any) : '';
+
+					embed.addFields({
+						name: `🎵 ${this.t('responses.queue.now_playing')}`,
+						value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}${progressBar ? `\n${progressBar}` : ''}`,
+						inline: false,
+					});
+				}
+
+				if (queuePage.length > 0) {
+					const queueList = queuePage
+						.map((track, index) => {
+							const position = startIndex + index + 1;
+							const title = Formatter.truncateText(track.title, 35);
+							const artist = Formatter.truncateText(track.author, 20);
+							const duration = track.isStream ? this.t('responses.queue.live') : Formatter.msToTime(track.duration);
+							const requester = track.requester ? ` • ${(track.requester as any).username}` : '';
+							return `**${position}.** **${title}** - ${artist}\n└ ${duration}${requester}`;
+						})
+						.join('\n\n');
+
+					embed.addFields({
+						name: `📋 ${this.t('responses.queue.upcoming')} (${queueTracks.length})`,
+						value: queueList.length > 1024 ? queueList.substring(0, 1021) + '...' : queueList,
+						inline: false,
+					});
+				}
+
+				const totalDuration = queueTracks.reduce((acc, track) => acc + (track.isStream ? 0 : track.duration), 0);
+				const totalFormatted = Formatter.msToTime(totalDuration);
+				const streamCount = queueTracks.filter((track) => track.isStream).length;
+
+				let description = `**${queueTracks.length}** ${this.t('responses.queue.tracks_in_queue')}`;
+				if (totalDuration > 0) description += `\n**${totalFormatted}** ${this.t('responses.queue.total_duration')}`;
+				if (streamCount > 0) description += `\n**${streamCount}** ${this.t('responses.queue.live_streams')}`;
+
+				embed.setDescription(description);
+
+				if (currentTrack && (currentTrack.thumbnail || currentTrack.artworkUrl)) {
+					embed.setThumbnail(currentTrack.thumbnail || currentTrack.artworkUrl);
+				}
+
+				return embed;
+			};
+
+			const createQueueButtons = (page: number, totalPages: number, isEmpty: boolean = false): discord.ActionRowBuilder<discord.ButtonBuilder>[] => {
+				const navigationRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
+					new discord.ButtonBuilder()
+						.setCustomId('queue-previous')
+						.setLabel(this.t('responses.queue.buttons.previous'))
+						.setStyle(discord.ButtonStyle.Secondary)
+						.setEmoji('⬅️')
+						.setDisabled(page === 0 || isEmpty),
+					new discord.ButtonBuilder()
+						.setCustomId('queue-next')
+						.setLabel(this.t('responses.queue.buttons.next'))
+						.setStyle(discord.ButtonStyle.Secondary)
+						.setEmoji('➡️')
+						.setDisabled(page >= totalPages - 1 || isEmpty),
+					new discord.ButtonBuilder()
+						.setCustomId('queue-shuffle')
+						.setLabel(this.t('responses.queue.buttons.shuffle'))
+						.setStyle(discord.ButtonStyle.Primary)
+						.setEmoji('🔀')
+						.setDisabled(isEmpty || queueTracks.length < 2),
+					new discord.ButtonBuilder()
+						.setCustomId('queue-move')
+						.setLabel(this.t('responses.queue.buttons.move'))
+						.setStyle(discord.ButtonStyle.Secondary)
+						.setEmoji('🔄')
+						.setDisabled(isEmpty || queueTracks.length < 2)
+				);
+
+				const actionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setCustomId('queue-remove').setLabel(this.t('responses.queue.buttons.remove')).setStyle(discord.ButtonStyle.Secondary).setEmoji('➖').setDisabled(isEmpty), new discord.ButtonBuilder().setCustomId('queue-clear').setLabel(this.t('responses.queue.buttons.clear')).setStyle(discord.ButtonStyle.Danger).setEmoji('🗑️').setDisabled(isEmpty));
+
+				return [navigationRow, actionRow];
+			};
+
+			let currentPage = 0;
+			const totalPages = Math.ceil(queueTracks.length / 10) || 1;
+			const isEmpty = queueTracks.length === 0;
+
+			const embed = createQueueEmbed(currentPage);
+			const buttons = createQueueButtons(currentPage, totalPages, isEmpty);
+
+			const message = await this.interaction.editReply({
+				embeds: [embed],
+				components: isEmpty ? [] : buttons,
+			});
+
+			if (!isEmpty) {
+				const collector = message.createMessageComponentCollector({
+					filter: (i) => i.user.id === this.interaction.user.id,
+					time: 300000,
+				});
+
+				collector.on('collect', async (i) => {
+					try {
+						if (i.customId === 'queue-previous' && currentPage > 0) {
+							currentPage--;
+							const updatedEmbed = createQueueEmbed(currentPage);
+							const updatedButtons = createQueueButtons(currentPage, totalPages, false);
+							await i.update({ embeds: [updatedEmbed], components: updatedButtons });
+						} else if (i.customId === 'queue-next' && currentPage < totalPages - 1) {
+							currentPage++;
+							const updatedEmbed = createQueueEmbed(currentPage);
+							const updatedButtons = createQueueButtons(currentPage, totalPages, false);
+							await i.update({ embeds: [updatedEmbed], components: updatedButtons });
+						} else if (i.customId === 'queue-shuffle') {
+							await i.deferUpdate();
+							player.queue.shuffle();
+							await i.followUp({
+								embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'), this.locale)],
+								flags: discord.MessageFlags.Ephemeral,
+							});
+
+							const shuffledEmbed = createQueueEmbed(currentPage);
+							const shuffledButtons = createQueueButtons(currentPage, totalPages, false);
+							await this.interaction.editReply({ embeds: [shuffledEmbed], components: shuffledButtons });
+						} else if (i.customId === 'queue-move') {
+							const moveModal = new discord.ModalBuilder().setCustomId('queue-move-modal').setTitle(this.t('responses.queue.move_modal.title'));
+
+							const fromInput = new discord.TextInputBuilder().setCustomId('move-from').setLabel(this.t('responses.queue.move_modal.from_label')).setPlaceholder(this.t('responses.queue.move_modal.from_placeholder')).setStyle(discord.TextInputStyle.Short).setMaxLength(10).setRequired(true);
+
+							const toInput = new discord.TextInputBuilder().setCustomId('move-to').setLabel(this.t('responses.queue.move_modal.to_label')).setPlaceholder(this.t('responses.queue.move_modal.to_placeholder')).setStyle(discord.TextInputStyle.Short).setMaxLength(10).setRequired(true);
+
+							moveModal.addComponents(new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(fromInput), new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(toInput));
+
+							await i.showModal(moveModal);
+						} else if (i.customId === 'queue-remove') {
+							const removeModal = new discord.ModalBuilder().setCustomId('queue-remove-modal').setTitle(this.t('responses.queue.remove_modal.title'));
+
+							const positionInput = new discord.TextInputBuilder().setCustomId('queue-position').setLabel(this.t('responses.queue.remove_modal.position_label')).setPlaceholder(this.t('responses.queue.remove_modal.position_placeholder')).setStyle(discord.TextInputStyle.Short).setMaxLength(50).setRequired(true);
+
+							removeModal.addComponents(new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(positionInput));
+							await i.showModal(removeModal);
+						} else if (i.customId === 'queue-clear') {
+							await i.deferUpdate();
+							player.queue.clear();
+							await i.followUp({
+								embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.cleared'), this.locale)],
+								flags: discord.MessageFlags.Ephemeral,
+							});
+
+							const emptyEmbed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'), this.locale);
+							await this.interaction.editReply({ embeds: [emptyEmbed], components: [] });
+						}
+					} catch (error) {
+						this.client.logger.error(`[QUEUE] Button interaction error: ${error}`);
+						if (!i.replied && !i.deferred) {
+							await i
+								.reply({
+									embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.general_error'), this.locale)],
+									flags: discord.MessageFlags.Ephemeral,
+								})
+								.catch(() => {});
+						}
+					}
+				});
+
+				collector.on('end', async () => {
+					const disabledNavigationRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
+						new discord.ButtonBuilder().setCustomId('queue-previous').setLabel(this.t('responses.queue.buttons.previous')).setStyle(discord.ButtonStyle.Secondary).setEmoji('⬅️').setDisabled(true),
+						new discord.ButtonBuilder().setCustomId('queue-next').setLabel(this.t('responses.queue.buttons.next')).setStyle(discord.ButtonStyle.Secondary).setEmoji('➡️').setDisabled(true),
+						new discord.ButtonBuilder().setCustomId('queue-shuffle').setLabel(this.t('responses.queue.buttons.shuffle')).setStyle(discord.ButtonStyle.Primary).setEmoji('🔀').setDisabled(true),
+						new discord.ButtonBuilder().setCustomId('queue-move').setLabel(this.t('responses.queue.buttons.move')).setStyle(discord.ButtonStyle.Secondary).setEmoji('🔄').setDisabled(true)
+					);
+
+					const disabledActionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setCustomId('queue-remove').setLabel(this.t('responses.queue.buttons.remove')).setStyle(discord.ButtonStyle.Secondary).setEmoji('➖').setDisabled(true), new discord.ButtonBuilder().setCustomId('queue-clear').setLabel(this.t('responses.queue.buttons.clear')).setStyle(discord.ButtonStyle.Danger).setEmoji('🗑️').setDisabled(true));
+
+					await this.interaction.editReply({ components: [disabledNavigationRow, disabledActionRow] }).catch(() => {});
+				});
+			}
+		} catch (error) {
+			this.client.logger.error(`[QUEUE] Command error: ${error}`);
+			await this.interaction.editReply({
+				embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.general_error'), this.locale, true)],
+				components: [responseHandler.getSupportButton(this.locale)],
+			});
+		}
+	};
 }

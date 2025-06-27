@@ -28,7 +28,7 @@ export const COMMAND_CATEGORY_MAP: Record<CommandCategory, CommandCategoryInfo> 
 
 export interface Command {
 	data: discord.SlashCommandBuilder | discord.SlashCommandSubcommandsOnlyBuilder | discord.SlashCommandOptionsOnlyBuilder;
-	modal?: (interaction: discord.ModalSubmitInteraction<discord.CacheType>) => Promise<void> | void;
+	modal?: (interaction: discord.ModalSubmitInteraction<discord.CacheType>) => Promise<discord.InteractionResponse<boolean> | void> | void;
 	userPerms?: Array<discord.PermissionResolvable>;
 	botPerms?: Array<discord.PermissionResolvable>;
 	cooldown?: number;

@@ -93,6 +93,9 @@ commands:
             skip_track_source:
                 name: "skip_track_source"
                 description: "Skip using the track's source URL when searching for lyrics"
+    queue:
+        name: "queue"
+        description: "Display and manage the music queue"
 
 responses:
     music:
@@ -274,6 +277,46 @@ responses:
         buttons:
             previous: "Previous"
             next: "Next"
+
+    queue:
+        title: "Music Queue"
+        empty: "The queue is empty. Add some songs with `/play`!"
+        now_playing: "Now Playing"
+        upcoming: "Up Next"
+        tracks_in_queue: "tracks in queue"
+        total_duration: "total duration"
+        live_streams: "live streams"
+        live: "LIVE"
+        page: "Page"
+        shuffled: "Queue has been shuffled!"
+        cleared: "Queue has been cleared!"
+        removed: "Removed {count} track(s) from the queue"
+        remove_failed: "Failed to remove track(s) from the queue"
+        moved: 'Moved "{track}" from position {from} to position {to}'
+        move_failed: "Failed to move track in the queue"
+        track_not_found: "Track not found at the specified position"
+        same_position: "Source and destination positions are the same"
+        invalid_position: "Invalid position. Please enter a number between 1 and the queue size."
+        invalid_range: "Invalid range. Use format: start-end (e.g., 1-5)"
+        invalid_positions: "Invalid positions. Use format: 1,3,5 or 1-5"
+        invalid_move_positions: "Invalid positions. Both positions must be between 1 and the queue size."
+        buttons:
+            previous: "Previous"
+            next: "Next"
+            shuffle: "Shuffle"
+            move: "Move"
+            clear: "Clear"
+            remove: "Remove"
+        remove_modal:
+            title: "Remove Songs from Queue"
+            position_label: "Position(s) to Remove"
+            position_placeholder: "e.g., 3 or 1,3,5 or 1-5"
+        move_modal:
+            title: "Move Song in Queue"
+            from_label: "Current Position"
+            from_placeholder: "e.g., 5"
+            to_label: "New Position"
+            to_placeholder: "e.g., 2"
 
     feedback:
         sent: "Thank you for your feedback! It has been sent to the developers."

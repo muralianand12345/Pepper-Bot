@@ -204,8 +204,17 @@ class CommandInteractionHandler {
             try {
                 if (this.interaction.customId === 'feedback_modal') {
                     const feedbackCommand = this.client.commands.get('feedback');
-                    if (feedbackCommand?.modal)
-                        return await feedbackCommand.modal(this.interaction);
+                    if (feedbackCommand?.modal) {
+                        await feedbackCommand.modal(this.interaction);
+                        return;
+                    }
+                }
+                if (this.interaction.customId.startsWith('queue-remove-modal') || this.interaction.customId.startsWith('queue-move-modal')) {
+                    const queueCommand = this.client.commands.get('queue');
+                    if (queueCommand?.modal) {
+                        await queueCommand.modal(this.interaction);
+                        return;
+                    }
                 }
                 this.client.logger.warn(`[INTERACTION_CREATE] Unhandled modal interaction: ${this.interaction.customId}`);
             }
