@@ -673,8 +673,10 @@ export class Music {
 					const currentTitle = Formatter.truncateText(currentTrack.title, 40);
 					const currentArtist = Formatter.truncateText(currentTrack.author, 25);
 					const currentDuration = currentTrack.isStream ? this.t('responses.queue.live') : Formatter.msToTime(currentTrack.duration);
-					const progressBar = player.playing ? Formatter.createProgressBar(player as any) : '';
-					embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}${progressBar ? `\n${progressBar}` : ''}`, inline: false });
+					const progressBar = player.playing ? Formatter.createProgressBar(player as magmastream.Player | any) : '';
+
+					embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
+					if (progressBar) embed.addFields({ name: `⏱️ ${this.t('responses.queue.progress')}`, value: progressBar, inline: false });
 				}
 
 				if (queuePage.length > 0) {

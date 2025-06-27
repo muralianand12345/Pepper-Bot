@@ -132,7 +132,7 @@ class Formatter {
 		bar += '●';
 		bar += '▬'.repeat(Math.max(0, 15 - progressBlocks));
 
-		return `**[ ${bar} ]**`;
+		return `**${bar}**`;
 	};
 
 	/**

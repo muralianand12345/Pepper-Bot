@@ -634,7 +634,9 @@ class Music {
                         const currentArtist = format_1.default.truncateText(currentTrack.author, 25);
                         const currentDuration = currentTrack.isStream ? this.t('responses.queue.live') : format_1.default.msToTime(currentTrack.duration);
                         const progressBar = player.playing ? format_1.default.createProgressBar(player) : '';
-                        embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}${progressBar ? `\n${progressBar}` : ''}`, inline: false });
+                        embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
+                        if (progressBar)
+                            embed.addFields({ name: `⏱️ ${this.t('responses.queue.progress')}`, value: progressBar, inline: false });
                     }
                     if (queuePage.length > 0) {
                         const queueList = queuePage

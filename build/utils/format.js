@@ -122,7 +122,7 @@ Formatter.createProgressBar = (player) => {
     let bar = '▬'.repeat(Math.max(0, progressBlocks));
     bar += '●';
     bar += '▬'.repeat(Math.max(0, 15 - progressBlocks));
-    return `**[ ${bar} ]**`;
+    return `**${bar}**`;
 };
 /**
  * Formats a number of bytes into a human-readable string
