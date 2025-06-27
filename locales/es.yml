@@ -93,6 +93,9 @@ commands:
             skip_track_source:
                 name: "omitir_fuente"
                 description: "Omitir la fuente al buscar la letra"
+    queue:
+        name: "cola"
+        description: "Mostrar y administrar la cola de música"
 
 responses:
     music:
@@ -274,6 +277,47 @@ responses:
         buttons:
             previous: "Anterior"
             next: "Siguiente"
+
+    queue:
+        title: "Cola de Música"
+        empty: "La cola está vacía. ¡Agrega canciones con `/play`!"
+        now_playing: "Reproduciendo ahora"
+        upcoming: "A continuación"
+        tracks_in_queue: "canciones en la cola"
+        total_duration: "duración total"
+        live_streams: "transmisiones en vivo"
+        live: "EN VIVO"
+        page: "Página"
+        progress: "Progreso"
+        shuffled: "¡La cola ha sido mezclada!"
+        cleared: "¡La cola ha sido limpiada!"
+        removed: "Se eliminaron {count} canción(es) de la cola"
+        remove_failed: "No se pudieron eliminar las canciones de la cola"
+        moved: 'Se movió "{track}" de la posición {from} a la posición {to}'
+        move_failed: "No se pudo mover la canción en la cola"
+        track_not_found: "No se encontró la canción en la posición especificada"
+        same_position: "La posición de origen y destino son la misma"
+        invalid_position: "Posición inválida. Por favor ingresa un número entre 1 y el tamaño de la cola."
+        invalid_range: "Rango inválido. Usa el formato: inicio-fin (ej.: 1-5)"
+        invalid_positions: "Posiciones inválidas. Usa el formato: 1,3,5 o 1-5"
+        invalid_move_positions: "Posiciones inválidas. Ambas deben estar entre 1 y el tamaño de la cola."
+        buttons:
+            previous: "Anterior"
+            next: "Siguiente"
+            shuffle: "Mezclar"
+            move: "Mover"
+            clear: "Limpiar"
+            remove: "Eliminar"
+        remove_modal:
+            title: "Eliminar canciones de la cola"
+            position_label: "Posición(es) a eliminar"
+            position_placeholder: "ej.: 3 o 1,3,5 o 1-5"
+        move_modal:
+            title: "Mover canción en la cola"
+            from_label: "Posición actual"
+            from_placeholder: "ej.: 5"
+            to_label: "Nueva posición"
+            to_placeholder: "ej.: 2"
 
     feedback:
         sent: "¡Gracias por tu comentario! Ha sido enviado a los desarrolladores."

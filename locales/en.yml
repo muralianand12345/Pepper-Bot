@@ -288,6 +288,7 @@ responses:
         live_streams: "live streams"
         live: "LIVE"
         page: "Page"
+        progress: "Progress"
         shuffled: "Queue has been shuffled!"
         cleared: "Queue has been cleared!"
         removed: "Removed {count} track(s) from the queue"

@@ -93,6 +93,9 @@ commands:
             skip_track_source:
                 name: "跳过来源"
                 description: "在搜索歌词时跳过特定来源"
+    queue:
+        name: "队列"
+        description: "显示并管理音乐队列"
 
 responses:
     music:
@@ -274,6 +277,47 @@ responses:
         buttons:
             previous: "上一页"
             next: "下一页"
+
+    queue:
+        title: "音乐队列"
+        empty: "队列为空。请使用 `/play` 添加歌曲！"
+        now_playing: "正在播放"
+        upcoming: "接下来"
+        tracks_in_queue: "队列中的歌曲"
+        total_duration: "总时长"
+        live_streams: "直播流"
+        live: "直播"
+        page: "页面"
+        progress: "进度"
+        shuffled: "队列已打乱！"
+        cleared: "队列已清空！"
+        removed: "已从队列中移除 {count} 首歌曲"
+        remove_failed: "移除队列中的歌曲失败"
+        moved: "已将“{track}”从第 {from} 位移动到第 {to} 位"
+        move_failed: "无法移动队列中的歌曲"
+        track_not_found: "在指定位置未找到歌曲"
+        same_position: "起始位置和目标位置相同"
+        invalid_position: "无效的位置。请输入 1 到队列大小之间的数字。"
+        invalid_range: "无效的范围。请使用格式：开始-结束（例如：1-5）"
+        invalid_positions: "无效的位置。请使用格式：1,3,5 或 1-5"
+        invalid_move_positions: "无效的位置。两个位置都必须在 1 到队列大小之间。"
+        buttons:
+            previous: "上一页"
+            next: "下一页"
+            shuffle: "打乱"
+            move: "移动"
+            clear: "清空"
+            remove: "移除"
+        remove_modal:
+            title: "从队列中移除歌曲"
+            position_label: "要移除的位置"
+            position_placeholder: "例如：3 或 1,3,5 或 1-5"
+        move_modal:
+            title: "移动队列中的歌曲"
+            from_label: "当前的位置"
+            from_placeholder: "例如：5"
+            to_label: "新的位置"
+            to_placeholder: "例如：2"
 
     feedback:
         sent: "感谢你的反馈！已发送给开发者。"

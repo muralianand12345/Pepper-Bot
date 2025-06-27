@@ -7,9 +7,85 @@ const discord_js_1 = __importDefault(require("discord.js"));
 const music_1 = require("../core/music");
 const types_1 = require("../types");
 const music_2 = require("../core/music");
+const format_1 = __importDefault(require("../utils/format"));
 const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
+const createQueueEmbed = (player, queueTracks, currentPage, t, client) => {
+    const itemsPerPage = 10;
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const queuePage = queueTracks.slice(startIndex, endIndex);
+    const currentTrack = player.queue.current;
+    const embed = new discord_js_1.default.EmbedBuilder()
+        .setColor('#5865f2')
+        .setTitle(`🎵 ${t('responses.queue.title')}`)
+        .setTimestamp()
+        .setFooter({
+        text: queueTracks.length > 0 ? `${t('responses.queue.page')} ${currentPage + 1}/${Math.ceil(queueTracks.length / itemsPerPage)} • ${client.user?.username || 'Music Bot'}` : `${client.user?.username || 'Music Bot'}`,
+        iconURL: client.user?.displayAvatarURL(),
+    });
+    if (currentTrack) {
+        const currentTitle = format_1.default.truncateText(currentTrack.title, 40);
+        const currentArtist = format_1.default.truncateText(currentTrack.author, 25);
+        const currentDuration = currentTrack.isStream ? t('responses.queue.live') : format_1.default.msToTime(currentTrack.duration);
+        const progressBar = player.playing ? format_1.default.createProgressBar(player) : '';
+        embed.addFields({ name: `🎵 ${t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
+        if (progressBar)
+            embed.addFields({ name: `⏱️ ${t('responses.queue.progress')}`, value: progressBar, inline: false });
+    }
+    if (queuePage.length > 0) {
+        const queueList = queuePage
+            .map((track, index) => {
+            const position = startIndex + index + 1;
+            const title = format_1.default.truncateText(track.title, 35);
+            const artist = format_1.default.truncateText(track.author, 20);
+            const duration = track.isStream ? t('responses.queue.live') : format_1.default.msToTime(track.duration);
+            const requester = track.requester ? ` • ${track.requester.username}` : '';
+            return `**${position}.** **${title}** - ${artist}\n└ ${duration}${requester}`;
+        })
+            .join('\n\n');
+        embed.addFields({ name: `📋 ${t('responses.queue.upcoming')} (${queueTracks.length})`, value: queueList.length > 1024 ? queueList.substring(0, 1021) + '...' : queueList, inline: false });
+    }
+    const totalDuration = queueTracks.reduce((acc, track) => acc + (track.isStream ? 0 : track.duration), 0);
+    const totalFormatted = format_1.default.msToTime(totalDuration);
+    const streamCount = queueTracks.filter((track) => track.isStream).length;
+    let description = `**${queueTracks.length}** ${t('responses.queue.tracks_in_queue')}`;
+    if (totalDuration > 0)
+        description += `\n**${totalFormatted}** ${t('responses.queue.total_duration')}`;
+    if (streamCount > 0)
+        description += `\n**${streamCount}** ${t('responses.queue.live_streams')}`;
+    embed.setDescription(description);
+    if (currentTrack && (currentTrack.thumbnail || currentTrack.artworkUrl))
+        embed.setThumbnail(currentTrack.thumbnail || currentTrack.artworkUrl);
+    return embed;
+};
+const createQueueButtons = (page, totalPages, isEmpty, t) => {
+    const queueTracks = Array.from({ length: totalPages * 10 });
+    const navigationRow = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder()
+        .setCustomId('queue-previous')
+        .setLabel(t('responses.queue.buttons.previous'))
+        .setStyle(discord_js_1.default.ButtonStyle.Secondary)
+        .setEmoji('⬅️')
+        .setDisabled(page === 0 || isEmpty), new discord_js_1.default.ButtonBuilder()
+        .setCustomId('queue-next')
+        .setLabel(t('responses.queue.buttons.next'))
+        .setStyle(discord_js_1.default.ButtonStyle.Secondary)
+        .setEmoji('➡️')
+        .setDisabled(page >= totalPages - 1 || isEmpty), new discord_js_1.default.ButtonBuilder()
+        .setCustomId('queue-shuffle')
+        .setLabel(t('responses.queue.buttons.shuffle'))
+        .setStyle(discord_js_1.default.ButtonStyle.Primary)
+        .setEmoji('🔀')
+        .setDisabled(isEmpty || queueTracks.length < 2), new discord_js_1.default.ButtonBuilder()
+        .setCustomId('queue-move')
+        .setLabel(t('responses.queue.buttons.move'))
+        .setStyle(discord_js_1.default.ButtonStyle.Secondary)
+        .setEmoji('🔄')
+        .setDisabled(isEmpty || queueTracks.length < 2));
+    const actionRow = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('queue-remove').setLabel(t('responses.queue.buttons.remove')).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji('➖').setDisabled(isEmpty), new discord_js_1.default.ButtonBuilder().setCustomId('queue-clear').setLabel(t('responses.queue.buttons.clear')).setStyle(discord_js_1.default.ButtonStyle.Danger).setEmoji('🗑️').setDisabled(isEmpty));
+    return [navigationRow, actionRow];
+};
 const queueCommand = {
     cooldown: 5,
     category: types_1.CommandCategory.MUSIC,
@@ -25,6 +101,21 @@ const queueCommand = {
             const queueTracks = Array.from(player.queue);
             if (queueTracks.length === 0)
                 return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.empty'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+            const updateQueueDisplay = async (currentPage = 0) => {
+                const updatedQueueTracks = Array.from(player.queue);
+                const totalPages = Math.ceil(updatedQueueTracks.length / 10) || 1;
+                const adjustedPage = Math.min(currentPage, totalPages - 1);
+                const isEmpty = updatedQueueTracks.length === 0;
+                if (isEmpty) {
+                    const emptyEmbed = responseHandler.createInfoEmbed(t('responses.queue.empty'), locale);
+                    await interaction.message?.edit({ embeds: [emptyEmbed], components: [] });
+                }
+                else {
+                    const updatedEmbed = createQueueEmbed(player, updatedQueueTracks, adjustedPage, t, interaction.client);
+                    const updatedButtons = createQueueButtons(adjustedPage, totalPages, false, t);
+                    await interaction.message?.edit({ embeds: [updatedEmbed], components: updatedButtons });
+                }
+            };
             if (interaction.customId === 'queue-remove-modal') {
                 const positionValue = interaction.fields.getTextInputValue('queue-position').trim();
                 const handleRemove = (positions) => {
@@ -74,6 +165,7 @@ const queueCommand = {
                 }
                 if (result.removed > 0) {
                     await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.removed', { count: result.removed }), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                    await updateQueueDisplay();
                 }
                 else {
                     await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.remove_failed'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
@@ -107,6 +199,7 @@ const queueCommand = {
                         }
                         interaction.client.logger.info(`[QUEUE] Moved track "${trackToMove.title}" from position ${fromPosition} to position ${toPosition}`);
                         await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.moved', { track: trackToMove.title, from: fromPosition, to: toPosition }), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                        await updateQueueDisplay();
                     }
                     else {
                         await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.move_failed'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });

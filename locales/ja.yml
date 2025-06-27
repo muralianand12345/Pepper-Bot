@@ -93,6 +93,9 @@ commands:
             skip_track_source:
                 name: "ソースをスキップ"
                 description: "特定のソースを除外して歌詞を検索"
+    queue:
+        name: "キュー"
+        description: "音楽キューを表示および管理します"
 
 responses:
     music:
@@ -274,6 +277,47 @@ responses:
         buttons:
             previous: "前へ"
             next: "次へ"
+
+    queue:
+        title: "音楽キュー"
+        empty: "キューは空です。`/play` で曲を追加してください！"
+        now_playing: "再生中"
+        upcoming: "次に再生"
+        tracks_in_queue: "キュー内のトラック数"
+        total_duration: "合計再生時間"
+        live_streams: "ライブ配信"
+        live: "ライブ"
+        page: "ページ"
+        progress: "進行状況"
+        shuffled: "キューをシャッフルしました！"
+        cleared: "キューをクリアしました！"
+        removed: "キューから {count} 件のトラックを削除しました"
+        remove_failed: "キューからトラックを削除できませんでした"
+        moved: '"{track}" を位置 {from} から位置 {to} に移動しました'
+        move_failed: "キュー内のトラックを移動できませんでした"
+        track_not_found: "指定された位置にトラックが見つかりません"
+        same_position: "移動元と移動先の位置が同じです"
+        invalid_position: "無効な位置です。1 からキューのサイズまでの数字を入力してください。"
+        invalid_range: "無効な範囲です。形式は: 開始-終了（例: 1-5）"
+        invalid_positions: "無効な位置です。形式は: 1,3,5 または 1-5"
+        invalid_move_positions: "無効な位置です。両方の位置は 1 からキューのサイズ内である必要があります。"
+        buttons:
+            previous: "前へ"
+            next: "次へ"
+            shuffle: "シャッフル"
+            move: "移動"
+            clear: "クリア"
+            remove: "削除"
+        remove_modal:
+            title: "キューから曲を削除"
+            position_label: "削除する位置"
+            position_placeholder: "例: 3 または 1,3,5 または 1-5"
+        move_modal:
+            title: "キュー内の曲を移動"
+            from_label: "現在の位置"
+            from_placeholder: "例: 5"
+            to_label: "新しい位置"
+            to_placeholder: "例: 2"
 
     feedback:
         sent: "フィードバックありがとうございます！開発者に送信されました。"

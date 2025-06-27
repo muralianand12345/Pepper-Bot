@@ -673,7 +673,7 @@ export class Music {
 					const currentTitle = Formatter.truncateText(currentTrack.title, 40);
 					const currentArtist = Formatter.truncateText(currentTrack.author, 25);
 					const currentDuration = currentTrack.isStream ? this.t('responses.queue.live') : Formatter.msToTime(currentTrack.duration);
-					const progressBar = player.playing ? Formatter.createProgressBar(player as magmastream.Player | any) : '';
+					const progressBar = player.playing ? Formatter.createProgressBar(player as any) : '';
 
 					embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
 					if (progressBar) embed.addFields({ name: `⏱️ ${this.t('responses.queue.progress')}`, value: progressBar, inline: false });
@@ -734,9 +734,7 @@ export class Music {
 						.setEmoji('🔄')
 						.setDisabled(isEmpty || queueTracks.length < 2)
 				);
-
 				const actionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setCustomId('queue-remove').setLabel(this.t('responses.queue.buttons.remove')).setStyle(discord.ButtonStyle.Secondary).setEmoji('➖').setDisabled(isEmpty), new discord.ButtonBuilder().setCustomId('queue-clear').setLabel(this.t('responses.queue.buttons.clear')).setStyle(discord.ButtonStyle.Danger).setEmoji('🗑️').setDisabled(isEmpty));
-
 				return [navigationRow, actionRow];
 			};
 
@@ -750,26 +748,32 @@ export class Music {
 
 			if (!isEmpty) {
 				const collector = message.createMessageComponentCollector({ filter: (i) => i.user.id === this.interaction.user.id, time: 300000 });
-
 				collector.on('collect', async (i) => {
 					try {
+						const updatedQueueTracks = Array.from(player.queue);
+						const updatedTotalPages = Math.ceil(updatedQueueTracks.length / 10) || 1;
+
 						if (i.customId === 'queue-previous' && currentPage > 0) {
 							currentPage--;
 							const updatedEmbed = createQueueEmbed(currentPage);
-							const updatedButtons = createQueueButtons(currentPage, totalPages, false);
+							const updatedButtons = createQueueButtons(currentPage, updatedTotalPages, false);
 							await i.update({ embeds: [updatedEmbed], components: updatedButtons });
-						} else if (i.customId === 'queue-next' && currentPage < totalPages - 1) {
+						} else if (i.customId === 'queue-next' && currentPage < updatedTotalPages - 1) {
 							currentPage++;
 							const updatedEmbed = createQueueEmbed(currentPage);
-							const updatedButtons = createQueueButtons(currentPage, totalPages, false);
+							const updatedButtons = createQueueButtons(currentPage, updatedTotalPages, false);
 							await i.update({ embeds: [updatedEmbed], components: updatedButtons });
 						} else if (i.customId === 'queue-shuffle') {
 							await i.deferUpdate();
 							player.queue.shuffle();
 							await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'), this.locale)], flags: discord.MessageFlags.Ephemeral });
 
+							const shuffledQueueTracks = Array.from(player.queue);
+							const shuffledTotalPages = Math.ceil(shuffledQueueTracks.length / 10) || 1;
+							currentPage = Math.min(currentPage, shuffledTotalPages - 1);
+
 							const shuffledEmbed = createQueueEmbed(currentPage);
-							const shuffledButtons = createQueueButtons(currentPage, totalPages, false);
+							const shuffledButtons = createQueueButtons(currentPage, shuffledTotalPages, false);
 							await this.interaction.editReply({ embeds: [shuffledEmbed], components: shuffledButtons });
 						} else if (i.customId === 'queue-move') {
 							const moveModal = new discord.ModalBuilder().setCustomId('queue-move-modal').setTitle(this.t('responses.queue.move_modal.title'));
@@ -782,11 +786,13 @@ export class Music {
 							const removeModal = new discord.ModalBuilder().setCustomId('queue-remove-modal').setTitle(this.t('responses.queue.remove_modal.title'));
 							const positionInput = new discord.TextInputBuilder().setCustomId('queue-position').setLabel(this.t('responses.queue.remove_modal.position_label')).setPlaceholder(this.t('responses.queue.remove_modal.position_placeholder')).setStyle(discord.TextInputStyle.Short).setMaxLength(50).setRequired(true);
 							removeModal.addComponents(new discord.ActionRowBuilder<discord.TextInputBuilder>().addComponents(positionInput));
+
 							await i.showModal(removeModal);
 						} else if (i.customId === 'queue-clear') {
 							await i.deferUpdate();
 							player.queue.clear();
 							await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.cleared'), this.locale)], flags: discord.MessageFlags.Ephemeral });
+
 							const emptyEmbed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'), this.locale);
 							await this.interaction.editReply({ embeds: [emptyEmbed], components: [] });
 						}

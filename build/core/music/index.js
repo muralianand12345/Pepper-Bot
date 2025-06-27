@@ -699,24 +699,29 @@ class Music {
                     const collector = message.createMessageComponentCollector({ filter: (i) => i.user.id === this.interaction.user.id, time: 300000 });
                     collector.on('collect', async (i) => {
                         try {
+                            const updatedQueueTracks = Array.from(player.queue);
+                            const updatedTotalPages = Math.ceil(updatedQueueTracks.length / 10) || 1;
                             if (i.customId === 'queue-previous' && currentPage > 0) {
                                 currentPage--;
                                 const updatedEmbed = createQueueEmbed(currentPage);
-                                const updatedButtons = createQueueButtons(currentPage, totalPages, false);
+                                const updatedButtons = createQueueButtons(currentPage, updatedTotalPages, false);
                                 await i.update({ embeds: [updatedEmbed], components: updatedButtons });
                             }
-                            else if (i.customId === 'queue-next' && currentPage < totalPages - 1) {
+                            else if (i.customId === 'queue-next' && currentPage < updatedTotalPages - 1) {
                                 currentPage++;
                                 const updatedEmbed = createQueueEmbed(currentPage);
-                                const updatedButtons = createQueueButtons(currentPage, totalPages, false);
+                                const updatedButtons = createQueueButtons(currentPage, updatedTotalPages, false);
                                 await i.update({ embeds: [updatedEmbed], components: updatedButtons });
                             }
                             else if (i.customId === 'queue-shuffle') {
                                 await i.deferUpdate();
                                 player.queue.shuffle();
                                 await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'), this.locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                                const shuffledQueueTracks = Array.from(player.queue);
+                                const shuffledTotalPages = Math.ceil(shuffledQueueTracks.length / 10) || 1;
+                                currentPage = Math.min(currentPage, shuffledTotalPages - 1);
                                 const shuffledEmbed = createQueueEmbed(currentPage);
-                                const shuffledButtons = createQueueButtons(currentPage, totalPages, false);
+                                const shuffledButtons = createQueueButtons(currentPage, shuffledTotalPages, false);
                                 await this.interaction.editReply({ embeds: [shuffledEmbed], components: shuffledButtons });
                             }
                             else if (i.customId === 'queue-move') {

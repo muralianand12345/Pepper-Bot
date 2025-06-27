@@ -93,6 +93,9 @@ commands:
             skip_track_source:
                 name: "출처제외"
                 description: "가사 검색 시 특정 출처 제외"
+    queue:
+        name: "대기열"
+        description: "음악 대기열을 표시하고 관리합니다"
 
 responses:
     music:
@@ -274,6 +277,47 @@ responses:
         buttons:
             previous: "이전"
             next: "다음"
+
+    queue:
+        title: "음악 대기열"
+        empty: "대기열이 비어 있습니다. `/play` 명령어로 노래를 추가하세요!"
+        now_playing: "현재 재생 중"
+        upcoming: "다음 곡"
+        tracks_in_queue: "대기열에 있는 트랙"
+        total_duration: "총 재생 시간"
+        live_streams: "라이브 스트림"
+        live: "라이브"
+        page: "페이지"
+        progress: "진행률"
+        shuffled: "대기열이 섞였습니다!"
+        cleared: "대기열이 초기화되었습니다!"
+        removed: "{count}개의 트랙이 대기열에서 삭제되었습니다"
+        remove_failed: "트랙을 대기열에서 삭제하지 못했습니다"
+        moved: '"{track}"을(를) {from}번 위치에서 {to}번 위치로 이동했습니다'
+        move_failed: "대기열에서 트랙을 이동하지 못했습니다"
+        track_not_found: "지정한 위치에 트랙이 없습니다"
+        same_position: "출발 위치와 도착 위치가 같습니다"
+        invalid_position: "잘못된 위치입니다. 1부터 대기열 크기까지의 숫자를 입력하세요."
+        invalid_range: "잘못된 범위입니다. 형식: 시작-끝 (예: 1-5)"
+        invalid_positions: "잘못된 위치입니다. 형식: 1,3,5 또는 1-5"
+        invalid_move_positions: "잘못된 위치입니다. 두 위치 모두 1과 대기열 크기 사이여야 합니다."
+        buttons:
+            previous: "이전"
+            next: "다음"
+            shuffle: "섞기"
+            move: "이동"
+            clear: "초기화"
+            remove: "삭제"
+        remove_modal:
+            title: "대기열에서 노래 삭제"
+            position_label: "삭제할 위치"
+            position_placeholder: "예: 3 또는 1,3,5 또는 1-5"
+        move_modal:
+            title: "대기열에서 노래 이동"
+            from_label: "현재 위치"
+            from_placeholder: "예: 5"
+            to_label: "새 위치"
+            to_placeholder: "예: 2"
 
     feedback:
         sent: "피드백을 보내주셔서 감사합니다! 개발자에게 전송되었습니다."

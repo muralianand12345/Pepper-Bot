@@ -93,6 +93,9 @@ commands:
             skip_track_source:
                 name: "ignorar_fonte"
                 description: "Evitar determinada fonte ao buscar a letra da música"
+    queue:
+        name: "fila"
+        description: "Exibir e gerenciar a fila de músicas"
 
 responses:
     music:
@@ -274,6 +277,47 @@ responses:
         buttons:
             previous: "Anterior"
             next: "Próximo"
+
+    queue:
+        title: "Fila de Músicas"
+        empty: "A fila está vazia. Adicione músicas com `/play`!"
+        now_playing: "Tocando agora"
+        upcoming: "A seguir"
+        tracks_in_queue: "músicas na fila"
+        total_duration: "duração total"
+        live_streams: "transmissões ao vivo"
+        live: "AO VIVO"
+        page: "Página"
+        progress: "Progresso"
+        shuffled: "A fila foi embaralhada!"
+        cleared: "A fila foi limpa!"
+        removed: "Removidas {count} música(s) da fila"
+        remove_failed: "Falha ao remover músicas da fila"
+        moved: 'Movida "{track}" da posição {from} para a posição {to}'
+        move_failed: "Falha ao mover a música na fila"
+        track_not_found: "Música não encontrada na posição especificada"
+        same_position: "A posição de origem e destino são iguais"
+        invalid_position: "Posição inválida. Por favor, insira um número entre 1 e o tamanho da fila."
+        invalid_range: "Intervalo inválido. Use o formato: início-fim (ex.: 1-5)"
+        invalid_positions: "Posições inválidas. Use o formato: 1,3,5 ou 1-5"
+        invalid_move_positions: "Posições inválidas. Ambas devem estar entre 1 e o tamanho da fila."
+        buttons:
+            previous: "Anterior"
+            next: "Próximo"
+            shuffle: "Embaralhar"
+            move: "Mover"
+            clear: "Limpar"
+            remove: "Remover"
+        remove_modal:
+            title: "Remover músicas da fila"
+            position_label: "Posições para remover"
+            position_placeholder: "ex.: 3 ou 1,3,5 ou 1-5"
+        move_modal:
+            title: "Mover música na fila"
+            from_label: "Posição atual"
+            from_placeholder: "ex.: 5"
+            to_label: "Nova posição"
+            to_placeholder: "ex.: 2"
 
     feedback:
         sent: "Obrigado pelo seu feedback! Ele foi enviado aos desenvolvedores."

@@ -94,6 +94,10 @@ commands:
                 name: "quelle_überspringen"
                 description: "Vermeide die Quelle beim Suchen des Songtexts"
 
+    queue:
+        name: "warteschlange"
+        description: "Zeige und verwalte die Musik-Warteschlange"
+
 responses:
     music:
         connected: "Verbunden mit {channelName}"
@@ -273,6 +277,47 @@ responses:
         buttons:
             previous: "Zurück"
             next: "Weiter"
+
+    queue:
+        title: "Musik-Warteschlange"
+        empty: "Die Warteschlange ist leer. Füge Songs mit `/play` hinzu!"
+        now_playing: "Läuft gerade"
+        upcoming: "Als Nächstes"
+        tracks_in_queue: "Titel in der Warteschlange"
+        total_duration: "Gesamtdauer"
+        live_streams: "Live-Streams"
+        live: "LIVE"
+        page: "Seite"
+        progress: "Fortschritt"
+        shuffled: "Die Warteschlange wurde gemischt!"
+        cleared: "Die Warteschlange wurde geleert!"
+        removed: "{count} Titel aus der Warteschlange entfernt"
+        remove_failed: "Titel konnten nicht aus der Warteschlange entfernt werden"
+        moved: '"{track}" von Position {from} zu Position {to} verschoben'
+        move_failed: "Titel konnte nicht in der Warteschlange verschoben werden"
+        track_not_found: "Titel an der angegebenen Position nicht gefunden"
+        same_position: "Quell- und Zielposition sind gleich"
+        invalid_position: "Ungültige Position. Bitte gib eine Zahl zwischen 1 und der Warteschlangengröße ein."
+        invalid_range: "Ungültiger Bereich. Verwende das Format: Start-Ende (z. B. 1-5)"
+        invalid_positions: "Ungültige Positionen. Verwende das Format: 1,3,5 oder 1-5"
+        invalid_move_positions: "Ungültige Positionen. Beide Positionen müssen zwischen 1 und der Warteschlangengröße liegen."
+        buttons:
+            previous: "Zurück"
+            next: "Weiter"
+            shuffle: "Mischen"
+            move: "Verschieben"
+            clear: "Leeren"
+            remove: "Entfernen"
+        remove_modal:
+            title: "Songs aus der Warteschlange entfernen"
+            position_label: "Zu entfernende Position(en)"
+            position_placeholder: "z. B. 3 oder 1,3,5 oder 1-5"
+        move_modal:
+            title: "Song in der Warteschlange verschieben"
+            from_label: "Aktuelle Position"
+            from_placeholder: "z. B. 5"
+            to_label: "Neue Position"
+            to_placeholder: "z. B. 2"
 
     feedback:
         sent: "Vielen Dank für dein Feedback! Es wurde an die Entwickler gesendet."
