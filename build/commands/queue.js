@@ -20,21 +20,11 @@ const queueCommand = {
         const responseHandler = new music_2.MusicResponseHandler(interaction.client);
         try {
             const player = interaction.client.manager.get(interaction.guild?.id || '');
-            if (!player) {
-                await interaction.reply({
-                    embeds: [responseHandler.createErrorEmbed(t('responses.errors.no_player'), locale)],
-                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                });
-                return;
-            }
+            if (!player)
+                return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.errors.no_player'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
             const queueTracks = Array.from(player.queue);
-            if (queueTracks.length === 0) {
-                await interaction.reply({
-                    embeds: [responseHandler.createErrorEmbed(t('responses.queue.empty'), locale)],
-                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                });
-                return;
-            }
+            if (queueTracks.length === 0)
+                return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.empty'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
             if (interaction.customId === 'queue-remove-modal') {
                 const positionValue = interaction.fields.getTextInputValue('queue-position').trim();
                 const handleRemove = (positions) => {
@@ -62,13 +52,8 @@ const queueCommand = {
                 let result;
                 if (positionValue.includes('-')) {
                     const [start, end] = positionValue.split('-').map((s) => parseInt(s.trim()));
-                    if (isNaN(start) || isNaN(end) || start < 1 || end < start || end > queueTracks.length) {
-                        await interaction.reply({
-                            embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_range'), locale)],
-                            flags: discord_js_1.default.MessageFlags.Ephemeral,
-                        });
-                        return;
-                    }
+                    if (isNaN(start) || isNaN(end) || start < 1 || end < start || end > queueTracks.length)
+                        return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_range'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                     const positions = Array.from({ length: end - start + 1 }, (_, i) => start + i);
                     result = handleRemove(positions);
                 }
@@ -77,65 +62,34 @@ const queueCommand = {
                         .split(',')
                         .map((s) => parseInt(s.trim()))
                         .filter((n) => !isNaN(n));
-                    if (positions.length === 0) {
-                        await interaction.reply({
-                            embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_positions'), locale)],
-                            flags: discord_js_1.default.MessageFlags.Ephemeral,
-                        });
-                        return;
-                    }
+                    if (positions.length === 0)
+                        return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_positions'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                     result = handleRemove(positions);
                 }
                 else {
                     const position = parseInt(positionValue);
-                    if (isNaN(position) || position < 1 || position > queueTracks.length) {
-                        await interaction.reply({
-                            embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_position'), locale)],
-                            flags: discord_js_1.default.MessageFlags.Ephemeral,
-                        });
-                        return;
-                    }
+                    if (isNaN(position) || position < 1 || position > queueTracks.length)
+                        return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_position'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                     result = handleRemove([position]);
                 }
                 if (result.removed > 0) {
-                    await interaction.reply({
-                        embeds: [responseHandler.createSuccessEmbed(t('responses.queue.removed', { count: result.removed }), locale)],
-                        flags: discord_js_1.default.MessageFlags.Ephemeral,
-                    });
+                    await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.removed', { count: result.removed }), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 }
                 else {
-                    await interaction.reply({
-                        embeds: [responseHandler.createErrorEmbed(t('responses.queue.remove_failed'), locale)],
-                        flags: discord_js_1.default.MessageFlags.Ephemeral,
-                    });
+                    await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.remove_failed'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 }
             }
             else if (interaction.customId === 'queue-move-modal') {
                 const fromPosition = parseInt(interaction.fields.getTextInputValue('move-from').trim());
                 const toPosition = parseInt(interaction.fields.getTextInputValue('move-to').trim());
-                if (isNaN(fromPosition) || isNaN(toPosition) || fromPosition < 1 || toPosition < 1 || fromPosition > queueTracks.length || toPosition > queueTracks.length) {
-                    await interaction.reply({
-                        embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_move_positions'), locale)],
-                        flags: discord_js_1.default.MessageFlags.Ephemeral,
-                    });
-                    return;
-                }
-                if (fromPosition === toPosition) {
-                    await interaction.reply({
-                        embeds: [responseHandler.createInfoEmbed(t('responses.queue.same_position'), locale)],
-                        flags: discord_js_1.default.MessageFlags.Ephemeral,
-                    });
-                    return;
-                }
+                if (isNaN(fromPosition) || isNaN(toPosition) || fromPosition < 1 || toPosition < 1 || fromPosition > queueTracks.length || toPosition > queueTracks.length)
+                    return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_move_positions'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                if (fromPosition === toPosition)
+                    return await interaction.reply({ embeds: [responseHandler.createInfoEmbed(t('responses.queue.same_position'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 try {
                     const trackToMove = queueTracks[fromPosition - 1];
-                    if (!trackToMove) {
-                        await interaction.reply({
-                            embeds: [responseHandler.createErrorEmbed(t('responses.queue.track_not_found'), locale)],
-                            flags: discord_js_1.default.MessageFlags.Ephemeral,
-                        });
-                        return;
-                    }
+                    if (!trackToMove)
+                        return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.track_not_found'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                     const queueArray = Array.from(player.queue);
                     const trackIndex = queueArray.findIndex((t) => t.uri === trackToMove.uri && t.title === trackToMove.title);
                     if (trackIndex !== -1) {
@@ -152,37 +106,22 @@ const queueCommand = {
                             newQueue.forEach((track) => player.queue.add(track));
                         }
                         interaction.client.logger.info(`[QUEUE] Moved track "${trackToMove.title}" from position ${fromPosition} to position ${toPosition}`);
-                        await interaction.reply({
-                            embeds: [responseHandler.createSuccessEmbed(t('responses.queue.moved', { track: trackToMove.title, from: fromPosition, to: toPosition }), locale)],
-                            flags: discord_js_1.default.MessageFlags.Ephemeral,
-                        });
+                        await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.moved', { track: trackToMove.title, from: fromPosition, to: toPosition }), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                     }
                     else {
-                        await interaction.reply({
-                            embeds: [responseHandler.createErrorEmbed(t('responses.queue.move_failed'), locale)],
-                            flags: discord_js_1.default.MessageFlags.Ephemeral,
-                        });
+                        await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.move_failed'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                     }
                 }
                 catch (error) {
                     interaction.client.logger.error(`[QUEUE] Move error: ${error}`);
-                    await interaction.reply({
-                        embeds: [responseHandler.createErrorEmbed(t('responses.queue.move_failed'), locale)],
-                        flags: discord_js_1.default.MessageFlags.Ephemeral,
-                    });
+                    await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.move_failed'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 }
             }
         }
         catch (error) {
             interaction.client.logger.error(`[QUEUE] Modal error: ${error}`);
-            if (!interaction.replied) {
-                await interaction
-                    .reply({
-                    embeds: [responseHandler.createErrorEmbed(t('responses.errors.general_error'), locale)],
-                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                })
-                    .catch(() => { });
-            }
+            if (!interaction.replied)
+                await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.errors.general_error'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
         }
     },
     execute: async (interaction, client) => {

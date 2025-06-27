@@ -628,20 +628,13 @@ class Music {
                         .setColor('#5865f2')
                         .setTitle(`🎵 ${this.t('responses.queue.title')}`)
                         .setTimestamp()
-                        .setFooter({
-                        text: queueTracks.length > 0 ? `${this.t('responses.queue.page')} ${page + 1}/${Math.ceil(queueTracks.length / itemsPerPage)} • ${this.client.user?.username || 'Music Bot'}` : `${this.client.user?.username || 'Music Bot'}`,
-                        iconURL: this.client.user?.displayAvatarURL(),
-                    });
+                        .setFooter({ text: queueTracks.length > 0 ? `${this.t('responses.queue.page')} ${page + 1}/${Math.ceil(queueTracks.length / itemsPerPage)} • ${this.client.user?.username || 'Music Bot'}` : `${this.client.user?.username || 'Music Bot'}`, iconURL: this.client.user?.displayAvatarURL() });
                     if (currentTrack) {
                         const currentTitle = format_1.default.truncateText(currentTrack.title, 40);
                         const currentArtist = format_1.default.truncateText(currentTrack.author, 25);
                         const currentDuration = currentTrack.isStream ? this.t('responses.queue.live') : format_1.default.msToTime(currentTrack.duration);
                         const progressBar = player.playing ? format_1.default.createProgressBar(player) : '';
-                        embed.addFields({
-                            name: `🎵 ${this.t('responses.queue.now_playing')}`,
-                            value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}${progressBar ? `\n${progressBar}` : ''}`,
-                            inline: false,
-                        });
+                        embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}${progressBar ? `\n${progressBar}` : ''}`, inline: false });
                     }
                     if (queuePage.length > 0) {
                         const queueList = queuePage
@@ -654,11 +647,7 @@ class Music {
                             return `**${position}.** **${title}** - ${artist}\n└ ${duration}${requester}`;
                         })
                             .join('\n\n');
-                        embed.addFields({
-                            name: `📋 ${this.t('responses.queue.upcoming')} (${queueTracks.length})`,
-                            value: queueList.length > 1024 ? queueList.substring(0, 1021) + '...' : queueList,
-                            inline: false,
-                        });
+                        embed.addFields({ name: `📋 ${this.t('responses.queue.upcoming')} (${queueTracks.length})`, value: queueList.length > 1024 ? queueList.substring(0, 1021) + '...' : queueList, inline: false });
                     }
                     const totalDuration = queueTracks.reduce((acc, track) => acc + (track.isStream ? 0 : track.duration), 0);
                     const totalFormatted = format_1.default.msToTime(totalDuration);
@@ -669,9 +658,8 @@ class Music {
                     if (streamCount > 0)
                         description += `\n**${streamCount}** ${this.t('responses.queue.live_streams')}`;
                     embed.setDescription(description);
-                    if (currentTrack && (currentTrack.thumbnail || currentTrack.artworkUrl)) {
+                    if (currentTrack && (currentTrack.thumbnail || currentTrack.artworkUrl))
                         embed.setThumbnail(currentTrack.thumbnail || currentTrack.artworkUrl);
-                    }
                     return embed;
                 };
                 const createQueueButtons = (page, totalPages, isEmpty = false) => {
@@ -704,15 +692,9 @@ class Music {
                 const isEmpty = queueTracks.length === 0;
                 const embed = createQueueEmbed(currentPage);
                 const buttons = createQueueButtons(currentPage, totalPages, isEmpty);
-                const message = await this.interaction.editReply({
-                    embeds: [embed],
-                    components: isEmpty ? [] : buttons,
-                });
+                const message = await this.interaction.editReply({ embeds: [embed], components: isEmpty ? [] : buttons });
                 if (!isEmpty) {
-                    const collector = message.createMessageComponentCollector({
-                        filter: (i) => i.user.id === this.interaction.user.id,
-                        time: 300000,
-                    });
+                    const collector = message.createMessageComponentCollector({ filter: (i) => i.user.id === this.interaction.user.id, time: 300000 });
                     collector.on('collect', async (i) => {
                         try {
                             if (i.customId === 'queue-previous' && currentPage > 0) {
@@ -730,10 +712,7 @@ class Music {
                             else if (i.customId === 'queue-shuffle') {
                                 await i.deferUpdate();
                                 player.queue.shuffle();
-                                await i.followUp({
-                                    embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'), this.locale)],
-                                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                                });
+                                await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'), this.locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                                 const shuffledEmbed = createQueueEmbed(currentPage);
                                 const shuffledButtons = createQueueButtons(currentPage, totalPages, false);
                                 await this.interaction.editReply({ embeds: [shuffledEmbed], components: shuffledButtons });
@@ -754,24 +733,15 @@ class Music {
                             else if (i.customId === 'queue-clear') {
                                 await i.deferUpdate();
                                 player.queue.clear();
-                                await i.followUp({
-                                    embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.cleared'), this.locale)],
-                                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                                });
+                                await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.cleared'), this.locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                                 const emptyEmbed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'), this.locale);
                                 await this.interaction.editReply({ embeds: [emptyEmbed], components: [] });
                             }
                         }
                         catch (error) {
                             this.client.logger.error(`[QUEUE] Button interaction error: ${error}`);
-                            if (!i.replied && !i.deferred) {
-                                await i
-                                    .reply({
-                                    embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.general_error'), this.locale)],
-                                    flags: discord_js_1.default.MessageFlags.Ephemeral,
-                                })
-                                    .catch(() => { });
-                            }
+                            if (!i.replied && !i.deferred)
+                                await i.reply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.general_error'), this.locale)], flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
                         }
                     });
                     collector.on('end', async () => {
@@ -783,10 +753,7 @@ class Music {
             }
             catch (error) {
                 this.client.logger.error(`[QUEUE] Command error: ${error}`);
-                await this.interaction.editReply({
-                    embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.general_error'), this.locale, true)],
-                    components: [responseHandler.getSupportButton(this.locale)],
-                });
+                await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.general_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
             }
         };
         this.client = client;
