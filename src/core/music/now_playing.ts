@@ -112,6 +112,42 @@ export class NowPlayingManager {
 		}
 	};
 
+	private validateMessageAccess = async (message: discord.Message): Promise<boolean> => {
+		try {
+			if (!message.channel) {
+				this.client.logger?.warn(`[NowPlayingManager] Message channel is null, clearing reference`);
+				return false;
+			}
+
+			const channel = await this.client.channels.fetch(message.channel.id).catch(() => null);
+			if (!channel) {
+				this.client.logger?.warn(`[NowPlayingManager] Channel ${message.channel.id} not accessible, clearing reference`);
+				return false;
+			}
+
+			if (!channel.isTextBased()) {
+				this.client.logger?.warn(`[NowPlayingManager] Channel ${message.channel.id} is not text-based, clearing reference`);
+				return false;
+			}
+
+			try {
+				await message.fetch();
+				return true;
+			} catch (error) {
+				if (error instanceof discord.DiscordAPIError) {
+					if (error.code === 10008 || error.code === 10003) {
+						this.client.logger?.warn(`[NowPlayingManager] Message or channel deleted, clearing reference`);
+						return false;
+					}
+				}
+				throw error;
+			}
+		} catch (error) {
+			this.client.logger?.warn(`[NowPlayingManager] Error validating message access: ${error}`);
+			return false;
+		}
+	};
+
 	private updateNowPlaying = async (): Promise<void> => {
 		if (this.isUpdating) return;
 
@@ -124,6 +160,12 @@ export class NowPlayingManager {
 		this.isUpdating = true;
 
 		try {
+			const isMessageValid = await this.validateMessageAccess(currentMessage);
+			if (!isMessageValid) {
+				this.message = null;
+				return;
+			}
+
 			if (!currentMessage.editable) {
 				this.client.logger?.warn(`[NowPlayingManager] Message is no longer editable, clearing reference`);
 				this.message = null;
@@ -145,7 +187,10 @@ export class NowPlayingManager {
 			if (error instanceof Error) {
 				const errorMessage = error.message.toLowerCase();
 
-				if (errorMessage.includes('unknown message') || errorMessage.includes('missing access') || errorMessage.includes('cannot edit a deleted message') || errorMessage.includes('cannot edit a message authored by another user')) {
+				if (errorMessage.includes('channelnotcached') || errorMessage.includes('could not find the channel')) {
+					this.client.logger?.warn(`[NowPlayingManager] Channel not cached, clearing message reference`);
+					this.message = null;
+				} else if (errorMessage.includes('unknown message') || errorMessage.includes('missing access') || errorMessage.includes('cannot edit a deleted message') || errorMessage.includes('cannot edit a message authored by another user')) {
 					this.client.logger?.warn(`[NowPlayingManager] Message error: ${errorMessage}, clearing reference`);
 					this.message = null;
 				} else if (errorMessage.includes('rate limited')) {
@@ -154,8 +199,26 @@ export class NowPlayingManager {
 				} else {
 					this.client.logger?.error(`[NowPlayingManager] Update error: ${error}`);
 				}
+			} else if (error instanceof discord.DiscordAPIError) {
+				switch (error.code) {
+					case 10008:
+					case 10003:
+						this.client.logger?.warn(`[NowPlayingManager] Message or channel deleted (${error.code}), clearing reference`);
+						this.message = null;
+						break;
+					case 50001:
+					case 50013:
+						this.client.logger?.warn(`[NowPlayingManager] Missing permissions (${error.code}), clearing reference`);
+						this.message = null;
+						break;
+					case 50035:
+						this.client.logger?.warn(`[NowPlayingManager] Invalid form body (${error.code})`);
+						break;
+					default:
+						this.client.logger?.error(`[NowPlayingManager] Discord API error ${error.code}: ${error.message}`);
+				}
 			} else {
-				this.client.logger?.error(`[NowPlayingManager] Unknown update error`);
+				this.client.logger?.error(`[NowPlayingManager] Unknown update error: ${error}`);
 			}
 		} finally {
 			this.isUpdating = false;
@@ -166,32 +229,47 @@ export class NowPlayingManager {
 		if (this.isUpdating) return;
 
 		try {
+			const channelAccessible = await this.client.channels.fetch(channel.id).catch(() => null);
+			if (!channelAccessible) return this.client.logger?.warn(`[NowPlayingManager] Channel ${channel.id} not accessible, skipping update`);
+
 			const locale = await this.getGuildLocale();
 			const embed = new MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
 			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
 			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
 			const currentMessage = this.message;
 
-			if (currentMessage && currentMessage.editable) {
-				await currentMessage
-					.edit({ embeds: [embed], components: [musicButton] })
-					.then(() => this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`))
-					.catch(async (error) => {
-						this.client.logger?.warn(`[NowPlayingManager] Failed to edit message: ${error}, creating new one`);
-						this.message = null;
-						const newMessage = await channel.send({ embeds: [embed], components: [musicButton] });
-						this.setMessage(newMessage, false);
-					});
-			} else {
+			if (currentMessage) {
+				const isValid = await this.validateMessageAccess(currentMessage);
+				if (isValid && currentMessage.editable) {
+					await currentMessage
+						.edit({ embeds: [embed], components: [musicButton] })
+						.then(() => this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`))
+						.catch(async (error) => {
+							this.client.logger?.warn(`[NowPlayingManager] Failed to edit message: ${error}, creating new one`);
+							this.message = null;
+							const newMessage = await channel.send({ embeds: [embed], components: [musicButton] });
+							this.setMessage(newMessage, false);
+						});
+				} else {
+					this.message = null;
+				}
+			}
+
+			if (!this.message) {
 				try {
-					const messages = await channel.messages.fetch({ limit: 10 });
+					const messages = await channel.messages.fetch({ limit: 10 }).catch(() => new discord.Collection<string, discord.Message>());
 					const nowPlayingTranslation = this.client.localizationManager?.translate('responses.music.now_playing', locale) || 'Now Playing';
-					const botMessages = messages.filter((m) => {
+					const botMessages = messages.filter((m: discord.Message) => {
 						return m.author.id === this.client.user?.id && m.embeds.length > 0 && (m.embeds[0].title === 'Now Playing' || m.embeds[0].title === nowPlayingTranslation);
 					});
-					const deletePromises = [];
+					const deletePromises: Promise<void>[] = [];
 					for (const [_, msg] of botMessages) {
-						deletePromises.push(msg.delete().catch(() => {}));
+						deletePromises.push(
+							(msg as discord.Message)
+								.delete()
+								.then(() => {})
+								.catch(() => {})
+						);
 					}
 					await Promise.all(deletePromises);
 				} catch (error) {
@@ -222,7 +300,7 @@ export class NowPlayingManager {
 	};
 
 	public hasMessage = (): boolean => {
-		return this.message !== null && this.message.editable;
+		return this.message !== null;
 	};
 
 	public forceUpdate = (): void => {

@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NowPlayingManager = void 0;
+const discord_js_1 = __importDefault(require("discord.js"));
 const locales_1 = require("../locales");
 const handlers_1 = require("./handlers");
 class NowPlayingManager {
@@ -84,6 +88,40 @@ class NowPlayingManager {
                 return 'en';
             }
         };
+        this.validateMessageAccess = async (message) => {
+            try {
+                if (!message.channel) {
+                    this.client.logger?.warn(`[NowPlayingManager] Message channel is null, clearing reference`);
+                    return false;
+                }
+                const channel = await this.client.channels.fetch(message.channel.id).catch(() => null);
+                if (!channel) {
+                    this.client.logger?.warn(`[NowPlayingManager] Channel ${message.channel.id} not accessible, clearing reference`);
+                    return false;
+                }
+                if (!channel.isTextBased()) {
+                    this.client.logger?.warn(`[NowPlayingManager] Channel ${message.channel.id} is not text-based, clearing reference`);
+                    return false;
+                }
+                try {
+                    await message.fetch();
+                    return true;
+                }
+                catch (error) {
+                    if (error instanceof discord_js_1.default.DiscordAPIError) {
+                        if (error.code === 10008 || error.code === 10003) {
+                            this.client.logger?.warn(`[NowPlayingManager] Message or channel deleted, clearing reference`);
+                            return false;
+                        }
+                    }
+                    throw error;
+                }
+            }
+            catch (error) {
+                this.client.logger?.warn(`[NowPlayingManager] Error validating message access: ${error}`);
+                return false;
+            }
+        };
         this.updateNowPlaying = async () => {
             if (this.isUpdating)
                 return;
@@ -95,6 +133,11 @@ class NowPlayingManager {
                 return;
             this.isUpdating = true;
             try {
+                const isMessageValid = await this.validateMessageAccess(currentMessage);
+                if (!isMessageValid) {
+                    this.message = null;
+                    return;
+                }
                 if (!currentMessage.editable) {
                     this.client.logger?.warn(`[NowPlayingManager] Message is no longer editable, clearing reference`);
                     this.message = null;
@@ -113,7 +156,11 @@ class NowPlayingManager {
             catch (error) {
                 if (error instanceof Error) {
                     const errorMessage = error.message.toLowerCase();
-                    if (errorMessage.includes('unknown message') || errorMessage.includes('missing access') || errorMessage.includes('cannot edit a deleted message') || errorMessage.includes('cannot edit a message authored by another user')) {
+                    if (errorMessage.includes('channelnotcached') || errorMessage.includes('could not find the channel')) {
+                        this.client.logger?.warn(`[NowPlayingManager] Channel not cached, clearing message reference`);
+                        this.message = null;
+                    }
+                    else if (errorMessage.includes('unknown message') || errorMessage.includes('missing access') || errorMessage.includes('cannot edit a deleted message') || errorMessage.includes('cannot edit a message authored by another user')) {
                         this.client.logger?.warn(`[NowPlayingManager] Message error: ${errorMessage}, clearing reference`);
                         this.message = null;
                     }
@@ -125,8 +172,27 @@ class NowPlayingManager {
                         this.client.logger?.error(`[NowPlayingManager] Update error: ${error}`);
                     }
                 }
+                else if (error instanceof discord_js_1.default.DiscordAPIError) {
+                    switch (error.code) {
+                        case 10008:
+                        case 10003:
+                            this.client.logger?.warn(`[NowPlayingManager] Message or channel deleted (${error.code}), clearing reference`);
+                            this.message = null;
+                            break;
+                        case 50001:
+                        case 50013:
+                            this.client.logger?.warn(`[NowPlayingManager] Missing permissions (${error.code}), clearing reference`);
+                            this.message = null;
+                            break;
+                        case 50035:
+                            this.client.logger?.warn(`[NowPlayingManager] Invalid form body (${error.code})`);
+                            break;
+                        default:
+                            this.client.logger?.error(`[NowPlayingManager] Discord API error ${error.code}: ${error.message}`);
+                    }
+                }
                 else {
-                    this.client.logger?.error(`[NowPlayingManager] Unknown update error`);
+                    this.client.logger?.error(`[NowPlayingManager] Unknown update error: ${error}`);
                 }
             }
             finally {
@@ -137,32 +203,44 @@ class NowPlayingManager {
             if (this.isUpdating)
                 return;
             try {
+                const channelAccessible = await this.client.channels.fetch(channel.id).catch(() => null);
+                if (!channelAccessible)
+                    return this.client.logger?.warn(`[NowPlayingManager] Channel ${channel.id} not accessible, skipping update`);
                 const locale = await this.getGuildLocale();
                 const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
                 const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
                 const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
                 const currentMessage = this.message;
-                if (currentMessage && currentMessage.editable) {
-                    await currentMessage
-                        .edit({ embeds: [embed], components: [musicButton] })
-                        .then(() => this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`))
-                        .catch(async (error) => {
-                        this.client.logger?.warn(`[NowPlayingManager] Failed to edit message: ${error}, creating new one`);
+                if (currentMessage) {
+                    const isValid = await this.validateMessageAccess(currentMessage);
+                    if (isValid && currentMessage.editable) {
+                        await currentMessage
+                            .edit({ embeds: [embed], components: [musicButton] })
+                            .then(() => this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`))
+                            .catch(async (error) => {
+                            this.client.logger?.warn(`[NowPlayingManager] Failed to edit message: ${error}, creating new one`);
+                            this.message = null;
+                            const newMessage = await channel.send({ embeds: [embed], components: [musicButton] });
+                            this.setMessage(newMessage, false);
+                        });
+                    }
+                    else {
                         this.message = null;
-                        const newMessage = await channel.send({ embeds: [embed], components: [musicButton] });
-                        this.setMessage(newMessage, false);
-                    });
+                    }
                 }
-                else {
+                if (!this.message) {
                     try {
-                        const messages = await channel.messages.fetch({ limit: 10 });
+                        const messages = await channel.messages.fetch({ limit: 10 }).catch(() => new discord_js_1.default.Collection());
                         const nowPlayingTranslation = this.client.localizationManager?.translate('responses.music.now_playing', locale) || 'Now Playing';
                         const botMessages = messages.filter((m) => {
                             return m.author.id === this.client.user?.id && m.embeds.length > 0 && (m.embeds[0].title === 'Now Playing' || m.embeds[0].title === nowPlayingTranslation);
                         });
                         const deletePromises = [];
                         for (const [_, msg] of botMessages) {
-                            deletePromises.push(msg.delete().catch(() => { }));
+                            deletePromises.push(msg
+                                .delete()
+                                .then(() => { })
+                                .catch(() => { }));
                         }
                         await Promise.all(deletePromises);
                     }
@@ -193,7 +271,7 @@ class NowPlayingManager {
             this.message = null;
         };
         this.hasMessage = () => {
-            return this.message !== null && this.message.editable;
+            return this.message !== null;
         };
         this.forceUpdate = () => {
             if (!this.isUpdating)
