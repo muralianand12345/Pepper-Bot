@@ -1,5 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = require("magmastream");
 const locales_1 = require("../../../../core/locales");
 const music_1 = require("../../../../core/music");
@@ -15,6 +19,19 @@ const shouldAutoplayKeepAlive = (player, guildId, client) => {
     }
     catch (error) {
         client.logger.error(`[QUEUE_END] Error checking autoplay status: ${error}`);
+        return false;
+    }
+};
+const hasRequiredPermissions = (channel, client) => {
+    try {
+        if (!channel.guild.members.me)
+            return false;
+        const botPermissions = channel.permissionsFor(client.user);
+        if (!botPermissions)
+            return false;
+        return botPermissions.has([discord_js_1.default.PermissionsBitField.Flags.SendMessages, discord_js_1.default.PermissionsBitField.Flags.EmbedLinks]);
+    }
+    catch (error) {
         return false;
     }
 };
@@ -48,8 +65,11 @@ const lavalinkEvent = {
             return;
         try {
             const channel = (await client.channels.fetch(player.textChannelId));
-            if (!channel?.isTextBased())
+            if (!channel?.isTextBased()) {
+                client.logger.warn(`[QUEUE_END] Channel ${player.textChannelId} is not accessible or not text-based for guild ${player.guildId}`);
+                await handlePlayerCleanup(player, player.guildId, client);
                 return;
+            }
             const autoplayManager = music_1.Autoplay.getInstance(player.guildId, player, client);
             if (autoplayManager.isEnabled() && track) {
                 const processed = await autoplayManager.processTrack(track);
@@ -57,17 +77,39 @@ const lavalinkEvent = {
                     return client.logger.info(`[QUEUE_END] Autoplay added tracks for guild ${player.guildId}`);
             }
             try {
-                let guildLocale = 'en';
-                try {
-                    guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
+                // Check bot permissions before attempting to send message
+                if (!hasRequiredPermissions(channel, client)) {
+                    client.logger.warn(`[QUEUE_END] Bot lacks SendMessages or EmbedLinks permission in channel ${channel.id} for guild ${player.guildId}`);
                 }
-                catch (error) { }
-                const queueEndEmbed = createQueueEndEmbed(client, guildLocale);
-                await channel.send({ embeds: [queueEndEmbed] });
-                client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${player.guildId}`);
+                else {
+                    let guildLocale = 'en';
+                    try {
+                        guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
+                    }
+                    catch (error) { }
+                    const queueEndEmbed = createQueueEndEmbed(client, guildLocale);
+                    await channel.send({ embeds: [queueEndEmbed] });
+                    client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${player.guildId}`);
+                }
             }
             catch (messageError) {
-                client.logger.error(`[QUEUE_END] Failed to send queue end message: ${messageError}`);
+                if (messageError instanceof discord_js_1.default.DiscordAPIError) {
+                    switch (messageError.code) {
+                        case 50001:
+                        case 50013:
+                            client.logger.warn(`[QUEUE_END] Missing permissions to send message (${messageError.code}) in guild ${player.guildId}`);
+                            break;
+                        case 10003:
+                        case 10008:
+                            client.logger.warn(`[QUEUE_END] Channel or message deleted (${messageError.code}) in guild ${player.guildId}`);
+                            break;
+                        default:
+                            client.logger.error(`[QUEUE_END] Discord API error ${messageError.code} when sending queue end message: ${messageError.message}`);
+                    }
+                }
+                else {
+                    client.logger.error(`[QUEUE_END] Failed to send queue end message: ${messageError}`);
+                }
             }
             await handlePlayerCleanup(player, player.guildId, client);
         }

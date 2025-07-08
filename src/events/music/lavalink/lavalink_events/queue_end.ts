@@ -22,6 +22,19 @@ const shouldAutoplayKeepAlive = (player: magmastream.Player, guildId: string, cl
 	}
 };
 
+const hasRequiredPermissions = (channel: discord.TextChannel, client: discord.Client): boolean => {
+	try {
+		if (!channel.guild.members.me) return false;
+		
+		const botPermissions = channel.permissionsFor(client.user!);
+		if (!botPermissions) return false;
+		
+		return botPermissions.has([discord.PermissionsBitField.Flags.SendMessages, discord.PermissionsBitField.Flags.EmbedLinks]);
+	} catch (error) {
+		return false;
+	}
+};
+
 const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, client: discord.Client): Promise<void> => {
 	if (shouldAutoplayKeepAlive(player, guildId, client)) return client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
 	
@@ -57,7 +70,11 @@ const lavalinkEvent: LavalinkEvent = {
 
 		try {
 			const channel = (await client.channels.fetch(player.textChannelId)) as discord.TextChannel;
-			if (!channel?.isTextBased()) return;
+			if (!channel?.isTextBased()) {
+				client.logger.warn(`[QUEUE_END] Channel ${player.textChannelId} is not accessible or not text-based for guild ${player.guildId}`);
+				await handlePlayerCleanup(player, player.guildId, client);
+				return;
+			}
 
 			const autoplayManager = Autoplay.getInstance(player.guildId, player, client);
 			if (autoplayManager.isEnabled() && track) {
@@ -66,17 +83,37 @@ const lavalinkEvent: LavalinkEvent = {
 			}
 
 			try {
-				let guildLocale = 'en';
-				try {
-					guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
-				} catch (error) {}
+				// Check bot permissions before attempting to send message
+				if (!hasRequiredPermissions(channel as discord.TextChannel, client)) {
+					client.logger.warn(`[QUEUE_END] Bot lacks SendMessages or EmbedLinks permission in channel ${channel.id} for guild ${player.guildId}`);
+				} else {
+					let guildLocale = 'en';
+					try {
+						guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
+					} catch (error) {}
 
-				const queueEndEmbed = createQueueEndEmbed(client, guildLocale);
-				await channel.send({ embeds: [queueEndEmbed] });
+					const queueEndEmbed = createQueueEndEmbed(client, guildLocale);
+					await channel.send({ embeds: [queueEndEmbed] });
 
-				client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${player.guildId}`);
+					client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${player.guildId}`);
+				}
 			} catch (messageError) {
-				client.logger.error(`[QUEUE_END] Failed to send queue end message: ${messageError}`);
+				if (messageError instanceof discord.DiscordAPIError) {
+					switch (messageError.code) {
+						case 50001:
+						case 50013:
+							client.logger.warn(`[QUEUE_END] Missing permissions to send message (${messageError.code}) in guild ${player.guildId}`);
+							break;
+						case 10003:
+						case 10008:
+							client.logger.warn(`[QUEUE_END] Channel or message deleted (${messageError.code}) in guild ${player.guildId}`);
+							break;
+						default:
+							client.logger.error(`[QUEUE_END] Discord API error ${messageError.code} when sending queue end message: ${messageError.message}`);
+					}
+				} else {
+					client.logger.error(`[QUEUE_END] Failed to send queue end message: ${messageError}`);
+				}
 			}
 
 			await handlePlayerCleanup(player, player.guildId, client);
