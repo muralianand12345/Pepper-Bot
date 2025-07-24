@@ -57,7 +57,7 @@ class ConfigManager {
         this.getLiveSongsWebhook = () => {
             return this.config.LIVE_SONGS_WEBHOOK;
         };
-        const result = (0, dotenv_1.config)();
+        const result = (0, dotenv_1.config)({ quiet: true });
         if (result.error)
             throw new Error(`Failed to load environment variables: ${result.error.message}`);
         try {

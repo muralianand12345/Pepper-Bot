@@ -29,7 +29,7 @@ export class ConfigManager {
 	private config: z.infer<typeof EnvSchema>;
 
 	private constructor() {
-		const result = config();
+		const result = config({ quiet: true });
 
 		if (result.error) throw new Error(`Failed to load environment variables: ${result.error.message}`);
 
