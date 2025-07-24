@@ -1,0 +1,167 @@
+lavalink:
+    plugins:
+        - dependency: com.github.topi314.lavasrc:lavasrc-plugin:4.7.3
+          snapshot: false
+        - dependency: dev.lavalink.youtube:youtube-plugin:1.13.3
+          snapshot: false
+    server:
+        bufferDurationMs: 400
+        filters:
+            channelMix: true
+            distortion: true
+            equalizer: true
+            karaoke: true
+            lowPass: true
+            rotation: true
+            timescale: true
+            tremolo: true
+            vibrato: true
+            volume: true
+        frameBufferDurationMs: 5000
+        gc-warnings: true
+        nonAllocatingFrameBuffer: false
+        opusEncodingQuality: 10
+        password: https://discord.gg/XzE9hSbsNb
+        playerUpdateInterval: 5
+        resamplingQuality: LOW
+        soundcloudSearchEnabled: true
+        sources:
+            bandcamp: true
+            http: true
+            local: false
+            nico: true
+            soundcloud: true
+            twitch: true
+            vimeo: true
+            youtube: false
+        timeouts:
+            connectTimeoutMs: 15000
+            connectionRequestTimeoutMs: 15000
+            socketTimeoutMs: 15000
+        trackStuckThresholdMs: 10000
+        useSeekGhosting: true
+        youtubePlaylistLoadLimit: 6
+        youtubeSearchEnabled: true
+logging:
+    file:
+        path: ./logs/
+    level:
+        lavalink: DEBUG
+        root: INFO
+    logback:
+        rollingpolicy:
+            max-file-size: 1GB
+            max-history: 30
+    request:
+        enabled: true
+        includeClientInfo: true
+        includeHeaders: false
+        includePayload: true
+        includeQueryString: true
+        maxPayloadLength: 10000
+metrics:
+    prometheus:
+        enabled: false
+        endpoint: /metrics
+plugins:
+    lavasrc:
+        applemusic:
+            albumLoadLimit: 6
+            countryCode: IN
+            keyID: your key id
+            mediaAPIToken: ""
+            musicKitKey: |
+                -----BEGIN PRIVATE KEY-----
+                your key
+                -----END PRIVATE KEY-----
+            playlistLoadLimit: 6
+            teamID: your team id
+        deezer:
+            arl: your deezer arl
+            formats:
+                - FLAC
+                - MP3_320
+                - MP3_256
+                - MP3_128
+                - MP3_64
+                - AAC_64
+            masterDecryptionKey: your master decryption key
+        flowerytts:
+            audioFormat: mp3
+            silence: 0
+            speed: 1
+            translate: false
+            voice: default voice
+        lyrics-sources:
+            deezer: false
+            spotify: true
+            vkmusic: false
+            yandexmusic: true
+            youtube: true
+        providers:
+            - ytsearch:"%ISRC%"
+            - ytsearch:%QUERY%
+            - scsearch:%QUERY%
+            - amsearch:%QUERY%
+        qobuz:
+            userOauthToken: your user oauth token
+        sources:
+            applemusic: true
+            deezer: false
+            flowerytts: true
+            qobuz: false
+            spotify: true
+            tidal: false
+            vkmusic: false
+            yandexmusic: true
+            youtube: true
+            ytdlp: false
+        spotify:
+            albumLoadLimit: 6
+            clientId: ""
+            clientSecret: ""
+            countryCode: IN
+            customTokenEndpoint: http://localhost:8080/api/token
+            localFiles: false
+            playlistLoadLimit: 6
+            preferAnonymousToken: false
+            resolveArtistsInSearch: true
+            spDc: ""
+        tidal:
+            countryCode: US
+            searchLimit: 6
+            token: your tidal token
+        vkmusic:
+            artistLoadLimit: 1
+            playlistLoadLimit: 1
+            recommendationsLoadLimit: 10
+            userToken: your user token
+        yandexmusic:
+            accessToken: ""
+            albumLoadLimit: 1
+            artistLoadLimit: 1
+            playlistLoadLimit: 1
+        youtube:
+            countryCode: IN
+            language: en
+        ytdlp:
+            path: yt-dlp
+            searchLimit: 10
+    youtube:
+        allowDirectPlaylistIds: true
+        allowDirectVideoIds: true
+        allowSearch: true
+        clients:
+            - MUSIC
+            - ANDROID_VR
+            - WEB
+            - WEBEMBEDDED
+        enabled: true
+sentry:
+    dsn: ""
+    environment: production
+server:
+    address: 0.0.0.0
+    http2:
+        enabled: false
+    port: 25704
