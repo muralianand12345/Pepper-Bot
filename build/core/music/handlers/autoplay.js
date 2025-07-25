@@ -9,13 +9,17 @@ class Autoplay {
         this.lastProcessedTrackUri = null;
         this.processing = false;
         this.autoplayOwnerId = null;
-        this.recommendationCount = 3;
+        this.recommendationCount = 7;
         this.recentlyPlayedTracks = new Set();
-        this.maxHistorySize = 20;
+        this.maxHistorySize = 500;
+        this.playedTracksHistory = new Map();
+        this.fallbackAttempts = 0;
+        this.maxFallbackAttempts = 5;
         this.setupListeners = () => this.client.logger.debug(`[AUTOPLAY] Setup listeners for guild ${this.guildId}`);
         this.enable = (userId) => {
             this.enabled = true;
             this.autoplayOwnerId = userId || null;
+            this.fallbackAttempts = 0;
             this.client.logger.info(`[AUTOPLAY] Enabled for guild ${this.guildId} by user ${userId || 'Unknown'}`);
             return true;
         };
@@ -31,9 +35,31 @@ class Autoplay {
             if (!track || !track.uri)
                 return;
             this.recentlyPlayedTracks.add(track.uri);
+            this.playedTracksHistory.set(track.uri, Date.now());
             if (this.recentlyPlayedTracks.size > this.maxHistorySize) {
                 const trackArray = Array.from(this.recentlyPlayedTracks);
-                this.recentlyPlayedTracks = new Set(trackArray.slice(1));
+                const oldestTracks = trackArray.slice(0, Math.floor(this.maxHistorySize * 0.2));
+                oldestTracks.forEach((trackUri) => {
+                    this.recentlyPlayedTracks.delete(trackUri);
+                    this.playedTracksHistory.delete(trackUri);
+                });
+            }
+        };
+        this.clearOldHistory = () => {
+            const now = Date.now();
+            const dayAgo = 24 * 60 * 60 * 1000;
+            const tracksToRemove = [];
+            this.playedTracksHistory.forEach((timestamp, uri) => {
+                if (now - timestamp > dayAgo) {
+                    tracksToRemove.push(uri);
+                }
+            });
+            tracksToRemove.forEach((uri) => {
+                this.recentlyPlayedTracks.delete(uri);
+                this.playedTracksHistory.delete(uri);
+            });
+            if (tracksToRemove.length > 0) {
+                this.client.logger.info(`[AUTOPLAY] Cleared ${tracksToRemove.length} old tracks from history for guild ${this.guildId}`);
             }
         };
         this.processTrack = async (finishedTrack) => {
@@ -50,8 +76,15 @@ class Autoplay {
             this.addToRecentlyPlayed(finishedTrack);
             try {
                 const queueSize = this.player.queue.size;
-                if (queueSize < 2)
-                    await this.addRecommendationsToQueue(finishedTrack);
+                if (queueSize < 3) {
+                    const added = await this.addRecommendationsToQueue(finishedTrack);
+                    if (added === 0) {
+                        await this.handleNoRecommendations();
+                    }
+                    else {
+                        this.fallbackAttempts = 0;
+                    }
+                }
                 this.processing = false;
                 return true;
             }
@@ -61,10 +94,51 @@ class Autoplay {
                 return false;
             }
         };
+        this.handleNoRecommendations = async () => {
+            this.fallbackAttempts++;
+            this.client.logger.warn(`[AUTOPLAY] No recommendations found (attempt ${this.fallbackAttempts}/${this.maxFallbackAttempts}) for guild ${this.guildId}`);
+            if (this.fallbackAttempts >= this.maxFallbackAttempts) {
+                this.clearOldHistory();
+                const historySize = this.recentlyPlayedTracks.size;
+                if (historySize > 100) {
+                    const tracksToRemove = Array.from(this.recentlyPlayedTracks).slice(0, Math.floor(historySize * 0.3));
+                    tracksToRemove.forEach((uri) => {
+                        this.recentlyPlayedTracks.delete(uri);
+                        this.playedTracksHistory.delete(uri);
+                    });
+                    this.client.logger.info(`[AUTOPLAY] Emergency cleanup: removed ${tracksToRemove.length} tracks from history for guild ${this.guildId}`);
+                }
+                this.fallbackAttempts = 0;
+                await this.tryFallbackRecommendations();
+            }
+        };
+        this.tryFallbackRecommendations = async () => {
+            try {
+                const globalHistory = await this.recommendationEngine.getGlobalRecommendations(10, []);
+                if (globalHistory.length > 0) {
+                    const validTracks = globalHistory.filter((track) => !this.recentlyPlayedTracks.has(track.uri));
+                    if (validTracks.length > 0) {
+                        await this.addTracksToQueue(validTracks.slice(0, 3));
+                        this.client.logger.info(`[AUTOPLAY] Added ${validTracks.length} fallback tracks for guild ${this.guildId}`);
+                        return;
+                    }
+                }
+                this.client.logger.warn(`[AUTOPLAY] All fallback methods exhausted for guild ${this.guildId}, temporarily clearing 25% of history`);
+                const tracksArray = Array.from(this.recentlyPlayedTracks);
+                const tracksToRemove = tracksArray.slice(0, Math.floor(tracksArray.length * 0.25));
+                tracksToRemove.forEach((uri) => {
+                    this.recentlyPlayedTracks.delete(uri);
+                    this.playedTracksHistory.delete(uri);
+                });
+            }
+            catch (error) {
+                this.client.logger.error(`[AUTOPLAY] Error in fallback recommendations: ${error}`);
+            }
+        };
         this.addRecommendationsToQueue = async (seedTrack) => {
             try {
                 const userId = this.autoplayOwnerId || seedTrack.requester?.id || this.client.user?.id || null;
-                const { recommendations } = await this.recommendationEngine.getSuggestionsFromUserTopSong(userId || '', this.guildId, this.recommendationCount * 2);
+                const { recommendations } = await this.recommendationEngine.getSuggestionsFromUserTopSong(userId || '', this.guildId, this.recommendationCount * 3);
                 if (!recommendations || recommendations.length === 0) {
                     this.client.logger.warn(`[AUTOPLAY] No recommendations found for guild ${this.guildId}`);
                     return 0;
@@ -76,59 +150,70 @@ class Autoplay {
                     this.client.logger.warn(`[AUTOPLAY] No valid recommendations found for guild ${this.guildId} (all were recently played)`);
                     return 0;
                 }
-                let requester = this.client.user || undefined;
-                if (!requester) {
-                    this.client.logger.warn(`[AUTOPLAY] No client user available`);
-                    requester = seedTrack.requester;
-                }
-                let addedCount = 0;
-                const recommendationsToAdd = validRecommendations.slice(0, this.recommendationCount);
-                for (const recommendation of recommendationsToAdd) {
-                    try {
-                        const searchResult = await this.client.manager.search(recommendation.uri, requester);
-                        if (searchResult && searchResult.tracks && searchResult.tracks.length > 0) {
-                            const track = searchResult.tracks[0];
-                            if (!this.recentlyPlayedTracks.has(track.uri)) {
-                                this.player.queue.add(track);
-                                this.addToRecentlyPlayed(track);
-                                addedCount++;
-                                this.client.logger.info(`[AUTOPLAY] Added '${track.title}' by '${track.author}' to queue in guild ${this.guildId}`);
-                            }
-                        }
-                        else {
-                            const searchQuery = `${recommendation.author} - ${recommendation.title}`;
-                            const fallbackResults = await this.client.manager.search(searchQuery, requester);
-                            if (fallbackResults && fallbackResults.tracks && fallbackResults.tracks.length > 0) {
-                                const track = fallbackResults.tracks[0];
-                                if (!this.recentlyPlayedTracks.has(track.uri)) {
-                                    this.player.queue.add(track);
-                                    this.addToRecentlyPlayed(track);
-                                    addedCount++;
-                                    this.client.logger.info(`[AUTOPLAY] Added '${track.title}' by '${track.author}' to queue in guild ${this.guildId} (fallback method)`);
-                                }
-                            }
-                        }
-                    }
-                    catch (error) {
-                        this.client.logger.error(`[AUTOPLAY] Failed to add recommendation to queue: ${error}`);
-                    }
-                }
-                if (addedCount > 0 && !this.player.playing && !this.player.paused)
-                    this.player.play();
-                this.client.logger.info(`[AUTOPLAY] Added ${addedCount} recommendations to queue in guild ${this.guildId}`);
-                return addedCount;
+                return await this.addTracksToQueue(validRecommendations.slice(0, this.recommendationCount));
             }
             catch (error) {
                 this.client.logger.error(`[AUTOPLAY] Error adding recommendations to queue: ${error}`);
                 return 0;
             }
         };
+        this.addTracksToQueue = async (tracks) => {
+            let requester = this.client.user || undefined;
+            if (!requester) {
+                this.client.logger.warn(`[AUTOPLAY] No client user available`);
+                return 0;
+            }
+            let addedCount = 0;
+            for (const track of tracks) {
+                try {
+                    const searchResult = await this.client.manager.search(track.uri, requester);
+                    if (searchResult && searchResult.tracks && searchResult.tracks.length > 0) {
+                        const lavalinkTrack = searchResult.tracks[0];
+                        if (!this.recentlyPlayedTracks.has(lavalinkTrack.uri)) {
+                            this.player.queue.add(lavalinkTrack);
+                            this.addToRecentlyPlayed(lavalinkTrack);
+                            addedCount++;
+                            this.client.logger.info(`[AUTOPLAY] Added '${lavalinkTrack.title}' by '${lavalinkTrack.author}' to queue in guild ${this.guildId}`);
+                        }
+                    }
+                    else {
+                        const searchQuery = `${track.author} - ${track.title}`;
+                        const fallbackResults = await this.client.manager.search(searchQuery, requester);
+                        if (fallbackResults && fallbackResults.tracks && fallbackResults.tracks.length > 0) {
+                            const lavalinkTrack = fallbackResults.tracks[0];
+                            if (!this.recentlyPlayedTracks.has(lavalinkTrack.uri)) {
+                                this.player.queue.add(lavalinkTrack);
+                                this.addToRecentlyPlayed(lavalinkTrack);
+                                addedCount++;
+                                this.client.logger.info(`[AUTOPLAY] Added '${lavalinkTrack.title}' by '${lavalinkTrack.author}' to queue in guild ${this.guildId} (fallback method)`);
+                            }
+                        }
+                    }
+                }
+                catch (error) {
+                    this.client.logger.error(`[AUTOPLAY] Failed to add track to queue: ${error}`);
+                }
+            }
+            if (addedCount > 0 && !this.player.playing && !this.player.paused)
+                this.player.play();
+            return addedCount;
+        };
         this.getRecentlyPlayedTracks = () => {
             return Array.from(this.recentlyPlayedTracks);
         };
         this.clearHistory = () => {
             this.recentlyPlayedTracks.clear();
+            this.playedTracksHistory.clear();
+            this.fallbackAttempts = 0;
             this.client.logger.info(`[AUTOPLAY] Cleared play history for guild ${this.guildId}`);
+        };
+        this.getHistoryStats = () => {
+            const timestamps = Array.from(this.playedTracksHistory.values());
+            return {
+                totalTracked: this.recentlyPlayedTracks.size,
+                oldestTrack: timestamps.length > 0 ? Math.min(...timestamps) : null,
+                newestTrack: timestamps.length > 0 ? Math.max(...timestamps) : null,
+            };
         };
         this.guildId = guildId;
         this.player = player;

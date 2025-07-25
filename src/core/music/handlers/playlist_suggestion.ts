@@ -282,7 +282,7 @@ export class PlaylistSuggestion {
 		}
 	};
 
-	private getGlobalRecommendations = async (limit: number, existingTracks: ISongs[] = []): Promise<ISongs[]> => {
+	public getGlobalRecommendations = async (limit: number, existingTracks: ISongs[] = []): Promise<ISongs[]> => {
 		try {
 			const existingUris = new Set(existingTracks.filter((t) => t && t.uri).map((t) => t.uri));
 			const globalData = await MusicDB.getGlobalMusicHistory();
