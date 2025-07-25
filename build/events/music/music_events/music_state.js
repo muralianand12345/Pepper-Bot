@@ -19,6 +19,7 @@ const event = {
             client.logger.info(`[VOICE_STATE] Bot was disconnected from voice channel in guild ${newState.guild.id}`);
             player.destroy();
             music_1.NowPlayingManager.removeInstance(player.guildId);
+            music_1.Autoplay.removeInstance(player.guildId);
             const textChannel = client.channels.cache.get(String(player.textChannelId));
             if (textChannel?.isTextBased()) {
                 let guildLocale = 'en';
@@ -66,6 +67,11 @@ const event = {
             const responseHandler = new music_1.MusicResponseHandler(client);
             const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty', guildLocale);
             await (0, music_1.sendTempMessage)(textChannel, embed);
+            const autoplayManager = music_1.Autoplay.getInstance(player.guildId, player, client);
+            if (autoplayManager.isEnabled()) {
+                client.logger.info(`[VOICE_STATE] Autoplay is enabled for guild ${player.guildId}, staying connected despite empty channel`);
+                return;
+            }
             const DISCONNECT_DELAY = 600000;
             const scheduledAt = Date.now();
             player.cleanupScheduledAt = scheduledAt;
@@ -77,6 +83,11 @@ const event = {
                         return;
                     if (currentPlayer.cleanupScheduledAt !== scheduledAt)
                         return;
+                    const currentAutoplayManager = music_1.Autoplay.getInstance(player.guildId, currentPlayer, client);
+                    if (currentAutoplayManager.isEnabled()) {
+                        client.logger.info(`[VOICE_STATE] Autoplay was enabled during timeout period, cancelling disconnect for guild ${player.guildId}`);
+                        return;
+                    }
                     const currentChannel = client.channels.cache.get(String(currentPlayer.voiceChannelId));
                     if (!currentChannel)
                         return;
@@ -88,6 +99,7 @@ const event = {
                         const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
                         await textChannel.send({ embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
                         music_1.NowPlayingManager.removeInstance(player.guildId);
+                        music_1.Autoplay.removeInstance(player.guildId);
                         currentPlayer.destroy();
                     }
                 }

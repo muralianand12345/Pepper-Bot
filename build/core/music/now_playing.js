@@ -46,6 +46,8 @@ class NowPlayingManager {
                     return;
                 if (!this.player || !this.player.playing || this.paused)
                     return;
+                if (!this.player.queue?.current)
+                    return;
                 const position = this.player.position;
                 const duration = this.player.queue.current?.duration || 0;
                 const remainingTime = duration - position;
@@ -129,8 +131,11 @@ class NowPlayingManager {
             if (now - this.lastUpdateTime < this.MIN_UPDATE_INTERVAL)
                 return;
             const currentMessage = this.message;
-            if (!currentMessage || !this.player || !this.player.queue?.current)
+            if (!currentMessage || !this.player)
                 return;
+            const currentTrack = this.player.queue?.current;
+            if (!currentTrack)
+                return this.client.logger?.debug(`[NowPlayingManager] No current track, skipping update`);
             this.isUpdating = true;
             try {
                 const isMessageValid = await this.validateMessageAccess(currentMessage);
@@ -145,7 +150,7 @@ class NowPlayingManager {
                 }
                 const locale = await this.getGuildLocale();
                 const adjustedPlayer = this.getAdjustedPlayer();
-                const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(this.player.queue.current, adjustedPlayer, locale);
+                const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(currentTrack, adjustedPlayer, locale);
                 const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
                 const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
                 if (this.message === currentMessage && currentMessage.editable) {
@@ -202,6 +207,8 @@ class NowPlayingManager {
         this.updateOrCreateMessage = async (channel, track) => {
             if (this.isUpdating)
                 return;
+            if (!track)
+                return this.client.logger?.warn(`[NowPlayingManager] Cannot update/create message: track is null`);
             try {
                 const channelAccessible = await this.client.channels.fetch(channel.id).catch(() => null);
                 if (!channelAccessible)
@@ -274,7 +281,7 @@ class NowPlayingManager {
             return this.message !== null;
         };
         this.forceUpdate = () => {
-            if (!this.isUpdating)
+            if (!this.isUpdating && this.player?.queue?.current)
                 this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`));
         };
         this.getPlaybackStatus = () => {

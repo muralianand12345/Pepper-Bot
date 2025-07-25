@@ -62,26 +62,37 @@ export class MusicResponseHandler {
 			.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
 	};
 
-	public createMusicEmbed = (track: magmastream.Track, player?: magmastream.Player, locale: string = 'en'): discord.EmbedBuilder => {
+	public createMusicEmbed = (track: magmastream.Track | null, player?: magmastream.Player, locale: string = 'en'): discord.EmbedBuilder => {
+		if (!track) {
+			return new discord.EmbedBuilder()
+				.setColor('#2b2d31')
+				.setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
+				.setDescription('**No track available**')
+				.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
+		}
+
 		const requesterData = track.requester ? getRequester(this.client, track.requester) : null;
 		const trackImg = track.thumbnail || track.artworkUrl;
-		const trackTitle = Formatter.truncateText(track.title, 60);
-		const trackAuthor = track.author || 'Unknown';
+		const trackTitle = Formatter.truncateText(track.title || 'Unknown Title', 60);
+		const trackAuthor = track.author || 'Unknown Artist';
 		const trackUri = track.uri || 'https://google.com';
 		const defaultColor: discord.ColorResolvable = '#2b2d31';
 		let progressText = '';
 
-		if (player && player.queue && player.queue.current) {
+		if (player && player.queue && player.queue.current && track.duration) {
 			try {
-				const position = Math.max(0, player.position);
+				const position = Math.max(0, player.position || 0);
 				const duration = track.duration || 0;
-				const progress = this.trackProgress(position, duration);
-				const length = 15;
-				const filledBlocks = Math.floor(progress.percentage * length);
-				const progressBar = '▬'.repeat(filledBlocks) + '●' + '▬'.repeat(Math.max(0, length - filledBlocks - 1));
+				if (duration > 0) {
+					const progress = this.trackProgress(position, duration);
+					const length = 15;
+					const filledBlocks = Math.floor(progress.percentage * length);
+					const progressBar = '▬'.repeat(filledBlocks) + '●' + '▬'.repeat(Math.max(0, length - filledBlocks - 1));
 
-				progressText = `${progressBar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
+					progressText = `${progressBar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
+				}
 			} catch (error) {
+				this.client.logger?.warn(`[MUSIC_EMBED] Error creating progress bar: ${error}`);
 				progressText = '';
 			}
 		}
@@ -89,24 +100,36 @@ export class MusicResponseHandler {
 		const embed = new discord.EmbedBuilder()
 			.setColor(defaultColor)
 			.setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
-			.setDescription(`**${Formatter.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`)
-			.setThumbnail(trackImg);
+			.setDescription(`**${Formatter.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`);
+
+		if (trackImg) {
+			embed.setThumbnail(trackImg);
+		}
 
 		if (progressText) {
 			embed.addFields([{ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false }]);
-			embed.setFooter({ text: `-> ${player?.node.options.identifier || this.client.user?.username}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
-			return embed;
+			embed.setFooter({ text: `-> ${player?.node?.options?.identifier || this.client.user?.username}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
+		} else {
+			embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
 		}
 
 		return embed;
 	};
 
 	public createTrackEmbed = (track: magmastream.Track, position?: number | null, locale: string = 'en'): discord.EmbedBuilder => {
+		if (!track) {
+			return new discord.EmbedBuilder()
+				.setColor('#f04747')
+				.setTitle('Error')
+				.setDescription('Invalid track data')
+				.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
+		}
+
 		const requesterData = track.requester ? getRequester(this.client, track.requester) : null;
-		const title = Formatter.truncateText(track.title, 60);
+		const title = Formatter.truncateText(track.title || 'Unknown Title', 60);
 		const url = track.uri || 'https://google.com';
-		const author = track.author || 'Unknown';
-		const duration = track.isStream ? 'LIVE' : Formatter.msToTime(track.duration);
+		const author = track.author || 'Unknown Artist';
+		const duration = track.isStream ? 'LIVE' : Formatter.msToTime(track.duration || 0);
 
 		let queueInfo = '';
 		if (position === 0) {
@@ -140,11 +163,19 @@ export class MusicResponseHandler {
 	};
 
 	public createPlaylistEmbed = (playlist: magmastream.PlaylistData, requester: discord.User, locale: string = 'en'): discord.EmbedBuilder => {
+		if (!playlist || !playlist.tracks || playlist.tracks.length === 0) {
+			return new discord.EmbedBuilder()
+				.setColor('#f04747')
+				.setTitle('Error')
+				.setDescription('Invalid playlist data')
+				.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
+		}
+
 		const playlistName = Formatter.truncateText(playlist.name || 'Untitled Playlist', 50);
 		const trackPreview = playlist.tracks
 			.slice(0, 5)
 			.map((track, i) => {
-				const title = Formatter.truncateText(track.title, 40);
+				const title = Formatter.truncateText(track.title || 'Unknown Title', 40);
 				return `**${i + 1}.** ${title}`;
 			})
 			.join('\n');
@@ -152,7 +183,7 @@ export class MusicResponseHandler {
 		const totalDuration = Formatter.msToTime(playlist.duration || 0);
 		let avgDuration = '0:00:00';
 		if (playlist.tracks.length > 0) {
-			const avgMs = Math.floor(playlist.duration / playlist.tracks.length);
+			const avgMs = Math.floor((playlist.duration || 0) / playlist.tracks.length);
 			avgDuration = Formatter.msToTime(avgMs);
 		}
 

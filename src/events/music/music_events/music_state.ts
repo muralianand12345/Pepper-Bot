@@ -2,7 +2,7 @@ import discord from 'discord.js';
 
 import { BotEvent } from '../../../types';
 import { LocaleDetector } from '../../../core/locales';
-import { NowPlayingManager, MusicResponseHandler, sendTempMessage } from '../../../core/music';
+import { NowPlayingManager, MusicResponseHandler, sendTempMessage, Autoplay } from '../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
@@ -17,6 +17,7 @@ const event: BotEvent = {
 			client.logger.info(`[VOICE_STATE] Bot was disconnected from voice channel in guild ${newState.guild.id}`);
 			player.destroy();
 			NowPlayingManager.removeInstance(player.guildId);
+			Autoplay.removeInstance(player.guildId);
 
 			const textChannel = client.channels.cache.get(String(player.textChannelId)) as discord.TextChannel;
 			if (textChannel?.isTextBased()) {
@@ -69,6 +70,12 @@ const event: BotEvent = {
 			const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty', guildLocale);
 			await sendTempMessage(textChannel, embed);
 
+			const autoplayManager = Autoplay.getInstance(player.guildId, player, client);
+			if (autoplayManager.isEnabled()) {
+				client.logger.info(`[VOICE_STATE] Autoplay is enabled for guild ${player.guildId}, staying connected despite empty channel`);
+				return;
+			}
+
 			const DISCONNECT_DELAY = 600000;
 			const scheduledAt = Date.now();
 			player.cleanupScheduledAt = scheduledAt;
@@ -80,6 +87,12 @@ const event: BotEvent = {
 					const currentPlayer = client.manager.get(player.guildId);
 					if (!currentPlayer) return;
 					if (currentPlayer.cleanupScheduledAt !== scheduledAt) return;
+
+					const currentAutoplayManager = Autoplay.getInstance(player.guildId, currentPlayer, client);
+					if (currentAutoplayManager.isEnabled()) {
+						client.logger.info(`[VOICE_STATE] Autoplay was enabled during timeout period, cancelling disconnect for guild ${player.guildId}`);
+						return;
+					}
 
 					const currentChannel = client.channels.cache.get(String(currentPlayer.voiceChannelId)) as discord.VoiceBasedChannel;
 					if (!currentChannel) return;
@@ -94,6 +107,7 @@ const event: BotEvent = {
 
 						await textChannel.send({ embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
 						NowPlayingManager.removeInstance(player.guildId);
+						Autoplay.removeInstance(player.guildId);
 						currentPlayer.destroy();
 					}
 				} catch (error) {
