@@ -7,8 +7,8 @@ import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator, Auto
 
 export * from './func';
 export * from './repo';
+export * from './search';
 export * from './handlers';
-export * from './auto_search';
 export * from './now_playing';
 
 export const MUSIC_CONFIG = {

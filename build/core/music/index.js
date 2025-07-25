@@ -25,8 +25,8 @@ const locales_1 = require("../locales");
 const handlers_1 = require("./handlers");
 __exportStar(require("./func"), exports);
 __exportStar(require("./repo"), exports);
+__exportStar(require("./search"), exports);
 __exportStar(require("./handlers"), exports);
-__exportStar(require("./auto_search"), exports);
 __exportStar(require("./now_playing"), exports);
 exports.MUSIC_CONFIG = {
     ERROR_SEARCH_TEXT: 'Unable To Fetch Results',

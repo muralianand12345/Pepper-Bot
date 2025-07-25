@@ -141,6 +141,7 @@ responses:
         plays: "plays"
         no_data: "No data available"
         footer: "Music Analytics Dashboard"
+        export_success: "Successfully exported {count} {scope} tracks to CSV"
         buttons:
             refresh: "Refresh"
             export: "Export Data"

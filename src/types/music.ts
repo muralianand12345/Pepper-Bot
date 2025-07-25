@@ -85,3 +85,50 @@ export interface ICacheConfig {
 	defaultUrlTTL: number;
 	cleanupInterval: number;
 }
+
+export interface ISpotifyTrack {
+	id: string;
+	name: string;
+	artists: Array<{ name: string }>;
+	album: {
+		name: string;
+		images: Array<{ url: string }>;
+	};
+	duration_ms: number;
+	external_urls: {
+		spotify: string;
+	};
+	preview_url?: string;
+	popularity: number;
+}
+
+export interface ISpotifySearchResponse {
+	tracks: {
+		items: ISpotifyTrack[];
+		total: number;
+		limit: number;
+		offset: number;
+	};
+}
+
+export interface ISpotifySearchOptions {
+	limit?: number;
+	offset?: number;
+	market?: string;
+	includeExternal?: 'audio';
+}
+
+
+export interface IPlaylistSuggestionResult {
+	seedSong: ISongs | null;
+	recommendations: ISongs[];
+	sources: {
+		spotify: number;
+		userHistory: number;
+		guildHistory: number;
+		globalHistory: number;
+		magmastream: number;
+	};
+	totalRecommendations: number;
+	executionTime: number;
+}

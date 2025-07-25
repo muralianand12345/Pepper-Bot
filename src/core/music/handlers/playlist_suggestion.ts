@@ -3,15 +3,18 @@ import magmastream from 'magmastream';
 
 import { MusicDB } from '../repo';
 import { getRequester } from '../func';
-import { ISongs, ISongsUser } from '../../../types';
+import { ISongs } from '../../../types';
+import { SpotifySearchService } from '../search';
 
 export class PlaylistSuggestion {
 	private client: discord.Client;
 	private readonly defaultLimit: number = 20;
 	private readonly similarityThreshold: number = 0.4;
+	private spotifyService: SpotifySearchService;
 
 	constructor(client: discord.Client) {
 		this.client = client;
+		this.spotifyService = SpotifySearchService.getInstance(client);
 	}
 
 	private convertTrackToISongs = (track: magmastream.Track): ISongs => {
@@ -52,9 +55,8 @@ export class PlaylistSuggestion {
 			const recommendations = await this.getSuggestions(userId, guildId, seedSong, limit);
 			const endTime = Date.now();
 			this.client.logger.info(`[PLAYLIST_SUGGESTION] Generated ${recommendations.length} suggestions in ${endTime - startTime}ms`);
-			const enhancedRecommendations = await this.convertToSpotifyLinks(recommendations);
 
-			return { seedSong, recommendations: enhancedRecommendations };
+			return { seedSong, recommendations };
 		} catch (error) {
 			this.client.logger.error(`[PLAYLIST_SUGGESTION] Error getting suggestions from user top song: ${error}`);
 			return { seedSong: null, recommendations: [] };
@@ -67,16 +69,25 @@ export class PlaylistSuggestion {
 			let remainingSlots = limit;
 
 			if (remainingSlots > 0) {
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting Spotify recommendations for ${seedTrack.title}`);
+				const spotifyRecommendations = await this.getSpotifyRecommendations(seedTrack, Math.ceil(remainingSlots * 0.4));
+				suggestions.push(...spotifyRecommendations);
+				remainingSlots -= spotifyRecommendations.length;
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${spotifyRecommendations.length} Spotify recommendations`);
+			}
+
+			if (remainingSlots > 0) {
 				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting track-based recommendations for ${seedTrack.title}`);
-				const trackBasedSuggestions = await this.getTrackBasedSuggestions(seedTrack, userId, guildId, Math.ceil(remainingSlots * 0.5));
-				suggestions.push(...trackBasedSuggestions);
-				remainingSlots -= trackBasedSuggestions.length;
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${trackBasedSuggestions.length} track-based suggestions`);
+				const trackBasedSuggestions = await this.getTrackBasedSuggestions(seedTrack, userId, guildId, Math.ceil(remainingSlots * 0.3));
+				const filteredTrackSuggestions = trackBasedSuggestions.filter((track) => !suggestions.some((existing) => existing.uri === track.uri));
+				suggestions.push(...filteredTrackSuggestions);
+				remainingSlots -= filteredTrackSuggestions.length;
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${filteredTrackSuggestions.length} track-based suggestions`);
 			}
 
 			if (remainingSlots > 0) {
 				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting user history recommendations for ${userId}`);
-				const userSuggestions = await this.getUserTopRecommendations(userId, Math.ceil(remainingSlots * 0.3), [seedTrack, ...suggestions]);
+				const userSuggestions = await this.getUserTopRecommendations(userId, Math.ceil(remainingSlots * 0.4), [seedTrack, ...suggestions]);
 				suggestions.push(...userSuggestions);
 				remainingSlots -= userSuggestions.length;
 				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${userSuggestions.length} user history suggestions`);
@@ -113,82 +124,31 @@ export class PlaylistSuggestion {
 		}
 	};
 
-	private convertToSpotifyLinks = async (tracks: ISongs[]): Promise<ISongs[]> => {
-		if (!tracks || tracks.length === 0) return [];
-
+	private getSpotifyRecommendations = async (seedTrack: ISongs, limit: number): Promise<ISongs[]> => {
 		try {
-			const manager = this.client.manager;
-			if (!manager) throw new Error('Manager not available for link conversion');
-
-			const enhancedTracks = await Promise.all(
-				tracks.map(async (track) => {
-					if (!track) return null;
-					if (!track.uri || track.uri.includes('spotify.com')) return track;
-
-					try {
-						const searchQuery = `${track.author || ''} - ${track.title || ''}`.trim();
-						if (!searchQuery) return track;
-						const spotifySearch = await manager.search(`spsearch:${searchQuery}`);
-
-						if (spotifySearch?.tracks?.length > 0) {
-							const spotifyTrack = spotifySearch.tracks[0];
-							return { ...this.convertTrackToISongs(spotifyTrack), played_number: track.played_number || 1, timestamp: track.timestamp || new Date() };
-						}
-					} catch (error) {
-						this.client.logger.warn(`[PLAYLIST_SUGGESTION] Failed to convert track "${track.title || 'Unknown'}" to Spotify: ${error}`);
-					}
-
-					return track;
-				})
-			);
-
-			const validTracks = enhancedTracks.filter((track) => track !== null && track.uri) as ISongs[];
-			const spotifyCount = validTracks.filter((track) => track.uri && track.uri.includes('spotify.com')).length;
-			this.client.logger.info(`[PLAYLIST_SUGGESTION] Converted ${spotifyCount} of ${validTracks.length} tracks to Spotify links`);
-
-			return validTracks;
-		} catch (error) {
-			this.client.logger.error(`[PLAYLIST_SUGGESTION] Error converting to Spotify links: ${error}`);
-			return tracks.filter((track) => track && track.uri);
-		}
-	};
-
-	private getMagmastreamRecommendations = async (track: ISongs, limit: number, existingTracks: ISongs[] = []): Promise<ISongs[]> => {
-		try {
-			if (!track || !track.title || !track.author) return [];
-
-			const existingUris = new Set(existingTracks.filter((t) => t && t.uri).map((t) => t.uri));
-			const manager = this.client.manager;
-			if (!manager) throw new Error('Manager not available');
-
-			const guildIds = Array.from(manager.players.keys());
-			if (guildIds.length === 0) throw new Error('No active players available');
-
-			const player = manager.get(guildIds[0]);
-			if (!player || typeof player.getRecommendedTracks !== 'function') throw new Error("Player doesn't support recommendations");
-
-			const searchQuery = `${track.author} - ${track.title}`;
-			let searchResult;
-			searchResult = await manager.search(`spsearch:${searchQuery}`);
-
-			if (!searchResult?.tracks?.length) {
-				searchResult = await manager.search(searchQuery);
-				if (!searchResult?.tracks?.length) throw new Error('No searchable track found');
-
-				const seedTrack = searchResult.tracks[0];
-				const recommendations = await player.getRecommendedTracks(seedTrack);
-
-				if (!recommendations?.length) return [];
-
-				return recommendations
-					.filter((t) => t && t.uri && !existingUris.has(t.uri))
-					.map((t) => this.convertTrackToISongs(t))
-					.slice(0, limit);
+			if (!seedTrack || !seedTrack.title || !seedTrack.author) {
+				this.client.logger.warn(`[PLAYLIST_SUGGESTION] Invalid seed track for Spotify recommendations`);
+				return [];
 			}
 
-			return [];
+			const spotifyRecommendations = await this.spotifyService.getRecommendationsBasedOnTrack(seedTrack, limit);
+
+			if (spotifyRecommendations.length === 0) {
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] No Spotify recommendations found, trying alternative search`);
+
+				const artistTracks = await this.spotifyService.searchTracksByArtist(seedTrack.author, limit);
+				const alternativeRecommendations = artistTracks
+					.filter((track) => track.name.toLowerCase() !== seedTrack.title.toLowerCase())
+					.slice(0, limit)
+					.map((track) => this.spotifyService.convertSpotifyTrackToISongs(track));
+
+				return alternativeRecommendations;
+			}
+
+			this.client.logger.log(`[PLAYLIST_SUGGESTION] Found ${spotifyRecommendations.length} Spotify recommendations for "${seedTrack.title}" by ${seedTrack.author}`);
+			return spotifyRecommendations;
 		} catch (error) {
-			this.client.logger.warn(`[PLAYLIST_SUGGESTION] Magmastream recommendations error: ${error}`);
+			this.client.logger.error(`[PLAYLIST_SUGGESTION] Spotify recommendations error: ${error}`);
 			return [];
 		}
 	};
@@ -243,6 +203,7 @@ export class PlaylistSuggestion {
 
 			const globalData = await MusicDB.getGlobalMusicHistory();
 			if (!globalData?.songs?.length) return [];
+
 			const filteredSongs = globalData.songs.filter((song) => song && song.uri && song.title && song.author && song.uri !== track.uri);
 			if (filteredSongs.length === 0) return [];
 
@@ -257,6 +218,7 @@ export class PlaylistSuggestion {
 
 			const combinedTracks = [...sameAuthorTracks, ...similarTitleTracks];
 			const dedupedTracks = this.removeDuplicates(combinedTracks);
+
 			return dedupedTracks
 				.sort((a, b) => {
 					const aAuthorScore = this.calculateSimilarity(a.author, track.author);
@@ -303,6 +265,7 @@ export class PlaylistSuggestion {
 			const filteredSongs = guildSongs.filter((song) => song && song.uri && song.timestamp && !existingUris.has(song.uri));
 
 			if (filteredSongs.length === 0) return [];
+
 			return filteredSongs
 				.sort((a, b) => {
 					try {
@@ -324,6 +287,7 @@ export class PlaylistSuggestion {
 			const existingUris = new Set(existingTracks.filter((t) => t && t.uri).map((t) => t.uri));
 			const globalData = await MusicDB.getGlobalMusicHistory();
 			if (!globalData?.songs?.length) return [];
+
 			return globalData.songs.filter((song) => song && song.uri && !existingUris.has(song.uri)).slice(0, limit);
 		} catch (error) {
 			this.client.logger.error(`[PLAYLIST_SUGGESTION] Global recommendations error: ${error}`);
@@ -331,17 +295,44 @@ export class PlaylistSuggestion {
 		}
 	};
 
-	private getTopArtists = (songs: ISongs[]): Map<string, number> => {
-		const artistCounts = new Map<string, number>();
-		songs
-			.filter((song) => song && song.author)
-			.forEach((song) => {
-				const artistName = song.author.toLowerCase();
-				const count = artistCounts.get(artistName) || 0;
-				artistCounts.set(artistName, count + (song.played_number || 1));
-			});
+	private getMagmastreamRecommendations = async (track: ISongs, limit: number, existingTracks: ISongs[] = []): Promise<ISongs[]> => {
+		try {
+			if (!track || !track.title || !track.author) return [];
 
-		return artistCounts;
+			const existingUris = new Set(existingTracks.filter((t) => t && t.uri).map((t) => t.uri));
+			const manager = this.client.manager;
+			if (!manager) throw new Error('Manager not available');
+
+			const guildIds = Array.from(manager.players.keys());
+			if (guildIds.length === 0) throw new Error('No active players available');
+
+			const player = manager.get(guildIds[0]);
+			if (!player || typeof player.getRecommendedTracks !== 'function') throw new Error("Player doesn't support recommendations");
+
+			const searchQuery = `${track.author} - ${track.title}`;
+			let searchResult;
+			searchResult = await manager.search(`spsearch:${searchQuery}`);
+
+			if (!searchResult?.tracks?.length) {
+				searchResult = await manager.search(searchQuery);
+				if (!searchResult?.tracks?.length) throw new Error('No searchable track found');
+
+				const seedTrack = searchResult.tracks[0];
+				const recommendations = await player.getRecommendedTracks(seedTrack);
+
+				if (!recommendations?.length) return [];
+
+				return recommendations
+					.filter((t) => t && t.uri && !existingUris.has(t.uri))
+					.map((t) => this.convertTrackToISongs(t))
+					.slice(0, limit);
+			}
+
+			return [];
+		} catch (error) {
+			this.client.logger.warn(`[PLAYLIST_SUGGESTION] Magmastream recommendations error: ${error}`);
+			return [];
+		}
 	};
 
 	private calculateSimilarity = (str1: string, str2: string): number => {

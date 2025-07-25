@@ -1,7 +1,7 @@
 import discord from 'discord.js';
 import axios, { AxiosInstance } from 'axios';
 
-import { IAutoCompleteOptions, ISpotifySearchResult, ICacheEntry, ICacheConfig } from '../../types';
+import { IAutoCompleteOptions, ISpotifySearchResult, ICacheEntry, ICacheConfig } from '../../../types';
 
 export class SpotifyAutoComplete {
 	private client: discord.Client;
