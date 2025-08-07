@@ -15,7 +15,7 @@ const createQueueEndEmbed = (client: discord.Client, locale: string = 'en'): dis
 const shouldAutoplayKeepAlive = (player: magmastream.Player, guildId: string, client: discord.Client): boolean => {
 	try {
 		const autoplayManager = Autoplay.getInstance(guildId, player, client);
-		return autoplayManager.isEnabled();
+		return autoplayManager.isEffectivelyWorking();
 	} catch (error) {
 		client.logger.error(`[QUEUE_END] Error checking autoplay status: ${error}`);
 		return false;
@@ -101,13 +101,13 @@ const sendQueueEndMessage = async (client: discord.Client, channel: discord.Text
 
 const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, client: discord.Client): Promise<void> => {
 	if (shouldAutoplayKeepAlive(player, guildId, client)) {
-		return client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
+		return client.logger.info(`[QUEUE_END] Autoplay is working effectively, keeping player alive for guild ${guildId}`);
 	}
 
 	const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, client);
 	nowPlayingManager.onStop();
 
-	const CLEANUP_DELAY = 300000;
+	const CLEANUP_DELAY = 120000; // Reduced to 2 minutes for faster cleanup when autoplay fails
 	const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
 
 	const scheduledAt = Date.now();
@@ -126,7 +126,7 @@ const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, 
 	Autoplay.removeInstance(guildId);
 
 	client.logger.info(`[QUEUE_END] Performing cleanup for guild ${guildId} after ${CLEANUP_DELAY_MINS} minutes of inactivity`);
-	player.destroy();
+	currentPlayer.destroy();
 };
 
 const lavalinkEvent: LavalinkEvent = {
@@ -136,9 +136,20 @@ const lavalinkEvent: LavalinkEvent = {
 
 		try {
 			const autoplayManager = Autoplay.getInstance(player.guildId, player, client);
+			let autoplaySuccessful = false;
+
 			if (autoplayManager.isEnabled() && track) {
 				const processed = await autoplayManager.processTrack(track);
-				if (processed) return client.logger.info(`[QUEUE_END] Autoplay added tracks for guild ${player.guildId}`);
+				if (processed && player.queue.size > 0) {
+					client.logger.info(`[QUEUE_END] Autoplay successfully added tracks for guild ${player.guildId}`);
+					autoplaySuccessful = true;
+				} else {
+					client.logger.warn(`[QUEUE_END] Autoplay failed to add tracks for guild ${player.guildId}`);
+				}
+			}
+
+			if (autoplaySuccessful) {
+				return;
 			}
 
 			const channel = await validateChannelAccess(client, player.textChannelId);

@@ -113,7 +113,9 @@ responses:
         playlist_added: "Lista de reproducción añadida a la cola"
         queue_empty: "🎵 Todas las canciones de la cola han sido reproducidas"
         disconnected: "🔌 Reproductor desconectado"
-        disconnected_inactivity: "🔌 Desconectado por inactividad (10 minutos sin oyentes)"
+        autoplay_failed: "🔄 Autoplay no pudo encontrar recomendaciones adecuadas y se ha desactivado automáticamente"
+        disconnected_inactivity: "🔌 Desconectando por inactividad (5 minutos sin oyentes)"
+        disconnected_autoplay_failed: "🔌 Desconectando - autoplay no pudo encontrar nuevas canciones para reproducir"
         paused_empty_channel: "⏸️ Reproducción pausada porque el canal de voz está vacío"
         resumed_members_joined: "▶️ Reproducción reanudada"
         youtube_blocked: "⚠️ ¡Canción saltada! Fuente de YouTube detectada."
@@ -206,6 +208,7 @@ responses:
         no_current_track: "No hay canción reproduciéndose actualmente"
         lyrics_plugin_missing: "La función de letras no está disponible en este nodo de Lavalink. Cambia a uno que lo admita."
         lyrics_error: "Error al obtener la letra"
+        autoplay_no_recommendations: "Autoplay no pudo encontrar recomendaciones adecuadas basadas en tu historial de reproducción. ¡Intenta reproducir canciones más variadas!"
 
     language:
         user_set: "Tu idioma ha sido establecido a **{language}**"

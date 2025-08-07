@@ -114,7 +114,9 @@ responses:
         playlist_added: "Playlist zur Warteschlange hinzugefügt"
         queue_empty: "🎵 Alle Songs in der Warteschlange wurden gespielt"
         disconnected: "🔌 Musikplayer getrennt"
-        disconnected_inactivity: "🔌 Verbindung wegen Inaktivität getrennt (10 Minuten ohne Zuhörer)"
+        autoplay_failed: "🔄 Autoplay konnte keine geeigneten Empfehlungen finden und wurde automatisch deaktiviert"
+        disconnected_inactivity: "🔌 Trennung aufgrund von Inaktivität (5 Minuten ohne Zuhörer)"
+        disconnected_autoplay_failed: "🔌 Trennung - Autoplay konnte keine neuen Songs finden"
         paused_empty_channel: "⏸️ Wiedergabe pausiert, da der Sprachkanal leer ist"
         resumed_members_joined: "▶️ Wiedergabe fortgesetzt"
         youtube_blocked: "⚠️ Song übersprungen! YouTube-Quelle erkannt."
@@ -206,6 +208,7 @@ responses:
         no_current_track: "Kein Titel wird derzeit abgespielt"
         lyrics_plugin_missing: "Songtext-Funktion auf diesem Lavalink-Knoten nicht verfügbar. Bitte wechsle zu einem Knoten, der Lyrics unterstützt."
         lyrics_error: "Fehler beim Abrufen der Songtexte"
+        autoplay_no_recommendations: "Autoplay konnte keine geeigneten Empfehlungen basierend auf Ihrem Hörverlauf finden. Versuchen Sie, abwechslungsreichere Songs zu spielen!"
 
     language:
         user_set: "Deine Sprache wurde auf **{language}** gesetzt"

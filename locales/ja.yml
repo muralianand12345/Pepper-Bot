@@ -113,7 +113,9 @@ responses:
         playlist_added: "プレイリストがキューに追加されました"
         queue_empty: "🎵 キュー内のすべての曲が再生されました"
         disconnected: "🔌 音楽プレイヤーが切断されました"
-        disconnected_inactivity: "🔌 無操作のため切断されました（10分間リスナーがいませんでした）"
+        autoplay_failed: "🔄 オートプレイは適切な推奨曲を見つけることができず、自動的に無効になりました"
+        disconnected_inactivity: "🔌 非アクティブのため切断します（5分間リスナーなし）"
+        disconnected_autoplay_failed: "🔌 切断中 - オートプレイが新しい曲を見つけられませんでした"
         paused_empty_channel: "⏸️ ボイスチャンネルが空だったため再生が一時停止されました"
         resumed_members_joined: "▶️ メンバーが参加したため再生が再開されました"
         youtube_blocked: "⚠️ 曲がスキップされました！YouTube ソースが検出されました。"
@@ -206,6 +208,7 @@ responses:
         no_current_track: "現在再生中のトラックはありません"
         lyrics_plugin_missing: "このLavalinkノードでは歌詞機能が使用できません。対応ノードに変更してください。"
         lyrics_error: "歌詞の取得中にエラーが発生しました"
+        autoplay_no_recommendations: "オートプレイはあなたの聴取履歴に基づいて適切な推奨曲を見つけることができませんでした。より多様な曲を再生してみてください！"
 
     language:
         user_set: "あなたの言語は **{language}** に設定されました"

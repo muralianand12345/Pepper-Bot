@@ -12,9 +12,15 @@ const lavalinkEvent: LavalinkEvent = {
 			client.logger.debug(`[LAVALINK] Track ${track.title} ended in guild ${player.guildId} with reason: ${payload.reason}`);
 			const finishedNaturally = payload.reason === 'finished';
 			const queueIsNearlyEmpty = player.queue.size < 2;
+
 			if (finishedNaturally && queueIsNearlyEmpty) {
 				const autoplayManager = Autoplay.getInstance(player.guildId, player, client);
-				if (autoplayManager.isEnabled()) await autoplayManager.processTrack(track);
+				if (autoplayManager.isEnabled()) {
+					const autoplaySuccessful = await autoplayManager.processTrack(track);
+					if (!autoplaySuccessful) {
+						client.logger.warn(`[LAVALINK] Autoplay failed to add tracks for guild ${player.guildId}`);
+					}
+				}
 			}
 		} catch (error) {
 			client.logger.error(`[LAVALINK] Error in trackEnd event: ${error}`);

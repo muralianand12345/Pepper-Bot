@@ -13,8 +13,12 @@ const lavalinkEvent = {
             const queueIsNearlyEmpty = player.queue.size < 2;
             if (finishedNaturally && queueIsNearlyEmpty) {
                 const autoplayManager = music_1.Autoplay.getInstance(player.guildId, player, client);
-                if (autoplayManager.isEnabled())
-                    await autoplayManager.processTrack(track);
+                if (autoplayManager.isEnabled()) {
+                    const autoplaySuccessful = await autoplayManager.processTrack(track);
+                    if (!autoplaySuccessful) {
+                        client.logger.warn(`[LAVALINK] Autoplay failed to add tracks for guild ${player.guildId}`);
+                    }
+                }
             }
         }
         catch (error) {

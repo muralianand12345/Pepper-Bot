@@ -113,7 +113,9 @@ responses:
         playlist_added: "Playlist ajoutée à la file d’attente"
         queue_empty: "🎵 Toutes les chansons de la file ont été jouées"
         disconnected: "🔌 Déconnecté du lecteur musical"
-        disconnected_inactivity: "🔌 Déconnecté pour inactivité (aucun auditeur pendant 10 minutes)"
+        autoplay_failed: "🔄 La lecture automatique n'a pas pu trouver de recommandations appropriées et a été automatiquement désactivée"
+        disconnected_inactivity: "🔌 Déconnexion en raison d'inactivité (5 minutes sans auditeurs)"
+        disconnected_autoplay_failed: "🔌 Déconnexion - la lecture automatique n'a pas pu trouver de nouvelles chansons à jouer"
         paused_empty_channel: "⏸️ Lecture en pause car le canal vocal est vide"
         resumed_members_joined: "▶️ Lecture reprise"
         youtube_blocked: "⚠️ Chanson ignorée ! Source YouTube détectée."
@@ -206,6 +208,7 @@ responses:
         no_current_track: "Aucun titre en cours de lecture"
         lyrics_plugin_missing: "La fonction paroles n’est pas disponible sur ce nœud Lavalink. Change pour un nœud compatible."
         lyrics_error: "Erreur lors de la récupération des paroles"
+        autoplay_no_recommendations: "La lecture automatique n'a pas pu trouver de recommandations appropriées basées sur votre historique d'écoute. Essayez de jouer des chansons plus variées !"
 
     language:
         user_set: "Ta langue a été définie sur **{language}**"

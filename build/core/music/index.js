@@ -346,6 +346,16 @@ class Music {
                 const autoplayManager = handlers_1.Autoplay.getInstance(player.guildId, player, this.client);
                 if (enable) {
                     autoplayManager.enable(this.interaction.user.id);
+                    // Test if autoplay can find recommendations immediately
+                    const currentTrack = player.queue.current;
+                    if (currentTrack && player.queue.size === 0) {
+                        const testResult = await autoplayManager.processTrack(currentTrack);
+                        if (!testResult) {
+                            const embed = responseHandler.createWarningEmbed(this.t('responses.errors.autoplay_no_recommendations') || "Autoplay couldn't find suitable recommendations based on your listening history. Try playing more varied songs!", this.locale);
+                            await this.interaction.editReply({ embeds: [embed] });
+                            return;
+                        }
+                    }
                     const embed = responseHandler.createSuccessEmbed(this.t('responses.music.autoplay_enabled'), this.locale);
                     await this.interaction.editReply({ embeds: [embed] });
                 }

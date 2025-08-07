@@ -113,7 +113,9 @@ responses:
         playlist_added: "Playlist adicionada à fila"
         queue_empty: "🎵 Todas as músicas da fila foram tocadas"
         disconnected: "🔌 Player de música desconectado"
-        disconnected_inactivity: "🔌 Desconectado por inatividade (10 minutos sem ouvintes)"
+        autoplay_failed: "🔄 O autoplay não conseguiu encontrar recomendações adequadas e foi automaticamente desativado"
+        disconnected_inactivity: "🔌 Desconectando por inatividade (5 minutos sem ouvintes)"
+        disconnected_autoplay_failed: "🔌 Desconectando - autoplay não conseguiu encontrar novas músicas para tocar"
         paused_empty_channel: "⏸️ Reprodução pausada porque o canal de voz está vazio"
         resumed_members_joined: "▶️ Reprodução retomada"
         youtube_blocked: "⚠️ Música pulada! Fonte do YouTube detectada."
@@ -206,6 +208,7 @@ responses:
         no_current_track: "Nenhuma faixa está sendo reproduzida no momento"
         lyrics_plugin_missing: "Função de letras não disponível neste nó Lavalink. Mude para um nó compatível."
         lyrics_error: "Erro ao buscar as letras"
+        autoplay_no_recommendations: "O autoplay não conseguiu encontrar recomendações adequadas baseadas no seu histórico de audição. Tente tocar músicas mais variadas!"
 
     language:
         user_set: "Seu idioma foi definido como **{language}**"

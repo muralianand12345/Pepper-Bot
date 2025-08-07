@@ -20,6 +20,10 @@ export class Autoplay {
 	private playedTracksHistory: Map<string, number> = new Map();
 	private fallbackAttempts: number = 0;
 	private readonly maxFallbackAttempts: number = 5;
+	private consecutiveFailures: number = 0;
+	private readonly maxConsecutiveFailures: number = 3;
+	private lastSuccessfulRecommendation: number = Date.now();
+	private readonly maxInactiveTime: number = 10 * 60 * 1000; // 10 minutes
 
 	private constructor(guildId: string, player: magmastream.Player, client: discord.Client) {
 		this.guildId = guildId;
@@ -48,18 +52,31 @@ export class Autoplay {
 		this.enabled = true;
 		this.autoplayOwnerId = userId || null;
 		this.fallbackAttempts = 0;
+		this.consecutiveFailures = 0;
+		this.lastSuccessfulRecommendation = Date.now();
 		this.client.logger.info(`[AUTOPLAY] Enabled for guild ${this.guildId} by user ${userId || 'Unknown'}`);
 		return true;
 	};
 
 	public disable = (): boolean => {
 		this.enabled = false;
+		this.consecutiveFailures = 0;
 		this.client.logger.info(`[AUTOPLAY] Disabled for guild ${this.guildId}`);
 		return true;
 	};
 
 	public isEnabled = (): boolean => {
 		return this.enabled;
+	};
+
+	public isEffectivelyWorking = (): boolean => {
+		if (!this.enabled) return false;
+
+		const timeSinceLastSuccess = Date.now() - this.lastSuccessfulRecommendation;
+		const hasRecentSuccess = timeSinceLastSuccess < this.maxInactiveTime;
+		const belowFailureThreshold = this.consecutiveFailures < this.maxConsecutiveFailures;
+
+		return hasRecentSuccess && belowFailureThreshold;
 	};
 
 	private addToRecentlyPlayed = (track: magmastream.Track | ISongs): void => {
@@ -114,20 +131,63 @@ export class Autoplay {
 
 		try {
 			const queueSize = this.player.queue.size;
+			let added = 0;
 			if (queueSize < 3) {
-				const added = await this.addRecommendationsToQueue(finishedTrack);
+				added = await this.addRecommendationsToQueue(finishedTrack);
 				if (added === 0) {
+					this.consecutiveFailures++;
+					this.client.logger.warn(`[AUTOPLAY] Failed to add recommendations (${this.consecutiveFailures}/${this.maxConsecutiveFailures}) for guild ${this.guildId}`);
+
+					if (this.consecutiveFailures >= this.maxConsecutiveFailures) {
+						this.client.logger.warn(`[AUTOPLAY] Too many consecutive failures, disabling autoplay for guild ${this.guildId}`);
+						await this.sendAutoplayFailedMessage();
+						this.disable();
+						this.processing = false;
+						return false;
+					}
+
 					await this.handleNoRecommendations();
+					this.processing = false;
+					return false;
 				} else {
 					this.fallbackAttempts = 0;
+					this.consecutiveFailures = 0;
+					this.lastSuccessfulRecommendation = Date.now();
+					this.client.logger.info(`[AUTOPLAY] Successfully added ${added} tracks for guild ${this.guildId}`);
 				}
 			}
 			this.processing = false;
-			return true;
+			return added > 0;
 		} catch (error) {
 			this.client.logger.error(`[AUTOPLAY] Error processing track: ${error}`);
+			this.consecutiveFailures++;
 			this.processing = false;
 			return false;
+		}
+	};
+
+	private sendAutoplayFailedMessage = async (): Promise<void> => {
+		try {
+			if (!this.player.textChannelId) return;
+
+			const channel = (await this.client.channels.fetch(this.player.textChannelId)) as discord.TextChannel;
+			if (!channel?.isTextBased()) return;
+
+			let guildLocale = 'en';
+			try {
+				guildLocale = (await new (await import('../../locales')).LocaleDetector().getGuildLanguage(this.guildId)) || 'en';
+			} catch (error) {}
+
+			const message = this.client.localizationManager?.translate('responses.music.autoplay_failed', guildLocale) || "🔄 Autoplay couldn't find suitable recommendations and has been automatically disabled";
+
+			const embed = new discord.EmbedBuilder()
+				.setColor('#faa61a')
+				.setDescription(`⚠️ ${message}`)
+				.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
+
+			await channel.send({ embeds: [embed] });
+		} catch (error) {
+			this.client.logger.error(`[AUTOPLAY] Failed to send autoplay failed message: ${error}`);
 		}
 	};
 
@@ -150,19 +210,25 @@ export class Autoplay {
 
 			this.fallbackAttempts = 0;
 
-			await this.tryFallbackRecommendations();
+			const fallbackAdded = await this.tryFallbackRecommendations();
+			if (fallbackAdded === 0) {
+				this.client.logger.warn(`[AUTOPLAY] All fallback methods failed, disabling autoplay for guild ${this.guildId}`);
+				this.disable();
+			}
 		}
 	};
 
-	private tryFallbackRecommendations = async (): Promise<void> => {
+	private tryFallbackRecommendations = async (): Promise<number> => {
 		try {
 			const globalHistory = await this.recommendationEngine.getGlobalRecommendations(10, []);
 			if (globalHistory.length > 0) {
 				const validTracks = globalHistory.filter((track) => !this.recentlyPlayedTracks.has(track.uri));
 				if (validTracks.length > 0) {
-					await this.addTracksToQueue(validTracks.slice(0, 3));
-					this.client.logger.info(`[AUTOPLAY] Added ${validTracks.length} fallback tracks for guild ${this.guildId}`);
-					return;
+					const added = await this.addTracksToQueue(validTracks.slice(0, 3));
+					if (added > 0) {
+						this.client.logger.info(`[AUTOPLAY] Added ${added} fallback tracks for guild ${this.guildId}`);
+						return added;
+					}
 				}
 			}
 
@@ -173,8 +239,10 @@ export class Autoplay {
 				this.recentlyPlayedTracks.delete(uri);
 				this.playedTracksHistory.delete(uri);
 			});
+			return 0;
 		} catch (error) {
 			this.client.logger.error(`[AUTOPLAY] Error in fallback recommendations: ${error}`);
+			return 0;
 		}
 	};
 
@@ -255,6 +323,7 @@ export class Autoplay {
 		this.recentlyPlayedTracks.clear();
 		this.playedTracksHistory.clear();
 		this.fallbackAttempts = 0;
+		this.consecutiveFailures = 0;
 		this.client.logger.info(`[AUTOPLAY] Cleared play history for guild ${this.guildId}`);
 	};
 
@@ -264,6 +333,22 @@ export class Autoplay {
 			totalTracked: this.recentlyPlayedTracks.size,
 			oldestTrack: timestamps.length > 0 ? Math.min(...timestamps) : null,
 			newestTrack: timestamps.length > 0 ? Math.max(...timestamps) : null,
+		};
+	};
+
+	public getAutoplayStatus = (): {
+		enabled: boolean;
+		working: boolean;
+		consecutiveFailures: number;
+		lastSuccess: number;
+		timeSinceLastSuccess: number;
+	} => {
+		return {
+			enabled: this.enabled,
+			working: this.isEffectivelyWorking(),
+			consecutiveFailures: this.consecutiveFailures,
+			lastSuccess: this.lastSuccessfulRecommendation,
+			timeSinceLastSuccess: Date.now() - this.lastSuccessfulRecommendation,
 		};
 	};
 }
