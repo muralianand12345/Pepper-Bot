@@ -22,9 +22,88 @@ const shouldAutoplayKeepAlive = (player: magmastream.Player, guildId: string, cl
 	}
 };
 
+const validateChannelAccess = async (client: discord.Client, channelId: string): Promise<discord.TextChannel | null> => {
+	try {
+		const channel = await client.channels.fetch(channelId);
+		if (!channel) {
+			client.logger.warn(`[QUEUE_END] Channel ${channelId} not found`);
+			return null;
+		}
+
+		if (!channel.isTextBased()) {
+			client.logger.warn(`[QUEUE_END] Channel ${channelId} is not text-based`);
+			return null;
+		}
+
+		const textChannel = channel as discord.TextChannel;
+		const guild = textChannel.guild;
+		const botMember = guild.members.me;
+
+		if (!botMember) {
+			client.logger.warn(`[QUEUE_END] Bot member not found in guild ${guild.id}`);
+			return null;
+		}
+
+		const permissions = textChannel.permissionsFor(botMember);
+		if (!permissions || !permissions.has([discord.PermissionsBitField.Flags.ViewChannel, discord.PermissionsBitField.Flags.SendMessages])) {
+			client.logger.warn(`[QUEUE_END] Missing permissions for channel ${channelId} in guild ${guild.id}`);
+			return null;
+		}
+
+		return textChannel;
+	} catch (error) {
+		if (error instanceof discord.DiscordAPIError) {
+			switch (error.code) {
+				case 10003:
+					client.logger.warn(`[QUEUE_END] Channel ${channelId} not found (deleted)`);
+					break;
+				case 50001:
+					client.logger.warn(`[QUEUE_END] Missing access to channel ${channelId}`);
+					break;
+				case 50013:
+					client.logger.warn(`[QUEUE_END] Missing permissions for channel ${channelId}`);
+					break;
+				default:
+					client.logger.warn(`[QUEUE_END] Discord API error ${error.code} for channel ${channelId}: ${error.message}`);
+			}
+		} else {
+			client.logger.error(`[QUEUE_END] Error validating channel access: ${error}`);
+		}
+		return null;
+	}
+};
+
+const sendQueueEndMessage = async (client: discord.Client, channel: discord.TextChannel, locale: string): Promise<void> => {
+	try {
+		const queueEndEmbed = createQueueEndEmbed(client, locale);
+		await channel.send({ embeds: [queueEndEmbed] });
+		client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${channel.guild.id}`);
+	} catch (error) {
+		if (error instanceof discord.DiscordAPIError) {
+			switch (error.code) {
+				case 50001:
+					client.logger.warn(`[QUEUE_END] Missing access to send message in channel ${channel.id}`);
+					break;
+				case 50013:
+					client.logger.warn(`[QUEUE_END] Missing permissions to send message in channel ${channel.id}`);
+					break;
+				case 10003:
+					client.logger.warn(`[QUEUE_END] Channel ${channel.id} was deleted while trying to send message`);
+					break;
+				default:
+					client.logger.error(`[QUEUE_END] Discord API error ${error.code} sending message: ${error.message}`);
+			}
+		} else {
+			client.logger.error(`[QUEUE_END] Error sending queue end message: ${error}`);
+		}
+	}
+};
+
 const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, client: discord.Client): Promise<void> => {
-	if (shouldAutoplayKeepAlive(player, guildId, client)) return client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
-	
+	if (shouldAutoplayKeepAlive(player, guildId, client)) {
+		return client.logger.info(`[QUEUE_END] Autoplay is enabled, keeping player alive for guild ${guildId}`);
+	}
+
 	const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, client);
 	nowPlayingManager.onStop();
 
@@ -53,30 +132,27 @@ const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, 
 const lavalinkEvent: LavalinkEvent = {
 	name: ManagerEventTypes.QueueEnd,
 	execute: async (player: magmastream.Player, track: magmastream.Track, payload: magmastream.TrackEndEvent, client: discord.Client): Promise<void> => {
-		if (!player?.textChannelId || !client?.channels) return;
+		if (!player?.textChannelId || !client?.channels) return client.logger.warn(`[QUEUE_END] Missing player textChannelId or client channels for guild ${player?.guildId}`);
 
 		try {
-			const channel = (await client.channels.fetch(player.textChannelId)) as discord.TextChannel;
-			if (!channel?.isTextBased()) return;
-
 			const autoplayManager = Autoplay.getInstance(player.guildId, player, client);
 			if (autoplayManager.isEnabled() && track) {
 				const processed = await autoplayManager.processTrack(track);
 				if (processed) return client.logger.info(`[QUEUE_END] Autoplay added tracks for guild ${player.guildId}`);
 			}
 
-			try {
+			const channel = await validateChannelAccess(client, player.textChannelId);
+			if (!channel) {
+				client.logger.warn(`[QUEUE_END] Cannot access text channel ${player.textChannelId} for guild ${player.guildId}, skipping message`);
+			} else {
 				let guildLocale = 'en';
 				try {
 					guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
-				} catch (error) {}
+				} catch (error) {
+					client.logger.warn(`[QUEUE_END] Error getting guild locale: ${error}`);
+				}
 
-				const queueEndEmbed = createQueueEndEmbed(client, guildLocale);
-				await channel.send({ embeds: [queueEndEmbed] });
-
-				client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${player.guildId}`);
-			} catch (messageError) {
-				client.logger.error(`[QUEUE_END] Failed to send queue end message: ${messageError}`);
+				await sendQueueEndMessage(client, channel, guildLocale);
 			}
 
 			await handlePlayerCleanup(player, player.guildId, client);
