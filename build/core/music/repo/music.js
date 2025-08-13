@@ -16,7 +16,8 @@ MusicDB.addMusicDB = async (data, songs_data) => {
     try {
         if (!data.songs)
             data.songs = [];
-        songs_data.artworkUrl = songs_data.artworkUrl || songs_data.thumbnail || 'https://www.shutterstock.com/image-illustration/no-music-sound-sign-symbol-260nw-1102194074.jpg';
+        if (!songs_data.artworkUrl || songs_data.artworkUrl.trim() === '')
+            songs_data.artworkUrl = songs_data.thumbnail || 'https://media.istockphoto.com/id/1175435360/vector/music-note-icon-vector-illustration.jpg';
         const songExists = data.songs.find((song) => song.uri === songs_data.uri);
         if (songExists) {
             songExists.played_number += 1;
