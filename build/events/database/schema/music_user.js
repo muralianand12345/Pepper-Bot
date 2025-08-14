@@ -25,4 +25,12 @@ const musicUserSchema = new mongoose_1.Schema({
         },
     ],
 });
+musicUserSchema.index({ userId: 1 });
+musicUserSchema.index({ 'songs.played_number': -1 });
+musicUserSchema.index({ 'songs.uri': 1 });
+musicUserSchema.index({ 'songs.timestamp': -1 });
+musicUserSchema.index({ 'songs.duration': 1 });
+musicUserSchema.index({ 'songs.sourceName': 1 });
+musicUserSchema.index({ userId: 1, 'songs.uri': 1 });
+musicUserSchema.index({ userId: 1, 'songs.played_number': -1 });
 exports.default = (0, mongoose_1.model)('music-users', musicUserSchema);

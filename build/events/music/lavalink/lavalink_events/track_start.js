@@ -90,7 +90,7 @@ const lavalinkEvent = {
             }
             const songData = {
                 track: track.title,
-                artworkUrl: track.artworkUrl || '',
+                artworkUrl: track.artworkUrl || track.thumbnail || 'https://media.istockphoto.com/id/1175435360/vector/music-note-icon-vector-illustration.jpg',
                 sourceName: track.sourceName || 'unknown',
                 title: track.title || 'Unknown',
                 identifier: track.identifier || `unknown_${Date.now()}`,

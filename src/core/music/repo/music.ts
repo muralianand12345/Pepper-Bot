@@ -1,16 +1,13 @@
-import discord from 'discord.js';
-
-import { IMusicUser, IMusicGuild, ISongs } from '../../../types';
 import music_user from '../../../events/database/schema/music_user';
 import music_guild from '../../../events/database/schema/music_guild';
+import { IMusicUser, IMusicGuild, ISongs, ChartAnalytics } from '../../../types';
 
 export class MusicDB {
 	private static addMusicDB = async <T extends IMusicUser | IMusicGuild>(data: T, songs_data: ISongs): Promise<void> => {
 		try {
 			if (!data.songs) data.songs = [];
-			songs_data.artworkUrl = songs_data.artworkUrl || songs_data.thumbnail || 'https://www.shutterstock.com/image-illustration/no-music-sound-sign-symbol-260nw-1102194074.jpg';
+			if (!songs_data.artworkUrl || songs_data.artworkUrl.trim() === '') songs_data.artworkUrl = songs_data.thumbnail || 'https://media.istockphoto.com/id/1175435360/vector/music-note-icon-vector-illustration.jpg';
 			const songExists = data.songs.find((song) => song.uri === songs_data.uri);
-
 			if (songExists) {
 				songExists.played_number += 1;
 				songExists.timestamp = new Date();
@@ -200,48 +197,183 @@ export class MusicDB {
 		}
 	};
 
-	public static getUserTopSongs = async (userId: string | null, limit: number = 10): Promise<ISongs[]> => {
+	public static getUserTopSongs = async (userId: string, limit: number = 20): Promise<ISongs[]> => {
 		try {
-			if (!userId) throw new Error('User ID is required to get top songs');
-			const user = await music_user.findOne({ userId });
-			if (!user || !user.songs || !Array.isArray(user.songs)) return [];
-			return user.songs.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit);
+			if (!userId) return [];
+			const result = await music_user.aggregate([{ $match: { userId } }, { $unwind: '$songs' }, { $match: { 'songs.played_number': { $gt: 0 } } }, { $sort: { 'songs.played_number': -1 } }, { $limit: limit }, { $replaceRoot: { newRoot: '$songs' } }]);
+			return result || [];
 		} catch (err) {
 			return [];
 		}
 	};
 
-	public static getGuildTopSongs = async (guildId: string | null, limit: number = 10): Promise<ISongs[]> => {
+	public static getGuildTopSongs = async (guildId: string, limit: number = 20): Promise<ISongs[]> => {
 		try {
-			if (!guildId) throw new Error('Guild ID is required to get top songs');
-			const guild = await music_guild.findOne({ guildId });
-			if (!guild || !guild.songs || !Array.isArray(guild.songs)) return [];
-			return guild.songs.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit);
+			if (!guildId) return [];
+			const result = await music_guild.aggregate([{ $match: { guildId } }, { $unwind: '$songs' }, { $match: { 'songs.played_number': { $gt: 0 } } }, { $sort: { 'songs.played_number': -1 } }, { $limit: limit }, { $replaceRoot: { newRoot: '$songs' } }]);
+			return result || [];
 		} catch (err) {
 			return [];
 		}
 	};
 
-	public static getSongTextChannelId = async (client: discord.Client, guildId: string | null, userId: string | null): Promise<string> => {
+	public static getGlobalTopSongs = async (limit: number = 20): Promise<ISongs[]> => {
 		try {
-			if (!guildId) throw new Error('Guild ID is required to get song text channel');
-			if (!userId) throw new Error('User ID is required to get song text channel');
-
-			const guild = client.guilds.cache.get(guildId);
-			if (!guild) throw new Error('Guild not found');
-
-			const member = guild.members.cache.get(userId) || (await guild.members.fetch(userId));
-			if (member && member.voice.channel) return member.voice.channel.id;
-
-			const systemChannel = guild.systemChannelId;
-			if (systemChannel) return systemChannel;
-
-			const textChannel = guild.channels.cache.find((c) => c.type === discord.ChannelType.GuildText);
-			if (textChannel) return textChannel.id;
-
-			throw new Error('No suitable text channel found in the guild');
+			const result = await music_guild.aggregate([
+				{ $unwind: '$songs' },
+				{ $match: { 'songs.played_number': { $gt: 0 } } },
+				{
+					$group: {
+						_id: '$songs.uri',
+						title: { $first: '$songs.title' },
+						author: { $first: '$songs.author' },
+						duration: { $first: '$songs.duration' },
+						artworkUrl: { $first: '$songs.artworkUrl' },
+						thumbnail: { $first: '$songs.thumbnail' },
+						sourceName: { $first: '$songs.sourceName' },
+						uri: { $first: '$songs.uri' },
+						track: { $first: '$songs.track' },
+						identifier: { $first: '$songs.identifier' },
+						isrc: { $first: '$songs.isrc' },
+						isSeekable: { $first: '$songs.isSeekable' },
+						isStream: { $first: '$songs.isStream' },
+						requester: { $first: '$songs.requester' },
+						played_number: { $sum: '$songs.played_number' },
+						timestamp: { $max: '$songs.timestamp' },
+					},
+				},
+				{ $match: { played_number: { $gt: 0 } } },
+				{ $sort: { played_number: -1 } },
+				{ $limit: limit },
+			]);
+			return result || [];
 		} catch (err) {
-			throw new Error(`Failed to get song text channel ID: ${err}`);
+			console.error('Error in getGlobalTopSongs:', err);
+			return [];
+		}
+	};
+
+	public static getUserMusicAnalytics = async (userId: string): Promise<ChartAnalytics | null> => {
+		try {
+			if (!userId) return null;
+			const result = await music_user.aggregate([
+				{ $match: { userId } },
+				{ $unwind: '$songs' },
+				{ $match: { 'songs.played_number': { $gt: 0 } } },
+				{
+					$group: {
+						_id: null,
+						totalSongs: { $sum: 1 },
+						uniqueArtists: { $addToSet: { $toLower: '$songs.author' } },
+						totalPlaytime: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } },
+						totalPlays: { $sum: '$songs.played_number' },
+						recentActivity: { $sum: { $cond: [{ $gte: ['$songs.timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] }, 1, 0] } },
+					},
+				},
+				{
+					$project: {
+						totalSongs: 1,
+						uniqueArtists: { $size: '$uniqueArtists' },
+						totalPlaytime: 1,
+						recentActivity: 1,
+						averagePlayCount: { $cond: [{ $gt: ['$totalSongs', 0] }, { $divide: ['$totalPlays', '$totalSongs'] }, 0] },
+					},
+				},
+			]);
+			if (!result || result.length === 0) {
+				return { totalSongs: 0, uniqueArtists: 0, totalPlaytime: 0, topGenres: {}, recentActivity: 0, averagePlayCount: 0 };
+			}
+			const analytics = result[0];
+			analytics.topGenres = {};
+			return analytics;
+		} catch (err) {
+			return null;
+		}
+	};
+
+	public static getGuildMusicAnalytics = async (guildId: string): Promise<ChartAnalytics | null> => {
+		try {
+			if (!guildId) return null;
+			const result = await music_guild.aggregate([
+				{ $match: { guildId } },
+				{ $unwind: '$songs' },
+				{ $match: { 'songs.played_number': { $gt: 0 } } },
+				{
+					$group: {
+						_id: null,
+						totalSongs: { $sum: 1 },
+						uniqueArtists: { $addToSet: { $toLower: '$songs.author' } },
+						totalPlaytime: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } },
+						totalPlays: { $sum: '$songs.played_number' },
+						recentActivity: { $sum: { $cond: [{ $gte: ['$songs.timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] }, 1, 0] } },
+					},
+				},
+				{
+					$project: {
+						totalSongs: 1,
+						uniqueArtists: { $size: '$uniqueArtists' },
+						totalPlaytime: 1,
+						recentActivity: 1,
+						averagePlayCount: { $cond: [{ $gt: ['$totalSongs', 0] }, { $divide: ['$totalPlays', '$totalSongs'] }, 0] },
+					},
+				},
+			]);
+
+			if (!result || result.length === 0) return { totalSongs: 0, uniqueArtists: 0, totalPlaytime: 0, topGenres: {}, recentActivity: 0, averagePlayCount: 0 };
+
+			const analytics = result[0];
+			analytics.topGenres = {};
+			return analytics;
+		} catch (err) {
+			return null;
+		}
+	};
+
+	public static getGlobalMusicAnalytics = async (): Promise<ChartAnalytics | null> => {
+		try {
+			const result = await music_guild.aggregate([
+				{ $unwind: '$songs' },
+				{ $match: { 'songs.played_number': { $gt: 0 } } },
+				{
+					$group: {
+						_id: '$songs.uri',
+						author: { $first: '$songs.author' },
+						duration: { $first: '$songs.duration' },
+						sourceName: { $first: '$songs.sourceName' },
+						played_number: { $sum: '$songs.played_number' },
+						timestamp: { $max: '$songs.timestamp' },
+					},
+				},
+				{ $match: { played_number: { $gt: 0 } } },
+				{
+					$group: {
+						_id: null,
+						totalSongs: { $sum: 1 },
+						uniqueArtists: { $addToSet: { $toLower: '$author' } },
+						totalPlaytime: { $sum: { $multiply: ['$duration', '$played_number'] } },
+						totalPlays: { $sum: '$played_number' },
+						recentActivity: { $sum: { $cond: [{ $gte: ['$timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] }, 1, 0] } },
+					},
+				},
+				{
+					$project: {
+						totalSongs: 1,
+						uniqueArtists: { $size: '$uniqueArtists' },
+						totalPlaytime: 1,
+						recentActivity: 1,
+						averagePlayCount: { $cond: [{ $gt: ['$totalSongs', 0] }, { $divide: ['$totalPlays', '$totalSongs'] }, 0] },
+					},
+				},
+			]);
+
+			if (!result || result.length === 0) return { totalSongs: 0, uniqueArtists: 0, totalPlaytime: 0, topGenres: {}, recentActivity: 0, averagePlayCount: 0 };
+
+			const analytics = result[0];
+			analytics.topGenres = {};
+			return analytics;
+		} catch (err) {
+			console.error('Error in getGlobalMusicAnalytics:', err);
+			return null;
 		}
 	};
 }
