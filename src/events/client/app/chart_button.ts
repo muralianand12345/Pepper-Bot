@@ -2,9 +2,9 @@ import discord from 'discord.js';
 
 import { MusicDB } from '../../../core/music';
 import Formatter from '../../../utils/format';
-import { BotEvent, ISongs } from '../../../types';
 import { LocaleDetector } from '../../../core/locales';
 import { MusicResponseHandler } from '../../../core/music';
+import { BotEvent, ISongs, ChartAnalytics } from '../../../types';
 
 const CHART_BUTTON_IDS = ['chart_refresh', 'chart_export'];
 
@@ -41,23 +41,23 @@ const extractChartDataFromEmbed = (embed: discord.Embed): { scope: string; limit
 	}
 };
 
-const generateChartData = async (scope: string, userId: string, guildId: string | null, limit: number): Promise<ISongs[]> => {
+const generateChartData = async (scope: string, userId: string, guildId: string | null, limit: number): Promise<{ chartData: ISongs[]; analytics: ChartAnalytics | null }> => {
 	switch (scope) {
 		case 'user': {
-			const userHistory = await MusicDB.getUserMusicHistory(userId);
-			return userHistory?.songs?.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit) || [];
+			const [topSongs, analytics] = await Promise.all([MusicDB.getUserTopSongs(userId, limit), MusicDB.getUserMusicAnalytics(userId)]);
+			return { chartData: topSongs, analytics };
 		}
 		case 'guild': {
-			if (!guildId) return [];
-			const guildHistory = await MusicDB.getGuildMusicHistory(guildId);
-			return guildHistory?.songs?.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit) || [];
+			if (!guildId) return { chartData: [], analytics: null };
+			const [topSongs, analytics] = await Promise.all([MusicDB.getGuildTopSongs(guildId, limit), MusicDB.getGuildMusicAnalytics(guildId)]);
+			return { chartData: topSongs, analytics };
 		}
 		case 'global': {
-			const globalHistory = await MusicDB.getGlobalMusicHistory();
-			return globalHistory?.songs?.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit) || [];
+			const [topSongs, analytics] = await Promise.all([MusicDB.getGlobalTopSongs(limit), MusicDB.getGlobalMusicAnalytics()]);
+			return { chartData: topSongs, analytics };
 		}
 		default:
-			return [];
+			return { chartData: [], analytics: null };
 	}
 };
 
@@ -90,32 +90,13 @@ const refreshChartEmbed = async (interaction: discord.ButtonInteraction, origina
 	await interaction.deferUpdate();
 
 	try {
-		const chartData = await generateChartData(chartInfo.scope, interaction.user.id, interaction.guildId, chartInfo.limit);
+		const { chartData, analytics } = await generateChartData(chartInfo.scope, interaction.user.id, interaction.guildId, chartInfo.limit);
 
-		if (!chartData.length) {
+		if (!chartData.length || !analytics) {
 			const embed = responseHandler.createInfoEmbed(t('responses.chart.no_data'), locale);
 			await interaction.editReply({ embeds: [embed] });
 			return;
 		}
-
-		const analytics = {
-			totalSongs: chartData.length,
-			uniqueArtists: new Set(chartData.map((song) => song.author?.toLowerCase())).size,
-			totalPlaytime: chartData.reduce((acc, song) => acc + song.duration * song.played_number, 0),
-			topGenres: {},
-			recentActivity: chartData.filter((song) => {
-				const songDate = new Date(song.timestamp);
-				const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-				return songDate > weekAgo;
-			}).length,
-			averagePlayCount: chartData.reduce((acc, song) => acc + song.played_number, 0) / chartData.length || 0,
-		};
-
-		const genres: { [key: string]: number } = {};
-		chartData.forEach((song: ISongs) => {
-			if (song.sourceName) genres[song.sourceName] = (genres[song.sourceName] || 0) + song.played_number;
-		});
-		analytics.topGenres = genres;
 
 		let embedTitle: string;
 		let embedColor: discord.ColorResolvable;
@@ -200,7 +181,7 @@ const exportChartData = async (interaction: discord.ButtonInteraction, originalE
 	await interaction.deferReply({ flags: discord.MessageFlags.Ephemeral });
 
 	try {
-		const chartData = await generateChartData(chartInfo.scope, interaction.user.id, interaction.guildId, 50);
+		const { chartData } = await generateChartData(chartInfo.scope, interaction.user.id, interaction.guildId, 50);
 
 		if (!chartData.length) {
 			const embed = responseHandler.createInfoEmbed(t('responses.chart.no_data'), locale);

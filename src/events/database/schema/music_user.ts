@@ -27,4 +27,11 @@ const musicUserSchema = new Schema<IMusicUser>({
 	],
 });
 
+musicUserSchema.index({ userId: 1 });
+musicUserSchema.index({ 'songs.played_number': -1 });
+musicUserSchema.index({ 'songs.uri': 1 });
+musicUserSchema.index({ 'songs.timestamp': -1 });
+musicUserSchema.index({ userId: 1, 'songs.uri': 1 });
+musicUserSchema.index({ userId: 1, 'songs.played_number': -1 });
+
 export default model('music-users', musicUserSchema);

@@ -35,20 +35,20 @@ const chartCommand = {
         const scope = interaction.options.getString('scope', true);
         const limit = interaction.options.getInteger('limit') || 10;
         try {
-            let chartData = undefined;
-            let analytics;
+            let chartData = [];
+            let analytics = null;
             let embedTitle = '';
             let embedColor = '#5865f2';
             switch (scope) {
                 case 'user': {
-                    const userHistory = await music_1.MusicDB.getUserMusicHistory(interaction.user.id);
-                    if (!userHistory || !userHistory.songs.length) {
+                    const [topSongs, userAnalytics] = await Promise.all([music_1.MusicDB.getUserTopSongs(interaction.user.id, limit), music_1.MusicDB.getUserMusicAnalytics(interaction.user.id)]);
+                    if (!topSongs.length) {
                         const embed = responseHandler.createInfoEmbed(t('responses.chart.no_user_data'), locale);
                         await interaction.editReply({ embeds: [embed] });
                         return;
                     }
-                    chartData = userHistory.songs.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit);
-                    analytics = calculateAnalytics(userHistory.songs);
+                    chartData = topSongs;
+                    analytics = userAnalytics;
                     embedTitle = t('responses.chart.user_title', { user: interaction.user.displayName });
                     embedColor = '#43b581';
                     break;
@@ -59,38 +59,39 @@ const chartCommand = {
                         await interaction.editReply({ embeds: [embed] });
                         return;
                     }
-                    const guildHistory = await music_1.MusicDB.getGuildMusicHistory(interaction.guildId);
-                    if (!guildHistory || !guildHistory.songs.length) {
+                    const [topSongs, guildAnalytics] = await Promise.all([music_1.MusicDB.getGuildTopSongs(interaction.guildId, limit), music_1.MusicDB.getGuildMusicAnalytics(interaction.guildId)]);
+                    if (!topSongs.length) {
                         const embed = responseHandler.createInfoEmbed(t('responses.chart.no_guild_data'), locale);
                         await interaction.editReply({ embeds: [embed] });
                         return;
                     }
-                    chartData = guildHistory.songs.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit);
-                    analytics = calculateAnalytics(guildHistory.songs);
+                    chartData = topSongs;
+                    analytics = guildAnalytics;
                     embedTitle = t('responses.chart.guild_title', { guild: interaction.guild?.name || 'Server' });
                     embedColor = '#f1c40f';
                     break;
                 }
                 case 'global': {
-                    const globalHistory = await music_1.MusicDB.getGlobalMusicHistory();
-                    if (!globalHistory || !globalHistory.songs.length) {
+                    const [topSongs, globalAnalytics] = await Promise.all([music_1.MusicDB.getGlobalTopSongs(limit), music_1.MusicDB.getGlobalMusicAnalytics()]);
+                    if (!topSongs.length) {
                         const embed = responseHandler.createInfoEmbed(t('responses.chart.no_global_data'), locale);
                         await interaction.editReply({ embeds: [embed] });
                         return;
                     }
-                    chartData = globalHistory.songs.sort((a, b) => (b.played_number || 0) - (a.played_number || 0)).slice(0, limit);
-                    analytics = calculateAnalytics(globalHistory.songs);
+                    chartData = topSongs;
+                    analytics = globalAnalytics;
                     embedTitle = t('responses.chart.global_title');
                     embedColor = '#e74c3c';
                     break;
                 }
             }
             if (!analytics) {
+                client.logger.error(`[CHART_COMMAND] No analytics data found for scope: ${scope}`);
                 const embed = responseHandler.createErrorEmbed(t('responses.errors.general_error'), locale, true);
                 await interaction.editReply({ embeds: [embed] });
                 return;
             }
-            const embed = createChartEmbed(chartData || [], analytics, embedTitle, embedColor, locale, t, client, scope);
+            const embed = createChartEmbed(chartData, analytics, embedTitle, embedColor, locale, t, client, scope);
             const actionRow = createChartButtons(locale, t);
             await interaction.editReply({ embeds: [embed], components: [actionRow] });
         }
@@ -100,23 +101,6 @@ const chartCommand = {
             await interaction.editReply({ embeds: [embed] });
         }
     },
-};
-const calculateAnalytics = (songs) => {
-    const totalSongs = songs.length;
-    const uniqueArtists = new Set(songs.map((song) => song.author?.toLowerCase())).size;
-    const totalPlaytime = songs.reduce((acc, song) => acc + song.duration * song.played_number, 0);
-    const totalPlays = songs.reduce((acc, song) => acc + song.played_number, 0);
-    const recentActivity = songs.filter((song) => {
-        const songDate = new Date(song.timestamp);
-        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        return songDate > weekAgo;
-    }).length;
-    const genres = {};
-    songs.forEach((song) => {
-        if (song.sourceName)
-            genres[song.sourceName] = (genres[song.sourceName] || 0) + song.played_number;
-    });
-    return { totalSongs, uniqueArtists, totalPlaytime, topGenres: genres, recentActivity, averagePlayCount: totalPlays / totalSongs || 0 };
 };
 const createChartEmbed = (chartData, analytics, title, color, locale, t, client, scope) => {
     const embed = new discord_js_1.default.EmbedBuilder()
