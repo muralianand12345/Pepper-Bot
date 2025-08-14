@@ -31,7 +31,9 @@ musicGuildSchema.index({ guildId: 1 });
 musicGuildSchema.index({ 'songs.played_number': -1 });
 musicGuildSchema.index({ 'songs.uri': 1 });
 musicGuildSchema.index({ 'songs.timestamp': -1 });
+musicGuildSchema.index({ 'songs.author': 1 });
+musicGuildSchema.index({ 'songs.timestamp': -1, 'songs.played_number': -1 });
 musicGuildSchema.index({ guildId: 1, 'songs.uri': 1 });
 musicGuildSchema.index({ guildId: 1, 'songs.played_number': -1 });
 
-export default model('music-guild', musicGuildSchema);
+export default model('music-guilds', musicGuildSchema);

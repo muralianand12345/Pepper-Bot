@@ -26,7 +26,7 @@ const chartCommand: Command = {
 				.setRequired(true)
 				.addChoices({ name: 'Personal', value: 'user', name_localizations: localizationManager.getCommandLocalizations('commands.chart.options.scope.choices.user') }, { name: 'Server', value: 'guild', name_localizations: localizationManager.getCommandLocalizations('commands.chart.options.scope.choices.guild') }, { name: 'Global', value: 'global', name_localizations: localizationManager.getCommandLocalizations('commands.chart.options.scope.choices.global') })
 		)
-		.addIntegerOption((option) => option.setName('limit').setDescription('Number of top items to display (5-20)').setNameLocalizations(localizationManager.getCommandLocalizations('commands.chart.options.limit.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.chart.options.limit.description')).setRequired(false).setMinValue(5).setMaxValue(20)),
+		.addIntegerOption((option) => option.setName('limit').setDescription('Number of top items to display (5-10)').setNameLocalizations(localizationManager.getCommandLocalizations('commands.chart.options.limit.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.chart.options.limit.description')).setRequired(false).setMinValue(5).setMaxValue(10)),
 	execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {
 		await interaction.deferReply();
 
@@ -35,7 +35,7 @@ const chartCommand: Command = {
 		const responseHandler = new MusicResponseHandler(client);
 
 		const scope = interaction.options.getString('scope', true);
-		const limit = interaction.options.getInteger('limit') || 10;
+		const limit = interaction.options.getInteger('limit') || 5;
 
 		try {
 			let chartData: ISongs[] = [];
