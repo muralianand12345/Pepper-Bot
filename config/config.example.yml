@@ -3,6 +3,7 @@ bot:
     # Discord user IDs with administrative access to the bot
     owners:
         - "1234567890"
+    support_server: "https://discord.gg/XzE9hSbsNb"
 
     # Bot's presence settings shown in Discord
     presence:
