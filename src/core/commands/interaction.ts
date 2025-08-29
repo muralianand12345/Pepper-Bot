@@ -5,6 +5,7 @@ import { Command } from '../../types';
 import { LocaleDetector } from '../locales';
 import { MusicResponseHandler } from '../music';
 import { SurveyHandler } from '../../utils/survey';
+import music_guild from '../../events/database/schema/music_guild';
 
 export class CommandInteractionHandler {
 	private static cooldown: discord.Collection<string, number> = new discord.Collection();
@@ -116,9 +117,12 @@ export class CommandInteractionHandler {
 			}
 		}
 
-		if (command.owner && !this.client.config.bot.owners.includes(this.interaction.user.id)) {
-			await this.sendErrorReply('responses.errors.no_permission', { user: this.interaction.user.toString() });
-			return false;
+		const ownerResult = await this.handleOwner(command);
+		if (ownerResult === false) return false;
+
+		if (!this.client.config.bot.owners.includes(this.interaction.user.id)) {
+			const djResult = await this.handleDJ(command);
+			if (djResult === false) return false;
 		}
 
 		if (command.userPerms && this.interaction.guild) {
@@ -248,6 +252,38 @@ export class CommandInteractionHandler {
 					}
 				}
 			}
+		}
+	};
+
+	private handleOwner = async (command: Command): Promise<boolean> => {
+		if (command.owner && !this.client.config.bot.owners.includes(this.interaction.user.id)) {
+			await this.sendErrorReply('responses.errors.no_permission', { user: this.interaction.user.toString() });
+			return false;
+		}
+		return true;
+	};
+
+	private handleDJ = async (command: Command): Promise<boolean> => {
+		if (!command.dj || !this.interaction.guild || !this.interaction.guildId) return true;
+		try {
+			const guild = await music_guild.findOne({ guildId: this.interaction.guildId });
+			if (!guild || !guild.dj) return true;
+
+			const member = await this.interaction.guild.members.fetch(this.interaction.user.id);
+			if (!member) {
+				await this.sendErrorReply('responses.errors.member_not_found');
+				return false;
+			}
+
+			if (member.roles.cache.has(guild.dj)) return true;
+			if (member.permissions.has(discord.PermissionFlagsBits.Administrator)) return true;
+
+			const djRole = this.interaction.guild.roles.cache.get(guild.dj);
+			await this.sendErrorReply('responses.errors.missing_dj_role', { role: djRole?.name || 'DJ Role' });
+			return false;
+		} catch (error) {
+			this.client.logger.error(`[INTERACTION_CREATE] Error checking DJ permissions: ${error}`);
+			return true;
 		}
 	};
 }

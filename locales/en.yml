@@ -212,6 +212,8 @@ responses:
         lyrics_error: "An error occurred while fetching lyrics"
         dj_error: "An error occurred while managing the DJ role. Please try again later."
         dj_role_create_failed: "Failed to create DJ role. Please check bot permissions and try again."
+        missing_dj_role: "You need the **{role}** role to use this command."
+        member_not_found: "Unable to verify your permissions. Please try again."
 
     language:
         user_set: "Your language has been set to **{language}**"

@@ -100,6 +100,7 @@ const createQueueButtons = (page: number, totalPages: number, isEmpty: boolean, 
 
 const queueCommand: Command = {
 	cooldown: 5,
+	dj: true,
 	category: CommandCategory.MUSIC,
 	data: new discord.SlashCommandBuilder().setName('queue').setDescription('Display and manage the music queue').setNameLocalizations(localizationManager.getCommandLocalizations('commands.queue.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.queue.description')).setContexts(discord.InteractionContextType.Guild),
 	modal: async (interaction: discord.ModalSubmitInteraction): Promise<discord.InteractionResponse<boolean> | void> => {

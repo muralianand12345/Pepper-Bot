@@ -8,6 +8,7 @@ const localizationManager = LocalizationManager.getInstance();
 
 const stopCommand: Command = {
 	cooldown: 1,
+	dj: true,
 	category: CommandCategory.MUSIC,
 	data: new discord.SlashCommandBuilder().setName('stop').setDescription('Stop the music and disconnect from voice channel').setNameLocalizations(localizationManager.getCommandLocalizations('commands.stop.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.stop.description')),
 	execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {

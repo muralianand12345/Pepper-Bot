@@ -10,6 +10,7 @@ const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const filterCommand = {
     cooldown: 5,
+    dj: true,
     category: types_1.CommandCategory.MUSIC,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('filter')

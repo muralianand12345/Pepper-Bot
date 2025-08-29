@@ -8,6 +8,7 @@ const localizationManager = LocalizationManager.getInstance();
 
 const filterCommand: Command = {
 	cooldown: 5,
+	dj: true,
 	category: CommandCategory.MUSIC,
 	data: new discord.SlashCommandBuilder()
 		.setName('filter')

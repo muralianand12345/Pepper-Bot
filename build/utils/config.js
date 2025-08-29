@@ -22,6 +22,8 @@ const EnvSchema = zod_1.z.object({
     SPOTIFY_CLIENT_SECRET: zod_1.z.string(),
     FEEDBACK_WEBHOOK: zod_1.z.string(),
     LIVE_SONGS_WEBHOOK: zod_1.z.string(),
+    OPENAI_API_KEY: zod_1.z.string(),
+    OPENAI_BASE_URL: zod_1.z.string(),
 });
 /**
  * Manages application configuration using environment variables
@@ -57,6 +59,12 @@ class ConfigManager {
         this.getLiveSongsWebhook = () => {
             return this.config.LIVE_SONGS_WEBHOOK;
         };
+        this.getOpenAiApiKey = () => {
+            return this.config.OPENAI_API_KEY;
+        };
+        this.getOpenAiBaseUrl = () => {
+            return this.config.OPENAI_BASE_URL;
+        };
         const result = (0, dotenv_1.config)({ quiet: true });
         if (result.error)
             throw new Error(`Failed to load environment variables: ${result.error.message}`);
@@ -70,6 +78,8 @@ class ConfigManager {
                 SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
                 FEEDBACK_WEBHOOK: process.env.FEEDBACK_WEBHOOK,
                 LIVE_SONGS_WEBHOOK: process.env.LIVE_SONGS_WEBHOOK,
+                OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+                OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
             });
         }
         catch (error) {

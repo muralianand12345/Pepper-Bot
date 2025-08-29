@@ -12,6 +12,7 @@ const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const suggestSongsCommand = {
     cooldown: 10,
+    dj: true,
     category: types_1.CommandCategory.MUSIC,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('suggest-songs')

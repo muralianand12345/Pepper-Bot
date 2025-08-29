@@ -10,6 +10,7 @@ const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const resumeCommand = {
     cooldown: 1,
+    dj: true,
     category: types_1.CommandCategory.MUSIC,
     data: new discord_js_1.default.SlashCommandBuilder().setName('resume').setDescription('Resume the paused music').setNameLocalizations(localizationManager.getCommandLocalizations('commands.resume.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.resume.description')),
     execute: async (interaction, client) => {

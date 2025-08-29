@@ -10,6 +10,7 @@ const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const loopCommand = {
     cooldown: 120,
+    dj: true,
     category: types_1.CommandCategory.MUSIC,
     data: new discord_js_1.default.SlashCommandBuilder().setName('loop').setDescription('Toggle loop mode for the current track').setNameLocalizations(localizationManager.getCommandLocalizations('commands.loop.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.loop.description')),
     execute: async (interaction, client) => {

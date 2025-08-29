@@ -211,6 +211,8 @@ responses:
         autoplay_no_recommendations: "Autoplay no pudo encontrar recomendaciones adecuadas basadas en tu historial de reproducción. ¡Intenta reproducir canciones más variadas!"
         dj_error: "Ocurrió un error al gestionar el rol de DJ. Por favor, inténtelo de nuevo más tarde."
         dj_role_create_failed: "No se pudo crear el rol de DJ. Verifique los permisos del bot e inténtelo de nuevo."
+        missing_dj_role: "Necesitas el rol **{role}** para usar este comando."
+        member_not_found: "No se pudieron verificar tus permisos. Por favor, inténtalo de nuevo."
 
     language:
         user_set: "Tu idioma ha sido establecido a **{language}**"
