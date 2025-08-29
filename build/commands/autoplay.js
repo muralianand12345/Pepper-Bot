@@ -11,6 +11,7 @@ const localizationManager = locales_1.LocalizationManager.getInstance();
 const autoplayCommand = {
     cooldown: 10,
     category: types_1.CommandCategory.MUSIC,
+    dj: true,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('autoplay')
         .setDescription('Toggle smart autoplay based on your music preferences')

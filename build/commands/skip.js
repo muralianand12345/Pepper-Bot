@@ -10,6 +10,7 @@ const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const skipCommand = {
     cooldown: 1,
+    dj: true,
     category: types_1.CommandCategory.MUSIC,
     data: new discord_js_1.default.SlashCommandBuilder().setName('skip').setDescription('Skip the current song and play the next one').setNameLocalizations(localizationManager.getCommandLocalizations('commands.skip.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.skip.description')),
     execute: async (interaction, client) => {

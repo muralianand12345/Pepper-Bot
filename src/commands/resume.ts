@@ -8,6 +8,7 @@ const localizationManager = LocalizationManager.getInstance();
 
 const resumeCommand: Command = {
 	cooldown: 1,
+	dj: true,
 	category: CommandCategory.MUSIC,
 	data: new discord.SlashCommandBuilder().setName('resume').setDescription('Resume the paused music').setNameLocalizations(localizationManager.getCommandLocalizations('commands.resume.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.resume.description')),
 	execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {

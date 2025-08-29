@@ -10,6 +10,7 @@ const localeDetector = new LocaleDetector();
 
 const suggestSongsCommand: Command = {
 	cooldown: 10,
+	dj: true,
 	category: CommandCategory.MUSIC,
 	data: new discord.SlashCommandBuilder()
 		.setName('suggest-songs')

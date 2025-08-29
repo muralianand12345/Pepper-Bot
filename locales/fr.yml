@@ -211,6 +211,8 @@ responses:
         autoplay_no_recommendations: "La lecture automatique n'a pas pu trouver de recommandations appropriées basées sur votre historique d'écoute. Essayez de jouer des chansons plus variées !"
         dj_error: "Une erreur est survenue lors de la gestion du rôle de DJ. Veuillez réessayer plus tard."
         dj_role_create_failed: "Échec de la création du rôle DJ. Veuillez vérifier les autorisations du bot et réessayer."
+        missing_dj_role: "Vous devez avoir le rôle **{role}** pour utiliser cette commande."
+        member_not_found: "Impossible de vérifier vos permissions. Veuillez réessayer."
 
     language:
         user_set: "Ta langue a été définie sur **{language}**"
