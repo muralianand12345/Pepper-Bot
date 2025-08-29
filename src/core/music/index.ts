@@ -3,6 +3,7 @@ import magmastream from 'magmastream';
 
 import Formatter from '../../utils/format';
 import { LocaleDetector } from '../locales';
+import music_guild from '../../events/database/schema/music_guild';
 import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator, Autoplay } from './handlers';
 
 export * from './func';
@@ -829,6 +830,66 @@ export class Music {
 		} catch (error) {
 			this.client.logger.error(`[QUEUE] Command error: ${error}`);
 			await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.general_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
+		}
+	};
+
+	dj = async (): Promise<discord.Message<boolean> | void> => {
+		await this.interaction.deferReply();
+
+		if (!(this.interaction instanceof discord.ChatInputCommandInteraction)) return;
+
+		await this.initializeLocale();
+		const responseHandler = new MusicResponseHandler(this.client);
+
+		const djRole = this.interaction.options.getRole('role');
+		try {
+			let guild = await music_guild.findOne({ guildId: this.interaction.guildId });
+
+			if (!djRole) {
+				if (!guild || !guild.dj) {
+					const createdRole = await this.interaction.guild?.roles.create({ name: 'DJ', color: discord.Colors.Purple, permissions: [], reason: `DJ role created by ${this.interaction.user.tag}` });
+					if (!createdRole) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.dj_role_create_failed'), this.locale)] });
+
+					if (!guild) {
+						guild = new music_guild({ guildId: this.interaction.guildId!, dj: createdRole.id, songs: [] });
+					} else {
+						guild.dj = createdRole.id;
+					}
+					await guild.save();
+					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_created_and_set', { role: createdRole.name }), this.locale)] });
+				} else {
+					const currentRole = this.interaction.guild?.roles.cache.get(guild.dj);
+					guild.dj = null;
+					await guild.save();
+					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_disabled', { role: currentRole?.name || 'Unknown Role' }), this.locale)] });
+				}
+			}
+
+			if (!guild) {
+				guild = new music_guild({ guildId: this.interaction.guildId!, dj: djRole.id, songs: [] });
+				await guild.save();
+				return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_set', { role: djRole.name }), this.locale)] });
+			}
+
+			if (guild.dj === djRole.id) {
+				guild.dj = null;
+				await guild.save();
+				return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_removed', { role: djRole.name }), this.locale)] });
+			} else {
+				const previousRoleId = guild.dj;
+				guild.dj = djRole.id;
+				await guild.save();
+
+				if (previousRoleId) {
+					const previousRole = this.interaction.guild?.roles.cache.get(previousRoleId);
+					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_changed', { oldRole: previousRole?.name || 'Unknown Role', newRole: djRole.name }), this.locale)] });
+				} else {
+					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_set', { role: djRole.name }), this.locale)] });
+				}
+			}
+		} catch (error) {
+			this.client.logger.error(`[DJ] Command error: ${error}`);
+			await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.dj_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
 		}
 	};
 }

@@ -17,6 +17,8 @@ const EnvSchema = z.object({
 	SPOTIFY_CLIENT_SECRET: z.string(),
 	FEEDBACK_WEBHOOK: z.string(),
 	LIVE_SONGS_WEBHOOK: z.string(),
+	OPENAI_API_KEY: z.string(),
+	OPENAI_BASE_URL: z.string(),
 });
 
 /**
@@ -43,6 +45,8 @@ export class ConfigManager {
 				SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
 				FEEDBACK_WEBHOOK: process.env.FEEDBACK_WEBHOOK,
 				LIVE_SONGS_WEBHOOK: process.env.LIVE_SONGS_WEBHOOK,
+				OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+				OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
 			});
 		} catch (error) {
 			if (error instanceof z.ZodError) {
@@ -94,6 +98,14 @@ export class ConfigManager {
 
 	public getLiveSongsWebhook = (): string => {
 		return this.config.LIVE_SONGS_WEBHOOK;
+	};
+
+	public getOpenAiApiKey = (): string => {
+		return this.config.OPENAI_API_KEY;
+	};
+
+	public getOpenAiBaseUrl = (): string => {
+		return this.config.OPENAI_BASE_URL;
 	};
 }
 

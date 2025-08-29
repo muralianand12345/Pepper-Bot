@@ -5,6 +5,7 @@ import { ISongs } from './music';
 export interface IMusicGuild extends mongoose.Document {
 	guildId: string;
 	language?: string | null;
+	dj: string | null;
 	songs: Array<ISongs>;
 }
 

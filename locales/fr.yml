@@ -209,6 +209,8 @@ responses:
         lyrics_plugin_missing: "La fonction paroles n’est pas disponible sur ce nœud Lavalink. Change pour un nœud compatible."
         lyrics_error: "Erreur lors de la récupération des paroles"
         autoplay_no_recommendations: "La lecture automatique n'a pas pu trouver de recommandations appropriées basées sur votre historique d'écoute. Essayez de jouer des chansons plus variées !"
+        dj_error: "Une erreur est survenue lors de la gestion du rôle de DJ. Veuillez réessayer plus tard."
+        dj_role_create_failed: "Échec de la création du rôle DJ. Veuillez vérifier les autorisations du bot et réessayer."
 
     language:
         user_set: "Ta langue a été définie sur **{language}**"
@@ -321,6 +323,13 @@ responses:
             from_placeholder: "ex. : 5"
             to_label: "Nouvelle position"
             to_placeholder: "ex. : 2"
+
+    dj:
+        role_set: "Le rôle de DJ a été défini sur **{role}**. Les membres ayant ce rôle peuvent maintenant contrôler la lecture de la musique."
+        role_removed: "Le rôle de DJ **{role}** a été supprimé. Tous les membres peuvent désormais contrôler la lecture de la musique."
+        role_changed: "Le rôle de DJ est passé de **{oldRole}** à **{newRole}**."
+        role_created_and_set: "Le rôle de DJ **{role}** a été créé et défini. Les membres ayant ce rôle peuvent maintenant contrôler la lecture de la musique."
+        role_disabled: "Le système DJ a été désactivé. Le rôle précédemment défini **{role}** n'est plus nécessaire pour contrôler la musique."
 
     feedback:
         sent: "Merci pour ton feedback ! Il a été transmis aux développeurs."
