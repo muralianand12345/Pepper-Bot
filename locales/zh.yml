@@ -209,8 +209,8 @@ responses:
         lyrics_plugin_missing: "此 Lavalink 节点不支持歌词功能。请切换到兼容的节点。"
         lyrics_error: "获取歌词时出错"
         autoplay_no_recommendations: "自动播放无法根据您的收听历史找到合适的推荐歌曲。试试播放更多样化的歌曲！"
-        dj_role_required: "请指定一个角色作为DJ角色。"
         dj_error: "管理DJ角色时发生错误。请稍后再试。"
+        dj_role_create_failed: "创建DJ角色失败。请检查机器人权限并重试。"
 
     language:
         user_set: "你的语言已设置为 **{language}**"
@@ -328,6 +328,8 @@ responses:
         role_set: "DJ角色已设置为 **{role}**。拥有此角色的成员现在可以控制音乐播放。"
         role_removed: "DJ角色 **{role}** 已被移除。现在所有成员都可以控制音乐播放。"
         role_changed: "DJ角色已从 **{oldRole}** 更改为 **{newRole}**。"
+        role_created_and_set: "DJ角色 **{role}** 已创建并设置。拥有此角色的成员现在可以控制音乐播放。"
+        role_disabled: "DJ系统已被禁用。之前设置的角色 **{role}** 不再需要用于音乐控制。"
 
     feedback:
         sent: "感谢你的反馈！已发送给开发者。"

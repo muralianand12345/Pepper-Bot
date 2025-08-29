@@ -210,8 +210,8 @@ responses:
         no_current_track: "No track is currently playing"
         lyrics_plugin_missing: "Lyrics functionality is not available on this lavalink node. Please switch to a lavalink node that supports lyrics."
         lyrics_error: "An error occurred while fetching lyrics"
-        dj_role_required: "Please specify a role to set as the DJ role."
         dj_error: "An error occurred while managing the DJ role. Please try again later."
+        dj_role_create_failed: "Failed to create DJ role. Please check bot permissions and try again."
 
     language:
         user_set: "Your language has been set to **{language}**"
@@ -329,6 +329,8 @@ responses:
         role_set: "DJ role has been set to **{role}**. Members with this role can now control music playback."
         role_removed: "DJ role **{role}** has been removed. All members can now control music playback."
         role_changed: "DJ role has been changed from **{oldRole}** to **{newRole}**."
+        role_created_and_set: "DJ role **{role}** has been created and set. Members with this role can now control music playback."
+        role_disabled: "DJ system has been disabled. Previously set role **{role}** is no longer required for music control."
 
     feedback:
         sent: "Thank you for your feedback! It has been sent to the developers."
