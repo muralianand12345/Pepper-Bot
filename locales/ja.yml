@@ -209,6 +209,8 @@ responses:
         lyrics_plugin_missing: "このLavalinkノードでは歌詞機能が使用できません。対応ノードに変更してください。"
         lyrics_error: "歌詞の取得中にエラーが発生しました"
         autoplay_no_recommendations: "オートプレイはあなたの聴取履歴に基づいて適切な推奨曲を見つけることができませんでした。より多様な曲を再生してみてください！"
+        dj_role_required: "DJロールとして設定するロールを指定してください。"
+        dj_error: "DJロールの管理中にエラーが発生しました。後でもう一度お試しください。"
 
     language:
         user_set: "あなたの言語は **{language}** に設定されました"
@@ -321,6 +323,11 @@ responses:
             from_placeholder: "例: 5"
             to_label: "新しい位置"
             to_placeholder: "例: 2"
+        
+    dj:
+        role_set: "DJロールが **{role}** に設定されました。このロールを持つメンバーは音楽の再生を操作できます。"
+        role_removed: "DJロール **{role}** が削除されました。すべてのメンバーが音楽の再生を操作できるようになりました。"
+        role_changed: "DJロールが **{oldRole}** から **{newRole}** に変更されました。"
 
     feedback:
         sent: "フィードバックありがとうございます！開発者に送信されました。"

@@ -209,6 +209,8 @@ responses:
         lyrics_plugin_missing: "Songtext-Funktion auf diesem Lavalink-Knoten nicht verfügbar. Bitte wechsle zu einem Knoten, der Lyrics unterstützt."
         lyrics_error: "Fehler beim Abrufen der Songtexte"
         autoplay_no_recommendations: "Autoplay konnte keine geeigneten Empfehlungen basierend auf Ihrem Hörverlauf finden. Versuchen Sie, abwechslungsreichere Songs zu spielen!"
+        dj_role_required: "Bitte geben Sie eine Rolle an, die als DJ-Rolle festgelegt werden soll."
+        dj_error: "Beim Verwalten der DJ-Rolle ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut."
 
     language:
         user_set: "Deine Sprache wurde auf **{language}** gesetzt"
@@ -321,6 +323,11 @@ responses:
             from_placeholder: "z. B. 5"
             to_label: "Neue Position"
             to_placeholder: "z. B. 2"
+
+    dj:
+        role_set: "Die DJ-Rolle wurde auf **{role}** gesetzt. Mitglieder mit dieser Rolle können jetzt die Musikwiedergabe steuern."
+        role_removed: "Die DJ-Rolle **{role}** wurde entfernt. Alle Mitglieder können nun die Musikwiedergabe steuern."
+        role_changed: "Die DJ-Rolle wurde von **{oldRole}** zu **{newRole}** geändert."
 
     feedback:
         sent: "Vielen Dank für dein Feedback! Es wurde an die Entwickler gesendet."

@@ -209,6 +209,8 @@ responses:
         lyrics_plugin_missing: "Função de letras não disponível neste nó Lavalink. Mude para um nó compatível."
         lyrics_error: "Erro ao buscar as letras"
         autoplay_no_recommendations: "O autoplay não conseguiu encontrar recomendações adequadas baseadas no seu histórico de audição. Tente tocar músicas mais variadas!"
+        dj_role_required: "Por favor, especifique um cargo para definir como cargo de DJ."
+        dj_error: "Ocorreu um erro ao gerenciar o cargo de DJ. Tente novamente mais tarde."
 
     language:
         user_set: "Seu idioma foi definido como **{language}**"
@@ -321,6 +323,11 @@ responses:
             from_placeholder: "ex.: 5"
             to_label: "Nova posição"
             to_placeholder: "ex.: 2"
+
+    dj:
+        role_set: "O cargo de DJ foi definido como **{role}**. Membros com este cargo agora podem controlar a reprodução de música."
+        role_removed: "O cargo de DJ **{role}** foi removido. Todos os membros agora podem controlar a reprodução de música."
+        role_changed: "O cargo de DJ foi alterado de **{oldRole}** para **{newRole}**."
 
     feedback:
         sent: "Obrigado pelo seu feedback! Ele foi enviado aos desenvolvedores."

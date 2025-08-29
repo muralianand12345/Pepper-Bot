@@ -209,6 +209,8 @@ responses:
         lyrics_plugin_missing: "La función de letras no está disponible en este nodo de Lavalink. Cambia a uno que lo admita."
         lyrics_error: "Error al obtener la letra"
         autoplay_no_recommendations: "Autoplay no pudo encontrar recomendaciones adecuadas basadas en tu historial de reproducción. ¡Intenta reproducir canciones más variadas!"
+        dj_role_required: "Por favor, especifique un rol para establecer como rol de DJ."
+        dj_error: "Ocurrió un error al gestionar el rol de DJ. Por favor, inténtelo de nuevo más tarde."
 
     language:
         user_set: "Tu idioma ha sido establecido a **{language}**"
@@ -321,6 +323,11 @@ responses:
             from_placeholder: "ej.: 5"
             to_label: "Nueva posición"
             to_placeholder: "ej.: 2"
+
+    dj:
+        role_set: "El rol de DJ se ha establecido en **{role}**. Los miembros con este rol ahora pueden controlar la reproducción de música."
+        role_removed: "El rol de DJ **{role}** ha sido eliminado. Todos los miembros ahora pueden controlar la reproducción de música."
+        role_changed: "El rol de DJ ha cambiado de **{oldRole}** a **{newRole}**."
 
     feedback:
         sent: "¡Gracias por tu comentario! Ha sido enviado a los desarrolladores."

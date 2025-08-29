@@ -209,6 +209,8 @@ responses:
         lyrics_plugin_missing: "이 Lavalink 노드에서는 가사 기능이 지원되지 않습니다. 호환되는 노드로 전환하세요."
         lyrics_error: "가사를 가져오는 중 오류 발생"
         autoplay_no_recommendations: "자동 재생이 당신의 청취 기록을 바탕으로 적절한 추천곡을 찾지 못했습니다. 더 다양한 곡들을 재생해보세요!"
+        dj_role_required: "DJ 역할로 설정할 역할을 지정해주세요."
+        dj_error: "DJ 역할을 관리하는 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
 
     language:
         user_set: "당신의 언어가 **{language}**(으)로 설정되었습니다"
@@ -321,6 +323,11 @@ responses:
             from_placeholder: "예: 5"
             to_label: "새 위치"
             to_placeholder: "예: 2"
+        
+    dj:
+        role_set: "DJ 역할이 **{role}**(으)로 설정되었습니다. 이 역할을 가진 멤버는 이제 음악 재생을 제어할 수 있습니다."
+        role_removed: "DJ 역할 **{role}**이(가) 제거되었습니다. 모든 멤버가 이제 음악 재생을 제어할 수 있습니다."
+        role_changed: "DJ 역할이 **{oldRole}**에서 **{newRole}**(으)로 변경되었습니다."
 
     feedback:
         sent: "피드백을 보내주셔서 감사합니다! 개발자에게 전송되었습니다."
