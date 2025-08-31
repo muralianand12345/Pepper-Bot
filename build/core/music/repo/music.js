@@ -80,7 +80,7 @@ MusicDB.addMusicGuildData = async (guildId, data) => {
             throw new Error('Guild ID is required to add music data');
         let guild = await music_guild_1.default.findOne({ guildId });
         if (!guild) {
-            guild = new music_guild_1.default({ guildId, songs: [data] });
+            guild = new music_guild_1.default({ guildId, dj: null, songs: [data] });
             await guild.save();
         }
         else {
