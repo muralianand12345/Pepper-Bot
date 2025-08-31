@@ -67,7 +67,7 @@ export class MusicDB {
 
 			let guild = await music_guild.findOne({ guildId });
 			if (!guild) {
-				guild = new music_guild({ guildId, songs: [data] });
+				guild = new music_guild({ guildId, dj: null, songs: [data] });
 				await guild.save();
 			} else {
 				await this.addMusicDB(guild, data);
