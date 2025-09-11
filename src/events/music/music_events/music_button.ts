@@ -15,7 +15,7 @@ const validateButtonInteraction = (interaction: discord.Interaction): interactio
 const handleMusicButtonAction = async (interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> => {
 	try {
 		const music = new Music(client, interaction);
-		const nowPlayingManager = interaction.guildId ? NowPlayingManager.getInstance(interaction.guildId, client.manager.get(interaction.guildId)!, client) : null;
+		const nowPlayingManager = interaction.guildId ? NowPlayingManager.getInstance(interaction.guildId, client.manager.getPlayer(interaction.guildId)!, client) : null;
 
 		switch (interaction.customId) {
 			case 'pause-music':

@@ -41,15 +41,16 @@ class NowPlayingManager {
         this.startUpdateInterval = () => {
             if (this.updateInterval)
                 clearInterval(this.updateInterval);
-            this.updateInterval = setInterval(() => {
+            this.updateInterval = setInterval(async () => {
                 if (this.destroyed || this.stopped || this.isUpdating)
                     return;
                 if (!this.player || !this.player.playing || this.paused)
                     return;
-                if (!this.player.queue?.current)
+                const current = await this.player.queue?.getCurrent();
+                if (!current)
                     return;
                 const position = this.player.position;
-                const duration = this.player.queue.current?.duration || 0;
+                const duration = current?.duration || 0;
                 const remainingTime = duration - position;
                 if (remainingTime > 0 && remainingTime < 15000) {
                     this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] End-of-track update error: ${err}`));
@@ -68,7 +69,7 @@ class NowPlayingManager {
             Object.defineProperty(playerProxy, 'position', {
                 get: () => {
                     const position = this.player.position;
-                    const duration = this.player.queue.current?.duration || 0;
+                    const duration = 0;
                     const remainingTime = duration - position;
                     if (remainingTime <= 10000) {
                         if (remainingTime < 2000)
@@ -133,7 +134,7 @@ class NowPlayingManager {
             const currentMessage = this.message;
             if (!currentMessage || !this.player)
                 return;
-            const currentTrack = this.player.queue?.current;
+            const currentTrack = await this.player.queue?.getCurrent();
             if (!currentTrack)
                 return this.client.logger?.debug(`[NowPlayingManager] No current track, skipping update`);
             this.isUpdating = true;
@@ -150,7 +151,7 @@ class NowPlayingManager {
                 }
                 const locale = await this.getGuildLocale();
                 const adjustedPlayer = this.getAdjustedPlayer();
-                const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(currentTrack, adjustedPlayer, locale);
+                const embed = await new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(currentTrack, adjustedPlayer, locale);
                 const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
                 const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
                 if (this.message === currentMessage && currentMessage.editable) {
@@ -214,7 +215,7 @@ class NowPlayingManager {
                 if (!channelAccessible)
                     return this.client.logger?.warn(`[NowPlayingManager] Channel ${channel.id} not accessible, skipping update`);
                 const locale = await this.getGuildLocale();
-                const embed = new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
+                const embed = await new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
                 const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
                 const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
                 const currentMessage = this.message;
@@ -280,17 +281,18 @@ class NowPlayingManager {
         this.hasMessage = () => {
             return this.message !== null;
         };
-        this.forceUpdate = () => {
-            if (!this.isUpdating && this.player?.queue?.current)
+        this.forceUpdate = async () => {
+            if (!this.isUpdating && (await this.player?.queue?.getCurrent()))
                 this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`));
         };
-        this.getPlaybackStatus = () => {
+        this.getPlaybackStatus = async () => {
+            const current = await this.player?.queue?.getCurrent();
             return {
                 position: this.player?.position || 0,
-                duration: this.player?.queue?.current?.duration || 0,
+                duration: current?.duration || 0,
                 isPlaying: !!this.player?.playing,
                 isPaused: !!this.player?.paused,
-                track: this.player?.queue?.current || null,
+                track: current || null,
             };
         };
         this.player = player;

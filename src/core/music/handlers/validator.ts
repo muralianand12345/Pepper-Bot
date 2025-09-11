@@ -99,7 +99,7 @@ export class VoiceChannelValidator {
 	};
 
 	public validateMusicPlaying = async (player: magmastream.Player): Promise<[boolean, discord.EmbedBuilder]> => {
-		return !player.queue.current ? [false, await this.createErrorEmbed('responses.errors.no_player')] : [true, await this.createErrorEmbed('')];
+		return !(await player.queue.getCurrent()) ? [false, await this.createErrorEmbed('responses.errors.no_player')] : [true, await this.createErrorEmbed('')];
 	};
 }
 
@@ -122,12 +122,12 @@ export class MusicPlayerValidator {
 	};
 
 	public validatePlayerState = async (interaction?: discord.ChatInputCommandInteraction | discord.ButtonInteraction): Promise<[boolean, discord.EmbedBuilder | null]> => {
-		if (!this.player?.queue?.current) return [false, await this.createErrorEmbed('responses.errors.no_player', {}, interaction)];
+		if (!(await this.player?.queue?.getCurrent())) return [false, await this.createErrorEmbed('responses.errors.no_player', {}, interaction)];
 		return [true, null];
 	};
 
 	public validateQueueSize = async (count: number = 1, interaction?: discord.ChatInputCommandInteraction | discord.ButtonInteraction): Promise<[boolean, discord.EmbedBuilder | null]> => {
-		const queueSize = this.player?.queue?.size;
+		const queueSize = await this.player?.queue?.size();
 		if (!queueSize) return [false, await this.createErrorEmbed('responses.errors.no_queue', {}, interaction)];
 		if (queueSize < count) return [false, await this.createErrorEmbed('responses.errors.queue_too_small', { count: queueSize }, interaction)];
 		return [true, null];

@@ -50,7 +50,7 @@ class MusicResponseHandler {
                 .setDescription(`⚠️ ${message}`)
                 .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
         };
-        this.createMusicEmbed = (track, player, locale = 'en') => {
+        this.createMusicEmbed = async (track, player, locale = 'en') => {
             if (!track) {
                 return new discord_js_1.default.EmbedBuilder()
                     .setColor('#2b2d31')
@@ -65,7 +65,7 @@ class MusicResponseHandler {
             const trackUri = track.uri || 'https://google.com';
             const defaultColor = '#2b2d31';
             let progressText = '';
-            if (player && player.queue && player.queue.current && track.duration) {
+            if (player && player.queue && (await player.queue.getCurrent()) && track.duration) {
                 try {
                     const position = Math.max(0, player.position || 0);
                     const duration = track.duration || 0;

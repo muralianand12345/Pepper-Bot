@@ -12,7 +12,7 @@ const event = {
     execute: async (oldState, newState, client) => {
         if (!client.config.music.enabled)
             return;
-        const player = client.manager.get(newState.guild.id);
+        const player = client.manager.getPlayer(newState.guild.id);
         if (!player || player.state !== 'CONNECTED')
             return;
         if (newState.id === client.user?.id && !newState.channelId && oldState.channelId) {
@@ -82,7 +82,7 @@ const event = {
             client.logger.info(`[VOICE_STATE] Everyone left channel in guild ${player.guildId}, scheduling disconnect in 5 minutes`);
             setTimeout(async () => {
                 try {
-                    const currentPlayer = client.manager.get(player.guildId);
+                    const currentPlayer = client.manager.getPlayer(player.guildId);
                     if (!currentPlayer)
                         return;
                     if (currentPlayer.cleanupScheduledAt !== scheduledAt)

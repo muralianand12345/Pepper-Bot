@@ -85,7 +85,7 @@ class VoiceChannelValidator {
             return [true, await this.createErrorEmbed('')];
         };
         this.validateMusicPlaying = async (player) => {
-            return !player.queue.current ? [false, await this.createErrorEmbed('responses.errors.no_player')] : [true, await this.createErrorEmbed('')];
+            return !(await player.queue.getCurrent()) ? [false, await this.createErrorEmbed('responses.errors.no_player')] : [true, await this.createErrorEmbed('')];
         };
         this.client = client;
         this.interaction = interaction;
@@ -102,12 +102,12 @@ class MusicPlayerValidator {
             return new response_1.MusicResponseHandler(this.client).createErrorEmbed(t(messageKey, data), locale);
         };
         this.validatePlayerState = async (interaction) => {
-            if (!this.player?.queue?.current)
+            if (!(await this.player?.queue?.getCurrent()))
                 return [false, await this.createErrorEmbed('responses.errors.no_player', {}, interaction)];
             return [true, null];
         };
         this.validateQueueSize = async (count = 1, interaction) => {
-            const queueSize = this.player?.queue?.size;
+            const queueSize = await this.player?.queue?.size();
             if (!queueSize)
                 return [false, await this.createErrorEmbed('responses.errors.no_queue', {}, interaction)];
             if (queueSize < count)

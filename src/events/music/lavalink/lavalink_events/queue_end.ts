@@ -117,10 +117,10 @@ const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, 
 
 	await wait(CLEANUP_DELAY);
 
-	const currentPlayer = client.manager.get(guildId);
+	const currentPlayer = client.manager.getPlayer(guildId);
 	if (!currentPlayer) return client.logger.debug(`[QUEUE_END] Player for guild ${guildId} already destroyed, skipping cleanup`);
 	if (currentPlayer.cleanupScheduledAt !== scheduledAt) return client.logger.debug(`[QUEUE_END] Cleanup task for guild ${guildId} has been superseded, skipping`);
-	if (currentPlayer.playing || currentPlayer.queue.current) return client.logger.debug(`[QUEUE_END] Player for guild ${guildId} is active again, skipping cleanup`);
+	if (currentPlayer.playing || (await currentPlayer.queue.getCurrent())) return client.logger.debug(`[QUEUE_END] Player for guild ${guildId} is active again, skipping cleanup`);
 
 	NowPlayingManager.removeInstance(guildId);
 	Autoplay.removeInstance(guildId);
@@ -140,7 +140,7 @@ const lavalinkEvent: LavalinkEvent = {
 
 			if (autoplayManager.isEnabled() && track) {
 				const processed = await autoplayManager.processTrack(track);
-				if (processed && player.queue.size > 0) {
+				if (processed && (await player.queue.size()) > 0) {
 					client.logger.info(`[QUEUE_END] Autoplay successfully added tracks for guild ${player.guildId}`);
 					autoplaySuccessful = true;
 				} else {

@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import magmastream from 'magmastream';
+import magmastream, { TrackUtils } from 'magmastream';
 
 import { MusicDB } from '../repo';
 import { getRequester } from '../func';
@@ -306,29 +306,27 @@ export class PlaylistSuggestion {
 			const guildIds = Array.from(manager.players.keys());
 			if (guildIds.length === 0) throw new Error('No active players available');
 
-			const player = manager.get(guildIds[0]);
+			const player = manager.getPlayer(guildIds[0]);
 			if (!player || typeof player.getRecommendedTracks !== 'function') throw new Error("Player doesn't support recommendations");
 
 			const searchQuery = `${track.author} - ${track.title}`;
 			let searchResult;
 			searchResult = await manager.search(`spsearch:${searchQuery}`);
 
-			if (!searchResult?.tracks?.length) {
+			if (TrackUtils.isErrorOrEmptySearchResult(searchResult) || !('tracks' in searchResult) || !searchResult.tracks?.length) {
 				searchResult = await manager.search(searchQuery);
-				if (!searchResult?.tracks?.length) throw new Error('No searchable track found');
-
-				const seedTrack = searchResult.tracks[0];
-				const recommendations = await player.getRecommendedTracks(seedTrack);
-
-				if (!recommendations?.length) return [];
-
-				return recommendations
-					.filter((t) => t && t.uri && !existingUris.has(t.uri))
-					.map((t) => this.convertTrackToISongs(t))
-					.slice(0, limit);
+				if (TrackUtils.isErrorOrEmptySearchResult(searchResult) || !('tracks' in searchResult) || !searchResult.tracks?.length) throw new Error('No searchable track found');
 			}
 
-			return [];
+			const seedTrack = searchResult.tracks[0];
+			const recommendations = await player.getRecommendedTracks(seedTrack);
+
+			if (!recommendations?.length) return [];
+
+			return recommendations
+				.filter((t: any) => t && t.uri && !existingUris.has(t.uri))
+				.map((t: any) => this.convertTrackToISongs(t))
+				.slice(0, limit);
 		} catch (error) {
 			this.client.logger.warn(`[PLAYLIST_SUGGESTION] Magmastream recommendations error: ${error}`);
 			return [];

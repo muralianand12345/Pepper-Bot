@@ -12,16 +12,23 @@ const config_1 = require("./utils/config");
 const configManager = config_1.ConfigManager.getInstance();
 const initializeManager = (config, client) => {
     return new magmastream_1.Manager({
-        autoPlay: true,
+        stateStorage: {
+            type: magmastream_1.StateStorageType.Redis,
+            redisConfig: configManager.getRedisConfig(),
+            deleteInactivePlayers: true
+        },
+        enablePriorityMode: true,
+        playNextOnEnd: true,
+        autoPlaySearchPlatforms: [magmastream_1.AutoPlayPlatform.Spotify, magmastream_1.AutoPlayPlatform.SoundCloud],
+        clientName: 'Pepper',
         defaultSearchPlatform: config.music.lavalink.default_search,
         lastFmApiKey: configManager.getLastFmApiKey(),
         nodes: config.music.lavalink.nodes,
         useNode: magmastream_1.UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
-        usePriority: true,
-        send: (guildId, payload) => {
-            const guild = client.guilds.cache.get(guildId);
+        send: (packet) => {
+            const guild = client.guilds.cache.get(packet.d?.guild_id);
             if (guild)
-                guild.shard.send(payload);
+                guild.shard.send(packet);
         },
     });
 };

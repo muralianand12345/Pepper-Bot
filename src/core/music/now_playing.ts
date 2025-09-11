@@ -62,13 +62,14 @@ export class NowPlayingManager {
 
 	private startUpdateInterval = (): void => {
 		if (this.updateInterval) clearInterval(this.updateInterval);
-		this.updateInterval = setInterval(() => {
+		this.updateInterval = setInterval(async () => {
 			if (this.destroyed || this.stopped || this.isUpdating) return;
 			if (!this.player || !this.player.playing || this.paused) return;
-			if (!this.player.queue?.current) return;
+			const current = await this.player.queue?.getCurrent();
+			if (!current) return;
 
 			const position = this.player.position;
-			const duration = this.player.queue.current?.duration || 0;
+			const duration = current?.duration || 0;
 			const remainingTime = duration - position;
 
 			if (remainingTime > 0 && remainingTime < 15000) {
@@ -88,7 +89,7 @@ export class NowPlayingManager {
 		Object.defineProperty(playerProxy, 'position', {
 			get: () => {
 				const position = this.player.position;
-				const duration = this.player.queue.current?.duration || 0;
+				const duration = 0;
 				const remainingTime = duration - position;
 
 				if (remainingTime <= 10000) {
@@ -158,7 +159,7 @@ export class NowPlayingManager {
 		const currentMessage = this.message;
 		if (!currentMessage || !this.player) return;
 
-		const currentTrack = this.player.queue?.current;
+		const currentTrack = await this.player.queue?.getCurrent();
 		if (!currentTrack) return this.client.logger?.debug(`[NowPlayingManager] No current track, skipping update`);
 
 		this.isUpdating = true;
@@ -178,7 +179,7 @@ export class NowPlayingManager {
 
 			const locale = await this.getGuildLocale();
 			const adjustedPlayer = this.getAdjustedPlayer();
-			const embed = new MusicResponseHandler(this.client).createMusicEmbed(currentTrack, adjustedPlayer, locale);
+			const embed = await new MusicResponseHandler(this.client).createMusicEmbed(currentTrack, adjustedPlayer, locale);
 
 			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
 			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
@@ -238,7 +239,7 @@ export class NowPlayingManager {
 			if (!channelAccessible) return this.client.logger?.warn(`[NowPlayingManager] Channel ${channel.id} not accessible, skipping update`);
 
 			const locale = await this.getGuildLocale();
-			const embed = new MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
+			const embed = await new MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
 			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
 			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
 			const currentMessage = this.message;
@@ -308,17 +309,18 @@ export class NowPlayingManager {
 		return this.message !== null;
 	};
 
-	public forceUpdate = (): void => {
-		if (!this.isUpdating && this.player?.queue?.current) this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`));
+	public forceUpdate = async (): Promise<void> => {
+		if (!this.isUpdating && (await this.player?.queue?.getCurrent())) this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`));
 	};
 
-	public getPlaybackStatus = (): { position: number; duration: number; isPlaying: boolean; isPaused: boolean; track: magmastream.Track | null } => {
+	public getPlaybackStatus = async (): Promise<{ position: number; duration: number; isPlaying: boolean; isPaused: boolean; track: magmastream.Track | null }> => {
+		const current = await this.player?.queue?.getCurrent();
 		return {
 			position: this.player?.position || 0,
-			duration: this.player?.queue?.current?.duration || 0,
+			duration: current?.duration || 0,
 			isPlaying: !!this.player?.playing,
 			isPaused: !!this.player?.paused,
-			track: this.player?.queue?.current || null,
+			track: current || null,
 		};
 	};
 }
