@@ -159,7 +159,7 @@ export class CommandInteractionHandler {
 
 			await this.client.cmdLogger.log({
 				client: this.client,
-				commandName: `/${this.interaction.commandName}`,
+				commandName: `/${this.interaction.commandName} ${this.formatCommandOptions(this.interaction)}`,
 				guild: this.interaction.guild,
 				user: this.interaction.user,
 				channel: this.interaction.channel as discord.TextChannel | null,
@@ -285,5 +285,24 @@ export class CommandInteractionHandler {
 			this.client.logger.error(`[INTERACTION_CREATE] Error checking DJ permissions: ${error}`);
 			return true;
 		}
+	};
+
+	private formatCommandOptions = (interaction: discord.ChatInputCommandInteraction): string => {
+		const options: string[] = [];
+		const getAllOptions = (optionsList: readonly discord.CommandInteractionOption[]): void => {
+			for (const option of optionsList) {
+				if (option.type === discord.ApplicationCommandOptionType.Subcommand || option.type === discord.ApplicationCommandOptionType.SubcommandGroup) {
+					options.push(option.name);
+					if (option.options) getAllOptions(option.options);
+				} else {
+					let value = option.value;
+					if (typeof value === 'string' && value.includes(' ')) value = `"${value}"`;
+					options.push(`\`${option.name}:${value}\``);
+				}
+			}
+		};
+
+		if (interaction.options.data.length > 0) getAllOptions(interaction.options.data);
+		return options.length > 0 ? ` ${options.join(' ')}` : '';
 	};
 }
