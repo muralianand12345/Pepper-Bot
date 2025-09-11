@@ -282,7 +282,7 @@ class Autoplay {
                         if (fallbackResults && !magmastream_1.TrackUtils.isErrorOrEmptySearchResult(fallbackResults) && 'tracks' in fallbackResults && fallbackResults.tracks && fallbackResults.tracks.length > 0) {
                             const lavalinkTrack = fallbackResults.tracks[0];
                             if (!this.recentlyPlayedTracks.has(lavalinkTrack.uri)) {
-                                this.player.queue.add(lavalinkTrack);
+                                await this.player.queue.add(lavalinkTrack);
                                 this.addToRecentlyPlayed(lavalinkTrack);
                                 addedCount++;
                                 this.client.logger.info(`[AUTOPLAY] Added '${lavalinkTrack.title}' by '${lavalinkTrack.author}' to queue in guild ${this.guildId} (fallback method)`);

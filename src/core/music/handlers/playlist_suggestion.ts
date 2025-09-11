@@ -306,7 +306,7 @@ export class PlaylistSuggestion {
 			const guildIds = Array.from(manager.players.keys());
 			if (guildIds.length === 0) throw new Error('No active players available');
 
-			const player = manager.players.get(guildIds[0]);
+			const player = manager.getPlayer(guildIds[0]);
 			if (!player || typeof player.getRecommendedTracks !== 'function') throw new Error("Player doesn't support recommendations");
 
 			const searchQuery = `${track.author} - ${track.title}`;

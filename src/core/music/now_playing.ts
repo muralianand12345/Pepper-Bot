@@ -89,8 +89,7 @@ export class NowPlayingManager {
 		Object.defineProperty(playerProxy, 'position', {
 			get: () => {
 				const position = this.player.position;
-				// Note: This is synchronous, may need refactoring for async queue access
-				const duration = 0; // Placeholder - need to handle async access differently
+				const duration = 0;
 				const remainingTime = duration - position;
 
 				if (remainingTime <= 10000) {

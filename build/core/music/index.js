@@ -352,7 +352,6 @@ class Music {
                 const autoplayManager = handlers_1.Autoplay.getInstance(player.guildId, player, this.client);
                 if (enable) {
                     autoplayManager.enable(this.interaction.user.id);
-                    // Test if autoplay can find recommendations immediately
                     const currentTrack = await player.queue.getCurrent();
                     const queueSize = await player.queue.size();
                     if (currentTrack && queueSize === 0) {
