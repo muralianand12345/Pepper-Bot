@@ -24,6 +24,9 @@ const EnvSchema = zod_1.z.object({
     LIVE_SONGS_WEBHOOK: zod_1.z.string(),
     OPENAI_API_KEY: zod_1.z.string(),
     OPENAI_BASE_URL: zod_1.z.string(),
+    REDIS_HOST: zod_1.z.string().optional(),
+    REDIS_PORT: zod_1.z.string().optional(),
+    REDIS_PASSWORD: zod_1.z.string().optional(),
 });
 /**
  * Manages application configuration using environment variables
@@ -65,6 +68,18 @@ class ConfigManager {
         this.getOpenAiBaseUrl = () => {
             return this.config.OPENAI_BASE_URL;
         };
+        this.getRedisConfig = () => {
+            if (this.config.REDIS_HOST && this.config.REDIS_PORT) {
+                return {
+                    host: this.config.REDIS_HOST,
+                    port: this.config.REDIS_PORT,
+                    password: this.config.REDIS_PASSWORD,
+                    db: 0,
+                    prefix: 'magmastream:',
+                };
+            }
+            return undefined;
+        };
         const result = (0, dotenv_1.config)({ quiet: true });
         if (result.error)
             throw new Error(`Failed to load environment variables: ${result.error.message}`);
@@ -80,6 +95,9 @@ class ConfigManager {
                 LIVE_SONGS_WEBHOOK: process.env.LIVE_SONGS_WEBHOOK,
                 OPENAI_API_KEY: process.env.OPENAI_API_KEY,
                 OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
+                REDIS_HOST: process.env.REDIS_HOST,
+                REDIS_PORT: process.env.REDIS_PORT,
+                REDIS_PASSWORD: process.env.REDIS_PASSWORD,
             });
         }
         catch (error) {

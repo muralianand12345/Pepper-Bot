@@ -10,7 +10,8 @@ const lavalinkEvent = {
                 return;
             client.logger.debug(`[LAVALINK] Track ${track.title} ended in guild ${player.guildId} with reason: ${payload.reason}`);
             const finishedNaturally = payload.reason === 'finished';
-            const queueIsNearlyEmpty = player.queue.size < 2;
+            const queueSize = await player.queue.size();
+            const queueIsNearlyEmpty = queueSize < 2;
             if (finishedNaturally && queueIsNearlyEmpty) {
                 const autoplayManager = music_1.Autoplay.getInstance(player.guildId, player, client);
                 if (autoplayManager.isEnabled()) {

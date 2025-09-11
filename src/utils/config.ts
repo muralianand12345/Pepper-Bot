@@ -4,6 +4,7 @@ import { z } from 'zod';
 import yaml from 'yaml';
 import { config } from 'dotenv';
 import discord from 'discord.js';
+import magmastream from 'magmastream';
 
 const EnvSchema = z.object({
 	TOKEN: z.string(),
@@ -19,6 +20,9 @@ const EnvSchema = z.object({
 	LIVE_SONGS_WEBHOOK: z.string(),
 	OPENAI_API_KEY: z.string(),
 	OPENAI_BASE_URL: z.string(),
+	REDIS_HOST: z.string().optional(),
+	REDIS_PORT: z.string().optional(),
+	REDIS_PASSWORD: z.string().optional(),
 });
 
 /**
@@ -47,6 +51,9 @@ export class ConfigManager {
 				LIVE_SONGS_WEBHOOK: process.env.LIVE_SONGS_WEBHOOK,
 				OPENAI_API_KEY: process.env.OPENAI_API_KEY,
 				OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
+				REDIS_HOST: process.env.REDIS_HOST,
+				REDIS_PORT: process.env.REDIS_PORT,
+				REDIS_PASSWORD: process.env.REDIS_PASSWORD,
 			});
 		} catch (error) {
 			if (error instanceof z.ZodError) {
@@ -106,6 +113,19 @@ export class ConfigManager {
 
 	public getOpenAiBaseUrl = (): string => {
 		return this.config.OPENAI_BASE_URL;
+	};
+
+	public getRedisConfig = (): magmastream.StateStorageOptions['redisConfig'] | undefined => {
+		if (this.config.REDIS_HOST && this.config.REDIS_PORT) {
+			return {
+				host: this.config.REDIS_HOST,
+				port: this.config.REDIS_PORT,
+				password: this.config.REDIS_PASSWORD,
+				db: 0,
+				prefix: 'magmastream:',
+			};
+		}
+		return undefined;
 	};
 }
 

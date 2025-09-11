@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import magmastream from 'magmastream';
+import magmastream, { TrackUtils } from 'magmastream';
 
 import { ISongs } from '../../../types';
 import { PlaylistSuggestion } from './playlist_suggestion';
@@ -130,7 +130,7 @@ export class Autoplay {
 		this.addToRecentlyPlayed(finishedTrack);
 
 		try {
-			const queueSize = this.player.queue.size;
+			const queueSize = await this.player.queue.size();
 			let added = 0;
 			if (queueSize < 3) {
 				added = await this.addRecommendationsToQueue(finishedTrack);
@@ -284,10 +284,10 @@ export class Autoplay {
 		for (const track of tracks) {
 			try {
 				const searchResult = await this.client.manager.search(track.uri, requester);
-				if (searchResult && searchResult.tracks && searchResult.tracks.length > 0) {
+				if (searchResult && !TrackUtils.isErrorOrEmptySearchResult(searchResult) && 'tracks' in searchResult && searchResult.tracks && searchResult.tracks.length > 0) {
 					const lavalinkTrack = searchResult.tracks[0];
 					if (!this.recentlyPlayedTracks.has(lavalinkTrack.uri)) {
-						this.player.queue.add(lavalinkTrack);
+						await this.player.queue.add(lavalinkTrack);
 						this.addToRecentlyPlayed(lavalinkTrack);
 						addedCount++;
 						this.client.logger.info(`[AUTOPLAY] Added '${lavalinkTrack.title}' by '${lavalinkTrack.author}' to queue in guild ${this.guildId}`);
@@ -296,7 +296,7 @@ export class Autoplay {
 					const searchQuery = `${track.author} - ${track.title}`;
 					const fallbackResults = await this.client.manager.search(searchQuery, requester);
 
-					if (fallbackResults && fallbackResults.tracks && fallbackResults.tracks.length > 0) {
+					if (fallbackResults && !TrackUtils.isErrorOrEmptySearchResult(fallbackResults) && 'tracks' in fallbackResults && fallbackResults.tracks && fallbackResults.tracks.length > 0) {
 						const lavalinkTrack = fallbackResults.tracks[0];
 						if (!this.recentlyPlayedTracks.has(lavalinkTrack.uri)) {
 							this.player.queue.add(lavalinkTrack);

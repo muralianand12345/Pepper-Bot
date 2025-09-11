@@ -36,7 +36,7 @@ const event: BotEvent = {
 		try {
 			if (!client.user) throw new Error('[LAVALINK] Client user is not defined');
 			if (!client.config.music.enabled) return client.logger.info('[LAVALINK] Music functionality is disabled');
-			client.manager.init(client.user.id);
+			client.manager.init({ clientId: client.user.id });
 			await loadLavalinkEvents(client, path.join(__dirname, 'lavalink_events'));
 			client.logger.info('[LAVALINK] Successfully initialized and loaded all events');
 		} catch (error) {

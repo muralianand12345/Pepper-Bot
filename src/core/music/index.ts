@@ -61,7 +61,7 @@ export class Music {
 
 	private validateLavalinkNode = async (nodeChoice: string | undefined): Promise<discord.EmbedBuilder | null> => {
 		if (!nodeChoice) return null;
-		if (this.client.manager.get(this.interaction.guild?.id || '')) return new MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.player_exists'), this.locale);
+		if (this.client.manager.getPlayer(this.interaction.guild?.id || '')) return new MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.player_exists'), this.locale);
 
 		const node = this.client.manager.nodes.find((n: magmastream.Node) => n.options.identifier === nodeChoice);
 		if (!node) return new MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.node_invalid'), this.locale);
@@ -88,22 +88,27 @@ export class Music {
 
 		switch (res.loadType) {
 			case 'empty': {
-				if (!player.queue.current) player.destroy();
+				const currentTrack = await player.queue.getCurrent();
+				if (!currentTrack) player.destroy();
 				await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_results'), this.locale)] });
 				break;
 			}
 			case 'track':
 			case 'search': {
 				const track = res.tracks[0];
-				player.queue.add(track);
-				if (!player.playing && !player.paused && !player.queue.size) player.play();
-				await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, player.queue.size, this.locale)] });
+				await player.queue.add(track);
+				const queueSize = await player.queue.size();
+				if (!player.playing && !player.paused && queueSize === 1) player.play();
+				await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, queueSize, this.locale)] });
 				break;
 			}
 			case 'playlist': {
 				if (!res.playlist) break;
-				res.playlist.tracks.forEach((track: magmastream.Track) => player.queue.add(track));
-				if (!player.playing && !player.paused && player.queue.totalSize === res.playlist.tracks.length) player.play();
+				for (const track of res.playlist.tracks) {
+					await player.queue.add(track);
+				}
+				const totalSize = await player.queue.totalSize();
+				if (!player.playing && !player.paused && totalSize === res.playlist.tracks.length) player.play();
 				await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)] });
 				break;
 			}
@@ -134,12 +139,12 @@ export class Music {
 		}
 
 		const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
-		let player = this.client.manager.get(this.interaction.guildId || '');
+		let player = this.client.manager.getPlayer(this.interaction.guildId || '');
 
 		if (player) {
 			const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
 			if (!playerValid) return await this.interaction.editReply({ embeds: [playerEmbed] });
-			if (!this.client.manager.get(this.interaction.guildId || '')) player = undefined;
+			if (!this.client.manager.getPlayer(this.interaction.guildId || '')) player = undefined;
 		}
 
 		if (!player) {
@@ -147,7 +152,6 @@ export class Music {
 				guildId: this.interaction.guildId || '',
 				voiceChannelId: guildMember?.voice.channelId || '',
 				textChannelId: this.interaction.channelId,
-				node: nodeChoice,
 				...MUSIC_CONFIG.PLAYER_OPTIONS,
 			});
 		}
@@ -190,7 +194,7 @@ export class Music {
 		const musicCheck = this.validateMusicEnabled();
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
-		const player = this.client.manager.get(this.interaction.guild?.id || '');
+		const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
 		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
 
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
@@ -217,7 +221,7 @@ export class Music {
 		const musicCheck = this.validateMusicEnabled();
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
-		const player = this.client.manager.get(this.interaction.guild?.id || '');
+		const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
 		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
 
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
@@ -248,7 +252,7 @@ export class Music {
 		const musicCheck = this.validateMusicEnabled();
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
-		const player = this.client.manager.get(this.interaction.guild?.id || '');
+		const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
 		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
 
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
@@ -279,7 +283,7 @@ export class Music {
 		const musicCheck = this.validateMusicEnabled();
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
-		const player = this.client.manager.get(this.interaction.guild?.id || '');
+		const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
 		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
 
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
@@ -294,7 +298,8 @@ export class Music {
 
 		try {
 			player.stop(1);
-			if (player.queue.size === 0 && this.interaction.guildId) player.destroy();
+			const queueSize = await player.queue.size();
+			if (queueSize === 0 && this.interaction.guildId) player.destroy();
 			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Skip error: ${error}`);
@@ -311,7 +316,7 @@ export class Music {
 		const musicCheck = this.validateMusicEnabled();
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
-		const player = this.client.manager.get(this.interaction.guild?.id || '');
+		const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
 		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
 
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
@@ -340,7 +345,7 @@ export class Music {
 		const musicCheck = this.validateMusicEnabled();
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
-		const player = this.client.manager.get(this.interaction.guild?.id || '');
+		const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
 		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
 
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
@@ -360,8 +365,9 @@ export class Music {
 				autoplayManager.enable(this.interaction.user.id);
 
 				// Test if autoplay can find recommendations immediately
-				const currentTrack = player.queue.current;
-				if (currentTrack && player.queue.size === 0) {
+				const currentTrack = await player.queue.getCurrent();
+				const queueSize = await player.queue.size();
+				if (currentTrack && queueSize === 0) {
 					const testResult = await autoplayManager.processTrack(currentTrack);
 					if (!testResult) {
 						const embed = responseHandler.createWarningEmbed(this.t('responses.errors.autoplay_no_recommendations') || "Autoplay couldn't find suitable recommendations based on your listening history. Try playing more varied songs!", this.locale);
@@ -392,7 +398,7 @@ export class Music {
 		const musicCheck = this.validateMusicEnabled();
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
-		const player = this.client.manager.get(this.interaction.guild?.id || '');
+		const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
 		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
 
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
@@ -415,7 +421,7 @@ export class Music {
 			let success = false;
 
 			if (!player.filters) {
-				player.filters = new magmastream.Filters(player);
+				player.filters = new magmastream.Filters(player, this.client.manager);
 			}
 
 			switch (filterName) {
@@ -491,7 +497,7 @@ export class Music {
 		const musicCheck = this.validateMusicEnabled();
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
-		const player = this.client.manager.get(this.interaction.guild?.id || '');
+		const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
 		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
 
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
@@ -506,12 +512,11 @@ export class Music {
 		}
 
 		try {
-			if (!player.queue.current) {
+			const currentTrack = await player.queue.getCurrent();
+			if (!currentTrack) {
 				const embed = responseHandler.createErrorEmbed(this.t('responses.errors.no_current_track'), this.locale);
 				return await this.interaction.editReply({ embeds: [embed] });
 			}
-
-			const currentTrack = player.queue.current;
 			const skipTrackSource = this.interaction instanceof discord.ChatInputCommandInteraction ? this.interaction.options.getBoolean('skip_track_source') || false : false;
 			const lyricsData = await player.getCurrentLyrics(skipTrackSource);
 
@@ -528,8 +533,8 @@ export class Music {
 				lyricsText = lyricsData.text;
 			} else if (lyricsData.lines && lyricsData.lines.length > 0) {
 				lyricsText = lyricsData.lines
-					.map((line) => line.line)
-					.filter((line) => line && line.trim() !== '')
+					.map((line: any) => line.line)
+					.filter((line: any) => line && line.trim() !== '')
 					.join('\n');
 			}
 
@@ -653,7 +658,7 @@ export class Music {
 		const musicCheck = this.validateMusicEnabled();
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
-		const player = this.client.manager.get(this.interaction.guild?.id || '');
+		const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
 		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
 
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
@@ -662,8 +667,8 @@ export class Music {
 
 		try {
 			const queue = player.queue;
-			const currentTrack = queue.current;
-			const queueTracks = Array.from(queue);
+			const currentTrack = await queue.getCurrent();
+			const queueTracks = await queue.getTracks();
 
 			if (!currentTrack && queueTracks.length === 0) {
 				const embed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'), this.locale);
@@ -694,7 +699,7 @@ export class Music {
 
 				if (queuePage.length > 0) {
 					const queueList = queuePage
-						.map((track, index) => {
+						.map((track: any, index) => {
 							const position = startIndex + index + 1;
 							const title = Formatter.truncateText(track.title, 35);
 							const artist = Formatter.truncateText(track.author, 20);
@@ -707,9 +712,9 @@ export class Music {
 					embed.addFields({ name: `📋 ${this.t('responses.queue.upcoming')} (${queueTracks.length})`, value: queueList.length > 1024 ? queueList.substring(0, 1021) + '...' : queueList, inline: false });
 				}
 
-				const totalDuration = queueTracks.reduce((acc, track) => acc + (track.isStream ? 0 : track.duration), 0);
+				const totalDuration = queueTracks.reduce((acc, track: any) => acc + (track.isStream ? 0 : track.duration), 0) as number;
 				const totalFormatted = Formatter.msToTime(totalDuration);
-				const streamCount = queueTracks.filter((track) => track.isStream).length;
+				const streamCount = queueTracks.filter((track: any) => track.isStream).length;
 
 				let description = `**${queueTracks.length}** ${this.t('responses.queue.tracks_in_queue')}`;
 				if (totalDuration > 0) description += `\n**${totalFormatted}** ${this.t('responses.queue.total_duration')}`;
@@ -763,7 +768,7 @@ export class Music {
 				const collector = message.createMessageComponentCollector({ filter: (i) => i.user.id === this.interaction.user.id, time: 300000 });
 				collector.on('collect', async (i) => {
 					try {
-						const updatedQueueTracks = Array.from(player.queue);
+						const updatedQueueTracks = await player.queue.getTracks();
 						const updatedTotalPages = Math.ceil(updatedQueueTracks.length / 10) || 1;
 
 						if (i.customId === 'queue-previous' && currentPage > 0) {
@@ -778,10 +783,10 @@ export class Music {
 							await i.update({ embeds: [updatedEmbed], components: updatedButtons });
 						} else if (i.customId === 'queue-shuffle') {
 							await i.deferUpdate();
-							player.queue.shuffle();
+							await player.queue.shuffle();
 							await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'), this.locale)], flags: discord.MessageFlags.Ephemeral });
 
-							const shuffledQueueTracks = Array.from(player.queue);
+							const shuffledQueueTracks = await player.queue.getTracks();
 							const shuffledTotalPages = Math.ceil(shuffledQueueTracks.length / 10) || 1;
 							currentPage = Math.min(currentPage, shuffledTotalPages - 1);
 

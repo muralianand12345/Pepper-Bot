@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
+const magmastream_1 = require("magmastream");
 const format_1 = __importDefault(require("../utils/format"));
 const types_1 = require("../types");
 const locales_1 = require("../core/locales");
@@ -135,7 +136,7 @@ const suggestSongsCommand = {
                 });
             }
             const row = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('play-recommendation-first').setLabel(t('responses.suggest_songs.buttons.play_top')).setStyle(discord_js_1.default.ButtonStyle.Success).setEmoji('▶️'), new discord_js_1.default.ButtonBuilder().setCustomId('add-recommendation-queue').setLabel(t('responses.suggest_songs.buttons.add_all')).setStyle(discord_js_1.default.ButtonStyle.Primary).setEmoji('📋'), new discord_js_1.default.ButtonBuilder().setCustomId('refresh-recommendation').setLabel(t('responses.suggest_songs.buttons.refresh')).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji('🔄'));
-            const player = client.manager.get(interaction.guild.id);
+            const player = client.manager.getPlayer(interaction.guild.id);
             const message = await interaction.editReply({
                 embeds: [embed],
                 components: player ? [row] : [],
@@ -160,8 +161,8 @@ const suggestSongsCommand = {
                                 });
                             }
                             const searchResult = await client.manager.search(topPick.uri, interaction.user);
-                            if (searchResult.tracks && searchResult.tracks.length > 0) {
-                                player.queue.unshift(searchResult.tracks[0]);
+                            if (!magmastream_1.TrackUtils.isErrorOrEmptySearchResult(searchResult) && 'tracks' in searchResult && searchResult.tracks && searchResult.tracks.length > 0) {
+                                await player.queue.enqueueFront(searchResult.tracks[0]);
                                 player.stop();
                                 await i.followUp({
                                     embeds: [
@@ -182,8 +183,8 @@ const suggestSongsCommand = {
                                     if (!rec || !rec.uri)
                                         continue;
                                     const searchResult = await client.manager.search(rec.uri, interaction.user);
-                                    if (searchResult.tracks && searchResult.tracks.length > 0) {
-                                        player.queue.add(searchResult.tracks[0]);
+                                    if (!magmastream_1.TrackUtils.isErrorOrEmptySearchResult(searchResult) && 'tracks' in searchResult && searchResult.tracks && searchResult.tracks.length > 0) {
+                                        await player.queue.add(searchResult.tracks[0]);
                                         addedCount++;
                                     }
                                 }
@@ -191,7 +192,7 @@ const suggestSongsCommand = {
                                     client.logger.error(`[SUGGEST_SONGS] Failed to add track to queue: ${err}`);
                                 }
                             }
-                            if (!player.playing && !player.paused && player.queue.size > 0) {
+                            if (!player.playing && !player.paused && (await player.queue.size()) > 0) {
                                 player.play();
                             }
                             await i.followUp({

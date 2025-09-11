@@ -53,26 +53,28 @@ music:
               host: "lavalink.muralianand.in" # Server hostname/IP
               port: 25773 # Connection port
               password: "4Vzm^mZw2CJG@P7pMM5$" # Authentication password
-              priority: 1 # Priority (lower = more preferred)
-              secure: true # Whether to use secure connection (SSL/TLS)
-              retryAmount: 1000 # Number of connection retry attempts
-              retrydelay: 10000 # Delay between retries in ms (10 seconds)
-              resumeStatus: false # Whether to resume playback after reconnect
-              resumeTimeout: 1000 # Timeout for resuming in ms (1 second)
-              requestTimeout: 10000 # Request timeout in ms (10 seconds)
+              nodePriority: 1 # Priority level (lower number = higher priority)
+              useSSL: true # Whether to use SSL/TLS
+              maxRetryAttempts: 100000 # Number of retry attempts on failure
+              retryDelayMs: 10000 # Delay between retries in ms (10 seconds)
+              enableSessionResumeOption: true # Enable session resuming
+              sessionTimeoutSeconds: 30000 # Session timeout in seconds
+              apiRequestTimeoutMs: 10000 # API request timeout in ms (10 seconds)
+              isBackup: false # Whether this node is a backup
 
             # Backup node - used if primary node fails
             - identifier: "Pepper 2"
               host: "lavalink.jirayu.net"
               port: 13592
               password: "youshallnotpass"
-              priority: 2 # Lower priority than Node 1
-              secure: false
-              retryAmount: 1000
-              retrydelay: 10000
-              resumeStatus: false
-              resumeTimeout: 1000
-              requestTimeout: 10000
+              nodePriority: 4
+              useSSL: false
+              maxRetryAttempts: 100000
+              retryDelayMs: 10000
+              enableSessionResumeOption: true
+              sessionTimeoutSeconds: 30000
+              apiRequestTimeoutMs: 10000
+              isBackup: true
 
 # Survey system configuration (optional)
 survey:

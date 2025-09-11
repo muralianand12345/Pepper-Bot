@@ -67,7 +67,7 @@ class Music {
         this.validateLavalinkNode = async (nodeChoice) => {
             if (!nodeChoice)
                 return null;
-            if (this.client.manager.get(this.interaction.guild?.id || ''))
+            if (this.client.manager.getPlayer(this.interaction.guild?.id || ''))
                 return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.player_exists'), this.locale);
             const node = this.client.manager.nodes.find((n) => n.options.identifier === nodeChoice);
             if (!node)
@@ -92,7 +92,8 @@ class Music {
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             switch (res.loadType) {
                 case 'empty': {
-                    if (!player.queue.current)
+                    const currentTrack = await player.queue.getCurrent();
+                    if (!currentTrack)
                         player.destroy();
                     await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_results'), this.locale)] });
                     break;
@@ -100,17 +101,21 @@ class Music {
                 case 'track':
                 case 'search': {
                     const track = res.tracks[0];
-                    player.queue.add(track);
-                    if (!player.playing && !player.paused && !player.queue.size)
+                    await player.queue.add(track);
+                    const queueSize = await player.queue.size();
+                    if (!player.playing && !player.paused && queueSize === 1)
                         player.play();
-                    await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, player.queue.size, this.locale)] });
+                    await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, queueSize, this.locale)] });
                     break;
                 }
                 case 'playlist': {
                     if (!res.playlist)
                         break;
-                    res.playlist.tracks.forEach((track) => player.queue.add(track));
-                    if (!player.playing && !player.paused && player.queue.totalSize === res.playlist.tracks.length)
+                    for (const track of res.playlist.tracks) {
+                        await player.queue.add(track);
+                    }
+                    const totalSize = await player.queue.totalSize();
+                    if (!player.playing && !player.paused && totalSize === res.playlist.tracks.length)
                         player.play();
                     await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)] });
                     break;
@@ -138,12 +143,12 @@ class Music {
                     return await this.interaction.editReply({ embeds: [embed] });
             }
             const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
-            let player = this.client.manager.get(this.interaction.guildId || '');
+            let player = this.client.manager.getPlayer(this.interaction.guildId || '');
             if (player) {
                 const [playerValid, playerEmbed] = await validator.validatePlayerConnection(player);
                 if (!playerValid)
                     return await this.interaction.editReply({ embeds: [playerEmbed] });
-                if (!this.client.manager.get(this.interaction.guildId || ''))
+                if (!this.client.manager.getPlayer(this.interaction.guildId || ''))
                     player = undefined;
             }
             if (!player) {
@@ -151,7 +156,6 @@ class Music {
                     guildId: this.interaction.guildId || '',
                     voiceChannelId: guildMember?.voice.channelId || '',
                     textChannelId: this.interaction.channelId,
-                    node: nodeChoice,
                     ...exports.MUSIC_CONFIG.PLAYER_OPTIONS,
                 });
             }
@@ -190,7 +194,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || '');
+            const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
@@ -215,7 +219,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || '');
+            const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
@@ -244,7 +248,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || '');
+            const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
@@ -273,7 +277,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || '');
+            const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
@@ -288,7 +292,8 @@ class Music {
                 return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
                 player.stop(1);
-                if (player.queue.size === 0 && this.interaction.guildId)
+                const queueSize = await player.queue.size();
+                if (queueSize === 0 && this.interaction.guildId)
                     player.destroy();
                 await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)] });
             }
@@ -304,7 +309,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || '');
+            const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
@@ -330,7 +335,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || '');
+            const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
@@ -348,8 +353,9 @@ class Music {
                 if (enable) {
                     autoplayManager.enable(this.interaction.user.id);
                     // Test if autoplay can find recommendations immediately
-                    const currentTrack = player.queue.current;
-                    if (currentTrack && player.queue.size === 0) {
+                    const currentTrack = await player.queue.getCurrent();
+                    const queueSize = await player.queue.size();
+                    if (currentTrack && queueSize === 0) {
                         const testResult = await autoplayManager.processTrack(currentTrack);
                         if (!testResult) {
                             const embed = responseHandler.createWarningEmbed(this.t('responses.errors.autoplay_no_recommendations') || "Autoplay couldn't find suitable recommendations based on your listening history. Try playing more varied songs!", this.locale);
@@ -378,7 +384,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || '');
+            const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
@@ -398,7 +404,7 @@ class Music {
                 }
                 let success = false;
                 if (!player.filters) {
-                    player.filters = new magmastream_1.default.Filters(player);
+                    player.filters = new magmastream_1.default.Filters(player, this.client.manager);
                 }
                 switch (filterName) {
                     case 'clear':
@@ -469,7 +475,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || '');
+            const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
@@ -483,11 +489,11 @@ class Music {
                 this.isDeferred = true;
             }
             try {
-                if (!player.queue.current) {
+                const currentTrack = await player.queue.getCurrent();
+                if (!currentTrack) {
                     const embed = responseHandler.createErrorEmbed(this.t('responses.errors.no_current_track'), this.locale);
                     return await this.interaction.editReply({ embeds: [embed] });
                 }
-                const currentTrack = player.queue.current;
                 const skipTrackSource = this.interaction instanceof discord_js_1.default.ChatInputCommandInteraction ? this.interaction.options.getBoolean('skip_track_source') || false : false;
                 const lyricsData = await player.getCurrentLyrics(skipTrackSource);
                 if (!lyricsData || (!lyricsData.text && (!lyricsData.lines || lyricsData.lines.length === 0))) {
@@ -615,7 +621,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const player = this.client.manager.get(this.interaction.guild?.id || '');
+            const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
             if (!player)
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
@@ -624,8 +630,8 @@ class Music {
                 return await this.interaction.editReply({ embeds: [embed] });
             try {
                 const queue = player.queue;
-                const currentTrack = queue.current;
-                const queueTracks = Array.from(queue);
+                const currentTrack = await queue.getCurrent();
+                const queueTracks = await queue.getTracks();
                 if (!currentTrack && queueTracks.length === 0) {
                     const embed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'), this.locale);
                     return await this.interaction.editReply({ embeds: [embed] });
@@ -710,7 +716,7 @@ class Music {
                     const collector = message.createMessageComponentCollector({ filter: (i) => i.user.id === this.interaction.user.id, time: 300000 });
                     collector.on('collect', async (i) => {
                         try {
-                            const updatedQueueTracks = Array.from(player.queue);
+                            const updatedQueueTracks = await player.queue.getTracks();
                             const updatedTotalPages = Math.ceil(updatedQueueTracks.length / 10) || 1;
                             if (i.customId === 'queue-previous' && currentPage > 0) {
                                 currentPage--;
@@ -726,9 +732,9 @@ class Music {
                             }
                             else if (i.customId === 'queue-shuffle') {
                                 await i.deferUpdate();
-                                player.queue.shuffle();
+                                await player.queue.shuffle();
                                 await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'), this.locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
-                                const shuffledQueueTracks = Array.from(player.queue);
+                                const shuffledQueueTracks = await player.queue.getTracks();
                                 const shuffledTotalPages = Math.ceil(shuffledQueueTracks.length / 10) || 1;
                                 currentPage = Math.min(currentPage, shuffledTotalPages - 1);
                                 const shuffledEmbed = createQueueEmbed(currentPage);

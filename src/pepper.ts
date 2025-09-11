@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import { Manager, UseNodeOptions, Payload } from 'magmastream';
+import { Manager, UseNodeOptions, StateStorageType, AutoPlayPlatform, DiscordPacket } from 'magmastream';
 
 import Logger from './utils/logger';
 import { Command, IConfig } from './types';
@@ -11,15 +11,22 @@ const configManager = ConfigManager.getInstance();
 
 const initializeManager = (config: IConfig, client: discord.Client) => {
 	return new Manager({
-		autoPlay: true,
+		stateStorage: {
+			type: StateStorageType.Redis,
+			redisConfig: configManager.getRedisConfig(),
+			deleteInactivePlayers: true
+		},
+		enablePriorityMode: true,
+		playNextOnEnd: true,
+		autoPlaySearchPlatforms: [AutoPlayPlatform.Spotify, AutoPlayPlatform.SoundCloud],
+		clientName: 'Pepper',
 		defaultSearchPlatform: config.music.lavalink.default_search,
 		lastFmApiKey: configManager.getLastFmApiKey(),
 		nodes: config.music.lavalink.nodes,
 		useNode: UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
-		usePriority: true,
-		send: (guildId: string, payload: Payload): void => {
-			const guild = client.guilds.cache.get(guildId);
-			if (guild) guild.shard.send(payload);
+		send: (packet: DiscordPacket): void => {
+			const guild = client.guilds.cache.get(packet.d?.guild_id);
+			if (guild) guild.shard.send(packet);
 		},
 	});
 };

@@ -1,4 +1,5 @@
 import discord from 'discord.js';
+import { TrackUtils, LoadTypes } from 'magmastream';
 
 import Formatter from '../utils/format';
 import { Command, ISongs, CommandCategory, IPlaylistSuggestionResult } from '../types';
@@ -158,7 +159,7 @@ const suggestSongsCommand: Command = {
 				new discord.ButtonBuilder().setCustomId('refresh-recommendation').setLabel(t('responses.suggest_songs.buttons.refresh')).setStyle(discord.ButtonStyle.Secondary).setEmoji('🔄')
 			);
 
-			const player = client.manager.get(interaction.guild.id);
+			const player = client.manager.getPlayer(interaction.guild.id);
 			const message = await interaction.editReply({
 				embeds: [embed],
 				components: player ? [row] : [],
@@ -188,8 +189,8 @@ const suggestSongsCommand: Command = {
 							}
 
 							const searchResult = await client.manager.search(topPick.uri, interaction.user);
-							if (searchResult.tracks && searchResult.tracks.length > 0) {
-								player.queue.unshift(searchResult.tracks[0]);
+							if (!TrackUtils.isErrorOrEmptySearchResult(searchResult) && 'tracks' in searchResult && searchResult.tracks && searchResult.tracks.length > 0) {
+								await player.queue.enqueueFront(searchResult.tracks[0]);
 								player.stop();
 								await i.followUp({
 									embeds: [
@@ -212,8 +213,8 @@ const suggestSongsCommand: Command = {
 								try {
 									if (!rec || !rec.uri) continue;
 									const searchResult = await client.manager.search(rec.uri, interaction.user);
-									if (searchResult.tracks && searchResult.tracks.length > 0) {
-										player.queue.add(searchResult.tracks[0]);
+									if (!TrackUtils.isErrorOrEmptySearchResult(searchResult) && 'tracks' in searchResult && searchResult.tracks && searchResult.tracks.length > 0) {
+										await player.queue.add(searchResult.tracks[0]);
 										addedCount++;
 									}
 								} catch (err) {
@@ -221,7 +222,7 @@ const suggestSongsCommand: Command = {
 								}
 							}
 
-							if (!player.playing && !player.paused && player.queue.size > 0) {
+							if (!player.playing && !player.paused && (await player.queue.size()) > 0) {
 								player.play();
 							}
 

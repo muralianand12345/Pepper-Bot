@@ -12,28 +12,6 @@ const survey_1 = require("../../utils/survey");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
 class CommandInteractionHandler {
     constructor(client, interaction) {
-        this.formatCommandOptions = (interaction) => {
-            const options = [];
-            const getAllOptions = (optionsList) => {
-                for (const option of optionsList) {
-                    if (option.type === discord_js_1.default.ApplicationCommandOptionType.Subcommand ||
-                        option.type === discord_js_1.default.ApplicationCommandOptionType.SubcommandGroup) {
-                        options.push(option.name);
-                        if (option.options)
-                            getAllOptions(option.options);
-                    }
-                    else {
-                        let value = option.value;
-                        if (typeof value === 'string' && value.includes(' '))
-                            value = `"${value}"`;
-                        options.push(`\`${option.name}:${value}\``);
-                    }
-                }
-            };
-            if (interaction.options.data.length > 0)
-                getAllOptions(interaction.options.data);
-            return options.length > 0 ? ` ${options.join(' ')}` : '';
-        };
         this.handle = async () => {
             try {
                 if (this.interaction.isModalSubmit())
@@ -300,6 +278,27 @@ class CommandInteractionHandler {
                 this.client.logger.error(`[INTERACTION_CREATE] Error checking DJ permissions: ${error}`);
                 return true;
             }
+        };
+        this.formatCommandOptions = (interaction) => {
+            const options = [];
+            const getAllOptions = (optionsList) => {
+                for (const option of optionsList) {
+                    if (option.type === discord_js_1.default.ApplicationCommandOptionType.Subcommand || option.type === discord_js_1.default.ApplicationCommandOptionType.SubcommandGroup) {
+                        options.push(option.name);
+                        if (option.options)
+                            getAllOptions(option.options);
+                    }
+                    else {
+                        let value = option.value;
+                        if (typeof value === 'string' && value.includes(' '))
+                            value = `"${value}"`;
+                        options.push(`\`${option.name}:${value}\``);
+                    }
+                }
+            };
+            if (interaction.options.data.length > 0)
+                getAllOptions(interaction.options.data);
+            return options.length > 0 ? ` ${options.join(' ')}` : '';
         };
         this.client = client;
         this.interaction = interaction;

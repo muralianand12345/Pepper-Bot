@@ -11,12 +11,12 @@ const format_1 = __importDefault(require("../utils/format"));
 const locales_1 = require("../core/locales");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
-const createQueueEmbed = (player, queueTracks, currentPage, t, client) => {
+const createQueueEmbed = async (player, queueTracks, currentPage, t, client) => {
     const itemsPerPage = 10;
     const startIndex = currentPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const queuePage = queueTracks.slice(startIndex, endIndex);
-    const currentTrack = player.queue.current;
+    const currentTrack = await player.queue.getCurrent();
     const embed = new discord_js_1.default.EmbedBuilder()
         .setColor('#5865f2')
         .setTitle(`🎵 ${t('responses.queue.title')}`)
@@ -60,8 +60,7 @@ const createQueueEmbed = (player, queueTracks, currentPage, t, client) => {
         embed.setThumbnail(currentTrack.thumbnail || currentTrack.artworkUrl);
     return embed;
 };
-const createQueueButtons = (page, totalPages, isEmpty, t) => {
-    const queueTracks = Array.from({ length: totalPages * 10 });
+const createQueueButtons = (page, totalPages, isEmpty, t, queueLength = 0) => {
     const navigationRow = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder()
         .setCustomId('queue-previous')
         .setLabel(t('responses.queue.buttons.previous'))
@@ -77,12 +76,12 @@ const createQueueButtons = (page, totalPages, isEmpty, t) => {
         .setLabel(t('responses.queue.buttons.shuffle'))
         .setStyle(discord_js_1.default.ButtonStyle.Primary)
         .setEmoji('🔀')
-        .setDisabled(isEmpty || queueTracks.length < 2), new discord_js_1.default.ButtonBuilder()
+        .setDisabled(isEmpty || queueLength < 2), new discord_js_1.default.ButtonBuilder()
         .setCustomId('queue-move')
         .setLabel(t('responses.queue.buttons.move'))
         .setStyle(discord_js_1.default.ButtonStyle.Secondary)
         .setEmoji('🔄')
-        .setDisabled(isEmpty || queueTracks.length < 2));
+        .setDisabled(isEmpty || queueLength < 2));
     const actionRow = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('queue-remove').setLabel(t('responses.queue.buttons.remove')).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji('➖').setDisabled(isEmpty), new discord_js_1.default.ButtonBuilder().setCustomId('queue-clear').setLabel(t('responses.queue.buttons.clear')).setStyle(discord_js_1.default.ButtonStyle.Danger).setEmoji('🗑️').setDisabled(isEmpty));
     return [navigationRow, actionRow];
 };
@@ -96,14 +95,14 @@ const queueCommand = {
         const locale = await localeDetector.detectLocale(interaction);
         const responseHandler = new music_2.MusicResponseHandler(interaction.client);
         try {
-            const player = interaction.client.manager.get(interaction.guild?.id || '');
+            const player = interaction.client.manager.getPlayer(interaction.guild?.id || '');
             if (!player)
                 return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.errors.no_player'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
-            const queueTracks = Array.from(player.queue);
+            const queueTracks = await player.queue.getTracks();
             if (queueTracks.length === 0)
                 return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.empty'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
             const updateQueueDisplay = async (currentPage = 0) => {
-                const updatedQueueTracks = Array.from(player.queue);
+                const updatedQueueTracks = await player.queue.getTracks();
                 const totalPages = Math.ceil(updatedQueueTracks.length / 10) || 1;
                 const adjustedPage = Math.min(currentPage, totalPages - 1);
                 const isEmpty = updatedQueueTracks.length === 0;
@@ -112,24 +111,24 @@ const queueCommand = {
                     await interaction.message?.edit({ embeds: [emptyEmbed], components: [] });
                 }
                 else {
-                    const updatedEmbed = createQueueEmbed(player, updatedQueueTracks, adjustedPage, t, interaction.client);
-                    const updatedButtons = createQueueButtons(adjustedPage, totalPages, false, t);
+                    const updatedEmbed = await createQueueEmbed(player, updatedQueueTracks, adjustedPage, t, interaction.client);
+                    const updatedButtons = createQueueButtons(adjustedPage, totalPages, false, t, updatedQueueTracks.length);
                     await interaction.message?.edit({ embeds: [updatedEmbed], components: updatedButtons });
                 }
             };
             if (interaction.customId === 'queue-remove-modal') {
                 const positionValue = interaction.fields.getTextInputValue('queue-position').trim();
-                const handleRemove = (positions) => {
+                const handleRemove = async (positions) => {
                     let removedCount = 0;
                     const validPositions = positions.filter((pos) => pos >= 1 && pos <= queueTracks.length).sort((a, b) => b - a);
                     for (const pos of validPositions) {
                         try {
                             const track = queueTracks[pos - 1];
                             if (track) {
-                                const queueArray = Array.from(player.queue);
+                                const queueArray = await player.queue.getTracks();
                                 const index = queueArray.findIndex((t) => t.uri === track.uri && t.title === track.title);
                                 if (index !== -1) {
-                                    player.queue.remove(index);
+                                    await player.queue.remove(index);
                                     removedCount++;
                                     interaction.client.logger.info(`[QUEUE] Successfully removed track at position ${pos}: ${track.title}`);
                                 }
@@ -147,7 +146,7 @@ const queueCommand = {
                     if (isNaN(start) || isNaN(end) || start < 1 || end < start || end > queueTracks.length)
                         return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_range'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                     const positions = Array.from({ length: end - start + 1 }, (_, i) => start + i);
-                    result = handleRemove(positions);
+                    result = await handleRemove(positions);
                 }
                 else if (positionValue.includes(',')) {
                     const positions = positionValue
@@ -156,13 +155,13 @@ const queueCommand = {
                         .filter((n) => !isNaN(n));
                     if (positions.length === 0)
                         return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_positions'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
-                    result = handleRemove(positions);
+                    result = await handleRemove(positions);
                 }
                 else {
                     const position = parseInt(positionValue);
                     if (isNaN(position) || position < 1 || position > queueTracks.length)
                         return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_position'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
-                    result = handleRemove([position]);
+                    result = await handleRemove([position]);
                 }
                 if (result.removed > 0) {
                     await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.removed', { count: result.removed }), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
@@ -183,20 +182,23 @@ const queueCommand = {
                     const trackToMove = queueTracks[fromPosition - 1];
                     if (!trackToMove)
                         return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.track_not_found'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
-                    const queueArray = Array.from(player.queue);
+                    const queueArray = await player.queue.getTracks();
                     const trackIndex = queueArray.findIndex((t) => t.uri === trackToMove.uri && t.title === trackToMove.title);
                     if (trackIndex !== -1) {
-                        player.queue.remove(trackIndex);
+                        await player.queue.remove(trackIndex);
                         const adjustedToPosition = toPosition > fromPosition ? toPosition - 2 : toPosition - 1;
-                        const finalPosition = Math.max(0, Math.min(adjustedToPosition, player.queue.size));
-                        if (finalPosition >= player.queue.size) {
-                            player.queue.add(trackToMove);
+                        const queueSize = await player.queue.size();
+                        const finalPosition = Math.max(0, Math.min(adjustedToPosition, queueSize));
+                        if (finalPosition >= queueSize) {
+                            await player.queue.add(trackToMove);
                         }
                         else {
-                            const newQueue = Array.from(player.queue);
+                            const newQueue = await player.queue.getTracks();
                             newQueue.splice(finalPosition, 0, trackToMove);
-                            player.queue.clear();
-                            newQueue.forEach((track) => player.queue.add(track));
+                            await player.queue.clear();
+                            for (const track of newQueue) {
+                                await player.queue.add(track);
+                            }
                         }
                         interaction.client.logger.info(`[QUEUE] Moved track "${trackToMove.title}" from position ${fromPosition} to position ${toPosition}`);
                         await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.moved', { track: trackToMove.title, from: fromPosition, to: toPosition }), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });

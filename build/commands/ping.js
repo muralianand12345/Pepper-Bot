@@ -52,25 +52,24 @@ const pingCommand = {
                 return '🟢 All nodes connected';
             return `🟡 ${connectedNodes.size}/${totalNodes} nodes connected`;
         };
-        const getPlayerInfo = () => {
+        const getPlayerInfo = async () => {
             if (!isOwner)
                 return '';
             const players = Array.from(client.manager.players.values());
             if (players.length === 0)
                 return 'No active players';
-            return players
-                .map((player) => {
+            const playerInfos = await Promise.all(players.map(async (player) => {
                 const guild = client.guilds.cache.get(player.guildId);
                 const voiceChannel = client.channels.cache.get(player.voiceChannelId || '');
-                const currentTrack = player.queue.current;
+                const currentTrack = await player.queue.getCurrent();
                 const guildName = guild?.name || 'Unknown Guild';
                 const channelName = voiceChannel && 'name' in voiceChannel ? voiceChannel.name : 'Unknown Channel';
                 const trackInfo = currentTrack ? `${currentTrack.title} - ${currentTrack.author}`.slice(0, 50) : 'No track playing';
                 const status = player.playing ? '▶️' : player.paused ? '⏸️' : '⏹️';
                 const queueSize = player.queue.size;
                 return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize} songs\n` + `└ Node: ${player.node.options.identifier}`;
-            })
-                .join('\n\n');
+            }));
+            return playerInfos.join('\n\n');
         };
         const embed = new discord_js_1.default.EmbedBuilder()
             .setColor('#5865f2')
@@ -87,7 +86,7 @@ const pingCommand = {
             .setFooter({ text: t('responses.ping.footer'), iconURL: client.user?.displayAvatarURL() })
             .setTimestamp();
         if (isOwner) {
-            const playerInfo = getPlayerInfo();
+            const playerInfo = await getPlayerInfo();
             embed.addFields([{ name: t('responses.ping.active_players'), value: playerInfo.length > 1024 ? playerInfo.substring(0, 1021) + '...' : playerInfo || 'No active players', inline: false }]);
         }
         await interaction.editReply({ embeds: [embed] });

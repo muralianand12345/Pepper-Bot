@@ -10,7 +10,7 @@ const event: BotEvent = {
 	name: discord.Events.VoiceStateUpdate,
 	execute: async (oldState: discord.VoiceState, newState: discord.VoiceState, client: discord.Client): Promise<void> => {
 		if (!client.config.music.enabled) return;
-		const player = client.manager.get(newState.guild.id);
+		const player = client.manager.getPlayer(newState.guild.id);
 		if (!player || player.state !== 'CONNECTED') return;
 
 		if (newState.id === client.user?.id && !newState.channelId && oldState.channelId) {
@@ -89,7 +89,7 @@ const event: BotEvent = {
 
 			setTimeout(async () => {
 				try {
-					const currentPlayer = client.manager.get(player.guildId);
+					const currentPlayer = client.manager.getPlayer(player.guildId);
 					if (!currentPlayer) return;
 					if (currentPlayer.cleanupScheduledAt !== scheduledAt) return;
 

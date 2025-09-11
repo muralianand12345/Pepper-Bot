@@ -39,6 +39,7 @@ var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Autoplay = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
+const magmastream_1 = require("magmastream");
 const playlist_suggestion_1 = require("./playlist_suggestion");
 class Autoplay {
     constructor(guildId, player, client) {
@@ -127,7 +128,7 @@ class Autoplay {
             this.lastProcessedTrackUri = finishedTrack.uri;
             this.addToRecentlyPlayed(finishedTrack);
             try {
-                const queueSize = this.player.queue.size;
+                const queueSize = await this.player.queue.size();
                 let added = 0;
                 if (queueSize < 3) {
                     added = await this.addRecommendationsToQueue(finishedTrack);
@@ -266,10 +267,10 @@ class Autoplay {
             for (const track of tracks) {
                 try {
                     const searchResult = await this.client.manager.search(track.uri, requester);
-                    if (searchResult && searchResult.tracks && searchResult.tracks.length > 0) {
+                    if (searchResult && !magmastream_1.TrackUtils.isErrorOrEmptySearchResult(searchResult) && 'tracks' in searchResult && searchResult.tracks && searchResult.tracks.length > 0) {
                         const lavalinkTrack = searchResult.tracks[0];
                         if (!this.recentlyPlayedTracks.has(lavalinkTrack.uri)) {
-                            this.player.queue.add(lavalinkTrack);
+                            await this.player.queue.add(lavalinkTrack);
                             this.addToRecentlyPlayed(lavalinkTrack);
                             addedCount++;
                             this.client.logger.info(`[AUTOPLAY] Added '${lavalinkTrack.title}' by '${lavalinkTrack.author}' to queue in guild ${this.guildId}`);
@@ -278,7 +279,7 @@ class Autoplay {
                     else {
                         const searchQuery = `${track.author} - ${track.title}`;
                         const fallbackResults = await this.client.manager.search(searchQuery, requester);
-                        if (fallbackResults && fallbackResults.tracks && fallbackResults.tracks.length > 0) {
+                        if (fallbackResults && !magmastream_1.TrackUtils.isErrorOrEmptySearchResult(fallbackResults) && 'tracks' in fallbackResults && fallbackResults.tracks && fallbackResults.tracks.length > 0) {
                             const lavalinkTrack = fallbackResults.tracks[0];
                             if (!this.recentlyPlayedTracks.has(lavalinkTrack.uri)) {
                                 this.player.queue.add(lavalinkTrack);

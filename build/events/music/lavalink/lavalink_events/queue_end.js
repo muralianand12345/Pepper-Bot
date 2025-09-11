@@ -108,12 +108,12 @@ const handlePlayerCleanup = async (player, guildId, client) => {
     player.cleanupScheduledAt = scheduledAt;
     client.logger.info(`[QUEUE_END] Scheduled cleanup for guild ${guildId} in ${CLEANUP_DELAY_MINS} minutes`);
     await (0, music_1.wait)(CLEANUP_DELAY);
-    const currentPlayer = client.manager.get(guildId);
+    const currentPlayer = client.manager.getPlayer(guildId);
     if (!currentPlayer)
         return client.logger.debug(`[QUEUE_END] Player for guild ${guildId} already destroyed, skipping cleanup`);
     if (currentPlayer.cleanupScheduledAt !== scheduledAt)
         return client.logger.debug(`[QUEUE_END] Cleanup task for guild ${guildId} has been superseded, skipping`);
-    if (currentPlayer.playing || currentPlayer.queue.current)
+    if (currentPlayer.playing || (await currentPlayer.queue.getCurrent()))
         return client.logger.debug(`[QUEUE_END] Player for guild ${guildId} is active again, skipping cleanup`);
     music_1.NowPlayingManager.removeInstance(guildId);
     music_1.Autoplay.removeInstance(guildId);
@@ -130,7 +130,7 @@ const lavalinkEvent = {
             let autoplaySuccessful = false;
             if (autoplayManager.isEnabled() && track) {
                 const processed = await autoplayManager.processTrack(track);
-                if (processed && player.queue.size > 0) {
+                if (processed && (await player.queue.size()) > 0) {
                     client.logger.info(`[QUEUE_END] Autoplay successfully added tracks for guild ${player.guildId}`);
                     autoplaySuccessful = true;
                 }

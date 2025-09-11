@@ -78,7 +78,8 @@ const lavalinkEvent: LavalinkEvent = {
 
 			const requesterData = track.requester ? getRequester(client, track.requester) : null;
 			if (YTREGEX.test(track.uri)) {
-				const isFromPlaylist = player.queue && player.queue.size > 0;
+				const queueSize = await player.queue.size();
+				const isFromPlaylist = player.queue && queueSize > 0;
 
 				if (!isFromPlaylist) {
 					player.stop(1);

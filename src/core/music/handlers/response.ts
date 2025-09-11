@@ -62,7 +62,7 @@ export class MusicResponseHandler {
 			.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
 	};
 
-	public createMusicEmbed = (track: magmastream.Track | null, player?: magmastream.Player, locale: string = 'en'): discord.EmbedBuilder => {
+	public createMusicEmbed = async (track: magmastream.Track | null, player?: magmastream.Player, locale: string = 'en'): Promise<discord.EmbedBuilder> => {
 		if (!track) {
 			return new discord.EmbedBuilder()
 				.setColor('#2b2d31')
@@ -79,7 +79,7 @@ export class MusicResponseHandler {
 		const defaultColor: discord.ColorResolvable = '#2b2d31';
 		let progressText = '';
 
-		if (player && player.queue && player.queue.current && track.duration) {
+		if (player && player.queue && (await player.queue.getCurrent()) && track.duration) {
 			try {
 				const position = Math.max(0, player.position || 0);
 				const duration = track.duration || 0;
