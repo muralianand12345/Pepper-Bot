@@ -27,6 +27,7 @@ const EnvSchema = zod_1.z.object({
     REDIS_HOST: zod_1.z.string().optional(),
     REDIS_PORT: zod_1.z.string().optional(),
     REDIS_PASSWORD: zod_1.z.string().optional(),
+    REDIS_PREFIX: zod_1.z.string().optional(),
 });
 /**
  * Manages application configuration using environment variables
@@ -75,7 +76,7 @@ class ConfigManager {
                     port: this.config.REDIS_PORT,
                     password: this.config.REDIS_PASSWORD,
                     db: 0,
-                    prefix: 'magmastream:',
+                    prefix: this.config.REDIS_PREFIX || 'pepper:',
                 };
             }
             return undefined;
@@ -98,6 +99,7 @@ class ConfigManager {
                 REDIS_HOST: process.env.REDIS_HOST,
                 REDIS_PORT: process.env.REDIS_PORT,
                 REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+                REDIS_PREFIX: process.env.REDIS_PREFIX,
             });
         }
         catch (error) {

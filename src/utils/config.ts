@@ -23,6 +23,7 @@ const EnvSchema = z.object({
 	REDIS_HOST: z.string().optional(),
 	REDIS_PORT: z.string().optional(),
 	REDIS_PASSWORD: z.string().optional(),
+	REDIS_PREFIX: z.string().optional(),
 });
 
 /**
@@ -54,6 +55,7 @@ export class ConfigManager {
 				REDIS_HOST: process.env.REDIS_HOST,
 				REDIS_PORT: process.env.REDIS_PORT,
 				REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+				REDIS_PREFIX: process.env.REDIS_PREFIX,
 			});
 		} catch (error) {
 			if (error instanceof z.ZodError) {
@@ -122,7 +124,7 @@ export class ConfigManager {
 				port: this.config.REDIS_PORT,
 				password: this.config.REDIS_PASSWORD,
 				db: 0,
-				prefix: 'magmastream:',
+				prefix: this.config.REDIS_PREFIX || 'pepper:',
 			};
 		}
 		return undefined;
