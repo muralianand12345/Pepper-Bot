@@ -26,10 +26,12 @@ const createQueueEmbed = async (player: any, queueTracks: any[], currentPage: nu
 		});
 
 	if (currentTrack) {
-		const currentTitle = Formatter.truncateText(currentTrack.title, 40);
-		const currentArtist = Formatter.truncateText(currentTrack.author, 25);
-		const currentDuration = currentTrack.isStream ? t('responses.queue.live') : Formatter.msToTime(currentTrack.duration);
-		const progressBar = player.playing ? Formatter.createProgressBar(player) : '';
+		const currentTitle = Formatter.truncateText(currentTrack.title || 'Unknown', 40);
+		const currentArtist = Formatter.truncateText(currentTrack.author || 'Unknown', 25);
+		const isStream = Boolean((currentTrack as any).isStream);
+		const durationMs = Number((currentTrack as any).duration || 0);
+		const currentDuration = isStream ? t('responses.queue.live') : durationMs > 0 ? Formatter.msToTime(durationMs) : '00:00:00';
+		const progressBar = player.playing ? Formatter.createProgressBar(player, durationMs) : '';
 
 		embed.addFields({ name: `🎵 ${t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
 		if (progressBar) embed.addFields({ name: `⏱️ ${t('responses.queue.progress')}`, value: progressBar, inline: false });
@@ -39,10 +41,12 @@ const createQueueEmbed = async (player: any, queueTracks: any[], currentPage: nu
 		const queueList = queuePage
 			.map((track, index) => {
 				const position = startIndex + index + 1;
-				const title = Formatter.truncateText(track.title, 35);
-				const artist = Formatter.truncateText(track.author, 20);
-				const duration = track.isStream ? t('responses.queue.live') : Formatter.msToTime(track.duration);
-				const requester = track.requester ? ` • ${(track.requester as any).username}` : '';
+				const title = Formatter.truncateText((track?.title as string) || 'Unknown', 35);
+				const artist = Formatter.truncateText((track?.author as string) || 'Unknown', 20);
+				const isStream = Boolean((track as any)?.isStream);
+				const durationMs = Number((track as any)?.duration || 0);
+				const duration = isStream ? t('responses.queue.live') : durationMs > 0 ? Formatter.msToTime(durationMs) : '00:00:00';
+				const requester = (track as any)?.requester ? ` • ${((track as any).requester as any).username}` : '';
 				return `**${position}.** **${title}** - ${artist}\n└ ${duration}${requester}`;
 			})
 			.join('\n\n');
@@ -50,7 +54,11 @@ const createQueueEmbed = async (player: any, queueTracks: any[], currentPage: nu
 		embed.addFields({ name: `📋 ${t('responses.queue.upcoming')} (${queueTracks.length})`, value: queueList.length > 1024 ? queueList.substring(0, 1021) + '...' : queueList, inline: false });
 	}
 
-	const totalDuration = queueTracks.reduce((acc, track) => acc + (track.isStream ? 0 : track.duration), 0);
+	const totalDuration = queueTracks.reduce((acc, track) => {
+		const isStream = Boolean((track as any)?.isStream);
+		const dur = Number((track as any)?.duration || 0);
+		return acc + (isStream ? 0 : Math.max(0, dur));
+	}, 0);
 	const totalFormatted = Formatter.msToTime(totalDuration);
 	const streamCount = queueTracks.filter((track) => track.isStream).length;
 
