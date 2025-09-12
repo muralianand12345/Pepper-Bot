@@ -6,9 +6,6 @@ commands:
             song:
                 name: "歌曲"
                 description: "歌曲名称或 URL"
-            lavalink_node:
-                name: "lavalink节点"
-                description: "播放音乐所使用的 Lavalink 节点（可选）"
     pause:
         name: "暂停"
         description: "暂停当前播放的音乐"
@@ -187,9 +184,6 @@ responses:
         queue_too_small: "队列中只有 {count} 首歌曲"
         youtube_not_supported: "暂不支持 YouTube 链接或音乐 :("
         no_results: "未找到任何结果"
-        node_invalid: "无效的 Lavalink 节点"
-        node_not_connected: "Lavalink 节点未连接"
-        player_exists: "你在此服务器中已有一个活跃播放器。请先停止它再更换节点。"
         no_permission: "🚫 {user}，你没有权限使用此命令！"
         missing_user_perms: "🚫 你需要权限 `{permissions}` 才能使用此命令！"
         missing_bot_perms: "🚫 我需要权限 `{permissions}` 才能执行此命令！"

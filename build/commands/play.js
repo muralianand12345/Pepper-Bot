@@ -21,8 +21,7 @@ const playCommand = {
         .setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.name'))
         .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.description'))
         .setContexts(discord_js_1.default.InteractionContextType.Guild)
-        .addStringOption((option) => option.setName('song').setDescription('Song Name/URL').setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.description')).setRequired(true).setAutocomplete(true))
-        .addStringOption((option) => option.setName('lavalink_node').setDescription('Lavalink to play the song (Optional)').setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.lavalink_node.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.lavalink_node.description')).setRequired(false).setAutocomplete(true)),
+        .addStringOption((option) => option.setName('song').setDescription('Song Name/URL').setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.description')).setRequired(true).setAutocomplete(true)),
     autocomplete: async (interaction, client) => {
         let hasResponded = false;
         const safeRespond = async (suggestions) => {
@@ -40,17 +39,6 @@ const playCommand = {
         };
         const focused = interaction.options.getFocused(true);
         try {
-            if (focused.name === 'lavalink_node') {
-                const nodes = client.manager.nodes
-                    .filter((node) => node.connected)
-                    .map((node) => ({
-                    name: `${node.options.identifier} (${node.options.host})`,
-                    value: node.options.identifier || 'Unknown Node',
-                }));
-                const filteredNodes = nodes.filter((option) => option.name.toLowerCase().includes(focused.value.toLowerCase()));
-                await safeRespond(filteredNodes);
-                return;
-            }
             if (focused.name === 'song') {
                 if (!focused.value?.trim()) {
                     const t = await localeDetector.getTranslator(interaction);

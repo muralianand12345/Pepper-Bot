@@ -64,18 +64,6 @@ class Music {
                 return null;
             return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.music_disabled'), this.locale);
         };
-        this.validateLavalinkNode = async (nodeChoice) => {
-            if (!nodeChoice)
-                return null;
-            if (this.client.manager.getPlayer(this.interaction.guild?.id || ''))
-                return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.player_exists'), this.locale);
-            const node = this.client.manager.nodes.find((n) => n.options.identifier === nodeChoice);
-            if (!node)
-                return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.node_invalid'), this.locale);
-            if (!node.connected)
-                return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.node_not_connected'), this.locale);
-            return null;
-        };
         this.validateFilterName = (filterName) => {
             return filterName in exports.MUSIC_CONFIG.AUDIO_FILTERS;
         };
@@ -103,7 +91,7 @@ class Music {
                     const track = res.tracks[0];
                     await player.queue.add(track);
                     const queueSize = await player.queue.size();
-                    if (!player.playing && !player.paused && queueSize === 1)
+                    if (!player.playing && !player.paused && queueSize === 0)
                         player.play();
                     await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, queueSize, this.locale)] });
                     break;
@@ -132,10 +120,6 @@ class Music {
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
             const query = this.interaction.options.getString('song') || this.t('responses.default_search');
-            const nodeChoice = this.interaction.options.getString('lavalink_node') || undefined;
-            const nodeCheck = await this.validateLavalinkNode(nodeChoice);
-            if (nodeCheck)
-                return await this.interaction.editReply({ embeds: [nodeCheck] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection()]) {
                 const [isValid, embed] = await check;
