@@ -163,7 +163,7 @@ export class CommandInteractionHandler {
 				guild: this.interaction.guild,
 				user: this.interaction.user,
 				channel: this.interaction.channel as discord.TextChannel | null,
-				locale: await this.localeDetector.detectLocale(this.interaction),
+				locale: await this.localeDetector.detectLocale(this.interaction as discord.ChatInputCommandInteraction),
 			});
 
 			if (command.cooldown) {

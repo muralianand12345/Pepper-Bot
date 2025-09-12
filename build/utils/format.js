@@ -116,8 +116,15 @@ Formatter.hyperlink = (text, url) => {
  * @param player - The player object containing position and queue information
  * @returns Formatted progress bar string
  */
-Formatter.createProgressBar = (player) => {
-    const progress = (Math.floor(player.position / 1000) / Math.floor(player.queue.current.duration / 1000)) * 100;
+Formatter.createProgressBar = (player, trackDurationMs) => {
+    const positionMs = Number.isFinite(player?.position) ? Number(player.position) : 0;
+    const durationMs = typeof trackDurationMs === 'number' && trackDurationMs > 0 ? trackDurationMs : 0;
+    if (!durationMs || durationMs <= 0)
+        return '';
+    const posSec = Math.max(0, Math.floor(positionMs / 1000));
+    const durSec = Math.max(1, Math.floor(durationMs / 1000));
+    const clampedPosSec = Math.min(posSec, durSec);
+    const progress = (clampedPosSec / durSec) * 100;
     const progressBlocks = Math.floor((progress * 1.5) / 10);
     let bar = '▬'.repeat(Math.max(0, progressBlocks));
     bar += '●';

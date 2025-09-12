@@ -65,7 +65,7 @@ const pingCommand: Command = {
 					const trackInfo = currentTrack ? `${currentTrack.title} - ${currentTrack.author}`.slice(0, 50) : 'No track playing';
 					const status = player.playing ? '▶️' : player.paused ? '⏸️' : '⏹️';
 					const queueSize = await player.queue.size();
-					return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize} songs\n` + `└ Node: ${player.node.options.identifier}`;
+					return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize + 1} songs\n` + `└ Node: ${player.node.options.identifier}`;
 				})
 			);
 			return playerInfos.join('\n\n');

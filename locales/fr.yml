@@ -6,9 +6,6 @@ commands:
             song:
                 name: "chanson"
                 description: "Nom/URL de la chanson"
-            lavalink_node:
-                name: "nœud_lavalink"
-                description: "Lavalink pour lire la chanson (optionnel)"
     pause:
         name: "pause"
         description: "Mettre la musique en pause"
@@ -187,9 +184,6 @@ responses:
         queue_too_small: "Il n’y a que {count} titres dans la file d’attente"
         youtube_not_supported: "Les liens ou musiques YouTube ne sont actuellement pas pris en charge :("
         no_results: "Aucun résultat trouvé"
-        node_invalid: "Nœud Lavalink invalide"
-        node_not_connected: "Le nœud Lavalink n’est pas connecté"
-        player_exists: "Tu as déjà un lecteur actif sur ce serveur. Arrête-le avant de changer de nœud Lavalink."
         no_permission: "🚫 {user}, tu n’as pas la permission d’utiliser cette commande !"
         missing_user_perms: "🚫 Tu n’as pas les autorisations requises `{permissions}` pour utiliser cette commande !"
         missing_bot_perms: "🚫 J’ai besoin des permissions `{permissions}` pour exécuter cette commande !"

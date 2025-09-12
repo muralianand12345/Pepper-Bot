@@ -6,9 +6,6 @@ commands:
             song:
                 name: "song"
                 description: "Song Name/URL"
-            lavalink_node:
-                name: "lavalink_node"
-                description: "Lavalink to play the song (Optional)"
     pause:
         name: "pause"
         description: "Pause the currently playing music"
@@ -188,9 +185,6 @@ responses:
         queue_too_small: "There are only {count} songs in the queue"
         youtube_not_supported: "We do not support YouTube links or music at this time :("
         no_results: "Unable To Fetch Results"
-        node_invalid: "Invalid Lavalink node"
-        node_not_connected: "Lavalink node is not connected"
-        player_exists: "Hmmm, you have an active music player in this server. Please stop the current player before switching Lavalink nodes."
         no_permission: "🚫 {user}, You don't have permission to use this command!"
         missing_user_perms: "🚫 You don't have `{permissions}` permissions to use this command!"
         missing_bot_perms: "🚫 I need `{permissions}` permissions to execute this command!"

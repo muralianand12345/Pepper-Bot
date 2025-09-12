@@ -17,9 +17,10 @@ const lavalinkEvent = {
             if (newPlayer && newPlayer.playing && !newPlayer.paused) {
                 const now = Date.now();
                 const lastUpdate = newPlayer.lastUpdateTime || 0;
-                if (now - lastUpdate > 15000 || changeType?.details?.changeType === 'trackChange') {
+                const isTrackChange = changeType?.changeType === magmastream_1.PlayerStateEventTypes.TrackChange;
+                if (now - lastUpdate > 15000 || isTrackChange) {
                     newPlayer.lastUpdateTime = now;
-                    if (changeType?.details?.changeType === 'trackChange')
+                    if (isTrackChange)
                         music_1.NowPlayingManager.removeInstance(player.guildId);
                     const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, newPlayer, client);
                     if (nowPlayingManager.hasMessage())

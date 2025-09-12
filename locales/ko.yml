@@ -6,9 +6,6 @@ commands:
             song:
                 name: "노래"
                 description: "노래 이름/URL"
-            lavalink_node:
-                name: "lavalink_노드"
-                description: "음악을 재생할 Lavalink 노드 (선택사항)"
     pause:
         name: "일시정지"
         description: "현재 음악을 일시정지합니다"
@@ -187,9 +184,6 @@ responses:
         queue_too_small: "대기열에 {count}개의 곡만 있습니다"
         youtube_not_supported: "YouTube 링크 또는 노래는 현재 지원되지 않습니다 :("
         no_results: "검색 결과가 없습니다"
-        node_invalid: "잘못된 Lavalink 노드"
-        node_not_connected: "Lavalink 노드가 연결되어 있지 않습니다"
-        player_exists: "이 서버에는 이미 활성 플레이어가 있습니다. 다른 노드를 사용하려면 정지시켜야 합니다."
         no_permission: "🚫 {user}, 이 명령어를 사용할 권한이 없습니다!"
         missing_user_perms: "🚫 이 명령어를 사용하려면 `{permissions}` 권한이 필요합니다!"
         missing_bot_perms: "🚫 이 명령어를 실행하려면 `{permissions}` 권한이 필요합니다!"

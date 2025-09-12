@@ -324,8 +324,8 @@ export class PlaylistSuggestion {
 			if (!recommendations?.length) return [];
 
 			return recommendations
-				.filter((t: any) => t && t.uri && !existingUris.has(t.uri))
-				.map((t: any) => this.convertTrackToISongs(t))
+				.filter((t: magmastream.Track) => t && t.uri && !existingUris.has(t.uri))
+				.map((t: magmastream.Track) => this.convertTrackToISongs(t))
 				.slice(0, limit);
 		} catch (error) {
 			this.client.logger.warn(`[PLAYLIST_SUGGESTION] Magmastream recommendations error: ${error}`);

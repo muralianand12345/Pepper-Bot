@@ -6,9 +6,6 @@ commands:
             song:
                 name: "lied"
                 description: "Liedname/URL"
-            lavalink_node:
-                name: "lavalink_knoten"
-                description: "Lavalink zum Abspielen des Liedes (Optional)"
     pause:
         name: "pause"
         description: "Die aktuell laufende Musik pausieren"
@@ -187,9 +184,6 @@ responses:
         queue_too_small: "Es gibt nur {count} Songs in der Warteschlange"
         youtube_not_supported: "YouTube-Links oder Musik werden derzeit nicht unterstützt :("
         no_results: "Keine Ergebnisse gefunden"
-        node_invalid: "Ungültiger Lavalink-Knoten"
-        node_not_connected: "Lavalink-Knoten ist nicht verbunden"
-        player_exists: "Du hast bereits einen aktiven Musikplayer auf diesem Server. Bitte stoppe ihn, bevor du den Lavalink-Knoten wechselst."
         no_permission: "🚫 {user}, du hast keine Berechtigung, diesen Befehl zu verwenden!"
         missing_user_perms: "🚫 Du hast nicht die benötigten Rechte `{permissions}`, um diesen Befehl zu verwenden!"
         missing_bot_perms: "🚫 Ich benötige die Rechte `{permissions}`, um diesen Befehl auszuführen!"

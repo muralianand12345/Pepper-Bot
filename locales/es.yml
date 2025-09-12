@@ -6,9 +6,6 @@ commands:
             song:
                 name: "canción"
                 description: "Nombre de la canción/URL"
-            lavalink_node:
-                name: "nodo_lavalink"
-                description: "Lavalink para reproducir la canción (Opcional)"
     pause:
         name: "pausar"
         description: "Pausar la música que se está reproduciendo"
@@ -187,9 +184,6 @@ responses:
         queue_too_small: "Solo hay {count} canciones en la cola"
         youtube_not_supported: "Actualmente no se admiten enlaces o música de YouTube :("
         no_results: "No se encontraron resultados"
-        node_invalid: "Nodo Lavalink inválido"
-        node_not_connected: "El nodo Lavalink no está conectado"
-        player_exists: "Ya tienes un reproductor de música activo en este servidor. Por favor, detén el reproductor actual antes de cambiar de nodo."
         no_permission: "🚫 {user}, ¡no tienes permiso para usar este comando!"
         missing_user_perms: "🚫 No tienes los permisos `{permissions}` necesarios para usar este comando!"
         missing_bot_perms: "🚫 Necesito permisos `{permissions}` para ejecutar este comando!"

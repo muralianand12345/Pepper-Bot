@@ -64,18 +64,6 @@ class Music {
                 return null;
             return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.music_disabled'), this.locale);
         };
-        this.validateLavalinkNode = async (nodeChoice) => {
-            if (!nodeChoice)
-                return null;
-            if (this.client.manager.getPlayer(this.interaction.guild?.id || ''))
-                return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.player_exists'), this.locale);
-            const node = this.client.manager.nodes.find((n) => n.options.identifier === nodeChoice);
-            if (!node)
-                return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.node_invalid'), this.locale);
-            if (!node.connected)
-                return new handlers_1.MusicResponseHandler(this.client).createErrorEmbed(this.t('responses.errors.node_not_connected'), this.locale);
-            return null;
-        };
         this.validateFilterName = (filterName) => {
             return filterName in exports.MUSIC_CONFIG.AUDIO_FILTERS;
         };
@@ -103,7 +91,7 @@ class Music {
                     const track = res.tracks[0];
                     await player.queue.add(track);
                     const queueSize = await player.queue.size();
-                    if (!player.playing && !player.paused && queueSize === 1)
+                    if (!player.playing && !player.paused && queueSize === 0)
                         player.play();
                     await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, queueSize, this.locale)] });
                     break;
@@ -132,10 +120,6 @@ class Music {
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
             const query = this.interaction.options.getString('song') || this.t('responses.default_search');
-            const nodeChoice = this.interaction.options.getString('lavalink_node') || undefined;
-            const nodeCheck = await this.validateLavalinkNode(nodeChoice);
-            if (nodeCheck)
-                return await this.interaction.editReply({ embeds: [nodeCheck] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection()]) {
                 const [isValid, embed] = await check;
@@ -649,7 +633,8 @@ class Music {
                         const currentTitle = format_1.default.truncateText(currentTrack.title, 40);
                         const currentArtist = format_1.default.truncateText(currentTrack.author, 25);
                         const currentDuration = currentTrack.isStream ? this.t('responses.queue.live') : format_1.default.msToTime(currentTrack.duration);
-                        const progressBar = player.playing ? format_1.default.createProgressBar(player) : '';
+                        const durationMs = currentTrack.isStream ? 0 : Number(currentTrack.duration || 0);
+                        const progressBar = player.playing && durationMs > 0 ? format_1.default.createProgressBar(player, durationMs) : '';
                         embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
                         if (progressBar)
                             embed.addFields({ name: `⏱️ ${this.t('responses.queue.progress')}`, value: progressBar, inline: false });
@@ -669,7 +654,7 @@ class Music {
                     }
                     const totalDuration = queueTracks.reduce((acc, track) => acc + (track.isStream ? 0 : track.duration), 0);
                     const totalFormatted = format_1.default.msToTime(totalDuration);
-                    const streamCount = queueTracks.filter((track) => track.isStream).length;
+                    const streamCount = queueTracks.filter(track => track.isStream).length;
                     let description = `**${queueTracks.length}** ${this.t('responses.queue.tracks_in_queue')}`;
                     if (totalDuration > 0)
                         description += `\n**${totalFormatted}** ${this.t('responses.queue.total_duration')}`;
