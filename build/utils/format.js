@@ -118,7 +118,7 @@ Formatter.hyperlink = (text, url) => {
  */
 Formatter.createProgressBar = (player, trackDurationMs) => {
     const positionMs = Number.isFinite(player?.position) ? Number(player.position) : 0;
-    const durationMs = typeof trackDurationMs === 'number' && trackDurationMs > 0 ? trackDurationMs : Number(player?.queue?.current?.duration ?? player?.current?.duration ?? 0);
+    const durationMs = typeof trackDurationMs === 'number' && trackDurationMs > 0 ? trackDurationMs : 0;
     if (!durationMs || durationMs <= 0)
         return '';
     const posSec = Math.max(0, Math.floor(positionMs / 1000));

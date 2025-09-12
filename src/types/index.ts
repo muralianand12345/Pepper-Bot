@@ -37,6 +37,7 @@ declare module 'discord.js' {
 declare module 'magmastream' {
 	interface Player {
 		cleanupScheduledAt?: number;
+		lastUpdateTime?: number;
 	}
 }
 

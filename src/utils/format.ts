@@ -1,4 +1,4 @@
-import { IPlayer } from '../types';
+import magmastream from "magmastream";
 
 /**
  * A utility class for formatting text and time values
@@ -124,9 +124,9 @@ class Formatter {
 	 * @param player - The player object containing position and queue information
 	 * @returns Formatted progress bar string
 	 */
-	public static createProgressBar = (player: IPlayer | any, trackDurationMs?: number): string => {
+	public static createProgressBar = (player: magmastream.Player, trackDurationMs?: number): string => {
 		const positionMs: number = Number.isFinite(player?.position) ? Number(player.position) : 0;
-		const durationMs: number = typeof trackDurationMs === 'number' && trackDurationMs > 0 ? trackDurationMs : Number(player?.queue?.current?.duration ?? player?.current?.duration ?? 0);
+		const durationMs: number = typeof trackDurationMs === 'number' && trackDurationMs > 0 ? trackDurationMs : 0;
 
 		if (!durationMs || durationMs <= 0) return '';
 

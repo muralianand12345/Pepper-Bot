@@ -633,7 +633,8 @@ class Music {
                         const currentTitle = format_1.default.truncateText(currentTrack.title, 40);
                         const currentArtist = format_1.default.truncateText(currentTrack.author, 25);
                         const currentDuration = currentTrack.isStream ? this.t('responses.queue.live') : format_1.default.msToTime(currentTrack.duration);
-                        const progressBar = player.playing ? format_1.default.createProgressBar(player) : '';
+                        const durationMs = currentTrack.isStream ? 0 : Number(currentTrack.duration || 0);
+                        const progressBar = player.playing && durationMs > 0 ? format_1.default.createProgressBar(player, durationMs) : '';
                         embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
                         if (progressBar)
                             embed.addFields({ name: `⏱️ ${this.t('responses.queue.progress')}`, value: progressBar, inline: false });
@@ -653,7 +654,7 @@ class Music {
                     }
                     const totalDuration = queueTracks.reduce((acc, track) => acc + (track.isStream ? 0 : track.duration), 0);
                     const totalFormatted = format_1.default.msToTime(totalDuration);
-                    const streamCount = queueTracks.filter((track) => track.isStream).length;
+                    const streamCount = queueTracks.filter(track => track.isStream).length;
                     let description = `**${queueTracks.length}** ${this.t('responses.queue.tracks_in_queue')}`;
                     if (totalDuration > 0)
                         description += `\n**${totalFormatted}** ${this.t('responses.queue.total_duration')}`;

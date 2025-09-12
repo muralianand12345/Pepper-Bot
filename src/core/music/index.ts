@@ -517,8 +517,8 @@ export class Music {
 				lyricsText = lyricsData.text;
 			} else if (lyricsData.lines && lyricsData.lines.length > 0) {
 				lyricsText = lyricsData.lines
-					.map((line: any) => line.line)
-					.filter((line: any) => line && line.trim() !== '')
+					.map((line: magmastream.LyricsLine) => line.line)
+					.filter((line: string) => line && line.trim() !== '')
 					.join('\n');
 			}
 
@@ -675,7 +675,8 @@ export class Music {
 					const currentTitle = Formatter.truncateText(currentTrack.title, 40);
 					const currentArtist = Formatter.truncateText(currentTrack.author, 25);
 					const currentDuration = currentTrack.isStream ? this.t('responses.queue.live') : Formatter.msToTime(currentTrack.duration);
-					const progressBar = player.playing ? Formatter.createProgressBar(player as any) : '';
+					const durationMs = currentTrack.isStream ? 0 : Number(currentTrack.duration || 0);
+					const progressBar = player.playing && durationMs > 0 ? Formatter.createProgressBar(player, durationMs) : '';
 
 					embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
 					if (progressBar) embed.addFields({ name: `⏱️ ${this.t('responses.queue.progress')}`, value: progressBar, inline: false });
@@ -683,12 +684,12 @@ export class Music {
 
 				if (queuePage.length > 0) {
 					const queueList = queuePage
-						.map((track: any, index) => {
+						.map((track: magmastream.Track, index: number) => {
 							const position = startIndex + index + 1;
 							const title = Formatter.truncateText(track.title, 35);
 							const artist = Formatter.truncateText(track.author, 20);
 							const duration = track.isStream ? this.t('responses.queue.live') : Formatter.msToTime(track.duration);
-							const requester = track.requester ? ` • ${(track.requester as any).username}` : '';
+							const requester = track.requester ? ` • ${track.requester.username}` : '';
 							return `**${position}.** **${title}** - ${artist}\n└ ${duration}${requester}`;
 						})
 						.join('\n\n');
@@ -696,9 +697,9 @@ export class Music {
 					embed.addFields({ name: `📋 ${this.t('responses.queue.upcoming')} (${queueTracks.length})`, value: queueList.length > 1024 ? queueList.substring(0, 1021) + '...' : queueList, inline: false });
 				}
 
-				const totalDuration = queueTracks.reduce((acc, track: any) => acc + (track.isStream ? 0 : track.duration), 0) as number;
+				const totalDuration = queueTracks.reduce((acc: number, track: magmastream.Track) => acc + (track.isStream ? 0 : track.duration), 0) as number;
 				const totalFormatted = Formatter.msToTime(totalDuration);
-				const streamCount = queueTracks.filter((track: any) => track.isStream).length;
+				const streamCount = queueTracks.filter(track => track.isStream).length;
 
 				let description = `**${queueTracks.length}** ${this.t('responses.queue.tracks_in_queue')}`;
 				if (totalDuration > 0) description += `\n**${totalFormatted}** ${this.t('responses.queue.total_duration')}`;

@@ -1,4 +1,5 @@
 import discord from 'discord.js';
+import magmastream from 'magmastream';
 
 import { Music } from '../core/music';
 import { Command, CommandCategory } from '../types';
@@ -9,7 +10,7 @@ import { LocalizationManager, LocaleDetector } from '../core/locales';
 const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
 
-const createQueueEmbed = async (player: any, queueTracks: any[], currentPage: number, t: any, client: discord.Client): Promise<discord.EmbedBuilder> => {
+const createQueueEmbed = async (player: magmastream.Player, queueTracks: magmastream.Track[], currentPage: number, t: any, client: discord.Client): Promise<discord.EmbedBuilder> => {
 	const itemsPerPage = 10;
 	const startIndex = currentPage * itemsPerPage;
 	const endIndex = startIndex + itemsPerPage;
@@ -28,8 +29,8 @@ const createQueueEmbed = async (player: any, queueTracks: any[], currentPage: nu
 	if (currentTrack) {
 		const currentTitle = Formatter.truncateText(currentTrack.title || 'Unknown', 40);
 		const currentArtist = Formatter.truncateText(currentTrack.author || 'Unknown', 25);
-		const isStream = Boolean((currentTrack as any).isStream);
-		const durationMs = Number((currentTrack as any).duration || 0);
+		const isStream = Boolean(currentTrack.isStream);
+		const durationMs = Number(currentTrack.duration || 0);
 		const currentDuration = isStream ? t('responses.queue.live') : durationMs > 0 ? Formatter.msToTime(durationMs) : '00:00:00';
 		const progressBar = player.playing ? Formatter.createProgressBar(player, durationMs) : '';
 
@@ -43,10 +44,10 @@ const createQueueEmbed = async (player: any, queueTracks: any[], currentPage: nu
 				const position = startIndex + index + 1;
 				const title = Formatter.truncateText((track?.title as string) || 'Unknown', 35);
 				const artist = Formatter.truncateText((track?.author as string) || 'Unknown', 20);
-				const isStream = Boolean((track as any)?.isStream);
-				const durationMs = Number((track as any)?.duration || 0);
+				const isStream = Boolean(track?.isStream);
+				const durationMs = Number(track?.duration || 0);
 				const duration = isStream ? t('responses.queue.live') : durationMs > 0 ? Formatter.msToTime(durationMs) : '00:00:00';
-				const requester = (track as any)?.requester ? ` • ${((track as any).requester as any).username}` : '';
+				const requester = track?.requester ? ` • ${track.requester.username}` : '';
 				return `**${position}.** **${title}** - ${artist}\n└ ${duration}${requester}`;
 			})
 			.join('\n\n');
@@ -55,8 +56,8 @@ const createQueueEmbed = async (player: any, queueTracks: any[], currentPage: nu
 	}
 
 	const totalDuration = queueTracks.reduce((acc, track) => {
-		const isStream = Boolean((track as any)?.isStream);
-		const dur = Number((track as any)?.duration || 0);
+		const isStream = Boolean(track?.isStream);
+		const dur = Number(track?.duration || 0);
 		return acc + (isStream ? 0 : Math.max(0, dur));
 	}, 0);
 	const totalFormatted = Formatter.msToTime(totalDuration);
@@ -149,11 +150,11 @@ const queueCommand: Command = {
 							const track = queueTracks[pos - 1];
 							if (track) {
 								const queueArray = await player.queue.getTracks();
-								const index = queueArray.findIndex((t: any) => t.uri === track.uri && t.title === track.title);
+								const index = queueArray.findIndex((t: magmastream.Track) => t.uri === track.uri && t.title === track.title);
 								if (index !== -1) {
 									await player.queue.remove(index);
 									removedCount++;
-									interaction.client.logger.info(`[QUEUE] Successfully removed track at position ${pos}: ${(track as any).title}`);
+									interaction.client.logger.info(`[QUEUE] Successfully removed track at position ${pos}: ${track.title}`);
 								}
 							}
 						} catch (error) {
@@ -197,11 +198,11 @@ const queueCommand: Command = {
 				if (fromPosition === toPosition) return await interaction.reply({ embeds: [responseHandler.createInfoEmbed(t('responses.queue.same_position'), locale)], flags: discord.MessageFlags.Ephemeral });
 
 				try {
-					const trackToMove = queueTracks[fromPosition - 1] as any;
+					const trackToMove = queueTracks[fromPosition - 1];
 					if (!trackToMove) return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.track_not_found'), locale)], flags: discord.MessageFlags.Ephemeral });
 
 					const queueArray = await player.queue.getTracks();
-					const trackIndex = queueArray.findIndex((t: any) => t.uri === trackToMove.uri && t.title === trackToMove.title);
+					const trackIndex = queueArray.findIndex((t: magmastream.Track) => t.uri === trackToMove.uri && t.title === trackToMove.title);
 
 					if (trackIndex !== -1) {
 						await player.queue.remove(trackIndex);
