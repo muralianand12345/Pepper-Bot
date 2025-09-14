@@ -21,11 +21,13 @@ exports.Music = exports.MUSIC_CONFIG = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = __importDefault(require("magmastream"));
 const format_1 = __importDefault(require("../../utils/format"));
+const utils_1 = require("./utils");
 const locales_1 = require("../locales");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
 const handlers_1 = require("./handlers");
 __exportStar(require("./func"), exports);
 __exportStar(require("./repo"), exports);
+__exportStar(require("./utils"), exports);
 __exportStar(require("./search"), exports);
 __exportStar(require("./handlers"), exports);
 __exportStar(require("./now_playing"), exports);
@@ -634,7 +636,8 @@ class Music {
                         const currentArtist = format_1.default.truncateText(currentTrack.author, 25);
                         const currentDuration = currentTrack.isStream ? this.t('responses.queue.live') : format_1.default.msToTime(currentTrack.duration);
                         const durationMs = currentTrack.isStream ? 0 : Number(currentTrack.duration || 0);
-                        const progressBar = player.playing && durationMs > 0 ? format_1.default.createProgressBar(player, durationMs) : '';
+                        const progress = player.playing && durationMs > 0 ? utils_1.ProgressBarUtils.createBarFromPlayer(player, durationMs) : null;
+                        const progressBar = progress ? `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\`` : '';
                         embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
                         if (progressBar)
                             embed.addFields({ name: `⏱️ ${this.t('responses.queue.progress')}`, value: progressBar, inline: false });
@@ -654,7 +657,7 @@ class Music {
                     }
                     const totalDuration = queueTracks.reduce((acc, track) => acc + (track.isStream ? 0 : track.duration), 0);
                     const totalFormatted = format_1.default.msToTime(totalDuration);
-                    const streamCount = queueTracks.filter(track => track.isStream).length;
+                    const streamCount = queueTracks.filter((track) => track.isStream).length;
                     let description = `**${queueTracks.length}** ${this.t('responses.queue.tracks_in_queue')}`;
                     if (totalDuration > 0)
                         description += `\n**${totalFormatted}** ${this.t('responses.queue.total_duration')}`;

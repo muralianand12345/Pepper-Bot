@@ -5,10 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const music_1 = require("../core/music");
-const types_1 = require("../types");
-const music_2 = require("../core/music");
 const format_1 = __importDefault(require("../utils/format"));
+const types_1 = require("../types");
 const locales_1 = require("../core/locales");
+const music_2 = require("../core/music");
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const createQueueEmbed = async (player, queueTracks, currentPage, t, client) => {
@@ -31,7 +31,8 @@ const createQueueEmbed = async (player, queueTracks, currentPage, t, client) => 
         const isStream = Boolean(currentTrack.isStream);
         const durationMs = Number(currentTrack.duration || 0);
         const currentDuration = isStream ? t('responses.queue.live') : durationMs > 0 ? format_1.default.msToTime(durationMs) : '00:00:00';
-        const progressBar = player.playing ? format_1.default.createProgressBar(player, durationMs) : '';
+        const progress = player.playing ? music_2.ProgressBarUtils.createBarFromPlayer(player, durationMs) : null;
+        const progressBar = progress ? `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\`` : '';
         embed.addFields({ name: `🎵 ${t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
         if (progressBar)
             embed.addFields({ name: `⏱️ ${t('responses.queue.progress')}`, value: progressBar, inline: false });
