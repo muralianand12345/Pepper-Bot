@@ -11,8 +11,8 @@ export class NowPlayingManager {
 	private player: magmastream.Player;
 	private client: discord.Client;
 	private lastUpdateTime: number = 0;
-	private readonly UPDATE_INTERVAL = 2000; // refresh every 2s for tighter sync
-	private readonly MIN_UPDATE_INTERVAL = 1200; // throttle edits to at least 1.2s apart
+	private readonly UPDATE_INTERVAL = 10000; // refresh every 10s to avoid rate limits
+	private readonly MIN_UPDATE_INTERVAL = 8000; // throttle edits to at least 8s apart
 	private paused: boolean = false;
 	private destroyed: boolean = false;
 	private stopped: boolean = false;

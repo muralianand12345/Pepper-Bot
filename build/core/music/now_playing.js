@@ -13,8 +13,8 @@ class NowPlayingManager {
         this.message = null;
         this.updateInterval = null;
         this.lastUpdateTime = 0;
-        this.UPDATE_INTERVAL = 5000; // refresh every 5s
-        this.MIN_UPDATE_INTERVAL = 2000; // throttle edits to at least 2s apart
+        this.UPDATE_INTERVAL = 10000; // refresh every 10s to avoid rate limits
+        this.MIN_UPDATE_INTERVAL = 8000; // throttle edits to at least 8s apart
         this.paused = false;
         this.destroyed = false;
         this.stopped = false;
@@ -75,7 +75,6 @@ class NowPlayingManager {
                         return 0;
                     if (duration <= 0)
                         return Math.max(0, rawPosition);
-                    // Smaller headroom and no forward smoothing to keep display closer to real time
                     const headroom = 100; // ms
                     const upperBound = Math.max(0, duration - headroom);
                     const clamped = Math.min(Math.max(0, rawPosition), upperBound);

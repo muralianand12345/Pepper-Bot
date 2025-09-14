@@ -118,7 +118,6 @@ export interface ISpotifySearchOptions {
 	includeExternal?: 'audio';
 }
 
-
 export interface IPlaylistSuggestionResult {
 	seedSong: ISongs | null;
 	recommendations: ISongs[];
@@ -131,4 +130,12 @@ export interface IPlaylistSuggestionResult {
 	};
 	totalRecommendations: number;
 	executionTime: number;
+}
+
+export interface ProgressComputation {
+	displayPosition: number;
+	percentage: number;
+	formattedPosition: string;
+	formattedDuration: string;
+	bar: string;
 }

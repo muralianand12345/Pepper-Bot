@@ -2,12 +2,14 @@ import discord from 'discord.js';
 import magmastream from 'magmastream';
 
 import Formatter from '../../utils/format';
+import { ProgressBarUtils } from './utils';
 import { LocaleDetector } from '../locales';
 import music_guild from '../../events/database/schema/music_guild';
 import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator, Autoplay } from './handlers';
 
 export * from './func';
 export * from './repo';
+export * from './utils';
 export * from './search';
 export * from './handlers';
 export * from './now_playing';
@@ -676,7 +678,8 @@ export class Music {
 					const currentArtist = Formatter.truncateText(currentTrack.author, 25);
 					const currentDuration = currentTrack.isStream ? this.t('responses.queue.live') : Formatter.msToTime(currentTrack.duration);
 					const durationMs = currentTrack.isStream ? 0 : Number(currentTrack.duration || 0);
-					const progressBar = player.playing && durationMs > 0 ? Formatter.createProgressBar(player, durationMs) : '';
+					const progress = player.playing && durationMs > 0 ? ProgressBarUtils.createBarFromPlayer(player, durationMs) : null;
+					const progressBar = progress ? `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\`` : '';
 
 					embed.addFields({ name: `🎵 ${this.t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
 					if (progressBar) embed.addFields({ name: `⏱️ ${this.t('responses.queue.progress')}`, value: progressBar, inline: false });
@@ -699,7 +702,7 @@ export class Music {
 
 				const totalDuration = queueTracks.reduce((acc: number, track: magmastream.Track) => acc + (track.isStream ? 0 : track.duration), 0) as number;
 				const totalFormatted = Formatter.msToTime(totalDuration);
-				const streamCount = queueTracks.filter(track => track.isStream).length;
+				const streamCount = queueTracks.filter((track) => track.isStream).length;
 
 				let description = `**${queueTracks.length}** ${this.t('responses.queue.tracks_in_queue')}`;
 				if (totalDuration > 0) description += `\n**${totalFormatted}** ${this.t('responses.queue.total_duration')}`;

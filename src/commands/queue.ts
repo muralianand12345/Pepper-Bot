@@ -2,10 +2,10 @@ import discord from 'discord.js';
 import magmastream from 'magmastream';
 
 import { Music } from '../core/music';
-import { Command, CommandCategory } from '../types';
-import { MusicResponseHandler } from '../core/music';
 import Formatter from '../utils/format';
+import { Command, CommandCategory } from '../types';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
+import { MusicResponseHandler, ProgressBarUtils } from '../core/music';
 
 const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
@@ -32,7 +32,8 @@ const createQueueEmbed = async (player: magmastream.Player, queueTracks: magmast
 		const isStream = Boolean(currentTrack.isStream);
 		const durationMs = Number(currentTrack.duration || 0);
 		const currentDuration = isStream ? t('responses.queue.live') : durationMs > 0 ? Formatter.msToTime(durationMs) : '00:00:00';
-		const progressBar = player.playing ? Formatter.createProgressBar(player, durationMs) : '';
+		const progress = player.playing ? ProgressBarUtils.createBarFromPlayer(player, durationMs) : null;
+		const progressBar = progress ? `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\`` : '';
 
 		embed.addFields({ name: `🎵 ${t('responses.queue.now_playing')}`, value: `**${currentTitle}** - ${currentArtist}\n└ ${currentDuration}`, inline: false });
 		if (progressBar) embed.addFields({ name: `⏱️ ${t('responses.queue.progress')}`, value: progressBar, inline: false });
