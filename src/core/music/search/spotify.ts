@@ -4,8 +4,8 @@ import axios, { AxiosInstance } from 'axios';
 import { ConfigManager } from '../../../utils/config';
 import { ISongs, ICacheEntry, ICacheConfig, ISpotifyTrack, ISpotifySearchResponse, ISpotifySearchOptions } from '../../../types';
 
-export class SpotifySearchService {
-	private static instance: SpotifySearchService;
+export class SpotifyService {
+	private static instance: SpotifyService;
 	private client: discord.Client;
 	private token: string | null = null;
 	private tokenExpiry: number = 0;
@@ -39,11 +39,9 @@ export class SpotifySearchService {
 		if (this.cacheConfig.enabled) this.startCleanupTimer();
 	}
 
-	public static getInstance = (client: discord.Client): SpotifySearchService => {
-		if (!SpotifySearchService.instance) {
-			SpotifySearchService.instance = new SpotifySearchService(client);
-		}
-		return SpotifySearchService.instance;
+	public static getInstance = (client: discord.Client): SpotifyService => {
+		if (!SpotifyService.instance) SpotifyService.instance = new SpotifyService(client);
+		return SpotifyService.instance;
 	};
 
 	private setupInterceptors = (): void => {

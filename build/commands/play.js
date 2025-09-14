@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const config_1 = require("../utils/config");
-const music_1 = require("../core/music");
 const types_1 = require("../types");
+const music_1 = require("../core/music");
 const locales_1 = require("../core/locales");
 const configManager = config_1.ConfigManager.getInstance();
 const localizationManager = locales_1.LocalizationManager.getInstance();

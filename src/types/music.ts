@@ -50,11 +50,6 @@ export interface ISpotifySearchResult {
 	};
 }
 
-export interface INodeOption {
-	name: string;
-	value: string;
-}
-
 export interface ITrackProgress {
 	displayPosition: number;
 	percentage: number;
