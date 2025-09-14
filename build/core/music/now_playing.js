@@ -13,8 +13,8 @@ class NowPlayingManager {
         this.message = null;
         this.updateInterval = null;
         this.lastUpdateTime = 0;
-        this.UPDATE_INTERVAL = 15000;
-        this.MIN_UPDATE_INTERVAL = 5000;
+        this.UPDATE_INTERVAL = 5000; // refresh every 5s
+        this.MIN_UPDATE_INTERVAL = 2000; // throttle edits to at least 2s apart
         this.paused = false;
         this.destroyed = false;
         this.stopped = false;
@@ -60,24 +60,26 @@ class NowPlayingManager {
                 }
             }, this.UPDATE_INTERVAL);
         };
-        this.getAdjustedPlayer = () => {
+        this.getAdjustedPlayer = async () => {
             const playerProxy = Object.create(Object.getPrototypeOf(this.player));
             for (const prop of Object.getOwnPropertyNames(this.player)) {
                 if (prop !== 'position')
                     Object.defineProperty(playerProxy, prop, Object.getOwnPropertyDescriptor(this.player, prop));
             }
+            const current = await this.player.queue?.getCurrent();
+            const duration = Number(current?.duration || 0);
             Object.defineProperty(playerProxy, 'position', {
                 get: () => {
-                    const position = this.player.position;
-                    const duration = 0;
-                    const remainingTime = duration - position;
-                    if (remainingTime <= 10000) {
-                        if (remainingTime < 2000)
-                            return duration - 100;
-                        const scalingFactor = 1 + (10000 - remainingTime) / 10000;
-                        return Math.min(position * scalingFactor, duration - 100);
-                    }
-                    return Math.min(position + 300, duration);
+                    const rawPosition = Number(this.player.position || 0);
+                    if (!Number.isFinite(rawPosition))
+                        return 0;
+                    if (duration <= 0)
+                        return Math.max(0, rawPosition);
+                    // Smaller headroom and no forward smoothing to keep display closer to real time
+                    const headroom = 100; // ms
+                    const upperBound = Math.max(0, duration - headroom);
+                    const clamped = Math.min(Math.max(0, rawPosition), upperBound);
+                    return clamped;
                 },
             });
             return playerProxy;
@@ -150,7 +152,7 @@ class NowPlayingManager {
                     return;
                 }
                 const locale = await this.getGuildLocale();
-                const adjustedPlayer = this.getAdjustedPlayer();
+                const adjustedPlayer = await this.getAdjustedPlayer();
                 const embed = await new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(currentTrack, adjustedPlayer, locale);
                 const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
                 const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);

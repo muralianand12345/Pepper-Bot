@@ -11,12 +11,17 @@ const locales_1 = require("../../locales");
 class MusicResponseHandler {
     constructor(client) {
         this.trackProgress = (position, duration) => {
-            const normalizedPosition = Math.min(position, duration);
-            const percentage = normalizedPosition / duration;
-            const formattedPosition = format_1.default.msToTime(normalizedPosition);
-            const formattedDuration = format_1.default.msToTime(duration);
+            const safeDuration = Math.max(0, duration);
+            const normalizedPosition = Math.min(Math.max(0, position), Math.max(1, safeDuration));
+            const pctWindow = Math.floor(safeDuration * 0.02); // 2% of duration
+            const dynamicWindow = Math.min(6000, Math.max(2000, pctWindow));
+            const remaining = Math.max(0, safeDuration - normalizedPosition);
+            const displayPositionMs = safeDuration > 0 && remaining <= dynamicWindow ? safeDuration : normalizedPosition;
+            const percentage = safeDuration > 0 ? displayPositionMs / safeDuration : 0;
+            const formattedPosition = format_1.default.msToTime(displayPositionMs);
+            const formattedDuration = format_1.default.msToTime(safeDuration);
             return {
-                displayPosition: normalizedPosition,
+                displayPosition: displayPositionMs,
                 percentage,
                 formattedPosition,
                 formattedDuration,
