@@ -5,7 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const music_1 = require("../core/music");
-exports.default = {
+const types_1 = require("../types");
+const djCommand = {
+    cooldown: 120,
+    category: types_1.CommandCategory.UTILITY,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('dj')
         .setDescription('Manage DJ role for music commands')
@@ -17,3 +20,4 @@ exports.default = {
         await music.dj();
     },
 };
+exports.default = djCommand;
