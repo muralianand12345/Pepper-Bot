@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
+const magma_connect_1 = require("magma-connect");
 const magmastream_1 = require("magmastream");
 const logger_1 = __importDefault(require("./utils/logger"));
 const command_logger_1 = __importDefault(require("./utils/command_logger"));
@@ -15,7 +16,7 @@ const initializeManager = (config, client) => {
         stateStorage: {
             type: magmastream_1.StateStorageType.Redis,
             redisConfig: configManager.getRedisConfig(),
-            deleteInactivePlayers: true
+            deleteInactivePlayers: true,
         },
         enablePriorityMode: true,
         playNextOnEnd: true,
@@ -25,6 +26,7 @@ const initializeManager = (config, client) => {
         lastFmApiKey: configManager.getLastFmApiKey(),
         nodes: config.music.lavalink.nodes,
         useNode: magmastream_1.UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
+        enabledPlugins: [new magma_connect_1.MagmaConnect({ debug: configManager.isDebugMode() })],
         send: (packet) => {
             const guild = client.guilds.cache.get(packet.d?.guild_id);
             if (guild)
