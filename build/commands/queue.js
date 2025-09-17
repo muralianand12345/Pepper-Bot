@@ -21,10 +21,7 @@ const createQueueEmbed = async (player, queueTracks, currentPage, t, client) => 
         .setColor('#5865f2')
         .setTitle(`🎵 ${t('responses.queue.title')}`)
         .setTimestamp()
-        .setFooter({
-        text: queueTracks.length > 0 ? `${t('responses.queue.page')} ${currentPage + 1}/${Math.ceil(queueTracks.length / itemsPerPage)} • ${client.user?.username || 'Music Bot'}` : `${client.user?.username || 'Music Bot'}`,
-        iconURL: client.user?.displayAvatarURL(),
-    });
+        .setFooter({ text: queueTracks.length > 0 ? `${t('responses.queue.page')} ${currentPage + 1}/${Math.ceil(queueTracks.length / itemsPerPage)} • ${client.user?.username || 'Music Bot'}` : `${client.user?.username || 'Music Bot'}`, iconURL: client.user?.displayAvatarURL() });
     if (currentTrack) {
         const currentTitle = format_1.default.truncateText(currentTrack.title || 'Unknown', 40);
         const currentArtist = format_1.default.truncateText(currentTrack.author || 'Unknown', 25);

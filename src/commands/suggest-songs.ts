@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import { TrackUtils, LoadTypes } from 'magmastream';
+import { TrackUtils } from 'magmastream';
 
 import Formatter from '../utils/format';
 import { Command, ISongs, CommandCategory, IPlaylistSuggestionResult } from '../types';

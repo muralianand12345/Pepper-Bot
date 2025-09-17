@@ -1,9 +1,8 @@
 import discord from 'discord.js';
-import magmastream from 'magmastream';
 
 import { ConfigManager } from '../utils/config';
+import { Command, CommandCategory } from '../types';
 import { Music, SpotifyAutoComplete } from '../core/music';
-import { Command, INodeOption, CommandCategory } from '../types';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 
 const configManager = ConfigManager.getInstance();

@@ -4,17 +4,17 @@ import magmastream, { TrackUtils } from 'magmastream';
 import { MusicDB } from '../repo';
 import { getRequester } from '../func';
 import { ISongs } from '../../../types';
-import { SpotifySearchService } from '../search';
+import { SpotifyService } from '../search';
 
 export class PlaylistSuggestion {
 	private client: discord.Client;
 	private readonly defaultLimit: number = 20;
 	private readonly similarityThreshold: number = 0.4;
-	private spotifyService: SpotifySearchService;
+	private spotifyService: SpotifyService;
 
 	constructor(client: discord.Client) {
 		this.client = client;
-		this.spotifyService = SpotifySearchService.getInstance(client);
+		this.spotifyService = SpotifyService.getInstance(client);
 	}
 
 	private convertTrackToISongs = (track: magmastream.Track): ISongs => {
@@ -39,91 +39,6 @@ export class PlaylistSuggestion {
 		};
 	};
 
-	public getSuggestionsFromUserTopSong = async (userId: string, guildId: string, limit: number = this.defaultLimit): Promise<{ seedSong: ISongs | null; recommendations: ISongs[] }> => {
-		try {
-			const startTime = Date.now();
-			const userTopSongs = await MusicDB.getUserTopSongs(userId, 1);
-			const seedSong = userTopSongs && userTopSongs.length > 0 ? userTopSongs[0] : null;
-
-			if (!seedSong) {
-				this.client.logger.warn(`[PLAYLIST_SUGGESTION] No top song found for user ${userId}`);
-				return { seedSong: null, recommendations: [] };
-			}
-
-			this.client.logger.info(`[PLAYLIST_SUGGESTION] Using top song "${seedSong.title}" by ${seedSong.author} as seed`);
-
-			const recommendations = await this.getSuggestions(userId, guildId, seedSong, limit);
-			const endTime = Date.now();
-			this.client.logger.info(`[PLAYLIST_SUGGESTION] Generated ${recommendations.length} suggestions in ${endTime - startTime}ms`);
-
-			return { seedSong, recommendations };
-		} catch (error) {
-			this.client.logger.error(`[PLAYLIST_SUGGESTION] Error getting suggestions from user top song: ${error}`);
-			return { seedSong: null, recommendations: [] };
-		}
-	};
-
-	public getSuggestions = async (userId: string, guildId: string, seedTrack: ISongs, limit: number = this.defaultLimit): Promise<ISongs[]> => {
-		try {
-			const suggestions: ISongs[] = [];
-			let remainingSlots = limit;
-
-			if (remainingSlots > 0) {
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting Spotify recommendations for ${seedTrack.title}`);
-				const spotifyRecommendations = await this.getSpotifyRecommendations(seedTrack, Math.ceil(remainingSlots * 0.4));
-				suggestions.push(...spotifyRecommendations);
-				remainingSlots -= spotifyRecommendations.length;
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${spotifyRecommendations.length} Spotify recommendations`);
-			}
-
-			if (remainingSlots > 0) {
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting track-based recommendations for ${seedTrack.title}`);
-				const trackBasedSuggestions = await this.getTrackBasedSuggestions(seedTrack, userId, guildId, Math.ceil(remainingSlots * 0.3));
-				const filteredTrackSuggestions = trackBasedSuggestions.filter((track) => !suggestions.some((existing) => existing.uri === track.uri));
-				suggestions.push(...filteredTrackSuggestions);
-				remainingSlots -= filteredTrackSuggestions.length;
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${filteredTrackSuggestions.length} track-based suggestions`);
-			}
-
-			if (remainingSlots > 0) {
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting user history recommendations for ${userId}`);
-				const userSuggestions = await this.getUserTopRecommendations(userId, Math.ceil(remainingSlots * 0.4), [seedTrack, ...suggestions]);
-				suggestions.push(...userSuggestions);
-				remainingSlots -= userSuggestions.length;
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${userSuggestions.length} user history suggestions`);
-			}
-
-			if (remainingSlots > 0) {
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting guild recommendations for ${guildId}`);
-				const guildSuggestions = await this.getGuildRecommendations(guildId, Math.ceil(remainingSlots * 0.5), [seedTrack, ...suggestions]);
-				suggestions.push(...guildSuggestions);
-				remainingSlots -= guildSuggestions.length;
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${guildSuggestions.length} guild suggestions`);
-			}
-
-			if (remainingSlots > 0) {
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting global recommendations`);
-				const globalSuggestions = await this.getGlobalRecommendations(remainingSlots, [seedTrack, ...suggestions]);
-				suggestions.push(...globalSuggestions);
-				remainingSlots -= globalSuggestions.length;
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${globalSuggestions.length} global suggestions`);
-			}
-
-			if (remainingSlots > 0) {
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting Magmastream recommendations`);
-				const magmastreamSuggestions = await this.getMagmastreamRecommendations(seedTrack, remainingSlots, suggestions);
-				suggestions.push(...magmastreamSuggestions);
-				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${magmastreamSuggestions.length} Magmastream suggestions`);
-			}
-
-			const validSuggestions = suggestions.filter((track) => track && track.uri && track.uri.trim() !== '');
-			return this.shuffleArray(validSuggestions).slice(0, limit);
-		} catch (error) {
-			this.client.logger.error(`[PLAYLIST_SUGGESTION] Error getting suggestions: ${error}`);
-			return [];
-		}
-	};
-
 	private getSpotifyRecommendations = async (seedTrack: ISongs, limit: number): Promise<ISongs[]> => {
 		try {
 			if (!seedTrack || !seedTrack.title || !seedTrack.author) {
@@ -132,7 +47,6 @@ export class PlaylistSuggestion {
 			}
 
 			const spotifyRecommendations = await this.spotifyService.getRecommendationsBasedOnTrack(seedTrack, limit);
-
 			if (spotifyRecommendations.length === 0) {
 				this.client.logger.debug(`[PLAYLIST_SUGGESTION] No Spotify recommendations found, trying alternative search`);
 
@@ -282,19 +196,6 @@ export class PlaylistSuggestion {
 		}
 	};
 
-	public getGlobalRecommendations = async (limit: number, existingTracks: ISongs[] = []): Promise<ISongs[]> => {
-		try {
-			const existingUris = new Set(existingTracks.filter((t) => t && t.uri).map((t) => t.uri));
-			const globalData = await MusicDB.getGlobalMusicHistory();
-			if (!globalData?.songs?.length) return [];
-
-			return globalData.songs.filter((song) => song && song.uri && !existingUris.has(song.uri)).slice(0, limit);
-		} catch (error) {
-			this.client.logger.error(`[PLAYLIST_SUGGESTION] Global recommendations error: ${error}`);
-			return [];
-		}
-	};
-
 	private getMagmastreamRecommendations = async (track: ISongs, limit: number, existingTracks: ISongs[] = []): Promise<ISongs[]> => {
 		try {
 			if (!track || !track.title || !track.author) return [];
@@ -392,5 +293,103 @@ export class PlaylistSuggestion {
 			[result[i], result[j]] = [result[j], result[i]];
 		}
 		return result;
+	};
+
+	public getSuggestionsFromUserTopSong = async (userId: string, guildId: string, limit: number = this.defaultLimit): Promise<{ seedSong: ISongs | null; recommendations: ISongs[] }> => {
+		try {
+			const startTime = Date.now();
+			const userTopSongs = await MusicDB.getUserTopSongs(userId, 1);
+			const seedSong = userTopSongs && userTopSongs.length > 0 ? userTopSongs[0] : null;
+
+			if (!seedSong) {
+				this.client.logger.warn(`[PLAYLIST_SUGGESTION] No top song found for user ${userId}`);
+				return { seedSong: null, recommendations: [] };
+			}
+
+			this.client.logger.info(`[PLAYLIST_SUGGESTION] Using top song "${seedSong.title}" by ${seedSong.author} as seed`);
+
+			const recommendations = await this.getSuggestions(userId, guildId, seedSong, limit);
+			const endTime = Date.now();
+			this.client.logger.info(`[PLAYLIST_SUGGESTION] Generated ${recommendations.length} suggestions in ${endTime - startTime}ms`);
+
+			return { seedSong, recommendations };
+		} catch (error) {
+			this.client.logger.error(`[PLAYLIST_SUGGESTION] Error getting suggestions from user top song: ${error}`);
+			return { seedSong: null, recommendations: [] };
+		}
+	};
+
+	public getSuggestions = async (userId: string, guildId: string, seedTrack: ISongs, limit: number = this.defaultLimit): Promise<ISongs[]> => {
+		try {
+			const suggestions: ISongs[] = [];
+			let remainingSlots = limit;
+
+			if (remainingSlots > 0) {
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting Spotify recommendations for ${seedTrack.title}`);
+				const spotifyRecommendations = await this.getSpotifyRecommendations(seedTrack, Math.ceil(remainingSlots * 0.4));
+				suggestions.push(...spotifyRecommendations);
+				remainingSlots -= spotifyRecommendations.length;
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${spotifyRecommendations.length} Spotify recommendations`);
+			}
+
+			if (remainingSlots > 0) {
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting track-based recommendations for ${seedTrack.title}`);
+				const trackBasedSuggestions = await this.getTrackBasedSuggestions(seedTrack, userId, guildId, Math.ceil(remainingSlots * 0.3));
+				const filteredTrackSuggestions = trackBasedSuggestions.filter((track) => !suggestions.some((existing) => existing.uri === track.uri));
+				suggestions.push(...filteredTrackSuggestions);
+				remainingSlots -= filteredTrackSuggestions.length;
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${filteredTrackSuggestions.length} track-based suggestions`);
+			}
+
+			if (remainingSlots > 0) {
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting user history recommendations for ${userId}`);
+				const userSuggestions = await this.getUserTopRecommendations(userId, Math.ceil(remainingSlots * 0.4), [seedTrack, ...suggestions]);
+				suggestions.push(...userSuggestions);
+				remainingSlots -= userSuggestions.length;
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${userSuggestions.length} user history suggestions`);
+			}
+
+			if (remainingSlots > 0) {
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting guild recommendations for ${guildId}`);
+				const guildSuggestions = await this.getGuildRecommendations(guildId, Math.ceil(remainingSlots * 0.5), [seedTrack, ...suggestions]);
+				suggestions.push(...guildSuggestions);
+				remainingSlots -= guildSuggestions.length;
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${guildSuggestions.length} guild suggestions`);
+			}
+
+			if (remainingSlots > 0) {
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting global recommendations`);
+				const globalSuggestions = await this.getGlobalRecommendations(remainingSlots, [seedTrack, ...suggestions]);
+				suggestions.push(...globalSuggestions);
+				remainingSlots -= globalSuggestions.length;
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${globalSuggestions.length} global suggestions`);
+			}
+
+			if (remainingSlots > 0) {
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Getting Magmastream recommendations`);
+				const magmastreamSuggestions = await this.getMagmastreamRecommendations(seedTrack, remainingSlots, suggestions);
+				suggestions.push(...magmastreamSuggestions);
+				this.client.logger.debug(`[PLAYLIST_SUGGESTION] Found ${magmastreamSuggestions.length} Magmastream suggestions`);
+			}
+
+			const validSuggestions = suggestions.filter((track) => track && track.uri && track.uri.trim() !== '');
+			return this.shuffleArray(validSuggestions).slice(0, limit);
+		} catch (error) {
+			this.client.logger.error(`[PLAYLIST_SUGGESTION] Error getting suggestions: ${error}`);
+			return [];
+		}
+	};
+
+	public getGlobalRecommendations = async (limit: number, existingTracks: ISongs[] = []): Promise<ISongs[]> => {
+		try {
+			const existingUris = new Set(existingTracks.filter((t) => t && t.uri).map((t) => t.uri));
+			const globalData = await MusicDB.getGlobalMusicHistory();
+			if (!globalData?.songs?.length) return [];
+
+			return globalData.songs.filter((song) => song && song.uri && !existingUris.has(song.uri)).slice(0, limit);
+		} catch (error) {
+			this.client.logger.error(`[PLAYLIST_SUGGESTION] Global recommendations error: ${error}`);
+			return [];
+		}
 	};
 }

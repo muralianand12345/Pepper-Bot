@@ -3,10 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SpotifySearchService = void 0;
+exports.SpotifyService = void 0;
 const axios_1 = __importDefault(require("axios"));
 const config_1 = require("../../../utils/config");
-class SpotifySearchService {
+class SpotifyService {
     constructor(client) {
         this.token = null;
         this.tokenExpiry = 0;
@@ -238,10 +238,9 @@ class SpotifySearchService {
             this.startCleanupTimer();
     }
 }
-exports.SpotifySearchService = SpotifySearchService;
-SpotifySearchService.getInstance = (client) => {
-    if (!SpotifySearchService.instance) {
-        SpotifySearchService.instance = new SpotifySearchService(client);
-    }
-    return SpotifySearchService.instance;
+exports.SpotifyService = SpotifyService;
+SpotifyService.getInstance = (client) => {
+    if (!SpotifyService.instance)
+        SpotifyService.instance = new SpotifyService(client);
+    return SpotifyService.instance;
 };
