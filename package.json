@@ -9,7 +9,8 @@
         "build": "tsc",
         "start": "node build/index.js",
         "update-version": "node scripts/updateVersion.js",
-        "repair-db": "node scripts/repairDB.js --dry-run"
+        "repair-db": "node scripts/repairDB.js --dry-run",
+        "repair-db:apply": "node scripts/repairDB.js --no-dry-run"
     },
     "author": "Murali Anand",
     "license": "Apache-2.0",
