@@ -25,6 +25,8 @@ MusicDB.addMusicDB = async (data, songs_data) => {
         else {
             data.songs.push(songs_data);
         }
+        if (data.dj !== undefined && data.dj !== null && typeof data.dj !== 'string')
+            data.dj = null;
         await data.save();
     }
     catch (err) {

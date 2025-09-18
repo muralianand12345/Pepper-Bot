@@ -79,6 +79,7 @@ const repairMusicGuilds = async (dryRun) => {
         const updates = {};
 
         if (doc.guildId && typeof doc.guildId !== 'string') updates.guildId = String(doc.guildId?.id || doc.guildId?._id || doc.guildId);
+        // Normalize dj to string role id or null; drop legacy object shapes
         if (doc.dj && typeof doc.dj !== 'string') updates.dj = null;
         if (Array.isArray(doc.songs)) {
             const newSongs = doc.songs.map((s) => {

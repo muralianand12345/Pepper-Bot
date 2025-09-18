@@ -5,7 +5,7 @@ const index_1 = require("./index");
 const musicGuildSchema = new mongoose_1.Schema({
     guildId: { type: String, required: true },
     language: { type: String, required: false, default: null },
-    dj: { type: String, required: false, default: null },
+    dj: { type: String, required: false, default: null, set: (v) => (typeof v === 'string' || v === null || v === undefined ? v : null) },
     songs: [
         {
             track: { type: String, required: true },
@@ -25,6 +25,12 @@ const musicGuildSchema = new mongoose_1.Schema({
             timestamp: { type: Date, required: true },
         },
     ],
+});
+musicGuildSchema.pre('validate', (next) => {
+    const doc = this;
+    if (doc && 'dj' in doc && doc.dj !== null && typeof doc.dj !== 'string')
+        doc.dj = null;
+    next();
 });
 musicGuildSchema.index({ guildId: 1 });
 musicGuildSchema.index({ 'songs.played_number': -1 });

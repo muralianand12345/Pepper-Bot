@@ -14,6 +14,7 @@ export class MusicDB {
 			} else {
 				data.songs.push(songs_data);
 			}
+			if ((data as any).dj !== undefined && (data as any).dj !== null && typeof (data as any).dj !== 'string') (data as any).dj = null;
 			await data.save();
 		} catch (err) {
 			throw new Error(`An error occurred while adding music data: ${err}`);
