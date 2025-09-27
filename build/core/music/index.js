@@ -155,7 +155,7 @@ class Music {
             if (needsConnection || !['CONNECTING', 'CONNECTED'].includes(player.state)) {
                 player.connect();
                 await this.interaction.editReply({
-                    embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)],
+                    embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }))],
                 });
             }
             try {
@@ -191,7 +191,7 @@ class Music {
             }
             try {
                 player.destroy();
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'), this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'))] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Stop error: ${error}`);
@@ -220,7 +220,7 @@ class Music {
                 return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
                 player.pause(true);
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'), this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'))] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Pause error: ${error}`);
@@ -249,7 +249,7 @@ class Music {
                 return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
                 player.pause(false);
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'), this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'))] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Resume error: ${error}`);
@@ -286,7 +286,7 @@ class Music {
                 else {
                     player.stop();
                 }
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'))] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Skip error: ${error}`);
@@ -312,7 +312,7 @@ class Music {
             try {
                 player.setTrackRepeat(!player.trackRepeat);
                 const message = player.trackRepeat ? this.t('responses.music.loop_enabled') : this.t('responses.music.loop_disabled');
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message, this.locale)] });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message)] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Loop error: ${error}`);
@@ -341,7 +341,7 @@ class Music {
             }
             try {
                 player.setAutoplay(enable, this.interaction.user, 5);
-                const embed = responseHandler.createSuccessEmbed(enable ? this.t('responses.music.autoplay_enabled') : this.t('responses.music.autoplay_disabled'), this.locale);
+                const embed = responseHandler.createSuccessEmbed(enable ? this.t('responses.music.autoplay_enabled') : this.t('responses.music.autoplay_disabled'));
                 await this.interaction.editReply({ embeds: [embed] });
             }
             catch (error) {
@@ -429,7 +429,7 @@ class Music {
                     return await this.interaction.editReply({ embeds: [embed] });
                 }
                 const filter = exports.MUSIC_CONFIG.AUDIO_FILTERS[filterName];
-                const embed = responseHandler.createSuccessEmbed(this.t('responses.music.filter_applied', { filter: filter.name }), this.locale);
+                const embed = responseHandler.createSuccessEmbed(this.t('responses.music.filter_applied', { filter: filter.name }));
                 await this.interaction.editReply({ embeds: [embed] });
             }
             catch (error) {
@@ -469,7 +469,7 @@ class Music {
                 const skipTrackSource = this.interaction instanceof discord_js_1.default.ChatInputCommandInteraction ? this.interaction.options.getBoolean('skip_track_source') || false : false;
                 const lyricsData = await player.getCurrentLyrics(skipTrackSource);
                 if (!lyricsData || (!lyricsData.text && (!lyricsData.lines || lyricsData.lines.length === 0))) {
-                    const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.not_found', { title: currentTrack.title || 'Unknown Track', artist: currentTrack.author || 'Unknown Artist' }), this.locale);
+                    const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.not_found', { title: currentTrack.title || 'Unknown Track', artist: currentTrack.author || 'Unknown Artist' }));
                     return await this.interaction.editReply({ embeds: [embed] });
                 }
                 const trackTitle = format_1.default.truncateText(currentTrack.title || 'Unknown Track', 50);
@@ -485,7 +485,7 @@ class Music {
                         .join('\n');
                 }
                 if (!lyricsText || lyricsText.trim() === '') {
-                    const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.empty', { title: trackTitle, artist: trackArtist }), this.locale);
+                    const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.empty', { title: trackTitle, artist: trackArtist }));
                     return await this.interaction.editReply({ embeds: [embed] });
                 }
                 const maxLength = 4000;
@@ -611,7 +611,7 @@ class Music {
                 const currentTrack = await queue.getCurrent();
                 const queueTracks = await queue.getTracks();
                 if (!currentTrack && queueTracks.length === 0) {
-                    const embed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'), this.locale);
+                    const embed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'));
                     return await this.interaction.editReply({ embeds: [embed] });
                 }
                 const createQueueEmbed = (page = 0) => {
@@ -713,7 +713,7 @@ class Music {
                             else if (i.customId === 'queue-shuffle') {
                                 await i.deferUpdate();
                                 await player.queue.shuffle();
-                                await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'), this.locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                                await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'))], flags: discord_js_1.default.MessageFlags.Ephemeral });
                                 const shuffledQueueTracks = await player.queue.getTracks();
                                 const shuffledTotalPages = Math.ceil(shuffledQueueTracks.length / 10) || 1;
                                 currentPage = Math.min(currentPage, shuffledTotalPages - 1);
@@ -737,8 +737,8 @@ class Music {
                             else if (i.customId === 'queue-clear') {
                                 await i.deferUpdate();
                                 player.queue.clear();
-                                await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.cleared'), this.locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
-                                const emptyEmbed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'), this.locale);
+                                await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.cleared'))], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                                const emptyEmbed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'));
                                 await this.interaction.editReply({ embeds: [emptyEmbed], components: [] });
                             }
                         }
@@ -781,24 +781,24 @@ class Music {
                             guild.dj = createdRole.id;
                         }
                         await guild.save();
-                        return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_created_and_set', { role: createdRole.name }), this.locale)] });
+                        return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_created_and_set', { role: createdRole.name }))] });
                     }
                     else {
                         const currentRole = this.interaction.guild?.roles.cache.get(guild.dj);
                         guild.dj = null;
                         await guild.save();
-                        return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_disabled', { role: currentRole?.name || 'Unknown Role' }), this.locale)] });
+                        return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_disabled', { role: currentRole?.name || 'Unknown Role' }))] });
                     }
                 }
                 if (!guild) {
                     guild = new music_guild_1.default({ guildId: this.interaction.guildId, dj: djRole.id, songs: [] });
                     await guild.save();
-                    return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_set', { role: djRole.name }), this.locale)] });
+                    return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_set', { role: djRole.name }))] });
                 }
                 if (guild.dj === djRole.id) {
                     guild.dj = null;
                     await guild.save();
-                    return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_removed', { role: djRole.name }), this.locale)] });
+                    return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_removed', { role: djRole.name }))] });
                 }
                 else {
                     const previousRoleId = guild.dj;
@@ -806,10 +806,10 @@ class Music {
                     await guild.save();
                     if (previousRoleId) {
                         const previousRole = this.interaction.guild?.roles.cache.get(previousRoleId);
-                        return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_changed', { oldRole: previousRole?.name || 'Unknown Role', newRole: djRole.name }), this.locale)] });
+                        return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_changed', { oldRole: previousRole?.name || 'Unknown Role', newRole: djRole.name }))] });
                     }
                     else {
-                        return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_set', { role: djRole.name }), this.locale)] });
+                        return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_set', { role: djRole.name }))] });
                     }
                 }
             }

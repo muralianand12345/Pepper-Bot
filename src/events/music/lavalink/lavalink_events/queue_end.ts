@@ -9,7 +9,7 @@ const localeDetector = new LocaleDetector();
 
 const createQueueEndEmbed = (client: discord.Client, locale: string = 'en'): discord.EmbedBuilder => {
 	const responseHandler = new MusicResponseHandler(client);
-	return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue', locale);
+	return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue');
 };
 
 const validateChannelAccess = async (client: discord.Client, channelId: string): Promise<discord.TextChannel | null> => {
@@ -116,7 +116,7 @@ const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, 
 
 const lavalinkEvent: LavalinkEvent = {
 	name: ManagerEventTypes.QueueEnd,
-	execute: async (player: magmastream.Player, track: magmastream.Track, payload: magmastream.TrackEndEvent, client: discord.Client): Promise<void> => {
+	execute: async (player: magmastream.Player, _track: magmastream.Track, _payload: magmastream.TrackEndEvent, client: discord.Client): Promise<void> => {
 		if (!player?.textChannelId || !client?.channels) return client.logger.warn(`[QUEUE_END] Missing player textChannelId or client channels for guild ${player?.guildId}`);
 
 		try {

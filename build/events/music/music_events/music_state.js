@@ -27,7 +27,7 @@ const event = {
                 }
                 catch (error) { }
                 const responseHandler = new music_1.MusicResponseHandler(client);
-                const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected', guildLocale);
+                const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
                 await (0, music_1.sendTempMessage)(textChannel, embed, 10000);
             }
             return;
@@ -57,14 +57,14 @@ const event = {
             player.pause(false);
             nowPlayingManager.onResume();
             const responseHandler = new music_1.MusicResponseHandler(client);
-            const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback', guildLocale);
+            const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback');
             await (0, music_1.sendTempMessage)(textChannel, embed);
         }
         if (memberCount === 0 && !player.paused && player.playing) {
             player.pause(true);
             nowPlayingManager.onPause();
             const responseHandler = new music_1.MusicResponseHandler(client);
-            const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty', guildLocale);
+            const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
             await (0, music_1.sendTempMessage)(textChannel, embed);
             const DISCONNECT_DELAY = 300000; // Reduced to 5 minutes
             const scheduledAt = Date.now();
@@ -84,7 +84,7 @@ const event = {
                     if (currentMemberCount === 0) {
                         client.logger.info(`[VOICE_STATE] Voice channel still empty after 5 minutes, disconnecting from guild ${player.guildId}`);
                         const responseHandler = new music_1.MusicResponseHandler(client);
-                        const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || '🔌 Disconnecting due to inactivity (5 minutes with no listeners)', guildLocale);
+                        const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || '🔌 Disconnecting due to inactivity (5 minutes with no listeners)');
                         const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
                         await textChannel.send({ embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
                         music_1.NowPlayingManager.removeInstance(player.guildId);

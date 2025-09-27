@@ -25,7 +25,7 @@ const langCommand = {
         .setRequired(true)
         .addChoices({ name: 'User', value: 'user', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.user') }, { name: 'Server', value: 'server', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.server') }, { name: 'Reset', value: 'reset', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.reset') }))
         .addStringOption((option) => option.setName('language').setDescription('Choose your preferred language').setNameLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.description')).setRequired(false).setAutocomplete(true)),
-    autocomplete: async (interaction, client) => {
+    autocomplete: async (interaction, _client) => {
         const focused = interaction.options.getFocused(true);
         if (focused.name === 'language') {
             const supportedLanguages = localeDetector.getSupportedLanguages();
@@ -53,7 +53,7 @@ const langCommand = {
                 else {
                     await localeDetector.setUserLanguage(interaction.user.id, null);
                 }
-                const embed = responseHandler.createSuccessEmbed(t('responses.language.reset'), currentLocale);
+                const embed = responseHandler.createSuccessEmbed(t('responses.language.reset'));
                 await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 return;
             }
@@ -71,13 +71,13 @@ const langCommand = {
                 const currentUserLang = await localeDetector.getUserLanguage(interaction.user.id);
                 if (currentUserLang === language) {
                     const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-                    const embed = responseHandler.createInfoEmbed(t('responses.language.same_language', { language: languageName }), currentLocale);
+                    const embed = responseHandler.createInfoEmbed(t('responses.language.same_language', { language: languageName }));
                     return await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 }
                 const success = await localeDetector.setUserLanguage(interaction.user.id, language);
                 if (success) {
                     const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-                    const embed = responseHandler.createSuccessEmbed(localizationManager.translate('responses.language.user_set', language, { language: languageName }), language);
+                    const embed = responseHandler.createSuccessEmbed(localizationManager.translate('responses.language.user_set', language, { language: languageName }));
                     await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 }
                 else {
@@ -97,13 +97,13 @@ const langCommand = {
                 const currentGuildLang = await localeDetector.getGuildLanguage(interaction.guildId);
                 if (currentGuildLang === language) {
                     const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-                    const embed = responseHandler.createInfoEmbed(t('responses.language.same_language', { language: languageName }), currentLocale);
+                    const embed = responseHandler.createInfoEmbed(t('responses.language.same_language', { language: languageName }));
                     return await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 }
                 const success = await localeDetector.setGuildLanguage(interaction.guildId, language);
                 if (success) {
                     const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-                    const embed = responseHandler.createSuccessEmbed(localizationManager.translate('responses.language.server_set', language, { language: languageName }), language);
+                    const embed = responseHandler.createSuccessEmbed(localizationManager.translate('responses.language.server_set', language, { language: languageName }));
                     await interaction.reply({ embeds: [embed] });
                 }
                 else {

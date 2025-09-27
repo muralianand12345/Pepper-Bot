@@ -41,12 +41,12 @@ const suggestSongsCommand = {
             const { seedSong, recommendations } = result;
             if (!seedSong) {
                 return await interaction.editReply({
-                    embeds: [responseHandler.createInfoEmbed(t('responses.suggest_songs.no_history'), locale)],
+                    embeds: [responseHandler.createInfoEmbed(t('responses.suggest_songs.no_history'))],
                 });
             }
             if (!recommendations || recommendations.length === 0) {
                 return await interaction.editReply({
-                    embeds: [responseHandler.createInfoEmbed(t('responses.suggest_songs.no_recommendations', { song: seedSong.title || 'Unknown' }), locale)],
+                    embeds: [responseHandler.createInfoEmbed(t('responses.suggest_songs.no_recommendations', { song: seedSong.title || 'Unknown' }))],
                 });
             }
             const sourceBreakdown = recommendations.reduce((acc, track) => {
@@ -169,7 +169,7 @@ const suggestSongsCommand = {
                                         responseHandler.createSuccessEmbed(buttonT('responses.suggest_songs.now_playing', {
                                             title: topPick.title || 'Unknown Track',
                                             artist: topPick.author || 'Unknown Artist',
-                                        }), buttonLocale),
+                                        })),
                                     ],
                                     flags: discord_js_1.default.MessageFlags.Ephemeral,
                                 });
@@ -196,7 +196,7 @@ const suggestSongsCommand = {
                                 player.play();
                             }
                             await i.followUp({
-                                embeds: [responseHandler.createSuccessEmbed(buttonT('responses.suggest_songs.added_tracks', { count: addedCount }), buttonLocale)],
+                                embeds: [responseHandler.createSuccessEmbed(buttonT('responses.suggest_songs.added_tracks', { count: addedCount }))],
                                 flags: discord_js_1.default.MessageFlags.Ephemeral,
                             });
                         }
@@ -208,7 +208,7 @@ const suggestSongsCommand = {
                             const { seedSong: newSeedSong, recommendations: newRecommendations } = newResult;
                             if (!newSeedSong || !newRecommendations || newRecommendations.length === 0) {
                                 return await i.followUp({
-                                    embeds: [responseHandler.createInfoEmbed(buttonT('responses.suggest_songs.no_new_recommendations'), buttonLocale)],
+                                    embeds: [responseHandler.createInfoEmbed(buttonT('responses.suggest_songs.no_new_recommendations'))],
                                     flags: discord_js_1.default.MessageFlags.Ephemeral,
                                 });
                             }

@@ -259,7 +259,7 @@ export class LocalizationManager {
 
 		const totalEnglishKeys = this.getAllKeys(englishLocale).length;
 
-		for (const [locale, data] of this.locales) {
+		for (const [locale, _data] of this.locales) {
 			if (locale === this.defaultLocale) {
 				stats[locale] = { totalKeys: totalEnglishKeys, missingKeys: 0, completeness: 100 };
 				continue;

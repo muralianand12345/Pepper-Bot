@@ -127,7 +127,7 @@ const queueCommand: Command = {
 				const isEmpty = updatedQueueTracks.length === 0;
 
 				if (isEmpty) {
-					const emptyEmbed = responseHandler.createInfoEmbed(t('responses.queue.empty'), locale);
+					const emptyEmbed = responseHandler.createInfoEmbed(t('responses.queue.empty'));
 					await interaction.message?.edit({ embeds: [emptyEmbed], components: [] });
 				} else {
 					const updatedEmbed = await createQueueEmbed(player, updatedQueueTracks, adjustedPage, t, interaction.client);
@@ -183,7 +183,7 @@ const queueCommand: Command = {
 				}
 
 				if (result.removed > 0) {
-					await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.removed', { count: result.removed }), locale)], flags: discord.MessageFlags.Ephemeral });
+					await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.removed', { count: result.removed }))], flags: discord.MessageFlags.Ephemeral });
 					await updateQueueDisplay();
 				} else {
 					await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.remove_failed'), locale)], flags: discord.MessageFlags.Ephemeral });
@@ -193,7 +193,7 @@ const queueCommand: Command = {
 				const toPosition = parseInt(interaction.fields.getTextInputValue('move-to').trim());
 
 				if (isNaN(fromPosition) || isNaN(toPosition) || fromPosition < 1 || toPosition < 1 || fromPosition > queueTracks.length || toPosition > queueTracks.length) return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_move_positions'), locale)], flags: discord.MessageFlags.Ephemeral });
-				if (fromPosition === toPosition) return await interaction.reply({ embeds: [responseHandler.createInfoEmbed(t('responses.queue.same_position'), locale)], flags: discord.MessageFlags.Ephemeral });
+				if (fromPosition === toPosition) return await interaction.reply({ embeds: [responseHandler.createInfoEmbed(t('responses.queue.same_position'))], flags: discord.MessageFlags.Ephemeral });
 
 				try {
 					const trackToMove = queueTracks[fromPosition - 1];
@@ -221,7 +221,7 @@ const queueCommand: Command = {
 						}
 
 						interaction.client.logger.info(`[QUEUE] Moved track "${trackToMove.title}" from position ${fromPosition} to position ${toPosition}`);
-						await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.moved', { track: trackToMove.title, from: fromPosition, to: toPosition }), locale)], flags: discord.MessageFlags.Ephemeral });
+						await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.moved', { track: trackToMove.title, from: fromPosition, to: toPosition }))], flags: discord.MessageFlags.Ephemeral });
 						await updateQueueDisplay();
 					} else {
 						await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.move_failed'), locale)], flags: discord.MessageFlags.Ephemeral });

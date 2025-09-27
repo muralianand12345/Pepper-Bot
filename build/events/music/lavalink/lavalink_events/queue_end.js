@@ -10,7 +10,7 @@ const music_1 = require("../../../../core/music");
 const localeDetector = new locales_1.LocaleDetector();
 const createQueueEndEmbed = (client, locale = 'en') => {
     const responseHandler = new music_1.MusicResponseHandler(client);
-    return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue', locale);
+    return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue');
 };
 const validateChannelAccess = async (client, channelId) => {
     try {
@@ -108,7 +108,7 @@ const handlePlayerCleanup = async (player, guildId, client) => {
 };
 const lavalinkEvent = {
     name: magmastream_1.ManagerEventTypes.QueueEnd,
-    execute: async (player, track, payload, client) => {
+    execute: async (player, _track, _payload, client) => {
         if (!player?.textChannelId || !client?.channels)
             return client.logger.warn(`[QUEUE_END] Missing player textChannelId or client channels for guild ${player?.guildId}`);
         try {

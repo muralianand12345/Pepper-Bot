@@ -113,7 +113,7 @@ const queueCommand = {
                 const adjustedPage = Math.min(currentPage, totalPages - 1);
                 const isEmpty = updatedQueueTracks.length === 0;
                 if (isEmpty) {
-                    const emptyEmbed = responseHandler.createInfoEmbed(t('responses.queue.empty'), locale);
+                    const emptyEmbed = responseHandler.createInfoEmbed(t('responses.queue.empty'));
                     await interaction.message?.edit({ embeds: [emptyEmbed], components: [] });
                 }
                 else {
@@ -170,7 +170,7 @@ const queueCommand = {
                     result = await handleRemove([position]);
                 }
                 if (result.removed > 0) {
-                    await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.removed', { count: result.removed }), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                    await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.removed', { count: result.removed }))], flags: discord_js_1.default.MessageFlags.Ephemeral });
                     await updateQueueDisplay();
                 }
                 else {
@@ -183,7 +183,7 @@ const queueCommand = {
                 if (isNaN(fromPosition) || isNaN(toPosition) || fromPosition < 1 || toPosition < 1 || fromPosition > queueTracks.length || toPosition > queueTracks.length)
                     return await interaction.reply({ embeds: [responseHandler.createErrorEmbed(t('responses.queue.invalid_move_positions'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 if (fromPosition === toPosition)
-                    return await interaction.reply({ embeds: [responseHandler.createInfoEmbed(t('responses.queue.same_position'), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                    return await interaction.reply({ embeds: [responseHandler.createInfoEmbed(t('responses.queue.same_position'))], flags: discord_js_1.default.MessageFlags.Ephemeral });
                 try {
                     const trackToMove = queueTracks[fromPosition - 1];
                     if (!trackToMove)
@@ -207,7 +207,7 @@ const queueCommand = {
                             }
                         }
                         interaction.client.logger.info(`[QUEUE] Moved track "${trackToMove.title}" from position ${fromPosition} to position ${toPosition}`);
-                        await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.moved', { track: trackToMove.title, from: fromPosition, to: toPosition }), locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                        await interaction.reply({ embeds: [responseHandler.createSuccessEmbed(t('responses.queue.moved', { track: trackToMove.title, from: fromPosition, to: toPosition }))], flags: discord_js_1.default.MessageFlags.Ephemeral });
                         await updateQueueDisplay();
                     }
                     else {

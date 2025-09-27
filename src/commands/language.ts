@@ -25,7 +25,7 @@ const langCommand: Command = {
 				.addChoices({ name: 'User', value: 'user', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.user') }, { name: 'Server', value: 'server', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.server') }, { name: 'Reset', value: 'reset', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.reset') })
 		)
 		.addStringOption((option) => option.setName('language').setDescription('Choose your preferred language').setNameLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.description')).setRequired(false).setAutocomplete(true)),
-	autocomplete: async (interaction: discord.AutocompleteInteraction, client: discord.Client): Promise<void> => {
+	autocomplete: async (interaction: discord.AutocompleteInteraction, _client: discord.Client): Promise<void> => {
 		const focused = interaction.options.getFocused(true);
 		if (focused.name === 'language') {
 			const supportedLanguages = localeDetector.getSupportedLanguages();
@@ -54,7 +54,7 @@ const langCommand: Command = {
 					await localeDetector.setUserLanguage(interaction.user.id, null);
 				}
 
-				const embed = responseHandler.createSuccessEmbed(t('responses.language.reset'), currentLocale);
+				const embed = responseHandler.createSuccessEmbed(t('responses.language.reset'));
 				await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
 				return;
 			}
@@ -75,14 +75,14 @@ const langCommand: Command = {
 				const currentUserLang = await localeDetector.getUserLanguage(interaction.user.id);
 				if (currentUserLang === language) {
 					const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-					const embed = responseHandler.createInfoEmbed(t('responses.language.same_language', { language: languageName }), currentLocale);
+					const embed = responseHandler.createInfoEmbed(t('responses.language.same_language', { language: languageName }));
 					return await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
 				}
 
 				const success = await localeDetector.setUserLanguage(interaction.user.id, language);
 				if (success) {
 					const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-					const embed = responseHandler.createSuccessEmbed(localizationManager.translate('responses.language.user_set', language, { language: languageName }), language);
+					const embed = responseHandler.createSuccessEmbed(localizationManager.translate('responses.language.user_set', language, { language: languageName }));
 					await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
 				} else {
 					const embed = responseHandler.createErrorEmbed('Failed to set user language preference.', currentLocale);
@@ -102,14 +102,14 @@ const langCommand: Command = {
 				const currentGuildLang = await localeDetector.getGuildLanguage(interaction.guildId!);
 				if (currentGuildLang === language) {
 					const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-					const embed = responseHandler.createInfoEmbed(t('responses.language.same_language', { language: languageName }), currentLocale);
+					const embed = responseHandler.createInfoEmbed(t('responses.language.same_language', { language: languageName }));
 					return await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
 				}
 
 				const success = await localeDetector.setGuildLanguage(interaction.guildId!, language);
 				if (success) {
 					const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-					const embed = responseHandler.createSuccessEmbed(localizationManager.translate('responses.language.server_set', language, { language: languageName }), language);
+					const embed = responseHandler.createSuccessEmbed(localizationManager.translate('responses.language.server_set', language, { language: languageName }));
 					await interaction.reply({ embeds: [embed] });
 				} else {
 					const embed = responseHandler.createErrorEmbed('Failed to set server language preference.', currentLocale);

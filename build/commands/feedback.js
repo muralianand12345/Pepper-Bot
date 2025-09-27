@@ -37,7 +37,7 @@ const feedbackCommand = {
                 .setFooter({ text: 'Feedback System', iconURL: interaction.client.user?.displayAvatarURL() })
                 .setTimestamp();
             await webhook.send({ content: `Feedback from ${interaction.user.tag} (${interaction.user.id})`, embeds: [embed], username: 'Feedback Bot', avatarURL: interaction.client.user?.displayAvatarURL() });
-            const successEmbed = responseHandler.createSuccessEmbed(t('responses.feedback.sent'), locale);
+            const successEmbed = responseHandler.createSuccessEmbed(t('responses.feedback.sent'));
             await interaction.reply({ embeds: [successEmbed], flags: discord_js_1.default.MessageFlags.Ephemeral });
         }
         catch (error) {
@@ -51,7 +51,7 @@ const feedbackCommand = {
             }
         }
     },
-    execute: async (interaction, client) => {
+    execute: async (interaction, _client) => {
         const t = await localeDetector.getTranslator(interaction);
         const modal = new discord_js_1.default.ModalBuilder().setCustomId('feedback_modal').setTitle(t('modals.feedback.title'));
         const feedbackTypeInput = new discord_js_1.default.TextInputBuilder().setCustomId('feedback_type').setLabel(t('modals.feedback.type_label')).setPlaceholder(t('modals.feedback.type_placeholder')).setStyle(discord_js_1.default.TextInputStyle.Short).setMaxLength(50).setRequired(true);

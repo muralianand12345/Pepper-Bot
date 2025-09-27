@@ -48,7 +48,7 @@ const chartCommand: Command = {
 					const [topSongs, userAnalytics] = await Promise.all([MusicDB.getUserTopSongs(interaction.user.id, limit), MusicDB.getUserMusicAnalytics(interaction.user.id)]);
 
 					if (!topSongs.length) {
-						const embed = responseHandler.createInfoEmbed(t('responses.chart.no_user_data'), locale);
+						const embed = responseHandler.createInfoEmbed(t('responses.chart.no_user_data'));
 						await interaction.editReply({ embeds: [embed] });
 						return;
 					}
@@ -70,7 +70,7 @@ const chartCommand: Command = {
 					const [topSongs, guildAnalytics] = await Promise.all([MusicDB.getGuildTopSongs(interaction.guildId, limit), MusicDB.getGuildMusicAnalytics(interaction.guildId)]);
 
 					if (!topSongs.length) {
-						const embed = responseHandler.createInfoEmbed(t('responses.chart.no_guild_data'), locale);
+						const embed = responseHandler.createInfoEmbed(t('responses.chart.no_guild_data'));
 						await interaction.editReply({ embeds: [embed] });
 						return;
 					}
@@ -86,7 +86,7 @@ const chartCommand: Command = {
 					const [topSongs, globalAnalytics] = await Promise.all([MusicDB.getGlobalTopSongs(limit), MusicDB.getGlobalMusicAnalytics()]);
 
 					if (!topSongs.length) {
-						const embed = responseHandler.createInfoEmbed(t('responses.chart.no_global_data'), locale);
+						const embed = responseHandler.createInfoEmbed(t('responses.chart.no_global_data'));
 						await interaction.editReply({ embeds: [embed] });
 						return;
 					}
@@ -106,8 +106,8 @@ const chartCommand: Command = {
 				return;
 			}
 
-			const embed = createChartEmbed(chartData, analytics, embedTitle, embedColor, locale, t, client, scope);
-			const actionRow = createChartButtons(locale, t);
+			const embed = createChartEmbed(chartData, analytics, embedTitle, embedColor, t, client);
+			const actionRow = createChartButtons(t);
 			await interaction.editReply({ embeds: [embed], components: [actionRow] });
 		} catch (error) {
 			client.logger.error(`[CHART_COMMAND] Error: ${error}`);
@@ -117,18 +117,18 @@ const chartCommand: Command = {
 	},
 };
 
-const createChartEmbed = (chartData: ISongs[], analytics: ChartAnalytics, title: string, color: discord.ColorResolvable, locale: string, t: (key: string, data?: Record<string, any>) => string, client: discord.Client, scope: string): discord.EmbedBuilder => {
+const createChartEmbed = (chartData: ISongs[], analytics: ChartAnalytics, title: string, color: discord.ColorResolvable, t: (key: string, data?: Record<string, any>) => string, client: discord.Client): discord.EmbedBuilder => {
 	const embed = new discord.EmbedBuilder()
 		.setColor(color)
 		.setTitle(`📊 ${title}`)
-		.setDescription(createAnalyticsOverview(analytics, t, locale))
+		.setDescription(createAnalyticsOverview(analytics, t))
 		.setTimestamp()
 		.setFooter({ text: t('responses.chart.footer'), iconURL: client.user?.displayAvatarURL() });
 
 	if (chartData.length > 0) {
-		const topTracksField = createTopTracksField(chartData, t, locale);
+		const topTracksField = createTopTracksField(chartData, t);
 		embed.addFields([topTracksField]);
-		const statsFields = createStatsFields(analytics, t, locale, scope);
+		const statsFields = createStatsFields(analytics, t);
 		embed.addFields(statsFields);
 		if (chartData[0]?.artworkUrl || chartData[0]?.thumbnail) embed.setThumbnail(chartData[0].artworkUrl || chartData[0].thumbnail);
 	}
@@ -136,13 +136,13 @@ const createChartEmbed = (chartData: ISongs[], analytics: ChartAnalytics, title:
 	return embed;
 };
 
-const createAnalyticsOverview = (analytics: ChartAnalytics, t: (key: string, data?: Record<string, any>) => string, locale: string): string => {
+const createAnalyticsOverview = (analytics: ChartAnalytics, t: (key: string, data?: Record<string, any>) => string): string => {
 	const totalTimeFormatted = Formatter.formatListeningTime(analytics.totalPlaytime / 1000);
 	const avgPlayCount = Math.round(analytics.averagePlayCount * 10) / 10;
 	return [`🎵 **${analytics.totalSongs}** ${t('responses.chart.total_tracks')}`, `🎤 **${analytics.uniqueArtists}** ${t('responses.chart.unique_artists')}`, `⏱️ **${totalTimeFormatted}** ${t('responses.chart.total_listening_time')}`, `📈 **${avgPlayCount}** ${t('responses.chart.average_plays')}`, `🔥 **${analytics.recentActivity}** ${t('responses.chart.recent_activity')}`].join('\n');
 };
 
-const createTopTracksField = (chartData: ISongs[], t: (key: string, data?: Record<string, any>) => string, locale: string) => {
+const createTopTracksField = (chartData: ISongs[], t: (key: string, data?: Record<string, any>) => string) => {
 	const tracksList = chartData
 		.map((song, index) => {
 			const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `**${index + 1}.**`;
@@ -156,7 +156,7 @@ const createTopTracksField = (chartData: ISongs[], t: (key: string, data?: Recor
 	return { name: `🎶 ${t('responses.chart.top_tracks')}`, value: tracksList.length > 1024 ? tracksList.substring(0, 1021) + '...' : tracksList, inline: false };
 };
 
-const createStatsFields = (analytics: ChartAnalytics, t: (key: string, data?: Record<string, any>) => string, locale: string, scope: string) => {
+const createStatsFields = (analytics: ChartAnalytics, t: (key: string, data?: Record<string, any>) => string) => {
 	const fields = [];
 	const totalHours = Math.round((analytics.totalPlaytime / (1000 * 60 * 60)) * 10) / 10;
 	const avgSongLength = analytics.totalSongs > 0 ? Formatter.msToTime(analytics.totalPlaytime / analytics.totalSongs) : '0:00:00';
@@ -164,7 +164,7 @@ const createStatsFields = (analytics: ChartAnalytics, t: (key: string, data?: Re
 	return fields;
 };
 
-const createChartButtons = (locale: string, t: (key: string, data?: Record<string, any>) => string): discord.ActionRowBuilder<discord.ButtonBuilder> => {
+const createChartButtons = (t: (key: string, data?: Record<string, any>) => string): discord.ActionRowBuilder<discord.ButtonBuilder> => {
 	return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
 		new discord.ButtonBuilder().setCustomId('chart_refresh').setLabel(t('responses.chart.buttons.refresh')).setStyle(discord.ButtonStyle.Primary).setEmoji('🔄'),
 		new discord.ButtonBuilder().setCustomId('chart_export').setLabel(t('responses.chart.buttons.export')).setStyle(discord.ButtonStyle.Secondary).setEmoji('📊'),
