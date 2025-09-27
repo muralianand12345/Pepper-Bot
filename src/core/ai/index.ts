@@ -11,6 +11,7 @@ export class AI {
 		this.openai_client = new OpenAI({ baseURL: configManager.getOpenAiBaseUrl(), apiKey: configManager.getOpenAiApiKey() });
 	}
 
+	// AI Implementations will go here
 	public example = async (): Promise<OpenAI.Responses.Response> => {
 		return await this.openai_client.responses.create({
 			model: 'gpt-4o',
