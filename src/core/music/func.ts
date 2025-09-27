@@ -1,5 +1,6 @@
 import discord from 'discord.js';
 import timers from 'timers/promises';
+import magmastream from 'magmastream';
 
 import { ISongsUser } from '../../types';
 
@@ -25,7 +26,7 @@ export const wait = async (ms: number): Promise<void> => {
 	await timers.setTimeout(ms);
 };
 
-export const getRequester = (client: discord.Client, user: discord.User | discord.ClientUser | string | null): ISongsUser | null => {
+export const getRequester = (client: discord.Client, user: discord.User | discord.ClientUser | magmastream.PortableUser | string | null): ISongsUser | null => {
 	if (!user) return null;
 	if (typeof user === 'string') {
 		const cachedUser = client.users.cache.get(user);

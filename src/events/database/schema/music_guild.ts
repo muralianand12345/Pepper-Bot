@@ -29,9 +29,9 @@ const musicGuildSchema = new Schema<IMusicGuild>({
 });
 
 musicGuildSchema.pre('validate', (next) => {
-    const doc: any = this as any;
-    if (doc && 'dj' in doc && doc.dj !== null && typeof doc.dj !== 'string') doc.dj = null;
-    next();
+	const doc: any = this as any;
+	if (doc && 'dj' in doc && doc.dj !== null && typeof doc.dj !== 'string') doc.dj = null;
+	next();
 });
 
 musicGuildSchema.index({ guildId: 1 });

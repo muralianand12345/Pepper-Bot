@@ -319,7 +319,7 @@ responses:
             from_placeholder: "例: 5"
             to_label: "新しい位置"
             to_placeholder: "例: 2"
-        
+
     dj:
         role_set: "DJロールが **{role}** に設定されました。このロールを持つメンバーは音楽の再生を操作できます。"
         role_removed: "DJロール **{role}** が削除されました。すべてのメンバーが音楽の再生を操作できるようになりました。"
@@ -331,12 +331,6 @@ responses:
         sent: "フィードバックありがとうございます！開発者に送信されました。"
 
     default_search: "曲名またはURLを入力してください"
-
-survey:
-    title: "📋 改善のためにご協力を！"
-    description: "あなたの意見が重要です！この簡単なアンケートにご協力ください。数分で完了します！"
-    footer: "ボットをご利用いただきありがとうございます！"
-    button: "アンケートを始める"
 
 modals:
     feedback:

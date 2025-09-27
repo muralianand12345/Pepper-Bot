@@ -200,7 +200,7 @@ responses:
         filter_not_found: "Filter `{filter}` nicht gefunden. Verfügbare Filter: {available}"
         feedback_failed: "Feedback konnte nicht gesendet werden. Bitte versuche es später erneut."
         no_current_track: "Kein Titel wird derzeit abgespielt"
-        lyrics_plugin_missing: "Songtext-Funktion auf diesem Lavalink-Knoten nicht verfügbar. Bitte wechsle zu einem Knoten, der Lyrics unterstützt."
+        lyrics_plugin_missing: "Songtext-Funktion auf diesem Lavalink-Knoten nicht verfügbar."
         lyrics_error: "Fehler beim Abrufen der Songtexte"
         autoplay_no_recommendations: "Autoplay konnte keine geeigneten Empfehlungen basierend auf Ihrem Hörverlauf finden. Versuchen Sie, abwechslungsreichere Songs zu spielen!"
         dj_error: "Beim Verwalten der DJ-Rolle ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut."
@@ -331,12 +331,6 @@ responses:
         sent: "Vielen Dank für dein Feedback! Es wurde an die Entwickler gesendet."
 
     default_search: "Bitte gib einen Liednamen oder eine URL ein"
-
-survey:
-    title: "📋 Hilf uns, besser zu werden!"
-    description: "Deine Meinung zählt! Hilf uns, den Bot zu verbessern, indem du an unserer kurzen Umfrage teilnimmst. Dauert nur ein paar Minuten!"
-    footer: "Danke, dass du unseren Bot nutzt!"
-    button: "Umfrage starten"
 
 modals:
     feedback:
