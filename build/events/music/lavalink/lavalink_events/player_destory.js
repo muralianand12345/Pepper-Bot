@@ -32,7 +32,6 @@ const lavalinkEvent = {
             client.logger.warn(`[PLAYER_DESTROY] Failed to send disconnect message: ${messageError}`);
         }
         music_1.NowPlayingManager.removeInstance(player.guildId);
-        music_1.Autoplay.removeInstance(player.guildId);
         client.logger.info(`[LAVALINK] Player for guild ${guild.name} (${guild.id}) destroyed`);
     },
 };

@@ -28,7 +28,13 @@ const musicGuildSchema = new mongoose_1.Schema({
 });
 musicGuildSchema.pre('validate', (next) => {
     const doc = this;
-    if (doc && 'dj' in doc && doc.dj !== null && typeof doc.dj !== 'string')
+    if (doc && doc.dj !== null && typeof doc.dj !== 'string')
+        doc.dj = null;
+    next();
+});
+musicGuildSchema.pre('save', (next) => {
+    const doc = this;
+    if (doc && doc.dj !== null && typeof doc.dj !== 'string')
         doc.dj = null;
     next();
 });

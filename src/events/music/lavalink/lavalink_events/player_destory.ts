@@ -3,7 +3,7 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
-import { Autoplay, NowPlayingManager, MusicResponseHandler } from '../../../../core/music';
+import { NowPlayingManager, MusicResponseHandler } from '../../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
@@ -34,7 +34,6 @@ const lavalinkEvent: LavalinkEvent = {
 		}
 
 		NowPlayingManager.removeInstance(player.guildId);
-		Autoplay.removeInstance(player.guildId);
 
 		client.logger.info(`[LAVALINK] Player for guild ${guild.name} (${guild.id}) destroyed`);
 	},

@@ -335,27 +335,9 @@ class Music {
                 this.isDeferred = true;
             }
             try {
-                const autoplayManager = handlers_1.Autoplay.getInstance(player.guildId, player, this.client);
-                if (enable) {
-                    autoplayManager.enable(this.interaction.user.id);
-                    const currentTrack = await player.queue.getCurrent();
-                    const queueSize = await player.queue.size();
-                    if (currentTrack && queueSize === 0) {
-                        const testResult = await autoplayManager.processTrack(currentTrack);
-                        if (!testResult) {
-                            const embed = responseHandler.createWarningEmbed(this.t('responses.errors.autoplay_no_recommendations') || "Autoplay couldn't find suitable recommendations based on your listening history. Try playing more varied songs!", this.locale);
-                            await this.interaction.editReply({ embeds: [embed] });
-                            return;
-                        }
-                    }
-                    const embed = responseHandler.createSuccessEmbed(this.t('responses.music.autoplay_enabled'), this.locale);
-                    await this.interaction.editReply({ embeds: [embed] });
-                }
-                else {
-                    autoplayManager.disable();
-                    const embed = responseHandler.createInfoEmbed(this.t('responses.music.autoplay_disabled'), this.locale);
-                    await this.interaction.editReply({ embeds: [embed] });
-                }
+                player.setAutoplay(enable, this.interaction.user, 5);
+                const embed = responseHandler.createSuccessEmbed(enable ? this.t('responses.music.autoplay_enabled') : this.t('responses.music.autoplay_disabled'), this.locale);
+                await this.interaction.editReply({ embeds: [embed] });
             }
             catch (error) {
                 this.client.logger.error(`[AUTOPLAY] Command error: ${error}`);

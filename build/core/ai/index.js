@@ -9,6 +9,7 @@ const config_1 = require("../../utils/config");
 const configManager = config_1.ConfigManager.getInstance();
 class AI {
     constructor() {
+        // AI Implementations will go here
         this.example = async () => {
             return await this.openai_client.responses.create({
                 model: 'gpt-4o',
