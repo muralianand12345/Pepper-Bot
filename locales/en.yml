@@ -202,7 +202,7 @@ responses:
         filter_not_found: "Filter `{filter}` not found. Available filters: {available}"
         feedback_failed: "Failed to send feedback. Please try again later."
         no_current_track: "No track is currently playing"
-        lyrics_plugin_missing: "Lyrics functionality is not available on this lavalink node. Please switch to a lavalink node that supports lyrics."
+        lyrics_plugin_missing: "Lyrics functionality is not available on this lavalink node."
         lyrics_error: "An error occurred while fetching lyrics"
         dj_error: "An error occurred while managing the DJ role. Please try again later."
         dj_role_create_failed: "Failed to create DJ role. Please check bot permissions and try again."

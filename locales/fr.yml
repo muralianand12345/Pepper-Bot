@@ -200,7 +200,7 @@ responses:
         filter_not_found: "Filtre `{filter}` introuvable. Filtres disponibles : {available}"
         feedback_failed: "Impossible d’envoyer le feedback. Veuillez réessayer plus tard."
         no_current_track: "Aucun titre en cours de lecture"
-        lyrics_plugin_missing: "La fonction paroles n’est pas disponible sur ce nœud Lavalink. Change pour un nœud compatible."
+        lyrics_plugin_missing: "La fonction paroles n’est pas disponible sur ce nœud Lavalink."
         lyrics_error: "Erreur lors de la récupération des paroles"
         autoplay_no_recommendations: "La lecture automatique n'a pas pu trouver de recommandations appropriées basées sur votre historique d'écoute. Essayez de jouer des chansons plus variées !"
         dj_error: "Une erreur est survenue lors de la gestion du rôle de DJ. Veuillez réessayer plus tard."
