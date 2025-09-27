@@ -272,15 +272,20 @@ class Music {
                 if (!isValid)
                     return await this.interaction.editReply({ embeds: [embed] });
             }
-            const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
-            const [isValid, errorEmbed] = await musicValidator.validateQueueSize(1, this.interaction);
-            if (!isValid && errorEmbed)
-                return await this.interaction.editReply({ embeds: [errorEmbed] });
             try {
-                player.stop(1);
-                const queueSize = await player.queue.size();
-                if (queueSize === 0 && this.interaction.guildId)
-                    player.destroy();
+                if (!player.isAutoplay) {
+                    const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
+                    const [isValid, errorEmbed] = await musicValidator.validateQueueSize(0, this.interaction);
+                    if (!isValid && errorEmbed)
+                        return await this.interaction.editReply({ embeds: [errorEmbed] });
+                    player.stop(1);
+                    const queueSize = await player.queue.size();
+                    if (queueSize === 0 && this.interaction.guildId)
+                        player.destroy();
+                }
+                else {
+                    player.stop();
+                }
                 await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)] });
             }
             catch (error) {
