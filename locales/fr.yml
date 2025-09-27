@@ -332,12 +332,6 @@ responses:
 
     default_search: "Merci d’entrer un nom de chanson ou une URL"
 
-survey:
-    title: "📋 Aide-nous à nous améliorer !"
-    description: "Ton avis compte ! Aide-nous à améliorer le bot en répondant à ce court sondage. Cela ne prendra que quelques minutes !"
-    footer: "Merci d’utiliser notre bot !"
-    button: "Commencer le sondage"
-
 modals:
     feedback:
         title: "Envoyer un feedback"

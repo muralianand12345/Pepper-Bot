@@ -20,12 +20,6 @@ export interface IConfig {
 			server: string;
 		};
 	};
-	survey?: {
-		enabled: boolean;
-		url: string;
-		probability: number;
-		cooldown: number;
-	};
 	music: {
 		enabled: boolean;
 		cache: {

@@ -41,7 +41,7 @@ export class CommandManager {
 			this.client.commands.set(command.data.name, command);
 			this.commands.push(command.data);
 		});
-		
+
 		this.client.logger.info(`[COMMAND] Loaded ${this.client.commands.size} commands.`);
 		await this.register();
 	};

@@ -326,17 +326,11 @@ responses:
         role_changed: "O cargo de DJ foi alterado de **{oldRole}** para **{newRole}**."
         role_created_and_set: "O cargo de DJ **{role}** foi criado e definido. Membros com este cargo agora podem controlar a reprodução de música."
         role_disabled: "O sistema de DJ foi desativado. O cargo definido anteriormente **{role}** não é mais necessário para controlar a música."
-    
+
     feedback:
         sent: "Obrigado pelo seu feedback! Ele foi enviado aos desenvolvedores."
 
     default_search: "Por favor, insira um nome de música ou URL"
-
-survey:
-    title: "📋 Ajude-nos a melhorar!"
-    description: "Sua opinião é importante! Ajude-nos a melhorar o bot respondendo a esta rápida pesquisa. Leva apenas alguns minutos!"
-    footer: "Obrigado por usar nosso bot!"
-    button: "Começar pesquisa"
 
 modals:
     feedback:

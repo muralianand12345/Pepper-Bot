@@ -8,7 +8,6 @@ const ms_1 = __importDefault(require("ms"));
 const discord_js_1 = __importDefault(require("discord.js"));
 const locales_1 = require("../locales");
 const music_1 = require("../music");
-const survey_1 = require("../../utils/survey");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
 class CommandInteractionHandler {
     constructor(client, interaction) {
@@ -46,10 +45,8 @@ class CommandInteractionHandler {
                 const command = this.client.commands.get(this.interaction.commandName);
                 if (!command)
                     return this.client.logger.warn(`[INTERACTION_CREATE] Command ${this.interaction.commandName} not found.`);
-                if (await this.handleCommandPrerequisites(command)) {
+                if (await this.handleCommandPrerequisites(command))
                     await this.executeCommand(command);
-                    await this.handleSurveyDelivery();
-                }
             }
             catch (error) {
                 this.client.logger.error(`[INTERACTION_CREATE] Error processing interaction command: ${error}`);
@@ -193,16 +190,6 @@ class CommandInteractionHandler {
                 }
             }
         };
-        this.handleSurveyDelivery = async () => {
-            if (!this.interaction.isChatInputCommand())
-                return;
-            try {
-                await this.surveyHandler.sendSurvey(this.client, this.interaction);
-            }
-            catch (error) {
-                this.client.logger.error(`[INTERACTION_CREATE] Error sending survey: ${error}`);
-            }
-        };
         this.handleModalSubmit = async () => {
             if (!this.interaction.isModalSubmit())
                 return;
@@ -303,7 +290,6 @@ class CommandInteractionHandler {
         this.client = client;
         this.interaction = interaction;
         this.localeDetector = new locales_1.LocaleDetector();
-        this.surveyHandler = survey_1.SurveyHandler.getInstance();
     }
 }
 exports.CommandInteractionHandler = CommandInteractionHandler;

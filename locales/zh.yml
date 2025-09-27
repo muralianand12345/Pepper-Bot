@@ -332,12 +332,6 @@ responses:
 
     default_search: "请输入歌曲名称或 URL"
 
-survey:
-    title: "📋 帮助我们改进！"
-    description: "你的意见对我们非常重要！请花几分钟填写此快速问卷，帮助我们改进机器人。"
-    footer: "感谢你使用本机器人！"
-    button: "开始调查"
-
 modals:
     feedback:
         title: "发送反馈"

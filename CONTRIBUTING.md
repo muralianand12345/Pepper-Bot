@@ -4,21 +4,23 @@ Thank you for your interest in contributing to Pepper Music Bot! This document p
 
 ## Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-  - [Development Environment Setup](#development-environment-setup)
-  - [Project Structure](#project-structure)
-- [How to Contribute](#how-to-contribute)
-  - [Reporting Bugs](#reporting-bugs)
-  - [Suggesting Features](#suggesting-features)
-  - [Pull Requests](#pull-requests)
-- [Coding Standards](#coding-standards)
-  - [TypeScript Guidelines](#typescript-guidelines)
-  - [Style Guide](#style-guide)
-  - [Documentation](#documentation)
-- [Testing](#testing)
-- [Commit Guidelines](#commit-guidelines)
-- [Release Process](#release-process)
+- [Contributing to Pepper Bot](#contributing-to-pepper-bot)
+  - [Table of Contents](#table-of-contents)
+  - [Code of Conduct](#code-of-conduct)
+  - [Getting Started](#getting-started)
+    - [Development Environment Setup](#development-environment-setup)
+    - [Project Structure](#project-structure)
+  - [How to Contribute](#how-to-contribute)
+    - [Reporting Bugs](#reporting-bugs)
+    - [Suggesting Features](#suggesting-features)
+    - [Pull Requests](#pull-requests)
+  - [Coding Standards](#coding-standards)
+    - [TypeScript Guidelines](#typescript-guidelines)
+    - [Style Guide](#style-guide)
+    - [Documentation](#documentation)
+  - [Testing](#testing)
+  - [Commit Guidelines](#commit-guidelines)
+  - [Release Process](#release-process)
 
 ## Code of Conduct
 

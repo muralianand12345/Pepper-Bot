@@ -4,7 +4,6 @@ import discord from 'discord.js';
 import { Command } from '../../types';
 import { LocaleDetector } from '../locales';
 import { MusicResponseHandler } from '../music';
-import { SurveyHandler } from '../../utils/survey';
 import music_guild from '../../events/database/schema/music_guild';
 
 export class CommandInteractionHandler {
@@ -12,13 +11,11 @@ export class CommandInteractionHandler {
 	private client: discord.Client;
 	private interaction: discord.Interaction;
 	private localeDetector: LocaleDetector;
-	private surveyHandler: SurveyHandler;
 
 	constructor(client: discord.Client, interaction: discord.Interaction) {
 		this.client = client;
 		this.interaction = interaction;
 		this.localeDetector = new LocaleDetector();
-		this.surveyHandler = SurveyHandler.getInstance();
 	}
 
 	public handle = async (): Promise<void> => {
@@ -51,11 +48,7 @@ export class CommandInteractionHandler {
 
 			const command = this.client.commands.get(this.interaction.commandName);
 			if (!command) return this.client.logger.warn(`[INTERACTION_CREATE] Command ${this.interaction.commandName} not found.`);
-
-			if (await this.handleCommandPrerequisites(command)) {
-				await this.executeCommand(command);
-				await this.handleSurveyDelivery();
-			}
+			if (await this.handleCommandPrerequisites(command)) await this.executeCommand(command);
 		} catch (error) {
 			this.client.logger.error(`[INTERACTION_CREATE] Error processing interaction command: ${error}`);
 			if (this.interaction.isRepliable() && !this.interaction.replied && !this.interaction.deferred) {
@@ -198,16 +191,6 @@ export class CommandInteractionHandler {
 			} catch (replyError) {
 				if (!(replyError instanceof discord.DiscordAPIError && replyError.code === 10062)) this.client.logger.error(`[INTERACTION_CREATE] Failed to send error reply: ${replyError}`);
 			}
-		}
-	};
-
-	private handleSurveyDelivery = async (): Promise<void> => {
-		if (!this.interaction.isChatInputCommand()) return;
-
-		try {
-			await this.surveyHandler.sendSurvey(this.client, this.interaction);
-		} catch (error) {
-			this.client.logger.error(`[INTERACTION_CREATE] Error sending survey: ${error}`);
 		}
 	};
 

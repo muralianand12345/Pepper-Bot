@@ -332,12 +332,6 @@ responses:
 
     default_search: "Bitte gib einen Liednamen oder eine URL ein"
 
-survey:
-    title: "📋 Hilf uns, besser zu werden!"
-    description: "Deine Meinung zählt! Hilf uns, den Bot zu verbessern, indem du an unserer kurzen Umfrage teilnimmst. Dauert nur ein paar Minuten!"
-    footer: "Danke, dass du unseren Bot nutzt!"
-    button: "Umfrage starten"
-
 modals:
     feedback:
         title: "Feedback senden"

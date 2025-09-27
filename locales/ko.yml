@@ -332,12 +332,6 @@ responses:
 
     default_search: "노래 제목이나 URL을 입력하세요"
 
-survey:
-    title: "📋 개선을 도와주세요!"
-    description: "여러분의 의견은 매우 중요합니다! 몇 분만 시간을 내어 설문에 응답해 주세요."
-    footer: "봇을 이용해 주셔서 감사합니다!"
-    button: "설문 시작"
-
 modals:
     feedback:
         title: "피드백 보내기"
