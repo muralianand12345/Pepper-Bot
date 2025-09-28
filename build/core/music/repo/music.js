@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MusicDB = void 0;
+const pepper_1 = __importDefault(require("../../../pepper"));
 const music_user_1 = __importDefault(require("../../../events/database/schema/music_user"));
 const music_guild_1 = __importDefault(require("../../../events/database/schema/music_guild"));
 class MusicDB {
@@ -25,8 +26,13 @@ MusicDB.addMusicDB = async (data, songs_data) => {
         else {
             data.songs.push(songs_data);
         }
-        if (data.dj !== undefined && data.dj !== null && typeof data.dj !== 'string')
+        if (data.dj !== undefined && data.dj !== null && typeof data.dj !== 'string') {
+            try {
+                pepper_1.default.logger.warn(`[MusicDB] Coercing non-string dj field to null. Value type=${typeof data.dj}`);
+            }
+            catch { }
             data.dj = null;
+        }
         await data.save();
     }
     catch (err) {
@@ -270,7 +276,7 @@ MusicDB.getGlobalTopSongs = async (limit = 20) => {
         return result || [];
     }
     catch (err) {
-        console.error('Error in getGlobalTopSongs:', err);
+        pepper_1.default.logger.error(`Error in getGlobalTopSongs: ${err}`);
         return [];
     }
 };
@@ -394,7 +400,7 @@ MusicDB.getGlobalMusicAnalytics = async () => {
         return analytics;
     }
     catch (err) {
-        console.error('Error in getGlobalMusicAnalytics:', err);
+        pepper_1.default.logger.error(`Error in getGlobalMusicAnalytics: ${err}`);
         return null;
     }
 };

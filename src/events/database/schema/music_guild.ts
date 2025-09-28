@@ -30,7 +30,13 @@ const musicGuildSchema = new Schema<IMusicGuild>({
 
 musicGuildSchema.pre('validate', (next) => {
 	const doc: any = this as any;
-	if (doc && 'dj' in doc && doc.dj !== null && typeof doc.dj !== 'string') doc.dj = null;
+	if (doc && doc.dj !== null && typeof doc.dj !== 'string') doc.dj = null;
+	next();
+});
+
+musicGuildSchema.pre('save', (next) => {
+	const doc: any = this as any;
+	if (doc && doc.dj !== null && typeof doc.dj !== 'string') doc.dj = null;
 	next();
 });
 

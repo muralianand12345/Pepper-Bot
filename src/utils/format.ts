@@ -1,5 +1,3 @@
-import magmastream from 'magmastream';
-
 /**
  * A utility class for formatting text and time values
  */

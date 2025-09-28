@@ -27,7 +27,7 @@ class MusicResponseHandler {
                 formattedDuration,
             };
         };
-        this.createSuccessEmbed = (message, locale = 'en') => {
+        this.createSuccessEmbed = (message) => {
             return new discord_js_1.default.EmbedBuilder()
                 .setColor('#43b581')
                 .setDescription(`✓ ${message}`)
@@ -43,13 +43,13 @@ class MusicResponseHandler {
             });
             return embed;
         };
-        this.createInfoEmbed = (message, locale = 'en') => {
+        this.createInfoEmbed = (message) => {
             return new discord_js_1.default.EmbedBuilder()
                 .setColor('#5865f2')
                 .setDescription(`ℹ️ ${message}`)
                 .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
         };
-        this.createWarningEmbed = (message, locale = 'en') => {
+        this.createWarningEmbed = (message) => {
             return new discord_js_1.default.EmbedBuilder()
                 .setColor('#faa61a')
                 .setDescription(`⚠️ ${message}`)
@@ -63,7 +63,6 @@ class MusicResponseHandler {
                     .setDescription('**No track available**')
                     .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
             }
-            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
             const trackImg = track.thumbnail || track.artworkUrl;
             const trackTitle = format_1.default.truncateText(track.title || 'Unknown Title', 60);
             const trackAuthor = track.author || 'Unknown Artist';

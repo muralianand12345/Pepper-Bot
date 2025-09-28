@@ -1,6 +1,6 @@
 {
     "name": "pepper-bot",
-    "version": "5.5.2",
+    "version": "5.5.3",
     "description": "A updated version of pepper music bot.",
     "main": "./build/index.js",
     "private": true,
@@ -8,9 +8,7 @@
     "scripts": {
         "build": "tsc",
         "start": "node build/index.js",
-        "update-version": "node scripts/updateVersion.js",
-        "repair-db": "node scripts/repairDB.js --dry-run",
-        "repair-db:apply": "node scripts/repairDB.js --no-dry-run"
+        "update-version": "node scripts/updateVersion.js"
     },
     "author": "Murali Anand",
     "license": "Apache-2.0",

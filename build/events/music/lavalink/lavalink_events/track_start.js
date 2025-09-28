@@ -62,7 +62,7 @@ const webhookLiveSongs = async (client, track, player) => {
 };
 const lavalinkEvent = {
     name: magmastream_1.ManagerEventTypes.TrackStart,
-    execute: async (player, track, payload, client) => {
+    execute: async (player, track, _payload, client) => {
         if (!player?.textChannelId || !client?.channels)
             return;
         try {
@@ -82,7 +82,7 @@ const lavalinkEvent = {
                     player.stop(1);
                     client.logger.warn(`[LAVALINK] Skipping YouTube track: ${track.uri}`);
                     const responseHandler = new response_1.MusicResponseHandler(client);
-                    const embed = responseHandler.createWarningEmbed(client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || '⚠️ Skipping song! Youtube source detected.', guildLocale).setFooter({ text: client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.", iconURL: client.user?.displayAvatarURL() || '' });
+                    const embed = responseHandler.createWarningEmbed(client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || '⚠️ Skipping song! Youtube source detected.').setFooter({ text: client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.", iconURL: client.user?.displayAvatarURL() || '' });
                     return await channel.send({ embeds: [embed] }).then((msg) => (0, music_1.wait)(5000).then(() => msg.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));
                 }
                 else {

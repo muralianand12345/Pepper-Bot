@@ -202,7 +202,6 @@ responses:
         no_current_track: "Nenhuma faixa está sendo reproduzida no momento"
         lyrics_plugin_missing: "Função de letras não disponível neste nó Lavalink."
         lyrics_error: "Erro ao buscar as letras"
-        autoplay_no_recommendations: "O autoplay não conseguiu encontrar recomendações adequadas baseadas no seu histórico de audição. Tente tocar músicas mais variadas!"
         dj_error: "Ocorreu um erro ao gerenciar o cargo de DJ. Tente novamente mais tarde."
         dj_role_create_failed: "Falha ao criar o cargo de DJ. Verifique as permissões do bot e tente novamente."
         missing_dj_role: "Você precisa do cargo **{role}** para usar este comando."

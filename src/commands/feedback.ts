@@ -39,7 +39,7 @@ const feedbackCommand: Command = {
 				.setTimestamp();
 
 			await webhook.send({ content: `Feedback from ${interaction.user.tag} (${interaction.user.id})`, embeds: [embed], username: 'Feedback Bot', avatarURL: interaction.client.user?.displayAvatarURL() });
-			const successEmbed = responseHandler.createSuccessEmbed(t('responses.feedback.sent'), locale);
+			const successEmbed = responseHandler.createSuccessEmbed(t('responses.feedback.sent'));
 			await interaction.reply({ embeds: [successEmbed], flags: discord.MessageFlags.Ephemeral });
 		} catch (error) {
 			interaction.client.logger.error(`[FEEDBACK] Error sending feedback: ${error}`);
@@ -51,7 +51,7 @@ const feedbackCommand: Command = {
 			}
 		}
 	},
-	execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {
+	execute: async (interaction: discord.ChatInputCommandInteraction, _client: discord.Client): Promise<void> => {
 		const t = await localeDetector.getTranslator(interaction);
 		const modal = new discord.ModalBuilder().setCustomId('feedback_modal').setTitle(t('modals.feedback.title'));
 

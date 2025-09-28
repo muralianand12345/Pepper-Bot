@@ -61,7 +61,7 @@ const generateChartData = async (scope: string, userId: string, guildId: string 
 	}
 };
 
-const createExportData = (chartData: ISongs[], scope: string, username: string, guildName?: string): string => {
+const createExportData = (chartData: ISongs[]): string => {
 	let csvContent = 'Rank,Song Title,Artist,Play Count,Duration,Source,Last Played\n';
 	chartData.forEach((song: ISongs, index: number) => {
 		const rank = index + 1;
@@ -93,7 +93,7 @@ const refreshChartEmbed = async (interaction: discord.ButtonInteraction, origina
 		const { chartData, analytics } = await generateChartData(chartInfo.scope, interaction.user.id, interaction.guildId, chartInfo.limit);
 
 		if (!chartData.length || !analytics) {
-			const embed = responseHandler.createInfoEmbed(t('responses.chart.no_data'), locale);
+			const embed = responseHandler.createInfoEmbed(t('responses.chart.no_data'));
 			await interaction.editReply({ embeds: [embed] });
 			return;
 		}
@@ -184,16 +184,16 @@ const exportChartData = async (interaction: discord.ButtonInteraction, originalE
 		const { chartData } = await generateChartData(chartInfo.scope, interaction.user.id, interaction.guildId, 50);
 
 		if (!chartData.length) {
-			const embed = responseHandler.createInfoEmbed(t('responses.chart.no_data'), locale);
+			const embed = responseHandler.createInfoEmbed(t('responses.chart.no_data'));
 			await interaction.editReply({ embeds: [embed] });
 			return;
 		}
 
-		const csvData = createExportData(chartData, chartInfo.scope, interaction.user.displayName, interaction.guild?.name);
+		const csvData = createExportData(chartData);
 		const buffer = Buffer.from(csvData, 'utf-8');
 		const filename = `music-chart-${chartInfo.scope}-${Date.now()}.csv`;
 		const attachment = new discord.AttachmentBuilder(buffer, { name: filename });
-		const embed = responseHandler.createSuccessEmbed(`📊 ${t('responses.chart.export_success', { scope: chartInfo.scope, count: chartData.length })}`, locale);
+		const embed = responseHandler.createSuccessEmbed(`📊 ${t('responses.chart.export_success', { scope: chartInfo.scope, count: chartData.length })}`);
 		await interaction.editReply({ embeds: [embed], files: [attachment] });
 	} catch (error) {
 		client.logger.error(`[CHART_EXPORT] Error: ${error}`);

@@ -202,7 +202,6 @@ responses:
         no_current_track: "Kein Titel wird derzeit abgespielt"
         lyrics_plugin_missing: "Songtext-Funktion auf diesem Lavalink-Knoten nicht verfügbar."
         lyrics_error: "Fehler beim Abrufen der Songtexte"
-        autoplay_no_recommendations: "Autoplay konnte keine geeigneten Empfehlungen basierend auf Ihrem Hörverlauf finden. Versuchen Sie, abwechslungsreichere Songs zu spielen!"
         dj_error: "Beim Verwalten der DJ-Rolle ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut."
         dj_role_create_failed: "DJ-Rolle konnte nicht erstellt werden. Bitte überprüfen Sie die Bot-Berechtigungen und versuchen Sie es erneut."
         missing_dj_role: "Du benötigst die Rolle **{role}**, um diesen Befehl zu verwenden."

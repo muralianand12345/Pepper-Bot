@@ -3,14 +3,21 @@
         "target": "es2021",
         "module": "commonjs",
         "rootDir": "./src",
-        "resolveJsonModule": true,
         "outDir": "./build",
-        "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
         "strict": true,
+        "skipLibCheck": true,
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+        "noUnusedLocals": true,
+        "esModuleInterop": true,
+        "noImplicitReturns": true,
+        "resolveJsonModule": true,
+        "noUnusedParameters": true,
+        "strictFunctionTypes": true,
         "useUnknownInCatchVariables": true,
-        "skipLibCheck": true
+        "noFallthroughCasesInSwitch": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true
     },
     "include": [
         "./src"

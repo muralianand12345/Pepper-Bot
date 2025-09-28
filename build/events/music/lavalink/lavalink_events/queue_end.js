@@ -10,17 +10,7 @@ const music_1 = require("../../../../core/music");
 const localeDetector = new locales_1.LocaleDetector();
 const createQueueEndEmbed = (client, locale = 'en') => {
     const responseHandler = new music_1.MusicResponseHandler(client);
-    return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue', locale);
-};
-const shouldAutoplayKeepAlive = (player, guildId, client) => {
-    try {
-        const autoplayManager = music_1.Autoplay.getInstance(guildId, player, client);
-        return autoplayManager.isEffectivelyWorking();
-    }
-    catch (error) {
-        client.logger.error(`[QUEUE_END] Error checking autoplay status: ${error}`);
-        return false;
-    }
+    return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue');
 };
 const validateChannelAccess = async (client, channelId) => {
     try {
@@ -97,9 +87,6 @@ const sendQueueEndMessage = async (client, channel, locale) => {
     }
 };
 const handlePlayerCleanup = async (player, guildId, client) => {
-    if (shouldAutoplayKeepAlive(player, guildId, client)) {
-        return client.logger.info(`[QUEUE_END] Autoplay is working effectively, keeping player alive for guild ${guildId}`);
-    }
     const nowPlayingManager = music_1.NowPlayingManager.getInstance(guildId, player, client);
     nowPlayingManager.onStop();
     const CLEANUP_DELAY = 120000; // Reduced to 2 minutes for faster cleanup when autoplay fails
@@ -116,31 +103,15 @@ const handlePlayerCleanup = async (player, guildId, client) => {
     if (currentPlayer.playing || (await currentPlayer.queue.getCurrent()))
         return client.logger.debug(`[QUEUE_END] Player for guild ${guildId} is active again, skipping cleanup`);
     music_1.NowPlayingManager.removeInstance(guildId);
-    music_1.Autoplay.removeInstance(guildId);
     client.logger.info(`[QUEUE_END] Performing cleanup for guild ${guildId} after ${CLEANUP_DELAY_MINS} minutes of inactivity`);
     currentPlayer.destroy();
 };
 const lavalinkEvent = {
     name: magmastream_1.ManagerEventTypes.QueueEnd,
-    execute: async (player, track, payload, client) => {
+    execute: async (player, _track, _payload, client) => {
         if (!player?.textChannelId || !client?.channels)
             return client.logger.warn(`[QUEUE_END] Missing player textChannelId or client channels for guild ${player?.guildId}`);
         try {
-            const autoplayManager = music_1.Autoplay.getInstance(player.guildId, player, client);
-            let autoplaySuccessful = false;
-            if (autoplayManager.isEnabled() && track) {
-                const processed = await autoplayManager.processTrack(track);
-                if (processed && (await player.queue.size()) > 0) {
-                    client.logger.info(`[QUEUE_END] Autoplay successfully added tracks for guild ${player.guildId}`);
-                    autoplaySuccessful = true;
-                }
-                else {
-                    client.logger.warn(`[QUEUE_END] Autoplay failed to add tracks for guild ${player.guildId}`);
-                }
-            }
-            if (autoplaySuccessful) {
-                return;
-            }
             const channel = await validateChannelAccess(client, player.textChannelId);
             if (!channel) {
                 client.logger.warn(`[QUEUE_END] Cannot access text channel ${player.textChannelId} for guild ${player.guildId}, skipping message`);

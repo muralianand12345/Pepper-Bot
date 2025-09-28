@@ -1,3 +1,4 @@
+import client from '../../../pepper';
 import music_user from '../../../events/database/schema/music_user';
 import music_guild from '../../../events/database/schema/music_guild';
 import { IMusicUser, IMusicGuild, ISongs, ChartAnalytics } from '../../../types';
@@ -14,7 +15,12 @@ export class MusicDB {
 			} else {
 				data.songs.push(songs_data);
 			}
-			if ((data as any).dj !== undefined && (data as any).dj !== null && typeof (data as any).dj !== 'string') (data as any).dj = null;
+			if ((data as any).dj !== undefined && (data as any).dj !== null && typeof (data as any).dj !== 'string') {
+				try {
+					client.logger.warn(`[MusicDB] Coercing non-string dj field to null. Value type=${typeof (data as any).dj}`);
+				} catch {}
+				(data as any).dj = null;
+			}
 			await data.save();
 		} catch (err) {
 			throw new Error(`An error occurred while adding music data: ${err}`);
@@ -249,7 +255,7 @@ export class MusicDB {
 			]);
 			return result || [];
 		} catch (err) {
-			console.error('Error in getGlobalTopSongs:', err);
+			client.logger.error(`Error in getGlobalTopSongs: ${err}`);
 			return [];
 		}
 	};
@@ -373,7 +379,7 @@ export class MusicDB {
 			analytics.topGenres = {};
 			return analytics;
 		} catch (err) {
-			console.error('Error in getGlobalMusicAnalytics:', err);
+			client.logger.error(`Error in getGlobalMusicAnalytics: ${err}`);
 			return null;
 		}
 	};

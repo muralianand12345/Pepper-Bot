@@ -196,7 +196,6 @@ responses:
         skip_error: "An error occurred while skipping the song"
         loop_error: "An error occurred while toggling loop"
         autoplay_error: "An error occurred while toggling autoplay."
-        autoplay_no_recommendations: "Autoplay couldn't find suitable recommendations based on your listening history. Try playing more varied songs!"
         contact_dev: "If this issue persists, please use /feedback or contact the developer"
         filter_error: "An error occurred while applying the filter"
         filter_not_found: "Filter `{filter}` not found. Available filters: {available}"

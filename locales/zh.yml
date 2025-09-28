@@ -202,7 +202,6 @@ responses:
         no_current_track: "当前没有正在播放的曲目"
         lyrics_plugin_missing: "此 Lavalink 节点不支持歌词功能。"
         lyrics_error: "获取歌词时出错"
-        autoplay_no_recommendations: "自动播放无法根据您的收听历史找到合适的推荐歌曲。试试播放更多样化的歌曲！"
         dj_error: "管理DJ角色时发生错误。请稍后再试。"
         dj_role_create_failed: "创建DJ角色失败。请检查机器人权限并重试。"
         missing_dj_role: "你需要 **{role}** 角色才能使用此命令。"

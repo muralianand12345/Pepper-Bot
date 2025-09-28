@@ -3,23 +3,13 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
-import { wait, Autoplay, NowPlayingManager, MusicResponseHandler } from '../../../../core/music';
+import { wait, NowPlayingManager, MusicResponseHandler } from '../../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
 const createQueueEndEmbed = (client: discord.Client, locale: string = 'en'): discord.EmbedBuilder => {
 	const responseHandler = new MusicResponseHandler(client);
-	return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue', locale);
-};
-
-const shouldAutoplayKeepAlive = (player: magmastream.Player, guildId: string, client: discord.Client): boolean => {
-	try {
-		const autoplayManager = Autoplay.getInstance(guildId, player, client);
-		return autoplayManager.isEffectivelyWorking();
-	} catch (error) {
-		client.logger.error(`[QUEUE_END] Error checking autoplay status: ${error}`);
-		return false;
-	}
+	return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue');
 };
 
 const validateChannelAccess = async (client: discord.Client, channelId: string): Promise<discord.TextChannel | null> => {
@@ -100,10 +90,6 @@ const sendQueueEndMessage = async (client: discord.Client, channel: discord.Text
 };
 
 const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, client: discord.Client): Promise<void> => {
-	if (shouldAutoplayKeepAlive(player, guildId, client)) {
-		return client.logger.info(`[QUEUE_END] Autoplay is working effectively, keeping player alive for guild ${guildId}`);
-	}
-
 	const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, client);
 	nowPlayingManager.onStop();
 
@@ -123,7 +109,6 @@ const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, 
 	if (currentPlayer.playing || (await currentPlayer.queue.getCurrent())) return client.logger.debug(`[QUEUE_END] Player for guild ${guildId} is active again, skipping cleanup`);
 
 	NowPlayingManager.removeInstance(guildId);
-	Autoplay.removeInstance(guildId);
 
 	client.logger.info(`[QUEUE_END] Performing cleanup for guild ${guildId} after ${CLEANUP_DELAY_MINS} minutes of inactivity`);
 	currentPlayer.destroy();
@@ -131,27 +116,10 @@ const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, 
 
 const lavalinkEvent: LavalinkEvent = {
 	name: ManagerEventTypes.QueueEnd,
-	execute: async (player: magmastream.Player, track: magmastream.Track, payload: magmastream.TrackEndEvent, client: discord.Client): Promise<void> => {
+	execute: async (player: magmastream.Player, _track: magmastream.Track, _payload: magmastream.TrackEndEvent, client: discord.Client): Promise<void> => {
 		if (!player?.textChannelId || !client?.channels) return client.logger.warn(`[QUEUE_END] Missing player textChannelId or client channels for guild ${player?.guildId}`);
 
 		try {
-			const autoplayManager = Autoplay.getInstance(player.guildId, player, client);
-			let autoplaySuccessful = false;
-
-			if (autoplayManager.isEnabled() && track) {
-				const processed = await autoplayManager.processTrack(track);
-				if (processed && (await player.queue.size()) > 0) {
-					client.logger.info(`[QUEUE_END] Autoplay successfully added tracks for guild ${player.guildId}`);
-					autoplaySuccessful = true;
-				} else {
-					client.logger.warn(`[QUEUE_END] Autoplay failed to add tracks for guild ${player.guildId}`);
-				}
-			}
-
-			if (autoplaySuccessful) {
-				return;
-			}
-
 			const channel = await validateChannelAccess(client, player.textChannelId);
 			if (!channel) {
 				client.logger.warn(`[QUEUE_END] Cannot access text channel ${player.textChannelId} for guild ${player.guildId}, skipping message`);

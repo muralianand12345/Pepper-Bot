@@ -5,7 +5,7 @@ import Formatter from '../../utils/format';
 import { ProgressBarUtils } from './utils';
 import { LocaleDetector } from '../locales';
 import music_guild from '../../events/database/schema/music_guild';
-import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator, Autoplay } from './handlers';
+import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator } from './handlers';
 
 export * from './func';
 export * from './repo';
@@ -155,7 +155,7 @@ export class Music {
 		if (needsConnection || !['CONNECTING', 'CONNECTED'].includes(player.state)) {
 			player.connect();
 			await this.interaction.editReply({
-				embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }), this.locale)],
+				embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }))],
 			});
 		}
 
@@ -193,7 +193,7 @@ export class Music {
 
 		try {
 			player.destroy();
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'), this.locale)] });
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'))] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Stop error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.stop_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
@@ -224,7 +224,7 @@ export class Music {
 
 		try {
 			player.pause(true);
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'), this.locale)] });
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'))] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Pause error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.pause_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
@@ -255,7 +255,7 @@ export class Music {
 
 		try {
 			player.pause(false);
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'), this.locale)] });
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'))] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Resume error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.resume_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
@@ -280,15 +280,19 @@ export class Music {
 			if (!isValid) return await this.interaction.editReply({ embeds: [embed] });
 		}
 
-		const musicValidator = new MusicPlayerValidator(this.client, player);
-		const [isValid, errorEmbed] = await musicValidator.validateQueueSize(1, this.interaction);
-		if (!isValid && errorEmbed) return await this.interaction.editReply({ embeds: [errorEmbed] });
-
 		try {
-			player.stop(1);
-			const queueSize = await player.queue.size();
-			if (queueSize === 0 && this.interaction.guildId) player.destroy();
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'), this.locale)] });
+			if (!player.isAutoplay) {
+				const musicValidator = new MusicPlayerValidator(this.client, player);
+				const [isValid, errorEmbed] = await musicValidator.validateQueueSize(0, this.interaction);
+				if (!isValid && errorEmbed) return await this.interaction.editReply({ embeds: [errorEmbed] });
+
+				player.stop(1);
+				const queueSize = await player.queue.size();
+				if (queueSize === 0 && this.interaction.guildId) player.destroy();
+			} else {
+				player.stop();
+			}
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.skipped'))] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Skip error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.skip_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
@@ -317,7 +321,7 @@ export class Music {
 			player.setTrackRepeat(!player.trackRepeat);
 			const message = player.trackRepeat ? this.t('responses.music.loop_enabled') : this.t('responses.music.loop_disabled');
 
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message, this.locale)] });
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message)] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Loop error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.loop_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
@@ -348,27 +352,9 @@ export class Music {
 		}
 
 		try {
-			const autoplayManager = Autoplay.getInstance(player.guildId, player, this.client);
-			if (enable) {
-				autoplayManager.enable(this.interaction.user.id);
-				const currentTrack = await player.queue.getCurrent();
-				const queueSize = await player.queue.size();
-				if (currentTrack && queueSize === 0) {
-					const testResult = await autoplayManager.processTrack(currentTrack);
-					if (!testResult) {
-						const embed = responseHandler.createWarningEmbed(this.t('responses.errors.autoplay_no_recommendations') || "Autoplay couldn't find suitable recommendations based on your listening history. Try playing more varied songs!", this.locale);
-						await this.interaction.editReply({ embeds: [embed] });
-						return;
-					}
-				}
-
-				const embed = responseHandler.createSuccessEmbed(this.t('responses.music.autoplay_enabled'), this.locale);
-				await this.interaction.editReply({ embeds: [embed] });
-			} else {
-				autoplayManager.disable();
-				const embed = responseHandler.createInfoEmbed(this.t('responses.music.autoplay_disabled'), this.locale);
-				await this.interaction.editReply({ embeds: [embed] });
-			}
+			player.setAutoplay(enable, this.interaction.user, 5);
+			const embed = responseHandler.createSuccessEmbed(enable ? this.t('responses.music.autoplay_enabled') : this.t('responses.music.autoplay_disabled'));
+			await this.interaction.editReply({ embeds: [embed] });
 		} catch (error) {
 			this.client.logger.error(`[AUTOPLAY] Command error: ${error}`);
 			await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.autoplay_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
@@ -463,7 +449,7 @@ export class Music {
 			}
 
 			const filter = MUSIC_CONFIG.AUDIO_FILTERS[filterName];
-			const embed = responseHandler.createSuccessEmbed(this.t('responses.music.filter_applied', { filter: filter.name }), this.locale);
+			const embed = responseHandler.createSuccessEmbed(this.t('responses.music.filter_applied', { filter: filter.name }));
 			await this.interaction.editReply({ embeds: [embed] });
 		} catch (error) {
 			this.client.logger.error(`[FILTER] Command error: ${error}`);
@@ -507,7 +493,7 @@ export class Music {
 			const lyricsData = await player.getCurrentLyrics(skipTrackSource);
 
 			if (!lyricsData || (!lyricsData.text && (!lyricsData.lines || lyricsData.lines.length === 0))) {
-				const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.not_found', { title: currentTrack.title || 'Unknown Track', artist: currentTrack.author || 'Unknown Artist' }), this.locale);
+				const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.not_found', { title: currentTrack.title || 'Unknown Track', artist: currentTrack.author || 'Unknown Artist' }));
 				return await this.interaction.editReply({ embeds: [embed] });
 			}
 
@@ -525,7 +511,7 @@ export class Music {
 			}
 
 			if (!lyricsText || lyricsText.trim() === '') {
-				const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.empty', { title: trackTitle, artist: trackArtist }), this.locale);
+				const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.empty', { title: trackTitle, artist: trackArtist }));
 				return await this.interaction.editReply({ embeds: [embed] });
 			}
 
@@ -662,7 +648,7 @@ export class Music {
 			const queueTracks = await queue.getTracks();
 
 			if (!currentTrack && queueTracks.length === 0) {
-				const embed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'), this.locale);
+				const embed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'));
 				return await this.interaction.editReply({ embeds: [embed] });
 			}
 
@@ -777,7 +763,7 @@ export class Music {
 						} else if (i.customId === 'queue-shuffle') {
 							await i.deferUpdate();
 							await player.queue.shuffle();
-							await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'), this.locale)], flags: discord.MessageFlags.Ephemeral });
+							await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.shuffled'))], flags: discord.MessageFlags.Ephemeral });
 
 							const shuffledQueueTracks = await player.queue.getTracks();
 							const shuffledTotalPages = Math.ceil(shuffledQueueTracks.length / 10) || 1;
@@ -802,9 +788,9 @@ export class Music {
 						} else if (i.customId === 'queue-clear') {
 							await i.deferUpdate();
 							player.queue.clear();
-							await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.cleared'), this.locale)], flags: discord.MessageFlags.Ephemeral });
+							await i.followUp({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.queue.cleared'))], flags: discord.MessageFlags.Ephemeral });
 
-							const emptyEmbed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'), this.locale);
+							const emptyEmbed = responseHandler.createInfoEmbed(this.t('responses.queue.empty'));
 							await this.interaction.editReply({ embeds: [emptyEmbed], components: [] });
 						}
 					} catch (error) {
@@ -854,25 +840,25 @@ export class Music {
 						guild.dj = createdRole.id;
 					}
 					await guild.save();
-					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_created_and_set', { role: createdRole.name }), this.locale)] });
+					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_created_and_set', { role: createdRole.name }))] });
 				} else {
 					const currentRole = this.interaction.guild?.roles.cache.get(guild.dj);
 					guild.dj = null;
 					await guild.save();
-					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_disabled', { role: currentRole?.name || 'Unknown Role' }), this.locale)] });
+					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_disabled', { role: currentRole?.name || 'Unknown Role' }))] });
 				}
 			}
 
 			if (!guild) {
 				guild = new music_guild({ guildId: this.interaction.guildId!, dj: djRole.id, songs: [] });
 				await guild.save();
-				return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_set', { role: djRole.name }), this.locale)] });
+				return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_set', { role: djRole.name }))] });
 			}
 
 			if (guild.dj === djRole.id) {
 				guild.dj = null;
 				await guild.save();
-				return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_removed', { role: djRole.name }), this.locale)] });
+				return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_removed', { role: djRole.name }))] });
 			} else {
 				const previousRoleId = guild.dj;
 				guild.dj = djRole.id;
@@ -880,9 +866,9 @@ export class Music {
 
 				if (previousRoleId) {
 					const previousRole = this.interaction.guild?.roles.cache.get(previousRoleId);
-					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_changed', { oldRole: previousRole?.name || 'Unknown Role', newRole: djRole.name }), this.locale)] });
+					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_changed', { oldRole: previousRole?.name || 'Unknown Role', newRole: djRole.name }))] });
 				} else {
-					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_set', { role: djRole.name }), this.locale)] });
+					return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.dj.role_set', { role: djRole.name }))] });
 				}
 			}
 		} catch (error) {

@@ -43,13 +43,13 @@ const suggestSongsCommand: Command = {
 
 			if (!seedSong) {
 				return await interaction.editReply({
-					embeds: [responseHandler.createInfoEmbed(t('responses.suggest_songs.no_history'), locale)],
+					embeds: [responseHandler.createInfoEmbed(t('responses.suggest_songs.no_history'))],
 				});
 			}
 
 			if (!recommendations || recommendations.length === 0) {
 				return await interaction.editReply({
-					embeds: [responseHandler.createInfoEmbed(t('responses.suggest_songs.no_recommendations', { song: seedSong.title || 'Unknown' }), locale)],
+					embeds: [responseHandler.createInfoEmbed(t('responses.suggest_songs.no_recommendations', { song: seedSong.title || 'Unknown' }))],
 				});
 			}
 
@@ -171,7 +171,7 @@ const suggestSongsCommand: Command = {
 					time: 120000,
 				});
 
-				collector.on('collect', async (i: discord.MessageComponentInteraction) => {
+				collector.on('collect', async (i: discord.MessageComponentInteraction): Promise<discord.Message<boolean> | void> => {
 					try {
 						const buttonT = await localeDetector.getTranslator(i);
 						const buttonLocale = await localeDetector.detectLocale(i);
@@ -198,8 +198,7 @@ const suggestSongsCommand: Command = {
 											buttonT('responses.suggest_songs.now_playing', {
 												title: topPick.title || 'Unknown Track',
 												artist: topPick.author || 'Unknown Artist',
-											}),
-											buttonLocale
+											})
 										),
 									],
 									flags: discord.MessageFlags.Ephemeral,
@@ -227,7 +226,7 @@ const suggestSongsCommand: Command = {
 							}
 
 							await i.followUp({
-								embeds: [responseHandler.createSuccessEmbed(buttonT('responses.suggest_songs.added_tracks', { count: addedCount }), buttonLocale)],
+								embeds: [responseHandler.createSuccessEmbed(buttonT('responses.suggest_songs.added_tracks', { count: addedCount }))],
 								flags: discord.MessageFlags.Ephemeral,
 							});
 						} else if (i.customId === 'refresh-recommendation') {
@@ -241,7 +240,7 @@ const suggestSongsCommand: Command = {
 
 							if (!newSeedSong || !newRecommendations || newRecommendations.length === 0) {
 								return await i.followUp({
-									embeds: [responseHandler.createInfoEmbed(buttonT('responses.suggest_songs.no_new_recommendations'), buttonLocale)],
+									embeds: [responseHandler.createInfoEmbed(buttonT('responses.suggest_songs.no_new_recommendations'))],
 									flags: discord.MessageFlags.Ephemeral,
 								});
 							}

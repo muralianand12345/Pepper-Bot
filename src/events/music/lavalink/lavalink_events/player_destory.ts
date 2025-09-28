@@ -3,7 +3,7 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
-import { Autoplay, NowPlayingManager, MusicResponseHandler } from '../../../../core/music';
+import { NowPlayingManager, MusicResponseHandler } from '../../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
@@ -24,7 +24,7 @@ const lavalinkEvent: LavalinkEvent = {
 						guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
 					} catch (error) {}
 					const responseHandler = new MusicResponseHandler(client);
-					const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected', guildLocale);
+					const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
 					await channel.send({ embeds: [disconnectEmbed] });
 					client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent for guild ${player.guildId}`);
 				}
@@ -34,7 +34,6 @@ const lavalinkEvent: LavalinkEvent = {
 		}
 
 		NowPlayingManager.removeInstance(player.guildId);
-		Autoplay.removeInstance(player.guildId);
 
 		client.logger.info(`[LAVALINK] Player for guild ${guild.name} (${guild.id}) destroyed`);
 	},
