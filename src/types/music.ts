@@ -25,15 +25,6 @@ export interface ISongs {
 	timestamp: Date;
 }
 
-export interface IPlayer {
-	position: number;
-	queue: {
-		current: {
-			duration: number;
-		};
-	};
-}
-
 export interface IAutoCompleteOptions {
 	maxResults?: number;
 	language?: string;
