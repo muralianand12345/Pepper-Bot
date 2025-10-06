@@ -79,7 +79,7 @@ export class Music {
 	private ytToSpotifyQuery = async (query: string | null): Promise<string | null> => {
 		if (query && this.ytRegex.test(query)) {
 			const ytSearch = await this.lavaSearch(query, 5);
-			if (ytSearch.loadType === 'error') return null;
+			if (TrackUtils.isErrorOrEmptySearchResult(ytSearch)) return null;
 			if ('tracks' in ytSearch && ytSearch.tracks.length > 0) {
 				const firstTrack = ytSearch.tracks[0];
 				return `spsearch:${firstTrack.title} ${firstTrack.author}`;
