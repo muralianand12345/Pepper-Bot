@@ -183,7 +183,6 @@ responses:
         already_playing: "The music is already playing"
         no_queue: "There are no songs in the queue"
         queue_too_small: "There are only {count} songs in the queue"
-        youtube_not_supported: "We do not support YouTube links or music at this time :("
         no_results: "Unable To Fetch Results"
         no_permission: "🚫 {user}, You don't have permission to use this command!"
         missing_user_perms: "🚫 You don't have `{permissions}` permissions to use this command!"

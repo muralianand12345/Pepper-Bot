@@ -182,7 +182,6 @@ responses:
         already_playing: "La musique est déjà en cours de lecture"
         no_queue: "Aucun titre dans la file d’attente"
         queue_too_small: "Il n’y a que {count} titres dans la file d’attente"
-        youtube_not_supported: "Les liens ou musiques YouTube ne sont actuellement pas pris en charge :("
         no_results: "Aucun résultat trouvé"
         no_permission: "🚫 {user}, tu n’as pas la permission d’utiliser cette commande !"
         missing_user_perms: "🚫 Tu n’as pas les autorisations requises `{permissions}` pour utiliser cette commande !"

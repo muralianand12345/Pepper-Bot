@@ -59,11 +59,11 @@ const playCommand = {
                     }
                     catch (spotifyError) {
                         client.logger.warn(`[PLAY_COMMAND] Spotify autocomplete error: ${spotifyError}`);
-                        await safeRespond([{ name: cleanValue.slice(0, 80), value: cleanValue }]);
+                        await safeRespond([{ name: cleanValue.slice(0, 80), value: focused.value }]);
                     }
                 }
                 else {
-                    await safeRespond([{ name: cleanValue.slice(0, 80), value: cleanValue }]);
+                    await safeRespond([{ name: cleanValue.slice(0, 80), value: focused.value }]);
                 }
             }
         }

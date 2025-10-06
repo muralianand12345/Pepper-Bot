@@ -106,7 +106,6 @@ export class VoiceChannelValidator {
 export class MusicPlayerValidator {
 	private readonly client: discord.Client;
 	private readonly player: magmastream.Player;
-	private readonly ytRegex: RegExp = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 	private localeDetector: LocaleDetector;
 
 	constructor(client: discord.Client, player: magmastream.Player) {
@@ -142,9 +141,6 @@ export class MusicPlayerValidator {
 		if (!this.player?.paused) return [false, await this.createErrorEmbed('responses.errors.already_playing', {}, interaction)];
 		return [true, null];
 	};
-
-	public validateMusicSource = async (query: string, interaction?: discord.ChatInputCommandInteraction | discord.ButtonInteraction): Promise<[boolean, discord.EmbedBuilder]> => {
-		if (this.ytRegex.test(query)) return [false, await this.createErrorEmbed('responses.errors.youtube_not_supported', {}, interaction)];
-		return [true, await this.createErrorEmbed('', {}, interaction)];
-	};
 }
+
+// if (this.ytRegex.test(query))

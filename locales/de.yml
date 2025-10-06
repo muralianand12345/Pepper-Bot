@@ -182,7 +182,6 @@ responses:
         already_playing: "Die Musik wird bereits abgespielt"
         no_queue: "Es befinden sich keine Songs in der Warteschlange"
         queue_too_small: "Es gibt nur {count} Songs in der Warteschlange"
-        youtube_not_supported: "YouTube-Links oder Musik werden derzeit nicht unterstützt :("
         no_results: "Keine Ergebnisse gefunden"
         no_permission: "🚫 {user}, du hast keine Berechtigung, diesen Befehl zu verwenden!"
         missing_user_perms: "🚫 Du hast nicht die benötigten Rechte `{permissions}`, um diesen Befehl zu verwenden!"

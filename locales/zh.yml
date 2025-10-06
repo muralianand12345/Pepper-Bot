@@ -182,7 +182,6 @@ responses:
         already_playing: "音乐正在播放中"
         no_queue: "队列中没有歌曲"
         queue_too_small: "队列中只有 {count} 首歌曲"
-        youtube_not_supported: "暂不支持 YouTube 链接或音乐 :("
         no_results: "未找到任何结果"
         no_permission: "🚫 {user}，你没有权限使用此命令！"
         missing_user_perms: "🚫 你需要权限 `{permissions}` 才能使用此命令！"

@@ -95,7 +95,6 @@ class VoiceChannelValidator {
 exports.VoiceChannelValidator = VoiceChannelValidator;
 class MusicPlayerValidator {
     constructor(client, player) {
-        this.ytRegex = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
         this.createErrorEmbed = async (messageKey, data, interaction) => {
             const locale = interaction ? await this.localeDetector.detectLocale(interaction) : 'en';
             const t = interaction ? await this.localeDetector.getTranslator(interaction) : (key) => key;
@@ -124,14 +123,10 @@ class MusicPlayerValidator {
                 return [false, await this.createErrorEmbed('responses.errors.already_playing', {}, interaction)];
             return [true, null];
         };
-        this.validateMusicSource = async (query, interaction) => {
-            if (this.ytRegex.test(query))
-                return [false, await this.createErrorEmbed('responses.errors.youtube_not_supported', {}, interaction)];
-            return [true, await this.createErrorEmbed('', {}, interaction)];
-        };
         this.client = client;
         this.player = player;
         this.localeDetector = new locales_1.LocaleDetector();
     }
 }
 exports.MusicPlayerValidator = MusicPlayerValidator;
+// if (this.ytRegex.test(query))
