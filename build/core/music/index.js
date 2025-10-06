@@ -10,6 +10,28 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
 }));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
@@ -19,7 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Music = exports.MUSIC_CONFIG = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
-const magmastream_1 = __importDefault(require("magmastream"));
+const magmastream_1 = __importStar(require("magmastream"));
 const format_1 = __importDefault(require("../../utils/format"));
 const utils_1 = require("./utils");
 const locales_1 = require("../locales");
@@ -54,6 +76,7 @@ exports.MUSIC_CONFIG = {
 };
 class Music {
     constructor(client, interaction) {
+        this.ytRegex = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
         this.locale = 'en';
         this.t = (key) => key;
         this.isDeferred = false;
@@ -72,11 +95,24 @@ class Music {
         this.lavaSearch = async (query, retry = 5) => {
             let res;
             res = await this.client.manager.search(query, this.interaction.user.id);
-            if (res.loadType === 'error' && retry > 0) {
+            if (magmastream_1.TrackUtils.isErrorOrEmptySearchResult(res) && retry > 0) {
                 this.client.logger.warn(`[MUSIC] Error searching songs. Retrying... (${retry} attempts left)`);
                 return this.lavaSearch(query, retry - 1);
             }
             return res;
+        };
+        this.ytToSpotifyQuery = async (query) => {
+            if (query && this.ytRegex.test(query)) {
+                const ytSearch = await this.lavaSearch(query, 5);
+                if (ytSearch.loadType === 'error')
+                    return null;
+                if ('tracks' in ytSearch && ytSearch.tracks.length > 0) {
+                    const firstTrack = ytSearch.tracks[0];
+                    return `spsearch:${firstTrack.title} ${firstTrack.author}`;
+                }
+                return null;
+            }
+            return query;
         };
         this.searchResults = async (res, player) => {
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
@@ -121,7 +157,9 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const query = this.interaction.options.getString('song') || this.t('responses.default_search');
+            const query = await this.ytToSpotifyQuery(this.interaction.options.getString('song')) || this.t('responses.default_search');
+            if (!query || query === this.t('responses.default_search'))
+                return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.default_search'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
             for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection()]) {
                 const [isValid, embed] = await check;
@@ -145,10 +183,6 @@ class Music {
                     ...exports.MUSIC_CONFIG.PLAYER_OPTIONS,
                 });
             }
-            const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
-            const [queueValid, queueError] = await musicValidator.validateMusicSource(query, this.interaction);
-            if (!queueValid && queueError)
-                return this.interaction.editReply({ embeds: [queueError] });
             const guild = this.interaction.guild;
             const botMember = guild.members.me;
             const needsConnection = !botMember?.voice.channelId || botMember.voice.channelId !== guildMember?.voice.channelId;

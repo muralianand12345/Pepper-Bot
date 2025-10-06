@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import magmastream from 'magmastream';
+import magmastream, { TrackUtils } from 'magmastream';
 
 import Formatter from '../../utils/format';
 import { ProgressBarUtils } from './utils';
@@ -40,6 +40,7 @@ export class Music {
 	private client: discord.Client;
 	private interaction: discord.ChatInputCommandInteraction | discord.ButtonInteraction;
 	private localeDetector: LocaleDetector;
+	private readonly ytRegex: RegExp = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i; 
 	private locale: string = 'en';
 	private t: (key: string, data?: Record<string, string | number>) => string = (key) => key;
 	private isDeferred: boolean = false;
@@ -68,11 +69,24 @@ export class Music {
 	private lavaSearch = async (query: string, retry: number = 5): Promise<magmastream.SearchResult> => {
 		let res: magmastream.SearchResult;
 		res = await this.client.manager.search(query, this.interaction.user.id);
-		if (res.loadType === 'error' && retry > 0) {
+		if (TrackUtils.isErrorOrEmptySearchResult(res) && retry > 0) {
 			this.client.logger.warn(`[MUSIC] Error searching songs. Retrying... (${retry} attempts left)`);
 			return this.lavaSearch(query, retry - 1);
 		}
 		return res;
+	};
+
+	private ytToSpotifyQuery = async (query: string | null): Promise<string | null> => {
+		if (query && this.ytRegex.test(query)) {
+			const ytSearch = await this.lavaSearch(query, 5);
+			if (TrackUtils.isErrorOrEmptySearchResult(ytSearch)) return null;
+			if ('tracks' in ytSearch && ytSearch.tracks.length > 0) {
+				const firstTrack = ytSearch.tracks[0];
+				return `spsearch:${firstTrack.title} ${firstTrack.author}`;
+			}
+			return null;
+		}
+		return query;
 	};
 
 	searchResults = async (res: magmastream.SearchResult, player: magmastream.Player): Promise<discord.Message<boolean> | void> => {
@@ -118,7 +132,8 @@ export class Music {
 		const musicCheck = this.validateMusicEnabled();
 		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
 
-		const query = this.interaction.options.getString('song') || this.t('responses.default_search');
+		const query = await this.ytToSpotifyQuery(this.interaction.options.getString('song')) || this.t('responses.default_search');
+		if (!query || query === this.t('responses.default_search')) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.default_search'), this.locale)] });
 
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
 		for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection()]) {
@@ -143,10 +158,6 @@ export class Music {
 				...MUSIC_CONFIG.PLAYER_OPTIONS,
 			});
 		}
-
-		const musicValidator = new MusicPlayerValidator(this.client, player);
-		const [queueValid, queueError] = await musicValidator.validateMusicSource(query, this.interaction);
-		if (!queueValid && queueError) return this.interaction.editReply({ embeds: [queueError] });
 
 		const guild = this.interaction.guild!;
 		const botMember = guild.members.me;

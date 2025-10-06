@@ -182,7 +182,6 @@ responses:
         already_playing: "La música ya se está reproduciendo"
         no_queue: "No hay canciones en la cola"
         queue_too_small: "Solo hay {count} canciones en la cola"
-        youtube_not_supported: "Actualmente no se admiten enlaces o música de YouTube :("
         no_results: "No se encontraron resultados"
         no_permission: "🚫 {user}, ¡no tienes permiso para usar este comando!"
         missing_user_perms: "🚫 No tienes los permisos `{permissions}` necesarios para usar este comando!"
