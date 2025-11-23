@@ -104,7 +104,7 @@ class Music {
         this.ytToSpotifyQuery = async (query) => {
             if (query && this.ytRegex.test(query)) {
                 const ytSearch = await this.lavaSearch(query, 5);
-                if (ytSearch.loadType === 'error')
+                if (magmastream_1.TrackUtils.isErrorOrEmptySearchResult(ytSearch))
                     return null;
                 if ('tracks' in ytSearch && ytSearch.tracks.length > 0) {
                     const firstTrack = ytSearch.tracks[0];
