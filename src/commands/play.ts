@@ -2,8 +2,8 @@ import discord from 'discord.js';
 
 import { ConfigManager } from '../utils/config';
 import { Command, CommandCategory } from '../types';
-import { Music, SpotifyAutoComplete } from '../core/music';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
+import { Music, SpotifyAutoComplete, SpotifyManager } from '../core/music';
 
 const configManager = ConfigManager.getInstance();
 const localizationManager = LocalizationManager.getInstance();
@@ -22,6 +22,7 @@ const playCommand: Command = {
 		.addStringOption((option) => option.setName('song').setDescription('Song Name/URL').setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.description')).setRequired(true).setAutocomplete(true)),
 	autocomplete: async (interaction: discord.AutocompleteInteraction, client: discord.Client): Promise<void> => {
 		let hasResponded = false;
+		const spotifyManager = new SpotifyManager(client);
 
 		const safeRespond = async (suggestions: discord.ApplicationCommandOptionChoiceData[]): Promise<void> => {
 			if (hasResponded || !interaction.isAutocomplete()) return;
@@ -41,6 +42,13 @@ const playCommand: Command = {
 				if (!focused.value?.trim()) {
 					const t = await localeDetector.getTranslator(interaction);
 					const defaultText = t('responses.default_search');
+					const spotifyPlaylist = await spotifyManager.getPlaylists(interaction.user.id, 0, 25);
+					if (spotifyPlaylist) {
+						const playlistChoices = spotifyPlaylist.playlists.slice(0, 24).map((playlist) => ({ name: playlist.name.slice(0, 100), value: playlist.value }));
+						// playlistChoices.push({ name: defaultText.slice(0, 100), value: defaultText });
+						await safeRespond(playlistChoices);
+						return;
+					}
 					await safeRespond([{ name: defaultText.slice(0, 100), value: defaultText }]);
 					return;
 				}

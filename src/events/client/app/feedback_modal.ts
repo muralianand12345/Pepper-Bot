@@ -25,7 +25,7 @@ const event: BotEvent = {
 			} catch (error) {
 				client.logger.error(`[FEEDBACK] Error showing feedback modal: ${error}`);
 				try {
-					if (interaction.isRepliable()) await interaction.reply({ content: 'Sorry, there was an error displaying the feedback form. Please try again later or join our support server.', ephemeral: true });
+					if (interaction.isRepliable()) await interaction.reply({ content: 'Sorry, there was an error displaying the feedback form. Please try again later or join our support server.', flags: discord.MessageFlags.Ephemeral });
 				} catch (replyError) {
 					client.logger.error(`[FEEDBACK] Failed to send error reply: ${replyError}`);
 				}
@@ -65,7 +65,7 @@ const event: BotEvent = {
 			} catch (error) {
 				client.logger.error(`[FEEDBACK] Error processing feedback modal submission: ${error}`);
 				try {
-					if (interaction.isRepliable()) await interaction.reply({ content: 'Sorry, there was an error processing your feedback. Please try again later or join our support server.', ephemeral: true });
+					if (interaction.isRepliable()) await interaction.reply({ content: 'Sorry, there was an error processing your feedback. Please try again later or join our support server.', flags: discord.MessageFlags.Ephemeral });
 				} catch (replyError) {
 					client.logger.error(`[FEEDBACK] Failed to send error reply: ${replyError}`);
 				}

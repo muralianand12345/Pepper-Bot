@@ -17,9 +17,11 @@ const EnvSchema = zod_1.z.object({
             return val.toLowerCase() === 'true';
         return val;
     }),
+    API_PORT: zod_1.z.union([zod_1.z.number(), zod_1.z.string()]).optional().transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val)),
     LASTFM_API_KEY: zod_1.z.string(),
     SPOTIFY_CLIENT_ID: zod_1.z.string(),
     SPOTIFY_CLIENT_SECRET: zod_1.z.string(),
+    SPOTIFY_REDIRECT_URI: zod_1.z.string(),
     FEEDBACK_WEBHOOK: zod_1.z.string(),
     LIVE_SONGS_WEBHOOK: zod_1.z.string(),
     OPENAI_API_KEY: zod_1.z.string(),
@@ -48,6 +50,9 @@ class ConfigManager {
         this.isDebugMode = () => {
             return this.config.DEBUG_MODE;
         };
+        this.getApiPort = () => {
+            return this.config.API_PORT;
+        };
         this.getLastFmApiKey = () => {
             return this.config.LASTFM_API_KEY;
         };
@@ -56,6 +61,9 @@ class ConfigManager {
         };
         this.getSpotifyClientSecret = () => {
             return this.config.SPOTIFY_CLIENT_SECRET;
+        };
+        this.getSpotifyRedirectUri = () => {
+            return this.config.SPOTIFY_REDIRECT_URI;
         };
         this.getFeedbackWebhook = () => {
             return this.config.FEEDBACK_WEBHOOK;
@@ -89,9 +97,11 @@ class ConfigManager {
                 TOKEN: process.env.TOKEN,
                 MONGO_URI: process.env.MONGO_URI,
                 DEBUG_MODE: process.env.DEBUG_MODE || false,
+                API_PORT: process.env.API_PORT,
                 LASTFM_API_KEY: process.env.LASTFM_API_KEY,
                 SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
                 SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
+                SPOTIFY_REDIRECT_URI: process.env.SPOTIFY_REDIRECT_URI,
                 FEEDBACK_WEBHOOK: process.env.FEEDBACK_WEBHOOK,
                 LIVE_SONGS_WEBHOOK: process.env.LIVE_SONGS_WEBHOOK,
                 OPENAI_API_KEY: process.env.OPENAI_API_KEY,
