@@ -40,6 +40,33 @@ export class SpotifyManager {
 		return data.userId;
 	};
 
+	private makeRequest = async (url: string, tokens: { access: string; refresh: string }, userId: string, options: any = {}): Promise<any> => {
+		try {
+			const response = await axios({ url, headers: { Authorization: `Bearer ${tokens.access}` }, ...options });
+			return response.data;
+		} catch (error: any) {
+			if (error.response?.status === 401) {
+				const newTokens = await this.refreshTokens(tokens.refresh, userId);
+				if (!newTokens) throw error;
+				const retryResponse = await axios({ url, headers: { Authorization: `Bearer ${newTokens.access}` }, ...options });
+				return retryResponse.data;
+			}
+			throw error;
+		}
+	};
+
+	private refreshTokens = async (refreshToken: string, userId: string): Promise<{ access: string; refresh: string } | null> => {
+		try {
+			const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken }), { headers: { 'Content-Type': 'application/x-www-form-urlencoded', Authorization: `Basic ${Buffer.from(`${configManager.getSpotifyClientId()}:${configManager.getSpotifyClientSecret()}`).toString('base64')}` } });
+			const newTokens = { access: response.data.access_token, refresh: response.data.refresh_token || refreshToken };
+			await this.saveAccount(userId, newTokens);
+			return newTokens;
+		} catch (error) {
+			this.client.logger.error(`Failed to refresh token: ${error}`);
+			return null;
+		}
+	};
+
 	exchangeCodeForTokens = async (code: string): Promise<{ access: string; refresh: string } | null> => {
 		try {
 			const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: configManager.getSpotifyRedirectUri() }), { headers: { 'Content-Type': 'application/x-www-form-urlencoded', Authorization: `Basic ${Buffer.from(`${configManager.getSpotifyClientId()}:${configManager.getSpotifyClientSecret()}`).toString('base64')}` } });
@@ -99,9 +126,9 @@ export class SpotifyManager {
 		try {
 			const tokens = await this.getAccount(userId);
 			if (!tokens) return null;
-			const response = await axios.get('https://api.spotify.com/v1/me/playlists', { headers: { Authorization: `Bearer ${tokens.access}` }, params: { limit, offset } });
-			const playlists: PlaylistItem[] = response.data.items.filter((playlist: any) => playlist.public).map((playlist: any) => ({ name: playlist.name, value: playlist.external_urls.spotify }));
-			return { playlists, hasMore: response.data.next !== null, nextOffset: offset + limit };
+			const data = await this.makeRequest('https://api.spotify.com/v1/me/playlists', tokens, userId, { params: { limit, offset } });
+			const playlists: PlaylistItem[] = data.items.filter((playlist: any) => playlist.public).map((playlist: any) => ({ name: playlist.name, value: playlist.external_urls.spotify }));
+			return { playlists, hasMore: data.next !== null, nextOffset: offset + limit };
 		} catch (error) {
 			this.client.logger.error(`Error getting playlists: ${error}`);
 			return null;

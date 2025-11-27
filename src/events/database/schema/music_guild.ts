@@ -28,16 +28,12 @@ const musicGuildSchema = new Schema<IMusicGuild>({
 	],
 });
 
-musicGuildSchema.pre('validate', (next) => {
-	const doc: any = this as any;
-	if (doc && doc.dj !== null && typeof doc.dj !== 'string') doc.dj = null;
-	next();
+musicGuildSchema.pre('validate', function () {
+	if (this.dj !== null && typeof this.dj !== 'string') this.dj = null;
 });
 
-musicGuildSchema.pre('save', (next) => {
-	const doc: any = this as any;
-	if (doc && doc.dj !== null && typeof doc.dj !== 'string') doc.dj = null;
-	next();
+musicGuildSchema.pre('save', function () {
+	if (this.dj !== null && typeof this.dj !== 'string') this.dj = null;
 });
 
 musicGuildSchema.index({ guildId: 1 });
