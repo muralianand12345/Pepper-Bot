@@ -1,36 +1,36 @@
 commands:
     play:
-        name: "tocar"
-        description: "Tocar uma música pelo nome ou URL"
+        name: "play"
+        description: "Reproduzir uma música por nome ou URL"
         options:
             song:
                 name: "música"
                 description: "Nome da música/URL"
     pause:
-        name: "pausar"
-        description: "Pausar a música atual"
+        name: "pause"
+        description: "Pausar a música que está tocando"
     resume:
-        name: "retomar"
+        name: "resume"
         description: "Retomar a música pausada"
     skip:
-        name: "pular"
+        name: "skip"
         description: "Pular a música atual e tocar a próxima"
     stop:
-        name: "parar"
+        name: "stop"
         description: "Parar a música e desconectar do canal de voz"
     loop:
-        name: "repetir"
-        description: "Alternar o modo de repetição para a música atual"
+        name: "loop"
+        description: "Ativar ou desativar o modo de repetição para a faixa atual"
     autoplay:
-        name: "reprodução_automática"
-        description: "Ativar reprodução automática inteligente com base nas suas preferências musicais"
+        name: "autoplay"
+        description: "Ativar ou desativar a reprodução automática inteligente baseada nas suas preferências musicais"
         options:
             enabled:
                 name: "ativado"
                 description: "Ativar ou desativar a reprodução automática"
     language:
-        name: "idioma"
-        description: "Definir as configurações de idioma do bot"
+        name: "language"
+        description: "Definir preferências de idioma do bot"
         options:
             scope:
                 name: "escopo"
@@ -41,105 +41,134 @@ commands:
                     reset: "redefinir"
             language:
                 name: "idioma"
-                description: "Selecionar o idioma preferido"
+                description: "Escolha seu idioma preferido"
     feedback:
         name: "feedback"
-        description: "Enviar feedback para os desenvolvedores"
+        description: "Enviar feedback aos desenvolvedores"
     ping:
         name: "ping"
-        description: "Verificar a latência e o status da conexão do bot"
+        description: "Verificar a latência e o status de conexão do bot"
     help:
-        name: "ajuda"
-        description: "Mostrar todos os comandos disponíveis e suas descrições"
+        name: "help"
+        description: "Exibir todos os comandos disponíveis e suas descrições"
         options:
             command:
                 name: "comando"
                 description: "Obter informações detalhadas sobre um comando específico"
     filter:
-        name: "filtro"
-        description: "Aplicar filtros de áudio para melhorar a experiência musical"
+        name: "filter"
+        description: "Aplicar filtros de áudio para melhorar sua experiência musical"
         options:
             type:
                 name: "tipo"
-                description: "Selecionar um filtro de áudio"
+                description: "Escolha um filtro de áudio para aplicar"
     chart:
-        name: "gráfico"
-        description: "Exibir análises e gráficos musicais"
+        name: "chart"
+        description: "Exibir análises e charts de música"
         options:
             scope:
                 name: "escopo"
-                description: "Selecionar o escopo para análise"
+                description: "Escolha o escopo para as análises"
                 choices:
                     user: "Pessoal"
                     guild: "Servidor"
                     global: "Global"
             limit:
                 name: "limite"
-                description: "Número de itens principais a exibir (5–20)"
+                description: "Número de itens principais a exibir (5-20)"
     suggest_songs:
-        name: "sugerir_músicas"
-        description: "Receber recomendações musicais inteligentes com base no seu histórico de reprodução"
+        name: "suggest-songs"
+        description: "Obter recomendações musicais inteligentes baseadas no seu histórico de reprodução"
         options:
             count:
                 name: "quantidade"
-                description: "Número de recomendações (1–20)"
+                description: "Número de recomendações a obter (1-20)"
     lyrics:
-        name: "letra"
-        description: "Exibir a letra da música atual"
+        name: "lyrics"
+        description: "Exibir a letra da faixa que está tocando"
         options:
             skip_track_source:
-                name: "ignorar_fonte"
-                description: "Evitar determinada fonte ao buscar a letra da música"
+                name: "pular_fonte"
+                description: "Pular o uso da URL de origem da faixa ao buscar letras"
     queue:
-        name: "fila"
+        name: "queue"
         description: "Exibir e gerenciar a fila de músicas"
+
+    dj:
+        name: "dj"
+        description: "Gerenciar o cargo de DJ para comandos de música"
+        options:
+            role:
+                name: "cargo"
+                description: "O cargo a definir/remover como cargo de DJ (deixe vazio para criar/desativar)"
+
+    login:
+        name: "login"
+        description: "Conectar sua conta de música ao Pepper"
+        options:
+            account:
+                name: "conta"
+                description: "O serviço de música a conectar"
+                choices:
+                    spotify: "Spotify"
+
+    logout:
+        name: "logout"
+        description: "Desconectar sua conta de música do Pepper"
+        options:
+            account:
+                name: "conta"
+                description: "O serviço de música a desconectar"
+                choices:
+                    spotify: "Spotify"
 
 responses:
     music:
-        connected: "Conectado ao canal {channelName}"
+        connected: "Conectado a {channelName}"
         paused: "Música pausada!"
         resumed: "Música retomada!"
         skipped: "Música atual pulada!"
-        stopped: "Player de música parado e desconectado"
-        loop_enabled: "Repetição agora está ativada"
-        loop_disabled: "Repetição agora está desativada"
-        autoplay_enabled: "🎵 Reprodução automática está **ativada**\n\nQuando a fila estiver vazia, adicionarei músicas com base nas suas preferências."
-        autoplay_disabled: "⏹️ Reprodução automática está **desativada**\n\nA reprodução será interrompida quando a fila estiver vazia."
+        stopped: "Reprodutor de música parado e desconectado do canal de voz"
+        loop_enabled: "A repetição está agora ativada"
+        loop_disabled: "A repetição está agora desativada"
+        autoplay_enabled: "🎵 A reprodução automática inteligente está agora **ativada**\n\nQuando a fila estiver vazia, adicionarei músicas automaticamente baseadas nas suas preferências musicais."
+        autoplay_disabled: "⏹️ A reprodução automática está agora **desativada**\n\nA reprodução parará quando a fila estiver vazia."
+        autoplay_failed: "🔄 A reprodução automática não encontrou recomendações adequadas e foi automaticamente desativada"
         now_playing: "Tocando agora"
-        track_added: "Música adicionada à fila"
+        track_added: "Faixa adicionada à fila"
         playlist_added: "Playlist adicionada à fila"
-        queue_empty: "🎵 Todas as músicas da fila foram tocadas"
-        disconnected: "🔌 Player de música desconectado"
-        autoplay_failed: "🔄 O autoplay não conseguiu encontrar recomendações adequadas e foi automaticamente desativado"
+        queue_empty: "🎵 Todas as músicas da fila foram reproduzidas"
+        disconnected: "🔌 Reprodutor de música desconectado"
         disconnected_inactivity: "🔌 Desconectando por inatividade (5 minutos sem ouvintes)"
-        disconnected_autoplay_failed: "🔌 Desconectando - autoplay não conseguiu encontrar novas músicas para tocar"
+        disconnected_autoplay_failed: "🔌 Desconectando - a reprodução automática não conseguiu encontrar novas músicas"
         paused_empty_channel: "⏸️ Reprodução pausada porque o canal de voz está vazio"
         resumed_members_joined: "▶️ Reprodução retomada"
-        youtube_blocked: "⚠️ Música pulada! Fonte do YouTube detectada."
-        youtube_footer: "Links do YouTube não são suportados devido aos termos de serviço do YouTube."
+        youtube_blocked: "⚠️ Pulando música! Fonte do YouTube detectada."
+        youtube_footer: "Não suportamos links do YouTube devido aos Termos de Serviço do YouTube."
         filter_applied: "Filtro {filter} aplicado"
 
     chart:
-        user_title: "Estatísticas musicais de {user}"
-        guild_title: "Estatísticas do servidor {guild}"
-        global_title: "Estatísticas musicais globais"
-        no_user_data: "Você ainda não ouviu nenhuma música. Toque algumas faixas para ver suas estatísticas!"
-        no_guild_data: "Nenhum dado musical disponível para este servidor. Toque algumas faixas para ver as estatísticas!"
-        no_global_data: "Nenhum dado musical global disponível no momento."
-        total_tracks: "Total de faixas"
-        unique_artists: "Artistas únicos"
-        total_listening_time: "Tempo total de audição"
-        average_plays: "Média de execuções por faixa"
-        recent_activity: "Faixas tocadas esta semana"
-        top_tracks: "Faixas mais tocadas"
-        listening_stats: "Estatísticas de audição"
+        user_title: "Chart de música de {user}"
+        guild_title: "Chart do servidor {guild}"
+        global_title: "Chart de música global"
+        no_user_data: "Você ainda não ouviu nenhuma música. Comece a tocar algumas músicas para ver seus charts!"
+        no_guild_data: "Este servidor ainda não tem dados de música. Comecem a tocar algumas músicas para ver os charts do servidor!"
+        no_global_data: "Nenhum dado de música global disponível no momento."
+        total_tracks: "faixas totais"
+        unique_artists: "artistas únicos"
+        total_listening_time: "tempo total de reprodução"
+        average_plays: "reproduções médias por faixa"
+        recent_activity: "faixas reproduzidas esta semana"
+        top_tracks: "Principais faixas"
+        listening_stats: "Estatísticas de reprodução"
         total_hours: "Horas totais"
-        avg_song_length: "Duração média das faixas"
+        avg_song_length: "Duração média"
         this_week: "Esta semana"
-        tracks: "Faixas"
-        plays: "Execuções"
-        no_data: "Nenhum dado disponível"
+        tracks: "faixas"
+        plays: "reproduções"
+        no_data: "Sem dados disponíveis"
         footer: "Painel de análise musical"
+        export_success: "{count} faixas {scope} exportadas com sucesso para CSV"
         buttons:
             refresh: "Atualizar"
             export: "Exportar dados"
@@ -147,80 +176,80 @@ responses:
     suggest_songs:
         title: "Recomendações musicais inteligentes"
         fresh_title: "Novas recomendações musicais"
-        description: "Baseado na sua faixa favorita: **{song}** de **{artist}**\n\n{spotifyCount} faixas encontradas em {totalCount} recomendações"
+        description: "Baseado na sua música favorita: **{song}** de **{artist}**\n\nEncontradas {spotifyCount} faixas do Spotify de {totalCount} recomendações"
         footer: "Solicitado por {user}"
         refreshed_footer: "Atualizado por {user}"
         top_recommendations: "Principais recomendações"
         more_recommendations: "Mais recomendações"
         additional_recommendations: "Recomendações adicionais"
         unknown_track: "Faixa desconhecida"
-        no_history: "Você ainda não tem histórico de audição. Toque algumas músicas primeiro!"
-        no_recommendations: 'Nenhuma recomendação encontrada para "{song}". Tente com faixas diferentes!'
+        no_history: "Você ainda não tem histórico de reprodução. Toque algumas músicas primeiro!"
+        no_recommendations: 'Nenhuma recomendação encontrada baseada em "{song}". Tente tocar músicas mais variadas!'
         no_valid_recommendations: "Nenhuma recomendação válida encontrada"
-        no_additional_recommendations: "Nenhuma recomendação adicional"
+        no_additional_recommendations: "Sem recomendações adicionais"
         no_new_recommendations: "Nenhuma nova recomendação encontrada"
         now_playing: "Tocando agora: **{title}** de **{artist}**"
         added_tracks: "{count} faixas adicionadas à fila!"
         buttons:
-            play_top: "Tocar melhor recomendação"
+            play_top: "Tocar melhor opção"
             add_all: "Adicionar tudo à fila"
-            refresh: "Obter novas sugestões"
+            refresh: "Novas sugestões"
         errors:
-            invalid_track: "Dados inválidos da faixa para recomendação principal"
-            generation_failed: "Não foi possível gerar recomendações"
+            invalid_track: "Dados de faixa inválidos para a recomendação principal"
+            generation_failed: "Falha ao gerar recomendações"
 
     errors:
-        music_disabled: "A música está desativada no momento."
-        no_player: "Nenhuma música está sendo tocada"
+        music_disabled: "A música está atualmente desativada."
+        no_player: "Nenhuma música está tocando no momento"
         no_voice_channel: "Você precisa estar em um canal de voz"
         not_same_voice: "Você não está no mesmo canal de voz que o bot"
         no_permission_join: "Não tenho permissão para entrar em {channelName}"
-        need_permissions: "Preciso das permissões `Conectar` e `Falar` em {channelName}"
+        need_permissions: "Preciso das permissões para `Conectar` e `Falar` em {channelName}"
         not_in_server: "Você não está no servidor"
         server_only: "Este comando só pode ser usado em um servidor"
         already_paused: "A música já está pausada"
         already_playing: "A música já está tocando"
-        no_queue: "Nenhuma faixa na fila"
-        queue_too_small: "Há apenas {count} faixas na fila"
-        no_results: "Nenhum resultado encontrado"
+        no_queue: "Não há músicas na fila"
+        queue_too_small: "Há apenas {count} músicas na fila"
+        no_results: "Não foi possível obter resultados"
         no_permission: "🚫 {user}, você não tem permissão para usar este comando!"
-        missing_user_perms: "🚫 Você precisa das permissões `{permissions}` para usar este comando!"
-        missing_bot_perms: "🚫 Preciso das permissões `{permissions}` para executar este comando!"
+        missing_user_perms: "🚫 Você não tem permissões de `{permissions}` para usar este comando!"
+        missing_bot_perms: "🚫 Preciso de permissões de `{permissions}` para executar este comando!"
         general_error: "Ocorreu um erro ao executar este comando."
-        play_error: "Erro ao processar a faixa"
-        stop_error: "Erro ao parar a faixa"
-        pause_error: "Erro ao pausar a faixa"
-        resume_error: "Erro ao retomar a faixa"
-        skip_error: "Erro ao pular a faixa"
-        loop_error: "Erro ao alterar o modo de repetição"
-        autoplay_error: "Erro ao ativar a reprodução automática."
+        play_error: "Ocorreu um erro ao processar a música"
+        stop_error: "Ocorreu um erro ao parar a música"
+        pause_error: "Ocorreu um erro ao pausar a música"
+        resume_error: "Ocorreu um erro ao retomar a música"
+        skip_error: "Ocorreu um erro ao pular a música"
+        loop_error: "Ocorreu um erro ao alternar o modo de repetição"
+        autoplay_error: "Ocorreu um erro ao alternar a reprodução automática."
         contact_dev: "Se o problema persistir, use /feedback ou entre em contato com o desenvolvedor"
-        filter_error: "Erro ao aplicar o filtro"
+        filter_error: "Ocorreu um erro ao aplicar o filtro"
         filter_not_found: "Filtro `{filter}` não encontrado. Filtros disponíveis: {available}"
-        feedback_failed: "Não foi possível enviar o feedback. Tente novamente mais tarde."
-        no_current_track: "Nenhuma faixa está sendo reproduzida no momento"
-        lyrics_plugin_missing: "Função de letras não disponível neste nó Lavalink."
-        lyrics_error: "Erro ao buscar as letras"
-        dj_error: "Ocorreu um erro ao gerenciar o cargo de DJ. Tente novamente mais tarde."
-        dj_role_create_failed: "Falha ao criar o cargo de DJ. Verifique as permissões do bot e tente novamente."
+        feedback_failed: "Falha ao enviar feedback. Por favor, tente novamente mais tarde."
+        no_current_track: "Nenhuma faixa está tocando no momento"
+        lyrics_plugin_missing: "A funcionalidade de letras não está disponível neste nó Lavalink."
+        lyrics_error: "Ocorreu um erro ao buscar a letra"
+        dj_error: "Ocorreu um erro ao gerenciar o cargo de DJ. Por favor, tente novamente mais tarde."
+        dj_role_create_failed: "Falha ao criar o cargo de DJ. Por favor, verifique as permissões do bot e tente novamente."
         missing_dj_role: "Você precisa do cargo **{role}** para usar este comando."
         member_not_found: "Não foi possível verificar suas permissões. Por favor, tente novamente."
 
     language:
-        user_set: "Seu idioma foi definido como **{language}**"
-        server_set: "O idioma do servidor foi definido como **{language}** (somente admin)"
-        reset: "Configurações de idioma redefinidas. Usando o idioma padrão do Discord."
-        same_language: "O idioma já está definido como **{language}**"
-        unsupported: "Idioma **{language}** não é suportado. Idiomas disponíveis: {languages}"
-        no_permission: "Você precisa da permissão **Gerenciar servidor** para alterar o idioma"
+        user_set: "Seu idioma foi definido para **{language}**"
+        server_set: "O idioma do servidor foi definido para **{language}** (apenas admin)"
+        reset: "A preferência de idioma foi redefinida. Usando o idioma do Discord."
+        same_language: "O idioma já está definido para **{language}**"
+        unsupported: "O idioma **{language}** não é suportado. Idiomas suportados: {languages}"
+        no_permission: "Você precisa da permissão **Gerenciar servidor** para alterar o idioma do servidor"
 
     fields:
         duration: "Duração"
         source: "Fonte"
         requested_by: "Solicitado por"
-        queue_info: "Informações da fila"
+        queue_info: "Info da fila"
         position: "Posição #{position}"
-        playing_next: "Próxima"
+        playing_next: "Tocando em seguida"
         tracks: "Faixas"
         total_duration: "Duração total"
         avg_duration: "Duração média"
@@ -242,18 +271,37 @@ responses:
         websocket_latency: "Latência do WebSocket"
         database_latency: "Latência do banco de dados"
         music_nodes: "Nós de música"
-        uptime: "Tempo de atividade"
+        uptime: "Tempo ativo"
         memory_usage: "Uso de memória"
-        active_players: "Players ativos"
-        footer: "Todos os sistemas estão operacionais"
+        active_players: "Reprodutores ativos"
+        footer: "Todos os sistemas operacionais"
+
+    login:
+        already_logged_in:
+            title: "❌ Já conectado"
+            description: "Você já tem uma conta do Spotify conectada.\n\nPor favor, use `/logout spotify` se quiser conectar uma conta diferente."
+        connect_title: "🎵 Conectar conta do Spotify"
+        connect_description: "Clique no botão abaixo para autorizar o Pepper a acessar sua conta do Spotify.\n\n**Permissões solicitadas:**\n• Ler suas playlists"
+        auth_footer: "O link de autorização expira em 10 minutos"
+
+    logout:
+        not_logged_in:
+            title: "❌ Não conectado"
+            description: "Você não tem uma conta do Spotify conectada.\n\nUse `/login spotify` para conectar sua conta."
+        disconnect_error:
+            title: "❌ Erro"
+            description: "Falha ao desconectar sua conta do Spotify. Por favor, tente novamente mais tarde."
+        disconnected:
+            title: "✅ Conta desconectada"
+            description: "Sua conta do Spotify foi desconectada com sucesso do Pepper.\n\nVocê pode reconectar a qualquer momento usando `/login spotify`."
 
     help:
         title: "📚 Ajuda de comandos"
-        description: "Aqui estão os {total} comandos disponíveis. Use `{prefix}help <comando>` para mais detalhes."
-        footer: "Use `/help <comando>` para mais informações sobre um comando específico"
+        description: "Aqui estão todos os {total} comandos disponíveis. Use `{prefix}help <comando>` para informações detalhadas."
+        footer: "Use `/help <comando>` para mais detalhes sobre um comando específico"
         command_footer: "Informações do comando"
         command_not_found: "Comando `{command}` não encontrado."
-        cooldown: "Tempo de recarga"
+        cooldown: "Tempo de espera"
         permissions: "Permissões"
         category: "Categoria"
         options: "Opções"
@@ -267,22 +315,22 @@ responses:
             other: "Outros comandos"
 
     lyrics:
-        title: "Letras"
-        not_found: 'Letras não encontradas para "{title}" de {artist}'
-        empty: 'As letras para "{title}" de {artist} estão vazias ou indisponíveis'
-        provider: "Fonte"
-        source: "Origem"
+        title: "Letra"
+        not_found: 'Nenhuma letra encontrada para "{title}" de {artist}'
+        empty: 'A letra de "{title}" de {artist} está vazia ou indisponível'
+        provider: "Provedor"
+        source: "Fonte"
         page: "Página"
         buttons:
             previous: "Anterior"
             next: "Próximo"
 
     queue:
-        title: "Fila de Músicas"
+        title: "Fila de músicas"
         empty: "A fila está vazia. Adicione músicas com `/play`!"
         now_playing: "Tocando agora"
-        upcoming: "A seguir"
-        tracks_in_queue: "músicas na fila"
+        upcoming: "Em seguida"
+        tracks_in_queue: "faixas na fila"
         total_duration: "duração total"
         live_streams: "transmissões ao vivo"
         live: "AO VIVO"
@@ -290,16 +338,16 @@ responses:
         progress: "Progresso"
         shuffled: "A fila foi embaralhada!"
         cleared: "A fila foi limpa!"
-        removed: "Removidas {count} música(s) da fila"
-        remove_failed: "Falha ao remover músicas da fila"
-        moved: 'Movida "{track}" da posição {from} para a posição {to}'
-        move_failed: "Falha ao mover a música na fila"
-        track_not_found: "Música não encontrada na posição especificada"
-        same_position: "A posição de origem e destino são iguais"
+        removed: "{count} faixa(s) removida(s) da fila"
+        remove_failed: "Falha ao remover faixa(s) da fila"
+        moved: '"{track}" movida da posição {from} para a posição {to}'
+        move_failed: "Falha ao mover a faixa na fila"
+        track_not_found: "Faixa não encontrada na posição especificada"
+        same_position: "As posições de origem e destino são iguais"
         invalid_position: "Posição inválida. Por favor, insira um número entre 1 e o tamanho da fila."
-        invalid_range: "Intervalo inválido. Use o formato: início-fim (ex.: 1-5)"
+        invalid_range: "Intervalo inválido. Use o formato: início-fim (ex. 1-5)"
         invalid_positions: "Posições inválidas. Use o formato: 1,3,5 ou 1-5"
-        invalid_move_positions: "Posições inválidas. Ambas devem estar entre 1 e o tamanho da fila."
+        invalid_move_positions: "Posições inválidas. Ambas as posições devem estar entre 1 e o tamanho da fila."
         buttons:
             previous: "Anterior"
             next: "Próximo"
@@ -309,24 +357,24 @@ responses:
             remove: "Remover"
         remove_modal:
             title: "Remover músicas da fila"
-            position_label: "Posições para remover"
-            position_placeholder: "ex.: 3 ou 1,3,5 ou 1-5"
+            position_label: "Posição(ões) a remover"
+            position_placeholder: "ex. 3 ou 1,3,5 ou 1-5"
         move_modal:
             title: "Mover música na fila"
             from_label: "Posição atual"
-            from_placeholder: "ex.: 5"
+            from_placeholder: "ex. 5"
             to_label: "Nova posição"
-            to_placeholder: "ex.: 2"
+            to_placeholder: "ex. 2"
 
     dj:
-        role_set: "O cargo de DJ foi definido como **{role}**. Membros com este cargo agora podem controlar a reprodução de música."
+        role_set: "O cargo de DJ foi definido para **{role}**. Membros com este cargo agora podem controlar a reprodução de música."
         role_removed: "O cargo de DJ **{role}** foi removido. Todos os membros agora podem controlar a reprodução de música."
         role_changed: "O cargo de DJ foi alterado de **{oldRole}** para **{newRole}**."
         role_created_and_set: "O cargo de DJ **{role}** foi criado e definido. Membros com este cargo agora podem controlar a reprodução de música."
-        role_disabled: "O sistema de DJ foi desativado. O cargo definido anteriormente **{role}** não é mais necessário para controlar a música."
+        role_disabled: "O sistema de DJ foi desativado. O cargo previamente definido **{role}** não é mais necessário para controlar a música."
 
     feedback:
-        sent: "Obrigado pelo seu feedback! Ele foi enviado aos desenvolvedores."
+        sent: "Obrigado pelo seu feedback! Foi enviado aos desenvolvedores."
 
     default_search: "Por favor, insira um nome de música ou URL"
 
@@ -334,6 +382,6 @@ modals:
     feedback:
         title: "Enviar feedback"
         type_label: "Tipo de feedback"
-        type_placeholder: "Bug, sugestão, comentário geral, etc."
+        type_placeholder: "Relatório de bug, Solicitação de recurso, Feedback geral, etc."
         feedback_label: "Seu feedback"
-        feedback_placeholder: "Descreva seu feedback com detalhes..."
+        feedback_placeholder: "Por favor, descreva seu feedback em detalhes..."
