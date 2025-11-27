@@ -26,17 +26,13 @@ const musicGuildSchema = new mongoose_1.Schema({
         },
     ],
 });
-musicGuildSchema.pre('validate', (next) => {
-    const doc = this;
-    if (doc && doc.dj !== null && typeof doc.dj !== 'string')
-        doc.dj = null;
-    next();
+musicGuildSchema.pre('validate', async function () {
+    if (this.dj !== null && typeof this.dj !== 'string')
+        this.dj = null;
 });
-musicGuildSchema.pre('save', (next) => {
-    const doc = this;
-    if (doc && doc.dj !== null && typeof doc.dj !== 'string')
-        doc.dj = null;
-    next();
+musicGuildSchema.pre('save', async function () {
+    if (this.dj !== null && typeof this.dj !== 'string')
+        this.dj = null;
 });
 musicGuildSchema.index({ guildId: 1 });
 musicGuildSchema.index({ 'songs.played_number': -1 });

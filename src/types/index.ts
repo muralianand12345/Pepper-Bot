@@ -13,9 +13,11 @@ declare global {
 			DEBUG_MODE: boolean | string;
 			TOKEN: string;
 			MONGO_URI: string;
+			API_PORT?: string;
 			LASTFM_API_KEY: string;
 			SPOTIFY_CLIENT_ID: string;
 			SPOTIFY_CLIENT_SECRET: string;
+			SPOTIFY_REDIRECT_URI: string;
 			FEEDBACK_WEBHOOK: string;
 			LIVE_SONGS_WEBHOOK: string;
 		}

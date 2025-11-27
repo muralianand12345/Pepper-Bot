@@ -125,3 +125,14 @@ export interface ProgressComputation {
 	formattedDuration: string;
 	bar: string;
 }
+
+export interface PlaylistItem {
+	name: string;
+	value: string;
+}
+
+export interface PlaylistResponse {
+	playlists: PlaylistItem[];
+	hasMore: boolean;
+	nextOffset: number;
+}

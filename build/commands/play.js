@@ -6,8 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const config_1 = require("../utils/config");
 const types_1 = require("../types");
-const music_1 = require("../core/music");
 const locales_1 = require("../core/locales");
+const music_1 = require("../core/music");
 const configManager = config_1.ConfigManager.getInstance();
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
@@ -24,6 +24,7 @@ const playCommand = {
         .addStringOption((option) => option.setName('song').setDescription('Song Name/URL').setNameLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.play.options.song.description')).setRequired(true).setAutocomplete(true)),
     autocomplete: async (interaction, client) => {
         let hasResponded = false;
+        const spotifyManager = new music_1.SpotifyManager(client);
         const safeRespond = async (suggestions) => {
             if (hasResponded || !interaction.isAutocomplete())
                 return;
@@ -43,6 +44,12 @@ const playCommand = {
                 if (!focused.value?.trim()) {
                     const t = await localeDetector.getTranslator(interaction);
                     const defaultText = t('responses.default_search');
+                    const spotifyPlaylist = await spotifyManager.getPlaylists(interaction.user.id, 0, 25);
+                    if (spotifyPlaylist) {
+                        const playlistChoices = spotifyPlaylist.playlists.slice(0, 24).map((playlist) => ({ name: playlist.name.slice(0, 100), value: playlist.value }));
+                        await safeRespond(playlistChoices);
+                        return;
+                    }
                     await safeRespond([{ name: defaultText.slice(0, 100), value: defaultText }]);
                     return;
                 }

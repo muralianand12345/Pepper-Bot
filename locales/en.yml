@@ -94,6 +94,34 @@ commands:
         name: "queue"
         description: "Display and manage the music queue"
 
+    dj:
+        name: "dj"
+        description: "Manage DJ role for music commands"
+        options:
+            role:
+                name: "role"
+                description: "The role to set/remove as DJ role (leave empty to create/disable)"
+
+    login:
+        name: "login"
+        description: "Connect your music account to Pepper"
+        options:
+            account:
+                name: "account"
+                description: "The music service to connect"
+                choices:
+                    spotify: "Spotify"
+
+    logout:
+        name: "logout"
+        description: "Disconnect your music account from Pepper"
+        options:
+            account:
+                name: "account"
+                description: "The music service to disconnect"
+                choices:
+                    spotify: "Spotify"
+
 responses:
     music:
         connected: "Connected to {channelName}"
@@ -247,6 +275,25 @@ responses:
         memory_usage: "Memory Usage"
         active_players: "Active Players"
         footer: "All systems operational"
+
+    login:
+        already_logged_in:
+            title: "❌ Already Logged In"
+            description: "You already have a Spotify account connected.\n\nPlease use `/logout spotify` if you want to connect a different account."
+        connect_title: "🎵 Connect Spotify Account"
+        connect_description: "Click the button below to authorize Pepper to access your Spotify account.\n\n**Permissions requested:**\n• Read your playlists"
+        auth_footer: "The authorization link expires in 10 minutes"
+
+    logout:
+        not_logged_in:
+            title: "❌ Not Logged In"
+            description: "You don't have a Spotify account connected.\n\nUse `/login spotify` to connect your account."
+        disconnect_error:
+            title: "❌ Error"
+            description: "Failed to disconnect your Spotify account. Please try again later."
+        disconnected:
+            title: "✅ Account Disconnected"
+            description: "Your Spotify account has been successfully disconnected from Pepper.\n\nYou can reconnect anytime using `/login spotify`."
 
     help:
         title: "📚 Command Help"

@@ -13,9 +13,11 @@ const EnvSchema = z.object({
 		if (typeof val === 'string') return val.toLowerCase() === 'true';
 		return val;
 	}),
+	API_PORT: z.union([z.number(), z.string()]).optional().transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val)),
 	LASTFM_API_KEY: z.string(),
 	SPOTIFY_CLIENT_ID: z.string(),
 	SPOTIFY_CLIENT_SECRET: z.string(),
+	SPOTIFY_REDIRECT_URI: z.string(),
 	FEEDBACK_WEBHOOK: z.string(),
 	LIVE_SONGS_WEBHOOK: z.string(),
 	OPENAI_API_KEY: z.string(),
@@ -45,9 +47,11 @@ export class ConfigManager {
 				TOKEN: process.env.TOKEN,
 				MONGO_URI: process.env.MONGO_URI,
 				DEBUG_MODE: process.env.DEBUG_MODE || false,
+				API_PORT: process.env.API_PORT,
 				LASTFM_API_KEY: process.env.LASTFM_API_KEY,
 				SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
 				SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
+				SPOTIFY_REDIRECT_URI: process.env.SPOTIFY_REDIRECT_URI,
 				FEEDBACK_WEBHOOK: process.env.FEEDBACK_WEBHOOK,
 				LIVE_SONGS_WEBHOOK: process.env.LIVE_SONGS_WEBHOOK,
 				OPENAI_API_KEY: process.env.OPENAI_API_KEY,
@@ -89,6 +93,10 @@ export class ConfigManager {
 		return this.config.DEBUG_MODE;
 	};
 
+	public getApiPort = (): number | undefined => {
+		return this.config.API_PORT;
+	};
+
 	public getLastFmApiKey = (): string => {
 		return this.config.LASTFM_API_KEY;
 	};
@@ -99,6 +107,10 @@ export class ConfigManager {
 
 	public getSpotifyClientSecret = (): string => {
 		return this.config.SPOTIFY_CLIENT_SECRET;
+	};
+
+	public getSpotifyRedirectUri = (): string => {
+		return this.config.SPOTIFY_REDIRECT_URI;
 	};
 
 	public getFeedbackWebhook = (): string => {
