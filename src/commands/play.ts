@@ -45,7 +45,6 @@ const playCommand: Command = {
 					const spotifyPlaylist = await spotifyManager.getPlaylists(interaction.user.id, 0, 25);
 					if (spotifyPlaylist) {
 						const playlistChoices = spotifyPlaylist.playlists.slice(0, 24).map((playlist) => ({ name: playlist.name.slice(0, 100), value: playlist.value }));
-						// playlistChoices.push({ name: defaultText.slice(0, 100), value: defaultText });
 						await safeRespond(playlistChoices);
 						return;
 					}

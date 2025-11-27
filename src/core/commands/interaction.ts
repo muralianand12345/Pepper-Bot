@@ -26,7 +26,7 @@ export class CommandInteractionHandler {
 				const command = this.client.commands.get(this.interaction.commandName);
 				if (command?.autocomplete) {
 					try {
-						const timeoutPromise = new Promise<void>((_, reject) => setTimeout(() => reject(new Error('Autocomplete timeout')), 2000));
+						const timeoutPromise = new Promise<void>((_, reject) => setTimeout(() => reject(new Error('Autocomplete timeout')), 2500));
 						const autocompletePromise = command.autocomplete(this.interaction, this.client);
 						await Promise.race([autocompletePromise, timeoutPromise]);
 					} catch (error) {
@@ -143,7 +143,7 @@ export class CommandInteractionHandler {
 		const startTime = Date.now();
 
 		try {
-			const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Command execution timeout')), 25000));
+			const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Command execution timeout')), 60000));
 			const commandPromise = command.execute(this.interaction, this.client);
 			await Promise.race([commandPromise, timeoutPromise]);
 
@@ -171,7 +171,7 @@ export class CommandInteractionHandler {
 			const executionTime = Date.now() - startTime;
 			this.client.logger.error(`[INTERACTION_CREATE] Error executing command ${command.data.name} after ${executionTime}ms: ${error}`);
 
-			if (error instanceof Error && error.message === 'Command execution timeout') this.client.logger.warn(`[INTERACTION_CREATE] Command ${command.data.name} timed out after 25 seconds`);
+			if (error instanceof Error && error.message === 'Command execution timeout') this.client.logger.warn(`[INTERACTION_CREATE] Command ${command.data.name} timed out after 60 seconds`);
 
 			try {
 				if (!this.interaction.replied && !this.interaction.deferred) {

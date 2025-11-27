@@ -91,10 +91,20 @@ class SpotifyManager {
         this.getSpotifyUsername = async (accessToken) => {
             try {
                 const response = await axios_1.default.get('https://api.spotify.com/v1/me', { headers: { Authorization: `Bearer ${accessToken}` } });
-                return response.data.display_name || response.data.id;
+                return response.data.display_name || response.data.id || null;
             }
             catch (error) {
                 this.client.logger.error(`Error getting Spotify username: ${error}`);
+                return null;
+            }
+        };
+        this.getSpotifyId = async (accessToken) => {
+            try {
+                const response = await axios_1.default.get('https://api.spotify.com/v1/me', { headers: { Authorization: `Bearer ${accessToken}` } });
+                return response.data.id || null;
+            }
+            catch (error) {
+                this.client.logger.error(`Error getting Spotify ID: ${error}`);
                 return null;
             }
         };
@@ -104,7 +114,11 @@ class SpotifyManager {
                 if (!tokens)
                     return null;
                 const data = await this.makeRequest('https://api.spotify.com/v1/me/playlists', tokens, userId, { params: { limit, offset } });
-                const playlists = data.items.filter((playlist) => playlist.public).map((playlist) => ({ name: playlist.name, value: playlist.external_urls.spotify }));
+                const spotifyId = await this.getSpotifyId(tokens.access);
+                if (!spotifyId)
+                    return null;
+                const owned = (data.items || []).filter((playlist) => playlist.owner && playlist.owner.id === spotifyId);
+                const playlists = owned.map((playlist) => ({ name: `${playlist.name} - Spotify`, value: playlist.external_urls.spotify }));
                 return { playlists, hasMore: data.next !== null, nextOffset: offset + limit };
             }
             catch (error) {
