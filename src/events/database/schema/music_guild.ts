@@ -28,11 +28,11 @@ const musicGuildSchema = new Schema<IMusicGuild>({
 	],
 });
 
-musicGuildSchema.pre('validate', function () {
+musicGuildSchema.pre('validate', async function () {
 	if (this.dj !== null && typeof this.dj !== 'string') this.dj = null;
 });
 
-musicGuildSchema.pre('save', function () {
+musicGuildSchema.pre('save', async function () {
 	if (this.dj !== null && typeof this.dj !== 'string') this.dj = null;
 });
 

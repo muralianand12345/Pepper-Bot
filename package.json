@@ -1,6 +1,6 @@
 {
     "name": "pepper-bot",
-    "version": "5.6.0",
+    "version": "5.6.1",
     "description": "A updated version of pepper music bot.",
     "main": "./build/index.js",
     "private": true,
