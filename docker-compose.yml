@@ -1,4 +1,18 @@
 services:
+    lavalink:
+        image: ghcr.io/lavalink-devs/lavalink:4-alpine
+        restart: unless-stopped
+        environment:
+            - _JAVA_OPTIONS=-Xmx6G
+        volumes:
+            - ./lavalink/application.yml:/opt/Lavalink/application.yml
+            - ./lavalink/plugins/:/opt/Lavalink/plugins/
+            - ./lavalink/logs/:/opt/Lavalink/logs/
+        networks:
+            - pepper-network
+        ports:
+          - 25704:25704
+
     bot:
         build: .
         restart: unless-stopped
@@ -11,3 +25,11 @@ services:
             - ./config:/app/config
             - ./tsconfig.json:/app/tsconfig.json
             - ./package.json:/app/package.json
+        depends_on:
+            - lavalink
+        networks:
+            - pepper-network
+
+networks:
+    pepper-network:
+        driver: bridge
