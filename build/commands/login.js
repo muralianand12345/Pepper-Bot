@@ -59,9 +59,16 @@ const loginCommand = {
                 .setTimestamp();
             const row = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setLabel('Connect Spotify').setStyle(discord_js_1.default.ButtonStyle.Link).setURL(authUrl).setEmoji('🎵'));
             await interaction.editReply({ embeds: [embed], components: [row] });
-            const result = await (0, authEmitter_1.waitForAuth)(interaction.user.id, 5 * 60 * 1000);
-            const resultEmbed = buildResultEmbed(result, t);
-            return await interaction.editReply({ embeds: [resultEmbed], components: [] });
+            (0, authEmitter_1.waitForAuth)(interaction.user.id, 5 * 60 * 1000).then(async (result) => {
+                try {
+                    const resultEmbed = buildResultEmbed(result, t);
+                    await interaction.editReply({ embeds: [resultEmbed], components: [] });
+                }
+                catch (err) {
+                    console.error('[LOGIN] Failed to update embed after auth:', err);
+                }
+            });
+            return;
         }
     },
 };

@@ -283,6 +283,15 @@ responses:
         connect_title: "🎵 Connect Spotify Account"
         connect_description: "Click the button below to authorize Pepper to access your Spotify account.\n\n**Permissions requested:**\n• Read your playlists"
         auth_footer: "The authorization link expires in 10 minutes"
+        success:
+            title: "✅ Successfully Connected"
+            description: "Your Spotify account has been linked to Pepper!\n\nYou can now use music commands with your Spotify preferences."
+        failed:
+            title: "❌ Connection Failed"
+            description: "Something went wrong during authentication.\n\nPlease try `/login spotify` again."
+        timeout:
+            title: "⏱️ Session Expired"
+            description: "The authentication session has expired.\n\nPlease run `/login spotify` again to get a new authorization link."
 
     logout:
         not_logged_in:

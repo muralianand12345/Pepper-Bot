@@ -61,10 +61,15 @@ const loginCommand: Command = {
 				.setTimestamp();
 			const row = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setLabel('Connect Spotify').setStyle(discord.ButtonStyle.Link).setURL(authUrl).setEmoji('🎵'));
 			await interaction.editReply({ embeds: [embed], components: [row] });
-
-			const result = await waitForAuth(interaction.user.id, 5 * 60 * 1000);
-			const resultEmbed = buildResultEmbed(result, t);
-			return await interaction.editReply({ embeds: [resultEmbed], components: [] });
+			waitForAuth(interaction.user.id, 5 * 60 * 1000).then(async (result) => {
+				try {
+					const resultEmbed = buildResultEmbed(result, t);
+					await interaction.editReply({ embeds: [resultEmbed], components: [] });
+				} catch (err) {
+					console.error('[LOGIN] Failed to update embed after auth:', err);
+				}
+			});
+			return;
 		}
 	},
 };
