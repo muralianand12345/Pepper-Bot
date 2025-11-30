@@ -23,12 +23,7 @@ const filterCommand: Command = {
 				.setNameLocalizations(localizationManager.getCommandLocalizations('commands.filter.options.type.name'))
 				.setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.filter.options.type.description'))
 				.setRequired(true)
-				.addChoices(
-					...Object.entries(MUSIC_CONFIG.AUDIO_FILTERS).map(([value, data]) => ({
-						name: `${data.emoji} ${data.name} - ${data.description}`,
-						value,
-					}))
-				)
+				.addChoices(...Object.entries(MUSIC_CONFIG.AUDIO_FILTERS).map(([value, data]) => ({ name: `${data.emoji} ${data.name} - ${data.description}`, value })))
 		),
 	execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<void> => {
 		const music = new Music(client, interaction);

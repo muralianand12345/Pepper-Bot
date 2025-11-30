@@ -24,10 +24,7 @@ const filterCommand = {
         .setNameLocalizations(localizationManager.getCommandLocalizations('commands.filter.options.type.name'))
         .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.filter.options.type.description'))
         .setRequired(true)
-        .addChoices(...Object.entries(music_1.MUSIC_CONFIG.AUDIO_FILTERS).map(([value, data]) => ({
-        name: `${data.emoji} ${data.name} - ${data.description}`,
-        value,
-    })))),
+        .addChoices(...Object.entries(music_1.MUSIC_CONFIG.AUDIO_FILTERS).map(([value, data]) => ({ name: `${data.emoji} ${data.name} - ${data.description}`, value })))),
     execute: async (interaction, client) => {
         const music = new music_1.Music(client, interaction);
         const filterType = interaction.options.getString('type', true);

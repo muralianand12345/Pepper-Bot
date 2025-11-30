@@ -25,6 +25,8 @@ services:
             - ./config:/app/config
             - ./tsconfig.json:/app/tsconfig.json
             - ./package.json:/app/package.json
+        ports:
+            - 3000:3000
         depends_on:
             - lavalink
         networks:
