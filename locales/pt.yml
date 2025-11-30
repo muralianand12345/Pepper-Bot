@@ -283,6 +283,15 @@ responses:
         connect_title: "🎵 Conectar conta do Spotify"
         connect_description: "Clique no botão abaixo para autorizar o Pepper a acessar sua conta do Spotify.\n\n**Permissões solicitadas:**\n• Ler suas playlists"
         auth_footer: "O link de autorização expira em 10 minutos"
+        success:
+            title: "✅ Conectado com sucesso"
+            description: "Sua conta do Spotify foi vinculada ao Pepper!\n\nAgora você pode usar os comandos de música com suas preferências do Spotify."
+        failed:
+            title: "❌ Falha na conexão"
+            description: "Algo deu errado durante a autenticação.\n\nPor favor, tente `/login spotify` novamente."
+        timeout:
+            title: "⏱️ Sessão expirada"
+            description: "A sessão de autenticação expirou.\n\nPor favor, execute `/login spotify` novamente para obter um novo link de autorização."
 
     logout:
         not_logged_in:
