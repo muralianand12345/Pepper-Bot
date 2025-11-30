@@ -7,8 +7,8 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const discord_js_1 = __importDefault(require("discord.js"));
 const types_1 = require("../types");
 const locales_1 = require("../core/locales");
-const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
+const localizationManager = locales_1.LocalizationManager.getInstance();
 const pingCommand = {
     cooldown: 3600,
     category: types_1.CommandCategory.UTILITY,

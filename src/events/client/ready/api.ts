@@ -2,6 +2,7 @@ import express from 'express';
 import discord from 'discord.js';
 
 import { BotEvent } from '../../../types';
+import { version } from '../../../../package.json';
 import { ConfigManager } from '../../../utils/config';
 import SpotifyAPIHandler from '../../../core/api/music/accounts/spotify';
 
@@ -28,7 +29,7 @@ class APIServer {
 	private setupRoutes = (): void => {
 		const spotifyHandler = new SpotifyAPIHandler(this.client);
 		this.app.use('/api/v1/accounts/spotify', spotifyHandler.getRouter());
-		this.app.get('/', (req, res) => res.json({ message: 'Pepper API Server', version: '1.0.0' }));
+		this.app.get('/', (req, res) => res.json({ message: 'Pepper API', version }));
 	};
 
 	start = (): void => {

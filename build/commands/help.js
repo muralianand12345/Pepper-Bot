@@ -4,11 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
+const commands_1 = require("../core/commands");
 const music_1 = require("../core/music");
 const locales_1 = require("../core/locales");
 const types_1 = require("../types");
-const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
+const localizationManager = locales_1.LocalizationManager.getInstance();
 const helpCommand = {
     cooldown: 10,
     category: types_1.CommandCategory.UTILITY,
@@ -19,16 +20,8 @@ const helpCommand = {
         .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.help.description'))
         .addStringOption((option) => option.setName('command').setDescription('Get detailed information about a specific command').setNameLocalizations(localizationManager.getCommandLocalizations('commands.help.options.command.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.help.options.command.description')).setRequired(false).setAutocomplete(true)),
     autocomplete: async (interaction, client) => {
-        const focused = interaction.options.getFocused(true);
-        if (focused.name === 'command') {
-            const commands = Array.from(client.commands.values());
-            const query = focused.value.toLowerCase();
-            const filtered = commands
-                .filter((cmd) => cmd.data.name.toLowerCase().includes(query))
-                .slice(0, 25)
-                .map((cmd) => ({ name: `/${cmd.data.name} - ${cmd.data.description}`, value: cmd.data.name }));
-            await interaction.respond(filtered);
-        }
+        const autoComplete = new commands_1.AutoComplete(client, interaction);
+        await autoComplete.helpAutocomplete();
     },
     execute: async (interaction, client) => {
         const t = await localeDetector.getTranslator(interaction);

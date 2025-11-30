@@ -6,8 +6,8 @@ import { MusicResponseHandler } from '../core/music';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 
 const configManager = ConfigManager.getInstance();
-const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
+const localizationManager = LocalizationManager.getInstance();
 
 const feedbackCommand: Command = {
 	cooldown: 60,

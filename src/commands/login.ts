@@ -1,11 +1,11 @@
 import discord from 'discord.js';
 
 import { SpotifyManager } from '../core/music';
-import { LocalizationManager, LocaleDetector } from '../core/locales';
 import { Command, CommandCategory } from '../types';
+import { LocalizationManager, LocaleDetector } from '../core/locales';
 
-const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
+const localizationManager = LocalizationManager.getInstance();
 
 const loginCommand: Command = {
 	cooldown: 15,

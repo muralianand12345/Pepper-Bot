@@ -2,12 +2,12 @@ import discord from 'discord.js';
 import { TrackUtils } from 'magmastream';
 
 import Formatter from '../utils/format';
-import { Command, ISongs, CommandCategory, IPlaylistSuggestionResult } from '../types';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 import { MusicResponseHandler, PlaylistSuggestion } from '../core/music';
+import { Command, ISongs, CommandCategory, IPlaylistSuggestionResult } from '../types';
 
-const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
+const localizationManager = LocalizationManager.getInstance();
 
 const suggestSongsCommand: Command = {
 	cooldown: 10,

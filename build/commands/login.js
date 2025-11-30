@@ -5,10 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const music_1 = require("../core/music");
-const locales_1 = require("../core/locales");
 const types_1 = require("../types");
-const localizationManager = locales_1.LocalizationManager.getInstance();
+const locales_1 = require("../core/locales");
 const localeDetector = new locales_1.LocaleDetector();
+const localizationManager = locales_1.LocalizationManager.getInstance();
 const loginCommand = {
     cooldown: 15,
     category: types_1.CommandCategory.MUSIC,
