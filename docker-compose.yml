@@ -23,6 +23,7 @@ services:
             - ./src:/app/src
             - ./logs:/app/logs
             - ./config:/app/config
+            - ./locales:/app/locales
             - ./tsconfig.json:/app/tsconfig.json
             - ./package.json:/app/package.json
         ports:
