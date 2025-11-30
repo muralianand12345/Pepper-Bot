@@ -1,11 +1,34 @@
 import discord from 'discord.js';
 
 import { SpotifyManager } from '../core/music';
-import { LocalizationManager, LocaleDetector } from '../core/locales';
 import { Command, CommandCategory } from '../types';
+import { LocalizationManager, LocaleDetector } from '../core/locales';
+import { waitForAuth } from '../utils/authEmitter';
 
-const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
+const localizationManager = LocalizationManager.getInstance();
+
+const buildResultEmbed = (result: 'success' | 'failed' | 'timeout', t: (key: string) => string): discord.EmbedBuilder => {
+	const configs: Record<string, { color: number; titleKey: string; descriptionKey: string }> = {
+		success: {
+			color: 0x1db954,
+			titleKey: 'responses.login.success.title',
+			descriptionKey: 'responses.login.success.description',
+		},
+		failed: {
+			color: 0xff4444,
+			titleKey: 'responses.login.failed.title',
+			descriptionKey: 'responses.login.failed.description',
+		},
+		timeout: {
+			color: 0xffa500,
+			titleKey: 'responses.login.timeout.title',
+			descriptionKey: 'responses.login.timeout.description',
+		},
+	};
+	const config = configs[result];
+	return new discord.EmbedBuilder().setColor(config.color).setTitle(t(config.titleKey)).setDescription(t(config.descriptionKey)).setTimestamp();
+};
 
 const loginCommand: Command = {
 	cooldown: 15,
@@ -37,7 +60,16 @@ const loginCommand: Command = {
 				.setFooter({ text: t('responses.login.auth_footer') })
 				.setTimestamp();
 			const row = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setLabel('Connect Spotify').setStyle(discord.ButtonStyle.Link).setURL(authUrl).setEmoji('🎵'));
-			return await interaction.editReply({ embeds: [embed], components: [row] });
+			await interaction.editReply({ embeds: [embed], components: [row] });
+			waitForAuth(interaction.user.id, 5 * 60 * 1000).then(async (result) => {
+				try {
+					const resultEmbed = buildResultEmbed(result, t);
+					await interaction.editReply({ embeds: [resultEmbed], components: [] });
+				} catch (err) {
+					console.error('[LOGIN] Failed to update embed after auth:', err);
+				}
+			});
+			return;
 		}
 	},
 };

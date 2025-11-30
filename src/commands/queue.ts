@@ -7,8 +7,8 @@ import { Command, CommandCategory } from '../types';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 import { MusicResponseHandler, ProgressBarUtils } from '../core/music';
 
-const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
+const localizationManager = LocalizationManager.getInstance();
 
 const createQueueEmbed = async (player: magmastream.Player, queueTracks: magmastream.Track[], currentPage: number, t: any, client: discord.Client): Promise<discord.EmbedBuilder> => {
 	const itemsPerPage = 10;

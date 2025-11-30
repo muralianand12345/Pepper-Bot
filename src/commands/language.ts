@@ -1,11 +1,12 @@
 import discord from 'discord.js';
 
+import { AutoComplete } from '../core/commands';
 import { Command, CommandCategory } from '../types';
 import { MusicResponseHandler } from '../core/music';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 
-const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
+const localizationManager = LocalizationManager.getInstance();
 
 const langCommand: Command = {
 	cooldown: 3600,
@@ -25,17 +26,9 @@ const langCommand: Command = {
 				.addChoices({ name: 'User', value: 'user', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.user') }, { name: 'Server', value: 'server', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.server') }, { name: 'Reset', value: 'reset', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.reset') })
 		)
 		.addStringOption((option) => option.setName('language').setDescription('Choose your preferred language').setNameLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.description')).setRequired(false).setAutocomplete(true)),
-	autocomplete: async (interaction: discord.AutocompleteInteraction, _client: discord.Client): Promise<void> => {
-		const focused = interaction.options.getFocused(true);
-		if (focused.name === 'language') {
-			const supportedLanguages = localeDetector.getSupportedLanguages();
-			const query = focused.value.toLowerCase();
-			const filtered = supportedLanguages
-				.filter((lang) => lang.name.toLowerCase().includes(query) || lang.code.toLowerCase().includes(query))
-				.slice(0, 25)
-				.map((lang) => ({ name: `${lang.name} (${lang.code})`, value: lang.code }));
-			await interaction.respond(filtered);
-		}
+	autocomplete: async (interaction: discord.AutocompleteInteraction, client: discord.Client): Promise<void> => {
+		const autoComplete = new AutoComplete(client, interaction);
+		await autoComplete.languageAutocomplete();
 	},
 	execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<discord.InteractionResponse<boolean> | void> => {
 		const t = await localeDetector.getTranslator(interaction);

@@ -4,8 +4,8 @@ import discord from 'discord.js';
 import { Command, CommandCategory } from '../types';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 
-const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
+const localizationManager = LocalizationManager.getInstance();
 
 const pingCommand: Command = {
 	cooldown: 3600,

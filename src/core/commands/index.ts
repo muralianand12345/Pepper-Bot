@@ -6,6 +6,7 @@ import { Command } from '../../types';
 import { ConfigManager } from '../../utils/config';
 
 export * from './interaction';
+export * from './autocomplete';
 
 const configManager = ConfigManager.getInstance();
 

@@ -45,6 +45,7 @@ const promises_1 = __importDefault(require("fs/promises"));
 const discord_js_1 = __importDefault(require("discord.js"));
 const config_1 = require("../../utils/config");
 __exportStar(require("./interaction"), exports);
+__exportStar(require("./autocomplete"), exports);
 const configManager = config_1.ConfigManager.getInstance();
 class CommandManager {
     constructor(client) {

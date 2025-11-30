@@ -1,11 +1,12 @@
 import discord from 'discord.js';
 
+import { AutoComplete } from '../core/commands';
 import { MusicResponseHandler } from '../core/music';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 import { Command, CommandCategory, COMMAND_CATEGORY_MAP } from '../types';
 
-const localizationManager = LocalizationManager.getInstance();
 const localeDetector = new LocaleDetector();
+const localizationManager = LocalizationManager.getInstance();
 
 const helpCommand: Command = {
 	cooldown: 10,
@@ -17,17 +18,8 @@ const helpCommand: Command = {
 		.setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.help.description'))
 		.addStringOption((option) => option.setName('command').setDescription('Get detailed information about a specific command').setNameLocalizations(localizationManager.getCommandLocalizations('commands.help.options.command.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.help.options.command.description')).setRequired(false).setAutocomplete(true)),
 	autocomplete: async (interaction: discord.AutocompleteInteraction, client: discord.Client): Promise<void> => {
-		const focused = interaction.options.getFocused(true);
-
-		if (focused.name === 'command') {
-			const commands = Array.from(client.commands.values());
-			const query = focused.value.toLowerCase();
-			const filtered = commands
-				.filter((cmd) => cmd.data.name.toLowerCase().includes(query))
-				.slice(0, 25)
-				.map((cmd) => ({ name: `/${cmd.data.name} - ${cmd.data.description}`, value: cmd.data.name }));
-			await interaction.respond(filtered);
-		}
+		const autoComplete = new AutoComplete(client, interaction);
+		await autoComplete.helpAutocomplete();
 	},
 	execute: async (interaction: discord.ChatInputCommandInteraction, client: discord.Client): Promise<discord.InteractionResponse<boolean> | void> => {
 		const t = await localeDetector.getTranslator(interaction);

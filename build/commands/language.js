@@ -4,11 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
+const commands_1 = require("../core/commands");
 const types_1 = require("../types");
 const music_1 = require("../core/music");
 const locales_1 = require("../core/locales");
-const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
+const localizationManager = locales_1.LocalizationManager.getInstance();
 const langCommand = {
     cooldown: 3600,
     category: types_1.CommandCategory.UTILITY,
@@ -25,17 +26,9 @@ const langCommand = {
         .setRequired(true)
         .addChoices({ name: 'User', value: 'user', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.user') }, { name: 'Server', value: 'server', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.server') }, { name: 'Reset', value: 'reset', name_localizations: localizationManager.getCommandLocalizations('commands.language.options.scope.choices.reset') }))
         .addStringOption((option) => option.setName('language').setDescription('Choose your preferred language').setNameLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.language.options.language.description')).setRequired(false).setAutocomplete(true)),
-    autocomplete: async (interaction, _client) => {
-        const focused = interaction.options.getFocused(true);
-        if (focused.name === 'language') {
-            const supportedLanguages = localeDetector.getSupportedLanguages();
-            const query = focused.value.toLowerCase();
-            const filtered = supportedLanguages
-                .filter((lang) => lang.name.toLowerCase().includes(query) || lang.code.toLowerCase().includes(query))
-                .slice(0, 25)
-                .map((lang) => ({ name: `${lang.name} (${lang.code})`, value: lang.code }));
-            await interaction.respond(filtered);
-        }
+    autocomplete: async (interaction, client) => {
+        const autoComplete = new commands_1.AutoComplete(client, interaction);
+        await autoComplete.languageAutocomplete();
     },
     execute: async (interaction, client) => {
         const t = await localeDetector.getTranslator(interaction);

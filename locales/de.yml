@@ -283,6 +283,15 @@ responses:
         connect_title: "🎵 Spotify-Konto verbinden"
         connect_description: "Klicke auf den Button unten, um Pepper den Zugriff auf dein Spotify-Konto zu erlauben.\n\n**Angeforderte Berechtigungen:**\n• Deine Playlists lesen"
         auth_footer: "Der Autorisierungslink läuft in 10 Minuten ab"
+        success:
+            title: "✅ Erfolgreich verbunden"
+            description: "Dein Spotify-Konto wurde mit Pepper verknüpft!\n\nDu kannst jetzt Musikbefehle mit deinen Spotify-Einstellungen verwenden."
+        failed:
+            title: "❌ Verbindung fehlgeschlagen"
+            description: "Bei der Authentifizierung ist etwas schiefgelaufen.\n\nBitte versuche `/login spotify` erneut."
+        timeout:
+            title: "⏱️ Sitzung abgelaufen"
+            description: "Die Authentifizierungssitzung ist abgelaufen.\n\nBitte führe `/login spotify` erneut aus, um einen neuen Autorisierungslink zu erhalten."
 
     logout:
         not_logged_in:

@@ -9,8 +9,8 @@ const types_1 = require("../types");
 const music_1 = require("../core/music");
 const locales_1 = require("../core/locales");
 const configManager = config_1.ConfigManager.getInstance();
-const localizationManager = locales_1.LocalizationManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
+const localizationManager = locales_1.LocalizationManager.getInstance();
 const feedbackCommand = {
     cooldown: 60,
     category: types_1.CommandCategory.UTILITY,
