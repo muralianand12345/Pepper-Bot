@@ -175,7 +175,7 @@ class MusicResponseHandler {
                 .setTimestamp();
         };
         this.getSupportButton = (locale = 'en') => {
-            return new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setLabel(this.localizationManager.translate('responses.buttons.support_server', locale)).setStyle(discord_js_1.default.ButtonStyle.Link).setURL('https://discord.gg/XzE9hSbsNb').setEmoji('🔧'));
+            return new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setLabel(this.localizationManager.translate('responses.buttons.support_server', locale)).setStyle(discord_js_1.default.ButtonStyle.Link).setURL(this.client.config.bot.support_server.invite).setEmoji('🔧'));
         };
         this.getMusicButton = (disabled = false, locale = 'en') => {
             const row = new discord_js_1.default.ActionRowBuilder();

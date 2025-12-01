@@ -6,6 +6,10 @@ import { BotPresence } from './events';
 export interface IConfig {
 	bot: {
 		owners: Array<string>;
+		support_server: {
+			id: string;
+			invite: string;
+		};
 		presence: {
 			enabled: boolean;
 			status: discord.PresenceStatusData;

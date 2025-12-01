@@ -67,7 +67,7 @@ const sendFeedbackRequestDM = async (guild, client) => {
             .setLabel(`Re-Invite ${client.user?.username || 'Bot'}`)
             .setStyle(discord_js_1.default.ButtonStyle.Link)
             .setURL(`https://discord.com/oauth2/authorize?client_id=${client.user?.id}&permissions=8&scope=bot%20applications.commands`)
-            .setEmoji('🎵'), new discord_js_1.default.ButtonBuilder().setLabel('Support Server').setStyle(discord_js_1.default.ButtonStyle.Link).setURL('https://discord.gg/XzE9hSbsNb').setEmoji('🔧'));
+            .setEmoji('🎵'), new discord_js_1.default.ButtonBuilder().setLabel('Support Server').setStyle(discord_js_1.default.ButtonStyle.Link).setURL(client.config.bot.support_server.invite).setEmoji('🔧'));
         await dmChannel.send({ content: `Hello! This is **${client.user?.username || 'Music Bot'}**, the music bot that was recently removed from **${guild.name || 'your server'}**.`, embeds: [feedbackEmbed], components: [actionRow] });
         client.logger.info(`[FEEDBACK] Sent feedback request DM to ${owner.tag} (${owner.id}) for guild ${guild.name || guild.id}`);
     }

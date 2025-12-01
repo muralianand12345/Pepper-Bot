@@ -107,7 +107,7 @@ const chartCommand: Command = {
 			}
 
 			const embed = createChartEmbed(chartData, analytics, embedTitle, embedColor, t, client);
-			const actionRow = createChartButtons(t);
+			const actionRow = createChartButtons(client, t);
 			await interaction.editReply({ embeds: [embed], components: [actionRow] });
 		} catch (error) {
 			client.logger.error(`[CHART_COMMAND] Error: ${error}`);
@@ -164,11 +164,11 @@ const createStatsFields = (analytics: ChartAnalytics, t: (key: string, data?: Re
 	return fields;
 };
 
-const createChartButtons = (t: (key: string, data?: Record<string, any>) => string): discord.ActionRowBuilder<discord.ButtonBuilder> => {
+const createChartButtons = (client: discord.Client, t: (key: string, data?: Record<string, any>) => string): discord.ActionRowBuilder<discord.ButtonBuilder> => {
 	return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
 		new discord.ButtonBuilder().setCustomId('chart_refresh').setLabel(t('responses.chart.buttons.refresh')).setStyle(discord.ButtonStyle.Primary).setEmoji('🔄'),
 		new discord.ButtonBuilder().setCustomId('chart_export').setLabel(t('responses.chart.buttons.export')).setStyle(discord.ButtonStyle.Secondary).setEmoji('📊'),
-		new discord.ButtonBuilder().setLabel(t('responses.buttons.support_server')).setStyle(discord.ButtonStyle.Link).setURL('https://discord.gg/XzE9hSbsNb').setEmoji('🔧')
+		new discord.ButtonBuilder().setLabel(t('responses.buttons.support_server')).setStyle(discord.ButtonStyle.Link).setURL(client.config.bot.support_server.invite).setEmoji('🔧')
 	);
 };
 
