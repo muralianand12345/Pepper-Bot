@@ -89,6 +89,27 @@ export class Music {
 		return query;
 	};
 
+	private checkUserPremium = async (userId: string): Promise<{ isPremium: boolean; tier: number }> => {
+		const guild = this.client.guilds.cache.get(this.client.config.bot.support_server.id);
+		if (!guild) return { isPremium: false, tier: 0 };
+		const member = await guild.members.fetch(userId).catch(() => null);
+		if (!member) return { isPremium: false, tier: 0 };
+		return { isPremium: true, tier: 1 };
+	};
+
+	private getPlaylistLimit = async (userId: string, playlist: magmastream.PlaylistData): Promise<magmastream.PlaylistData> => {
+		const { isPremium, tier } = await this.checkUserPremium(userId);
+		const userTier = this.client.config.premium.tiers.find((t: { id: number }) => t.id === (isPremium ? tier : 0));
+		const limit = userTier?.feature?.playlist_limit ?? 100;
+		if (limit === null) return playlist;
+		const limitedTracks = playlist.tracks.slice(0, limit);
+		return {
+			...playlist,
+			duration: limitedTracks.reduce((acc, track) => acc + (track.duration || 0), 0),
+			tracks: limitedTracks,
+		};
+	};
+
 	searchResults = async (res: magmastream.SearchResult, player: magmastream.Player): Promise<discord.Message<boolean> | void> => {
 		const responseHandler = new MusicResponseHandler(this.client);
 
@@ -110,10 +131,22 @@ export class Music {
 			}
 			case 'playlist': {
 				if (!res.playlist) break;
-				await player.queue.add(res.playlist.tracks);
-				const totalSize = await player.queue.totalSize();
-				if (!player.playing && !player.paused && totalSize === res.playlist.tracks.length) player.play();
-				await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)] });
+				let row: discord.ActionRowBuilder<discord.ButtonBuilder>[] = [];
+				const originalLength = res.playlist.tracks.length;
+				const limitedPlaylist = await this.getPlaylistLimit(this.interaction.user.id, res.playlist);
+				const wasTruncated = limitedPlaylist.tracks.length < originalLength;
+
+				await player.queue.add(limitedPlaylist.tracks);
+
+				const shouldPlay = !player.playing && !player.paused;
+				if (shouldPlay) player.play();
+
+				const embed = responseHandler.createPlaylistEmbed(limitedPlaylist, this.interaction.user, this.locale);
+				if (wasTruncated) {
+					embed.setFooter({ text: this.t('responses.music.playlist_truncated', { added: limitedPlaylist.tracks.length, total: originalLength }) });
+					row = [responseHandler.getSupportButton(this.locale)];
+				}
+				await this.interaction.editReply({ embeds: [embed], components: row });
 				break;
 			}
 		}

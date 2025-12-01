@@ -146,6 +146,7 @@ responses:
         youtube_blocked: "⚠️ Chanson ignorée ! Source YouTube détectée."
         youtube_footer: "Nous ne prenons pas en charge les liens YouTube en raison des conditions d'utilisation de YouTube."
         filter_applied: "Filtre {filter} appliqué"
+        playlist_truncated: "Ajouté(s) {added}/{total} titres. Rejoignez notre serveur d'assistance pour des playlists illimitées !"
 
     chart:
         user_title: "Classement musical de {user}"

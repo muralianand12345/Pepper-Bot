@@ -24,6 +24,15 @@ export interface IConfig {
 			server: string;
 		};
 	};
+	premium: {
+		tiers: Array<{
+			id: number;
+			name: string;
+			feature: {
+				playlist_limit: number | null;
+			};
+		}>;
+	};
 	music: {
 		enabled: boolean;
 		cache: {

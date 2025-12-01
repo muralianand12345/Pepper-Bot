@@ -146,6 +146,7 @@ responses:
         youtube_blocked: "⚠️ Skipping song! Youtube source detected."
         youtube_footer: "We do not support Youtube links due to YouTube's TOS."
         filter_applied: "Applied {filter} filter"
+        playlist_truncated: "Added {added}/{total} tracks. Join our support server for unlimited playlists!"
 
     chart:
         user_title: "{user}'s Music Chart"
