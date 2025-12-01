@@ -95,7 +95,7 @@ class MusicResponseHandler {
             }
             if (progressText) {
                 embed.addFields([{ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false }]);
-                embed.setFooter({ text: `-> ${player?.node?.options?.identifier || this.client.user?.username}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
+                embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
             }
             else {
                 embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
