@@ -137,9 +137,7 @@ class Music {
                 case 'playlist': {
                     if (!res.playlist)
                         break;
-                    for (const track of res.playlist.tracks) {
-                        await player.queue.add(track);
-                    }
+                    await player.queue.add(res.playlist.tracks);
                     const totalSize = await player.queue.totalSize();
                     if (!player.playing && !player.paused && totalSize === res.playlist.tracks.length)
                         player.play();
@@ -157,7 +155,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const query = await this.ytToSpotifyQuery(this.interaction.options.getString('song')) || this.t('responses.default_search');
+            const query = (await this.ytToSpotifyQuery(this.interaction.options.getString('song'))) || this.t('responses.default_search');
             if (!query || query === this.t('responses.default_search'))
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.default_search'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);

@@ -90,9 +90,8 @@ class MusicResponseHandler {
                 .setColor(defaultColor)
                 .setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
                 .setDescription(`**${format_1.default.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`);
-            if (trackImg) {
+            if (trackImg)
                 embed.setThumbnail(trackImg);
-            }
             if (progressText) {
                 embed.addFields([{ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false }]);
                 embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
@@ -127,13 +126,8 @@ class MusicResponseHandler {
                 { name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName || 'Unknown', inline: true },
                 { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData?.username || 'Unknown', inline: true },
             ];
-            if (queueInfo) {
-                fields.push({
-                    name: this.localizationManager.translate('responses.fields.queue_info', locale),
-                    value: queueInfo,
-                    inline: false,
-                });
-            }
+            if (queueInfo)
+                fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: queueInfo, inline: false });
             return new discord_js_1.default.EmbedBuilder()
                 .setColor('#5865f2')
                 .setTitle(this.localizationManager.translate('responses.music.track_added', locale))
