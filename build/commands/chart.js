@@ -92,7 +92,7 @@ const chartCommand = {
                 return;
             }
             const embed = createChartEmbed(chartData, analytics, embedTitle, embedColor, t, client);
-            const actionRow = createChartButtons(t);
+            const actionRow = createChartButtons(client, t);
             await interaction.editReply({ embeds: [embed], components: [actionRow] });
         }
         catch (error) {
@@ -144,7 +144,7 @@ const createStatsFields = (analytics, t) => {
     fields.push({ name: `⏰ ${t('responses.chart.listening_stats')}`, value: [`${t('responses.chart.total_hours')}: **${totalHours}h**`, `${t('responses.chart.avg_song_length')}: **${avgSongLength}**`, `${t('responses.chart.this_week')}: **${analytics.recentActivity}** ${t('responses.chart.tracks')}`].join('\n'), inline: true });
     return fields;
 };
-const createChartButtons = (t) => {
-    return new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('chart_refresh').setLabel(t('responses.chart.buttons.refresh')).setStyle(discord_js_1.default.ButtonStyle.Primary).setEmoji('🔄'), new discord_js_1.default.ButtonBuilder().setCustomId('chart_export').setLabel(t('responses.chart.buttons.export')).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji('📊'), new discord_js_1.default.ButtonBuilder().setLabel(t('responses.buttons.support_server')).setStyle(discord_js_1.default.ButtonStyle.Link).setURL('https://discord.gg/XzE9hSbsNb').setEmoji('🔧'));
+const createChartButtons = (client, t) => {
+    return new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('chart_refresh').setLabel(t('responses.chart.buttons.refresh')).setStyle(discord_js_1.default.ButtonStyle.Primary).setEmoji('🔄'), new discord_js_1.default.ButtonBuilder().setCustomId('chart_export').setLabel(t('responses.chart.buttons.export')).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji('📊'), new discord_js_1.default.ButtonBuilder().setLabel(t('responses.buttons.support_server')).setStyle(discord_js_1.default.ButtonStyle.Link).setURL(client.config.bot.support_server.invite).setEmoji('🔧'));
 };
 exports.default = chartCommand;

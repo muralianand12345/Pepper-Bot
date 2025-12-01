@@ -49,7 +49,6 @@ export class MusicResponseHandler {
 				text: contact_dev ? this.localizationManager.translate('responses.errors.contact_dev', locale) : this.client.user?.username || 'Music Bot',
 				iconURL: this.client.user?.displayAvatarURL(),
 			});
-
 		return embed;
 	};
 
@@ -106,13 +105,10 @@ export class MusicResponseHandler {
 			.setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
 			.setDescription(`**${Formatter.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`);
 
-		if (trackImg) {
-			embed.setThumbnail(trackImg);
-		}
-
+		if (trackImg) embed.setThumbnail(trackImg);
 		if (progressText) {
 			embed.addFields([{ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false }]);
-			embed.setFooter({ text: `-> ${player?.node?.options?.identifier || this.client.user?.username}`, iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
+			embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
 		} else {
 			embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
 		}
@@ -148,13 +144,7 @@ export class MusicResponseHandler {
 			{ name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData?.username || 'Unknown', inline: true },
 		];
 
-		if (queueInfo) {
-			fields.push({
-				name: this.localizationManager.translate('responses.fields.queue_info', locale),
-				value: queueInfo,
-				inline: false,
-			});
-		}
+		if (queueInfo) fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: queueInfo, inline: false });
 
 		return new discord.EmbedBuilder()
 			.setColor('#5865f2')
@@ -207,7 +197,7 @@ export class MusicResponseHandler {
 	};
 
 	public getSupportButton = (locale: string = 'en'): discord.ActionRowBuilder<discord.ButtonBuilder> => {
-		return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setLabel(this.localizationManager.translate('responses.buttons.support_server', locale)).setStyle(discord.ButtonStyle.Link).setURL('https://discord.gg/XzE9hSbsNb').setEmoji('🔧'));
+		return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setLabel(this.localizationManager.translate('responses.buttons.support_server', locale)).setStyle(discord.ButtonStyle.Link).setURL(this.client.config.bot.support_server.invite).setEmoji('🔧'));
 	};
 
 	public getMusicButton = (disabled: boolean = false, locale: string = 'en'): discord.ActionRowBuilder<discord.ButtonBuilder> => {

@@ -156,7 +156,7 @@ const refreshChartEmbed = async (interaction: discord.ButtonInteraction, origina
 		const actionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
 			new discord.ButtonBuilder().setCustomId('chart_refresh').setLabel(t('responses.chart.buttons.refresh')).setStyle(discord.ButtonStyle.Primary).setEmoji('🔄').setDisabled(true),
 			new discord.ButtonBuilder().setCustomId('chart_export').setLabel(t('responses.chart.buttons.export')).setStyle(discord.ButtonStyle.Secondary).setEmoji('📊'),
-			new discord.ButtonBuilder().setLabel(t('responses.buttons.support_server')).setStyle(discord.ButtonStyle.Link).setURL('https://discord.gg/XzE9hSbsNb').setEmoji('🔧')
+			new discord.ButtonBuilder().setLabel(t('responses.buttons.support_server')).setStyle(discord.ButtonStyle.Link).setURL(client.config.bot.support_server.invite).setEmoji('🔧')
 		);
 
 		await interaction.editReply({ embeds: [embed], components: [actionRow] });

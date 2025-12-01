@@ -146,6 +146,7 @@ responses:
         youtube_blocked: "⚠️ Song wird übersprungen! YouTube-Quelle erkannt."
         youtube_footer: "Wir unterstützen keine YouTube-Links aufgrund der YouTube-Nutzungsbedingungen."
         filter_applied: "{filter}-Filter angewendet"
+        playlist_truncated: "Hinzugefügt {added}/{total} Titel. Tritt unserem Support-Server bei, um unbegrenzte Playlists zu erhalten!"
 
     chart:
         user_title: "{user}s Musik-Chart"

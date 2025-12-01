@@ -146,6 +146,7 @@ responses:
         youtube_blocked: "⚠️ Pulando música! Fonte do YouTube detectada."
         youtube_footer: "Não suportamos links do YouTube devido aos Termos de Serviço do YouTube."
         filter_applied: "Filtro {filter} aplicado"
+        playlist_truncated: "Adicionadas {added}/{total} faixas. Junte-se ao nosso servidor de suporte para playlists ilimitadas!"
 
     chart:
         user_title: "Chart de música de {user}"

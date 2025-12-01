@@ -146,6 +146,7 @@ responses:
         youtube_blocked: "⚠️ Песня пропущена! Обнаружен источник YouTube."
         youtube_footer: "Мы не поддерживаем ссылки YouTube из-за условий использования YouTube."
         filter_applied: "Применён фильтр {filter}"
+        playlist_truncated: "Добавлено {added}/{total} треков. Присоединяйтесь к нашему серверу поддержки, чтобы получать неограниченные плейлисты!"
 
     chart:
         user_title: "Музыкальный чарт {user}"

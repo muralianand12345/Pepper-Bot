@@ -114,6 +114,28 @@ class Music {
             }
             return query;
         };
+        this.checkUserPremium = async (userId) => {
+            const guild = this.client.guilds.cache.get(this.client.config.bot.support_server.id);
+            if (!guild)
+                return { isPremium: false, tier: 0 };
+            const member = await guild.members.fetch(userId).catch(() => null);
+            if (!member)
+                return { isPremium: false, tier: 0 };
+            return { isPremium: true, tier: 1 };
+        };
+        this.getPlaylistLimit = async (userId, playlist) => {
+            const { isPremium, tier } = await this.checkUserPremium(userId);
+            const userTier = this.client.config.premium.tiers.find((t) => t.id === (isPremium ? tier : 0));
+            const limit = userTier?.feature?.playlist_limit || null;
+            if (limit === null)
+                return playlist;
+            const limitedTracks = playlist.tracks.slice(0, limit);
+            return {
+                ...playlist,
+                duration: limitedTracks.reduce((acc, track) => acc + (track.duration || 0), 0),
+                tracks: limitedTracks,
+            };
+        };
         this.searchResults = async (res, player) => {
             const responseHandler = new handlers_1.MusicResponseHandler(this.client);
             switch (res.loadType) {
@@ -137,13 +159,20 @@ class Music {
                 case 'playlist': {
                     if (!res.playlist)
                         break;
-                    for (const track of res.playlist.tracks) {
-                        await player.queue.add(track);
-                    }
-                    const totalSize = await player.queue.totalSize();
-                    if (!player.playing && !player.paused && totalSize === res.playlist.tracks.length)
+                    let row = [];
+                    const originalLength = res.playlist.tracks.length;
+                    const limitedPlaylist = await this.getPlaylistLimit(this.interaction.user.id, res.playlist);
+                    const wasTruncated = limitedPlaylist.tracks.length < originalLength;
+                    await player.queue.add(limitedPlaylist.tracks);
+                    const shouldPlay = !player.playing && !player.paused;
+                    if (shouldPlay)
                         player.play();
-                    await this.interaction.editReply({ embeds: [responseHandler.createPlaylistEmbed(res.playlist, this.interaction.user, this.locale)] });
+                    const embed = responseHandler.createPlaylistEmbed(limitedPlaylist, this.interaction.user, this.locale);
+                    if (wasTruncated) {
+                        embed.setFooter({ text: this.t('responses.music.playlist_truncated', { added: limitedPlaylist.tracks.length, total: originalLength }) });
+                        row = [responseHandler.getSupportButton(this.locale)];
+                    }
+                    await this.interaction.editReply({ embeds: [embed], components: row });
                     break;
                 }
             }
@@ -157,7 +186,7 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply({ embeds: [musicCheck] });
-            const query = await this.ytToSpotifyQuery(this.interaction.options.getString('song')) || this.t('responses.default_search');
+            const query = (await this.ytToSpotifyQuery(this.interaction.options.getString('song'))) || this.t('responses.default_search');
             if (!query || query === this.t('responses.default_search'))
                 return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.default_search'), this.locale)] });
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);

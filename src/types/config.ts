@@ -6,6 +6,10 @@ import { BotPresence } from './events';
 export interface IConfig {
 	bot: {
 		owners: Array<string>;
+		support_server: {
+			id: string;
+			invite: string;
+		};
 		presence: {
 			enabled: boolean;
 			status: discord.PresenceStatusData;
@@ -19,6 +23,15 @@ export interface IConfig {
 			command: string;
 			server: string;
 		};
+	};
+	premium: {
+		tiers: Array<{
+			id: number;
+			name: string;
+			feature: {
+				playlist_limit: number | null;
+			};
+		}>;
 	};
 	music: {
 		enabled: boolean;
