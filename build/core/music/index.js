@@ -126,7 +126,7 @@ class Music {
         this.getPlaylistLimit = async (userId, playlist) => {
             const { isPremium, tier } = await this.checkUserPremium(userId);
             const userTier = this.client.config.premium.tiers.find((t) => t.id === (isPremium ? tier : 0));
-            const limit = userTier?.feature?.playlist_limit ?? 100;
+            const limit = userTier?.feature?.playlist_limit || null;
             if (limit === null)
                 return playlist;
             const limitedTracks = playlist.tracks.slice(0, limit);

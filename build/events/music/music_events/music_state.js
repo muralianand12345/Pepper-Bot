@@ -60,13 +60,15 @@ const event = {
             const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback');
             await (0, music_1.sendTempMessage)(textChannel, embed);
         }
-        if (memberCount === 0 && !player.paused && player.playing) {
-            player.pause(true);
-            nowPlayingManager.onPause();
-            const responseHandler = new music_1.MusicResponseHandler(client);
-            const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
-            await (0, music_1.sendTempMessage)(textChannel, embed);
-            const DISCONNECT_DELAY = 300000; // Reduced to 5 minutes
+        if (memberCount === 0) {
+            if (!player.paused && player.playing) {
+                player.pause(true);
+                nowPlayingManager.onPause();
+                const responseHandler = new music_1.MusicResponseHandler(client);
+                const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
+                await (0, music_1.sendTempMessage)(textChannel, embed);
+            }
+            const DISCONNECT_DELAY = 300000;
             const scheduledAt = Date.now();
             player.cleanupScheduledAt = scheduledAt;
             client.logger.info(`[VOICE_STATE] Everyone left channel in guild ${player.guildId}, scheduling disconnect in 5 minutes`);

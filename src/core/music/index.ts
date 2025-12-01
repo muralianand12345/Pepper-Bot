@@ -100,7 +100,7 @@ export class Music {
 	private getPlaylistLimit = async (userId: string, playlist: magmastream.PlaylistData): Promise<magmastream.PlaylistData> => {
 		const { isPremium, tier } = await this.checkUserPremium(userId);
 		const userTier = this.client.config.premium.tiers.find((t: { id: number }) => t.id === (isPremium ? tier : 0));
-		const limit = userTier?.feature?.playlist_limit ?? 100;
+		const limit = userTier?.feature?.playlist_limit || null;
 		if (limit === null) return playlist;
 		const limitedTracks = playlist.tracks.slice(0, limit);
 		return {

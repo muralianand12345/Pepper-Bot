@@ -62,14 +62,16 @@ const event: BotEvent = {
 			await sendTempMessage(textChannel, embed);
 		}
 
-		if (memberCount === 0 && !player.paused && player.playing) {
-			player.pause(true);
-			nowPlayingManager.onPause();
-			const responseHandler = new MusicResponseHandler(client);
-			const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
-			await sendTempMessage(textChannel, embed);
+		if (memberCount === 0) {
+			if (!player.paused && player.playing) {
+				player.pause(true);
+				nowPlayingManager.onPause();
+				const responseHandler = new MusicResponseHandler(client);
+				const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
+				await sendTempMessage(textChannel, embed);
+			}
 
-			const DISCONNECT_DELAY = 300000; // Reduced to 5 minutes
+			const DISCONNECT_DELAY = 300000;
 			const scheduledAt = Date.now();
 			player.cleanupScheduledAt = scheduledAt;
 
