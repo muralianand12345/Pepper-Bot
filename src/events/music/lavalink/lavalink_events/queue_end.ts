@@ -3,7 +3,7 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
-import { wait, NowPlayingManager, MusicResponseHandler } from '../../../../core/music';
+import { wait, NowPlayingManager, MusicResponseHandler, VoiceChannelStatus } from '../../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
@@ -112,6 +112,7 @@ const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, 
 
 	client.logger.info(`[QUEUE_END] Performing cleanup for guild ${guildId} after ${CLEANUP_DELAY_MINS} minutes of inactivity`);
 	currentPlayer.destroy();
+	await new VoiceChannelStatus(client).clearFromPlayer(currentPlayer);
 };
 
 const lavalinkEvent: LavalinkEvent = {

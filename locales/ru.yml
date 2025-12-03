@@ -93,7 +93,6 @@ commands:
     queue:
         name: "queue"
         description: "Показать и управлять очередью воспроизведения"
-
     dj:
         name: "dj"
         description: "Управление ролью DJ для музыкальных команд"
@@ -101,7 +100,6 @@ commands:
             role:
                 name: "роль"
                 description: "Роль для установки/удаления как DJ (оставьте пустым для создания/отключения)"
-
     login:
         name: "login"
         description: "Подключить ваш музыкальный аккаунт к Pepper"
@@ -111,6 +109,13 @@ commands:
                 description: "Музыкальный сервис для подключения"
                 choices:
                     spotify: "Spotify"
+    volume:
+        name: "громкость"
+        description: "Установить громкость воспроизведения музыки"
+        options:
+            volume:
+                name: "громкость"
+                description: "Уровень громкости (1-100)"
 
     logout:
         name: "logout"
@@ -147,6 +152,7 @@ responses:
         youtube_footer: "Мы не поддерживаем ссылки YouTube из-за условий использования YouTube."
         filter_applied: "Применён фильтр {filter}"
         playlist_truncated: "Добавлено {added}/{total} треков. Присоединяйтесь к нашему серверу поддержки, чтобы получать неограниченные плейлисты!"
+        volume_set: "Громкость установлена на {volume}%"
 
     chart:
         user_title: "Музыкальный чарт {user}"
@@ -235,6 +241,7 @@ responses:
         dj_role_create_failed: "Не удалось создать роль DJ. Проверьте разрешения бота и попробуйте снова."
         missing_dj_role: "Вам нужна роль **{role}** для использования этой команды."
         member_not_found: "Не удалось проверить ваши разрешения. Пожалуйста, попробуйте снова."
+        volume_error: "Произошла ошибка при установке громкости"
 
     language:
         user_set: "Ваш язык установлен на **{language}**"

@@ -5,8 +5,7 @@ import Formatter from '../../../../utils/format';
 import { LavalinkEvent } from '../../../../types';
 import { ConfigManager } from '../../../../utils/config';
 import { LocaleDetector } from '../../../../core/locales';
-import { MusicResponseHandler } from '../../../../core/music/handlers/response';
-import { wait, MusicDB, NowPlayingManager, getRequester } from '../../../../core/music';
+import { wait, MusicDB, NowPlayingManager, getRequester, VoiceChannelStatus, MusicResponseHandler } from '../../../../core/music';
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 const localeDetector = new LocaleDetector();
@@ -32,6 +31,9 @@ const webhookLiveSongs = async (client: discord.Client, track: magmastream.Track
 		const duration = track.isStream ? 'LIVE STREAM' : Formatter.msToTime(track.duration);
 		const voiceChannel = guild?.channels.cache.get(player.voiceChannelId || '') as discord.VoiceBasedChannel;
 		const voiceMembers = voiceChannel?.members.filter((member) => !member.user.bot).size || 0;
+
+		const voiceStatus = new VoiceChannelStatus(client);
+		await voiceStatus.setPlaying(player, track);
 
 		const embed = new discord.EmbedBuilder()
 			.setColor('#FF0000')

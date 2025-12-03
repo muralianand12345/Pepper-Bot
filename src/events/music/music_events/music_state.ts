@@ -2,7 +2,7 @@ import discord from 'discord.js';
 
 import { BotEvent } from '../../../types';
 import { LocaleDetector } from '../../../core/locales';
-import { NowPlayingManager, MusicResponseHandler, sendTempMessage } from '../../../core/music';
+import { NowPlayingManager, MusicResponseHandler, sendTempMessage, VoiceChannelStatus } from '../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
@@ -13,9 +13,12 @@ const event: BotEvent = {
 		const player = client.manager.getPlayer(newState.guild.id);
 		if (!player || player.state !== 'CONNECTED') return;
 
+		const currentTrack = await player.queue.getCurrent();
+
 		if (newState.id === client.user?.id && !newState.channelId && oldState.channelId) {
 			client.logger.info(`[VOICE_STATE] Bot was disconnected from voice channel in guild ${newState.guild.id}`);
 			player.destroy();
+			if (currentTrack) await new VoiceChannelStatus(client).clear(player.voiceChannelId || '');
 			NowPlayingManager.removeInstance(player.guildId);
 
 			const textChannel = client.channels.cache.get(String(player.textChannelId)) as discord.TextChannel;
@@ -56,6 +59,7 @@ const event: BotEvent = {
 
 		if (memberCount === 1 && player.paused) {
 			player.pause(false);
+			if (currentTrack) await new VoiceChannelStatus(client).setPlaying(player, currentTrack);
 			nowPlayingManager.onResume();
 			const responseHandler = new MusicResponseHandler(client);
 			const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback');
@@ -65,6 +69,7 @@ const event: BotEvent = {
 		if (memberCount === 0) {
 			if (!player.paused && player.playing) {
 				player.pause(true);
+				if (currentTrack) await new VoiceChannelStatus(client).setPaused(player, currentTrack);
 				nowPlayingManager.onPause();
 				const responseHandler = new MusicResponseHandler(client);
 				const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
@@ -97,6 +102,7 @@ const event: BotEvent = {
 						await textChannel.send({ embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
 						NowPlayingManager.removeInstance(player.guildId);
 						currentPlayer.destroy();
+						if (currentTrack) await new VoiceChannelStatus(client).clear(currentPlayer.voiceChannelId || '');
 					}
 				} catch (error) {
 					client.logger.error(`[VOICE_STATE] Error during auto-disconnect: ${error}`);

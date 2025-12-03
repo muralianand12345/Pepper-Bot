@@ -93,7 +93,6 @@ commands:
     queue:
         name: "queue"
         description: "Afficher et gérer la file d'attente musicale"
-
     dj:
         name: "dj"
         description: "Gérer le rôle DJ pour les commandes musicales"
@@ -101,7 +100,6 @@ commands:
             role:
                 name: "rôle"
                 description: "Le rôle à définir/supprimer comme rôle DJ (laisser vide pour créer/désactiver)"
-
     login:
         name: "login"
         description: "Connecter votre compte musical à Pepper"
@@ -111,7 +109,6 @@ commands:
                 description: "Le service musical à connecter"
                 choices:
                     spotify: "Spotify"
-
     logout:
         name: "logout"
         description: "Déconnecter votre compte musical de Pepper"
@@ -121,6 +118,13 @@ commands:
                 description: "Le service musical à déconnecter"
                 choices:
                     spotify: "Spotify"
+    volume:
+        name: "volume"
+        description: "Régler le volume de lecture de la musique"
+        options:
+            volume:
+                name: "volume"
+                description: "Niveau de volume (1-100)"
 
 responses:
     music:
@@ -147,6 +151,7 @@ responses:
         youtube_footer: "Nous ne prenons pas en charge les liens YouTube en raison des conditions d'utilisation de YouTube."
         filter_applied: "Filtre {filter} appliqué"
         playlist_truncated: "Ajouté(s) {added}/{total} titres. Rejoignez notre serveur d'assistance pour des playlists illimitées !"
+        volume_set: "Volume réglé à {volume}%"
 
     chart:
         user_title: "Classement musical de {user}"
@@ -235,6 +240,7 @@ responses:
         dj_role_create_failed: "Échec de la création du rôle DJ. Veuillez vérifier les permissions du bot et réessayer."
         missing_dj_role: "Vous avez besoin du rôle **{role}** pour utiliser cette commande."
         member_not_found: "Impossible de vérifier vos permissions. Veuillez réessayer."
+        volume_error: "Une erreur s'est produite lors du réglage du volume"
 
     language:
         user_set: "Votre langue a été définie sur **{language}**"

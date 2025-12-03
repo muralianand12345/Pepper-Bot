@@ -15,9 +15,12 @@ const event = {
         const player = client.manager.getPlayer(newState.guild.id);
         if (!player || player.state !== 'CONNECTED')
             return;
+        const currentTrack = await player.queue.getCurrent();
         if (newState.id === client.user?.id && !newState.channelId && oldState.channelId) {
             client.logger.info(`[VOICE_STATE] Bot was disconnected from voice channel in guild ${newState.guild.id}`);
             player.destroy();
+            if (currentTrack)
+                await new music_1.VoiceChannelStatus(client).clear(player.voiceChannelId || '');
             music_1.NowPlayingManager.removeInstance(player.guildId);
             const textChannel = client.channels.cache.get(String(player.textChannelId));
             if (textChannel?.isTextBased()) {
@@ -55,6 +58,8 @@ const event = {
         const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, player, client);
         if (memberCount === 1 && player.paused) {
             player.pause(false);
+            if (currentTrack)
+                await new music_1.VoiceChannelStatus(client).setPlaying(player, currentTrack);
             nowPlayingManager.onResume();
             const responseHandler = new music_1.MusicResponseHandler(client);
             const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback');
@@ -63,6 +68,8 @@ const event = {
         if (memberCount === 0) {
             if (!player.paused && player.playing) {
                 player.pause(true);
+                if (currentTrack)
+                    await new music_1.VoiceChannelStatus(client).setPaused(player, currentTrack);
                 nowPlayingManager.onPause();
                 const responseHandler = new music_1.MusicResponseHandler(client);
                 const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
@@ -91,6 +98,8 @@ const event = {
                         await textChannel.send({ embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
                         music_1.NowPlayingManager.removeInstance(player.guildId);
                         currentPlayer.destroy();
+                        if (currentTrack)
+                            await new music_1.VoiceChannelStatus(client).clear(currentPlayer.voiceChannelId || '');
                     }
                 }
                 catch (error) {
