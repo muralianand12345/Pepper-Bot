@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProgressBarUtils = void 0;
+exports.VoiceChannelStatus = exports.ProgressBarUtils = void 0;
 const format_1 = __importDefault(require("../../utils/format"));
 class ProgressBarUtils {
     static renderBar(percentage, length = 15) {
@@ -37,3 +37,69 @@ class ProgressBarUtils {
     }
 }
 exports.ProgressBarUtils = ProgressBarUtils;
+class VoiceChannelStatus {
+    constructor(client) {
+        this.set = async (voiceChannelId, status) => {
+            try {
+                if (!voiceChannelId)
+                    return false;
+                const truncatedStatus = status?.slice(0, 500) ?? null;
+                await this.client.rest.put(`/channels/${voiceChannelId}/voice-status`, { body: { status: truncatedStatus } });
+                return true;
+            }
+            catch (error) {
+                if (error?.code === 50013) {
+                    this.client.logger?.warn?.(`[VOICE_STATUS] Missing permissions to set voice status: ${error}`);
+                }
+                else {
+                    this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status: ${error}`);
+                }
+                return false;
+            }
+        };
+        this.clear = async (voiceChannelId) => {
+            return this.set(voiceChannelId, null);
+        };
+        this.setFromPlayer = async (player, customStatus) => {
+            try {
+                const voiceChannelId = player.voiceChannelId;
+                if (!voiceChannelId)
+                    return false;
+                if (customStatus !== undefined)
+                    return this.set(voiceChannelId, customStatus);
+                const currentTrack = await player.queue.getCurrent();
+                if (!currentTrack)
+                    return this.clear(voiceChannelId);
+                const trackInfo = `${currentTrack.title} - ${currentTrack.author}`.slice(0, 80);
+                const status = player.playing ? `▶️ ${trackInfo}` : player.paused ? `⏸️ ${trackInfo}` : null;
+                return this.set(voiceChannelId, status);
+            }
+            catch (error) {
+                this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status from player: ${error}`);
+                return false;
+            }
+        };
+        this.setPlaying = async (player, track) => {
+            const voiceChannelId = player.voiceChannelId;
+            if (!voiceChannelId)
+                return false;
+            const trackInfo = `${track.title} - ${track.author}`.slice(0, 80);
+            return this.set(voiceChannelId, `▶️ ${trackInfo}`);
+        };
+        this.setPaused = async (player, track) => {
+            const voiceChannelId = player.voiceChannelId;
+            if (!voiceChannelId)
+                return false;
+            const trackInfo = `${track.title} - ${track.author}`.slice(0, 80);
+            return this.set(voiceChannelId, `⏸️ ${trackInfo}`);
+        };
+        this.clearFromPlayer = async (player) => {
+            const voiceChannelId = player.voiceChannelId;
+            if (!voiceChannelId)
+                return false;
+            return this.clear(voiceChannelId);
+        };
+        this.client = client;
+    }
+}
+exports.VoiceChannelStatus = VoiceChannelStatus;

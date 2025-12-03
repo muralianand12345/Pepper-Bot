@@ -8,7 +8,6 @@ const magmastream_1 = require("magmastream");
 const format_1 = __importDefault(require("../../../../utils/format"));
 const config_1 = require("../../../../utils/config");
 const locales_1 = require("../../../../core/locales");
-const response_1 = require("../../../../core/music/handlers/response");
 const music_1 = require("../../../../core/music");
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 const localeDetector = new locales_1.LocaleDetector();
@@ -33,6 +32,8 @@ const webhookLiveSongs = async (client, track, player) => {
         const duration = track.isStream ? 'LIVE STREAM' : format_1.default.msToTime(track.duration);
         const voiceChannel = guild?.channels.cache.get(player.voiceChannelId || '');
         const voiceMembers = voiceChannel?.members.filter((member) => !member.user.bot).size || 0;
+        const voiceStatus = new music_1.VoiceChannelStatus(client);
+        await voiceStatus.setPlaying(player, track);
         const embed = new discord_js_1.default.EmbedBuilder()
             .setColor('#FF0000')
             .setTitle('🎵 Now Playing Live')
@@ -81,7 +82,7 @@ const lavalinkEvent = {
                 if (!isFromPlaylist) {
                     player.stop(1);
                     client.logger.warn(`[LAVALINK] Skipping YouTube track: ${track.uri}`);
-                    const responseHandler = new response_1.MusicResponseHandler(client);
+                    const responseHandler = new music_1.MusicResponseHandler(client);
                     const embed = responseHandler.createWarningEmbed(client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || '⚠️ Skipping song! Youtube source detected.').setFooter({ text: client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.", iconURL: client.user?.displayAvatarURL() || '' });
                     return await channel.send({ embeds: [embed] }).then((msg) => (0, music_1.wait)(5000).then(() => msg.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));
                 }

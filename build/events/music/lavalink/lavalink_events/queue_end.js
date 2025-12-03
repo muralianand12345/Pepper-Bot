@@ -105,6 +105,7 @@ const handlePlayerCleanup = async (player, guildId, client) => {
     music_1.NowPlayingManager.removeInstance(guildId);
     client.logger.info(`[QUEUE_END] Performing cleanup for guild ${guildId} after ${CLEANUP_DELAY_MINS} minutes of inactivity`);
     currentPlayer.destroy();
+    await new music_1.VoiceChannelStatus(client).clearFromPlayer(currentPlayer);
 };
 const lavalinkEvent = {
     name: magmastream_1.ManagerEventTypes.QueueEnd,

@@ -180,7 +180,7 @@ export class NowPlayingManager {
 			const adjustedPlayer = await this.getAdjustedPlayer();
 			const embed = await new MusicResponseHandler(this.client).createMusicEmbed(currentTrack, adjustedPlayer, locale);
 
-			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
+			const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
 			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
 
 			if (this.message === currentMessage && currentMessage.editable) {
@@ -239,7 +239,7 @@ export class NowPlayingManager {
 
 			const locale = await this.getGuildLocale();
 			const embed = await new MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
-			const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
+			const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
 			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
 			const currentMessage = this.message;
 

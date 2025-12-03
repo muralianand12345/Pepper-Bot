@@ -93,7 +93,6 @@ commands:
     queue:
         name: "queue"
         description: "Exibir e gerenciar a fila de músicas"
-
     dj:
         name: "dj"
         description: "Gerenciar o cargo de DJ para comandos de música"
@@ -101,7 +100,6 @@ commands:
             role:
                 name: "cargo"
                 description: "O cargo a definir/remover como cargo de DJ (deixe vazio para criar/desativar)"
-
     login:
         name: "login"
         description: "Conectar sua conta de música ao Pepper"
@@ -111,7 +109,6 @@ commands:
                 description: "O serviço de música a conectar"
                 choices:
                     spotify: "Spotify"
-
     logout:
         name: "logout"
         description: "Desconectar sua conta de música do Pepper"
@@ -121,6 +118,13 @@ commands:
                 description: "O serviço de música a desconectar"
                 choices:
                     spotify: "Spotify"
+    volume:
+        name: "volume"
+        description: "Definir o volume de reprodução de música"
+        options:
+            volume:
+                name: "volume"
+                description: "Nível de volume (1-100)"
 
 responses:
     music:
@@ -147,6 +151,7 @@ responses:
         youtube_footer: "Não suportamos links do YouTube devido aos Termos de Serviço do YouTube."
         filter_applied: "Filtro {filter} aplicado"
         playlist_truncated: "Adicionadas {added}/{total} faixas. Junte-se ao nosso servidor de suporte para playlists ilimitadas!"
+        volume_set: "Volume definido para {volume}%"
 
     chart:
         user_title: "Chart de música de {user}"
@@ -235,6 +240,7 @@ responses:
         dj_role_create_failed: "Falha ao criar o cargo de DJ. Por favor, verifique as permissões do bot e tente novamente."
         missing_dj_role: "Você precisa do cargo **{role}** para usar este comando."
         member_not_found: "Não foi possível verificar suas permissões. Por favor, tente novamente."
+        volume_error: "Ocorreu um erro ao definir o volume"
 
     language:
         user_set: "Seu idioma foi definido para **{language}**"

@@ -122,6 +122,14 @@ commands:
                 choices:
                     spotify: "Spotify"
 
+    volume:
+        name: "volume"
+        description: "Set the music playback volume"
+        options:
+            volume:
+                name: "volume"
+                description: "Volume level (1-100)"
+
 responses:
     music:
         connected: "Connected to {channelName}"
@@ -147,6 +155,7 @@ responses:
         youtube_footer: "We do not support Youtube links due to YouTube's TOS."
         filter_applied: "Applied {filter} filter"
         playlist_truncated: "Added {added}/{total} tracks. Join our support server for unlimited playlists!"
+        volume_set: "Volume set to {volume}%"
 
     chart:
         user_title: "{user}'s Music Chart"
@@ -235,6 +244,7 @@ responses:
         dj_role_create_failed: "Failed to create DJ role. Please check bot permissions and try again."
         missing_dj_role: "You need the **{role}** role to use this command."
         member_not_found: "Unable to verify your permissions. Please try again."
+        volume_error: "An error occurred while setting the volume"
 
     language:
         user_set: "Your language has been set to **{language}**"

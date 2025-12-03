@@ -93,7 +93,6 @@ commands:
     queue:
         name: "queue"
         description: "Muestra y administra la cola de música"
-
     dj:
         name: "dj"
         description: "Administra el rol de DJ para comandos de música"
@@ -101,7 +100,6 @@ commands:
             role:
                 name: "rol"
                 description: "El rol a establecer/eliminar como rol de DJ (dejar vacío para crear/desactivar)"
-
     login:
         name: "login"
         description: "Conecta tu cuenta de música a Pepper"
@@ -111,7 +109,6 @@ commands:
                 description: "El servicio de música a conectar"
                 choices:
                     spotify: "Spotify"
-
     logout:
         name: "logout"
         description: "Desconecta tu cuenta de música de Pepper"
@@ -121,6 +118,13 @@ commands:
                 description: "El servicio de música a desconectar"
                 choices:
                     spotify: "Spotify"
+    volume:
+        name: "volume"
+        description: "Establecer el volumen de reproducción de música"
+        options:
+            volume:
+                name: "volumen"
+                description: "Nivel de volumen (1-100)"
 
 responses:
     music:
@@ -147,6 +151,7 @@ responses:
         youtube_footer: "No admitimos enlaces de YouTube debido a los Términos de Servicio de YouTube."
         filter_applied: "Filtro {filter} aplicado"
         playlist_truncated: "Añadidas {added}/{total} pistas. Únete a nuestro servidor de soporte para listas de reproducción ilimitadas!"
+        volume_set: "Volumen establecido en {volume}%"
 
     chart:
         user_title: "Chart de música de {user}"
@@ -235,6 +240,7 @@ responses:
         dj_role_create_failed: "Error al crear el rol de DJ. Por favor, verifica los permisos del bot e inténtalo de nuevo."
         missing_dj_role: "Necesitas el rol **{role}** para usar este comando."
         member_not_found: "No se pudieron verificar tus permisos. Por favor, inténtalo de nuevo."
+        volume_error: "Ocurrió un error al establecer el volumen"
 
     language:
         user_set: "Tu idioma se ha establecido a **{language}**"

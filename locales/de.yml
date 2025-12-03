@@ -101,7 +101,6 @@ commands:
             role:
                 name: "rolle"
                 description: "Die Rolle, die als DJ-Rolle festgelegt/entfernt werden soll (leer lassen zum Erstellen/Deaktivieren)"
-
     login:
         name: "login"
         description: "Verbinde dein Musikkonto mit Pepper"
@@ -111,7 +110,6 @@ commands:
                 description: "Der Musikdienst zum Verbinden"
                 choices:
                     spotify: "Spotify"
-
     logout:
         name: "logout"
         description: "Trenne dein Musikkonto von Pepper"
@@ -121,6 +119,13 @@ commands:
                 description: "Der Musikdienst zum Trennen"
                 choices:
                     spotify: "Spotify"
+    volume:
+        name: "volume"
+        description: "Lautstärke der Musikwiedergabe einstellen"
+        options:
+            volume:
+                name: "lautstärke"
+                description: "Lautstärkepegel (1-100)"
 
 responses:
     music:
@@ -147,6 +152,7 @@ responses:
         youtube_footer: "Wir unterstützen keine YouTube-Links aufgrund der YouTube-Nutzungsbedingungen."
         filter_applied: "{filter}-Filter angewendet"
         playlist_truncated: "Hinzugefügt {added}/{total} Titel. Tritt unserem Support-Server bei, um unbegrenzte Playlists zu erhalten!"
+        volume_set: "Lautstärke auf {volume}% eingestellt"
 
     chart:
         user_title: "{user}s Musik-Chart"
@@ -235,6 +241,7 @@ responses:
         dj_role_create_failed: "DJ-Rolle konnte nicht erstellt werden. Bitte überprüfe die Bot-Berechtigungen und versuche es erneut."
         missing_dj_role: "Du benötigst die **{role}**-Rolle, um diesen Befehl zu verwenden."
         member_not_found: "Deine Berechtigungen konnten nicht überprüft werden. Bitte versuche es erneut."
+        volume_error: "Beim Einstellen der Lautstärke ist ein Fehler aufgetreten"
 
     language:
         user_set: "Deine Sprache wurde auf **{language}** festgelegt"

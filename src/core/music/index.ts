@@ -2,8 +2,8 @@ import discord from 'discord.js';
 import magmastream, { TrackUtils } from 'magmastream';
 
 import Formatter from '../../utils/format';
-import { ProgressBarUtils } from './utils';
 import { LocaleDetector } from '../locales';
+import { ProgressBarUtils, VoiceChannelStatus } from './utils';
 import music_guild from '../../events/database/schema/music_guild';
 import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator } from './handlers';
 
@@ -264,8 +264,12 @@ export class Music {
 		const [isValid, errorEmbed] = await musicValidator.validatePauseState(this.interaction);
 		if (!isValid && errorEmbed) return await this.interaction.editReply({ embeds: [errorEmbed] });
 
+		const voiceStatus = new VoiceChannelStatus(this.client);
+
 		try {
 			player.pause(true);
+			const currentTrack = await player.queue.getCurrent();
+			if (currentTrack) await voiceStatus.setPaused(player, currentTrack);
 			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'))] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Pause error: ${error}`);
@@ -295,8 +299,12 @@ export class Music {
 		const [isValid, errorEmbed] = await musicValidator.validateResumeState(this.interaction);
 		if (!isValid && errorEmbed) return await this.interaction.editReply({ embeds: [errorEmbed] });
 
+		const voiceStatus = new VoiceChannelStatus(this.client);
+
 		try {
 			player.pause(false);
+			const currentTrack = await player.queue.getCurrent();
+			if (currentTrack) await voiceStatus.setPlaying(player, currentTrack);
 			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'))] });
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Resume error: ${error}`);
@@ -916,6 +924,35 @@ export class Music {
 		} catch (error) {
 			this.client.logger.error(`[DJ] Command error: ${error}`);
 			await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.dj_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
+		}
+	};
+
+	volume = async (volume: number): Promise<discord.Message<boolean> | void> => {
+		await this.interaction.deferReply();
+
+		await this.initializeLocale();
+		const responseHandler = new MusicResponseHandler(this.client);
+
+		const musicCheck = this.validateMusicEnabled();
+		if (musicCheck) return await this.interaction.editReply({ embeds: [musicCheck] });
+
+		const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
+		if (!player) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+
+		const validator = new VoiceChannelValidator(this.client, this.interaction);
+		for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection(), validator.validateMusicPlaying(player), validator.validateVoiceSameChannel(player)]) {
+			const [isValid, embed] = await check;
+			if (!isValid) return await this.interaction.editReply({ embeds: [embed] });
+		}
+
+		try {
+			player.setVolume(volume);
+
+			const message = this.t('responses.music.volume_set', { volume: volume });
+			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message)] });
+		} catch (error) {
+			this.client.logger.error(`[MUSIC] Volume error: ${error}`);
+			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.volume_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
 		}
 	};
 }

@@ -3,7 +3,7 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
-import { NowPlayingManager, MusicResponseHandler } from '../../../../core/music';
+import { NowPlayingManager, MusicResponseHandler, VoiceChannelStatus } from '../../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
@@ -26,6 +26,7 @@ const lavalinkEvent: LavalinkEvent = {
 					const responseHandler = new MusicResponseHandler(client);
 					const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
 					await channel.send({ embeds: [disconnectEmbed] });
+					await new VoiceChannelStatus(client).clear(player.voiceChannelId || '');
 					client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent for guild ${player.guildId}`);
 				}
 			}

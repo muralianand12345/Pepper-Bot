@@ -153,7 +153,7 @@ class NowPlayingManager {
                 const locale = await this.getGuildLocale();
                 const adjustedPlayer = await this.getAdjustedPlayer();
                 const embed = await new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(currentTrack, adjustedPlayer, locale);
-                const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
+                const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
                 const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
                 if (this.message === currentMessage && currentMessage.editable) {
                     await currentMessage.edit({ embeds: [embed], components: [musicButton] });
@@ -217,7 +217,7 @@ class NowPlayingManager {
                     return this.client.logger?.warn(`[NowPlayingManager] Channel ${channel.id} not accessible, skipping update`);
                 const locale = await this.getGuildLocale();
                 const embed = await new handlers_1.MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
-                const shouldDisableButtons = this.stopped || !this.player.playing || this.player.state === 'DISCONNECTED';
+                const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
                 const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
                 const currentMessage = this.message;
                 if (currentMessage) {

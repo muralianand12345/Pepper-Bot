@@ -24,6 +24,7 @@ const lavalinkEvent = {
                     const responseHandler = new music_1.MusicResponseHandler(client);
                     const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
                     await channel.send({ embeds: [disconnectEmbed] });
+                    await new music_1.VoiceChannelStatus(client).clear(player.voiceChannelId || '');
                     client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent for guild ${player.guildId}`);
                 }
             }

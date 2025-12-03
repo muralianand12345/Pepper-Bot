@@ -43,8 +43,8 @@ exports.Music = exports.MUSIC_CONFIG = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = __importStar(require("magmastream"));
 const format_1 = __importDefault(require("../../utils/format"));
-const utils_1 = require("./utils");
 const locales_1 = require("../locales");
+const utils_1 = require("./utils");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
 const handlers_1 = require("./handlers");
 __exportStar(require("./func"), exports);
@@ -281,8 +281,12 @@ class Music {
             const [isValid, errorEmbed] = await musicValidator.validatePauseState(this.interaction);
             if (!isValid && errorEmbed)
                 return await this.interaction.editReply({ embeds: [errorEmbed] });
+            const voiceStatus = new utils_1.VoiceChannelStatus(this.client);
             try {
                 player.pause(true);
+                const currentTrack = await player.queue.getCurrent();
+                if (currentTrack)
+                    await voiceStatus.setPaused(player, currentTrack);
                 await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.paused'))] });
             }
             catch (error) {
@@ -310,8 +314,12 @@ class Music {
             const [isValid, errorEmbed] = await musicValidator.validateResumeState(this.interaction);
             if (!isValid && errorEmbed)
                 return await this.interaction.editReply({ embeds: [errorEmbed] });
+            const voiceStatus = new utils_1.VoiceChannelStatus(this.client);
             try {
                 player.pause(false);
+                const currentTrack = await player.queue.getCurrent();
+                if (currentTrack)
+                    await voiceStatus.setPlaying(player, currentTrack);
                 await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.resumed'))] });
             }
             catch (error) {
@@ -879,6 +887,32 @@ class Music {
             catch (error) {
                 this.client.logger.error(`[DJ] Command error: ${error}`);
                 await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.dj_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
+            }
+        };
+        this.volume = async (volume) => {
+            await this.interaction.deferReply();
+            await this.initializeLocale();
+            const responseHandler = new handlers_1.MusicResponseHandler(this.client);
+            const musicCheck = this.validateMusicEnabled();
+            if (musicCheck)
+                return await this.interaction.editReply({ embeds: [musicCheck] });
+            const player = this.client.manager.getPlayer(this.interaction.guild?.id || '');
+            if (!player)
+                return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_player'), this.locale)] });
+            const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
+            for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection(), validator.validateMusicPlaying(player), validator.validateVoiceSameChannel(player)]) {
+                const [isValid, embed] = await check;
+                if (!isValid)
+                    return await this.interaction.editReply({ embeds: [embed] });
+            }
+            try {
+                player.setVolume(volume);
+                const message = this.t('responses.music.volume_set', { volume: volume });
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message)] });
+            }
+            catch (error) {
+                this.client.logger.error(`[MUSIC] Volume error: ${error}`);
+                await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.volume_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
             }
         };
         this.client = client;
