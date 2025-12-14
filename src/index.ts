@@ -1,7 +1,7 @@
 import path from 'path';
 import discord from 'discord.js';
 
-import Logger from './utils/logger';
+import { Logger } from './utils/logger';
 import { ConfigManager } from './utils/config';
 
 const botPath = path.join(__dirname, 'main.js');

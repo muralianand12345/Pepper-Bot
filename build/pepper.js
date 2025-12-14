@@ -6,9 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const magma_connect_1 = require("magma-connect");
 const magmastream_1 = require("magmastream");
-const logger_1 = __importDefault(require("./utils/logger"));
-const command_logger_1 = __importDefault(require("./utils/command_logger"));
 const locales_1 = require("./core/locales");
+const logger_1 = require("./utils/logger");
 const config_1 = require("./utils/config");
 const configManager = config_1.ConfigManager.getInstance();
 const initializeManager = (config, client) => {
@@ -36,8 +35,8 @@ const initializeManager = (config, client) => {
 };
 const createClient = () => {
     const client = new discord_js_1.default.Client({ intents: [discord_js_1.default.GatewayIntentBits.Guilds, discord_js_1.default.GatewayIntentBits.GuildWebhooks, discord_js_1.default.GatewayIntentBits.GuildMessages, discord_js_1.default.GatewayIntentBits.GuildVoiceStates] });
-    client.logger = new logger_1.default();
-    client.cmdLogger = new command_logger_1.default();
+    client.logger = new logger_1.Logger();
+    client.cmdLogger = new logger_1.CommandLogger();
     client.commands = new discord_js_1.default.Collection();
     client.cooldowns = new discord_js_1.default.Collection();
     client.config = (0, config_1.loadConfig)(client);

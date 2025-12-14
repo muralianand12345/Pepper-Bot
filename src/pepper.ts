@@ -2,10 +2,9 @@ import discord from 'discord.js';
 import { MagmaConnect } from 'magma-connect';
 import { Manager, UseNodeOptions, StateStorageType, AutoPlayPlatform, DiscordPacket } from 'magmastream';
 
-import Logger from './utils/logger';
 import { Command, IConfig } from './types';
-import CommandLogger from './utils/command_logger';
 import { LocalizationManager } from './core/locales';
+import { Logger, CommandLogger } from './utils/logger';
 import { ConfigManager, loadConfig } from './utils/config';
 
 const configManager = ConfigManager.getInstance();

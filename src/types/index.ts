@@ -4,7 +4,7 @@ import magmastream from 'magmastream';
 import { IConfig } from './config';
 import { ILogger } from './logger';
 import { Command } from './events';
-import CommandLogger from '../utils/command_logger';
+import { CommandLogger } from '../utils/logger';
 import { LocalizationManager } from '../core/locales';
 
 declare global {
