@@ -76,13 +76,6 @@ commands:
             limit:
                 name: "limit"
                 description: "Anzahl der anzuzeigenden Top-Einträge (5-20)"
-    suggest_songs:
-        name: "suggest-songs"
-        description: "Erhalte intelligente Musikempfehlungen basierend auf deinem Hörverlauf"
-        options:
-            count:
-                name: "anzahl"
-                description: "Anzahl der Empfehlungen (1-20)"
     lyrics:
         name: "lyrics"
         description: "Zeige den Liedtext für den aktuell spielenden Track an"
@@ -179,31 +172,6 @@ responses:
         buttons:
             refresh: "Aktualisieren"
             export: "Daten exportieren"
-
-    suggest_songs:
-        title: "Intelligente Musikempfehlungen"
-        fresh_title: "Neue Musikempfehlungen"
-        description: "Basierend auf deinem Top-Song: **{song}** von **{artist}**\n\n{spotifyCount} Spotify-Tracks von {totalCount} Empfehlungen gefunden"
-        footer: "Angefragt von {user}"
-        refreshed_footer: "Aktualisiert von {user}"
-        top_recommendations: "Top-Empfehlungen"
-        more_recommendations: "Weitere Empfehlungen"
-        additional_recommendations: "Zusätzliche Empfehlungen"
-        unknown_track: "Unbekannter Track"
-        no_history: "Du hast noch keinen Hörverlauf. Spiele zuerst ein paar Songs ab!"
-        no_recommendations: 'Keine Empfehlungen basierend auf "{song}" gefunden. Versuche, mehr verschiedene Songs zu spielen!'
-        no_valid_recommendations: "Keine gültigen Empfehlungen gefunden"
-        no_additional_recommendations: "Keine zusätzlichen Empfehlungen"
-        no_new_recommendations: "Keine neuen Empfehlungen gefunden"
-        now_playing: "Wird jetzt gespielt: **{title}** von **{artist}**"
-        added_tracks: "{count} Tracks zur Warteschlange hinzugefügt!"
-        buttons:
-            play_top: "Top-Auswahl spielen"
-            add_all: "Alle zur Warteschlange"
-            refresh: "Neue Vorschläge"
-        errors:
-            invalid_track: "Ungültige Track-Daten für die Top-Empfehlung"
-            generation_failed: "Empfehlungen konnten nicht generiert werden"
 
     errors:
         music_disabled: "Musik ist derzeit deaktiviert."

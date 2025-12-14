@@ -76,13 +76,6 @@ commands:
             limit:
                 name: "лимит"
                 description: "Количество топ-элементов для отображения (5-20)"
-    suggest_songs:
-        name: "suggest-songs"
-        description: "Получить умные музыкальные рекомендации на основе истории прослушивания"
-        options:
-            count:
-                name: "количество"
-                description: "Количество рекомендаций (1-20)"
     lyrics:
         name: "lyrics"
         description: "Показать текст песни для текущего трека"
@@ -179,31 +172,6 @@ responses:
         buttons:
             refresh: "Обновить"
             export: "Экспорт данных"
-
-    suggest_songs:
-        title: "Умные музыкальные рекомендации"
-        fresh_title: "Новые музыкальные рекомендации"
-        description: "На основе вашей любимой песни: **{song}** от **{artist}**\n\nНайдено {spotifyCount} треков Spotify из {totalCount} рекомендаций"
-        footer: "Запросил {user}"
-        refreshed_footer: "Обновил {user}"
-        top_recommendations: "Топ рекомендаций"
-        more_recommendations: "Больше рекомендаций"
-        additional_recommendations: "Дополнительные рекомендации"
-        unknown_track: "Неизвестный трек"
-        no_history: "У вас пока нет истории прослушивания. Сначала послушайте несколько песен!"
-        no_recommendations: 'Рекомендации на основе "{song}" не найдены. Попробуйте слушать более разнообразную музыку!'
-        no_valid_recommendations: "Подходящие рекомендации не найдены"
-        no_additional_recommendations: "Нет дополнительных рекомендаций"
-        no_new_recommendations: "Новые рекомендации не найдены"
-        now_playing: "Сейчас играет: **{title}** от **{artist}**"
-        added_tracks: "{count} треков добавлено в очередь!"
-        buttons:
-            play_top: "Воспроизвести лучшее"
-            add_all: "Добавить всё в очередь"
-            refresh: "Новые предложения"
-        errors:
-            invalid_track: "Недействительные данные трека для топ-рекомендации"
-            generation_failed: "Не удалось сгенерировать рекомендации"
 
     errors:
         music_disabled: "Музыка в данный момент отключена."

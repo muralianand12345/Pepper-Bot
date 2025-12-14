@@ -76,13 +76,6 @@ commands:
             limit:
                 name: "limite"
                 description: "Número de itens principais a exibir (5-20)"
-    suggest_songs:
-        name: "suggest-songs"
-        description: "Obter recomendações musicais inteligentes baseadas no seu histórico de reprodução"
-        options:
-            count:
-                name: "quantidade"
-                description: "Número de recomendações a obter (1-20)"
     lyrics:
         name: "lyrics"
         description: "Exibir a letra da faixa que está tocando"
@@ -178,31 +171,6 @@ responses:
         buttons:
             refresh: "Atualizar"
             export: "Exportar dados"
-
-    suggest_songs:
-        title: "Recomendações musicais inteligentes"
-        fresh_title: "Novas recomendações musicais"
-        description: "Baseado na sua música favorita: **{song}** de **{artist}**\n\nEncontradas {spotifyCount} faixas do Spotify de {totalCount} recomendações"
-        footer: "Solicitado por {user}"
-        refreshed_footer: "Atualizado por {user}"
-        top_recommendations: "Principais recomendações"
-        more_recommendations: "Mais recomendações"
-        additional_recommendations: "Recomendações adicionais"
-        unknown_track: "Faixa desconhecida"
-        no_history: "Você ainda não tem histórico de reprodução. Toque algumas músicas primeiro!"
-        no_recommendations: 'Nenhuma recomendação encontrada baseada em "{song}". Tente tocar músicas mais variadas!'
-        no_valid_recommendations: "Nenhuma recomendação válida encontrada"
-        no_additional_recommendations: "Sem recomendações adicionais"
-        no_new_recommendations: "Nenhuma nova recomendação encontrada"
-        now_playing: "Tocando agora: **{title}** de **{artist}**"
-        added_tracks: "{count} faixas adicionadas à fila!"
-        buttons:
-            play_top: "Tocar melhor opção"
-            add_all: "Adicionar tudo à fila"
-            refresh: "Novas sugestões"
-        errors:
-            invalid_track: "Dados de faixa inválidos para a recomendação principal"
-            generation_failed: "Falha ao gerar recomendações"
 
     errors:
         music_disabled: "A música está atualmente desativada."

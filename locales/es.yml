@@ -76,13 +76,6 @@ commands:
             limit:
                 name: "límite"
                 description: "Número de elementos principales a mostrar (5-20)"
-    suggest_songs:
-        name: "suggest-songs"
-        description: "Obtén recomendaciones musicales inteligentes basadas en tu historial de escucha"
-        options:
-            count:
-                name: "cantidad"
-                description: "Número de recomendaciones a obtener (1-20)"
     lyrics:
         name: "lyrics"
         description: "Muestra la letra de la pista que se está reproduciendo"
@@ -178,31 +171,6 @@ responses:
         buttons:
             refresh: "Actualizar"
             export: "Exportar datos"
-
-    suggest_songs:
-        title: "Recomendaciones musicales inteligentes"
-        fresh_title: "Nuevas recomendaciones musicales"
-        description: "Basado en tu canción favorita: **{song}** de **{artist}**\n\nSe encontraron {spotifyCount} pistas de Spotify de {totalCount} recomendaciones"
-        footer: "Solicitado por {user}"
-        refreshed_footer: "Actualizado por {user}"
-        top_recommendations: "Principales recomendaciones"
-        more_recommendations: "Más recomendaciones"
-        additional_recommendations: "Recomendaciones adicionales"
-        unknown_track: "Pista desconocida"
-        no_history: "Aún no tienes historial de escucha. ¡Reproduce algunas canciones primero!"
-        no_recommendations: 'No se encontraron recomendaciones basadas en "{song}". ¡Intenta reproducir canciones más variadas!'
-        no_valid_recommendations: "No se encontraron recomendaciones válidas"
-        no_additional_recommendations: "Sin recomendaciones adicionales"
-        no_new_recommendations: "No se encontraron nuevas recomendaciones"
-        now_playing: "Reproduciendo ahora: **{title}** de **{artist}**"
-        added_tracks: "¡{count} pistas añadidas a la cola!"
-        buttons:
-            play_top: "Reproducir mejor opción"
-            add_all: "Añadir todo a la cola"
-            refresh: "Nuevas sugerencias"
-        errors:
-            invalid_track: "Datos de pista inválidos para la recomendación principal"
-            generation_failed: "Error al generar recomendaciones"
 
     errors:
         music_disabled: "La música está actualmente desactivada."
