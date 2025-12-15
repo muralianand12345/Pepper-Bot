@@ -249,6 +249,7 @@ responses:
         uptime: "Temps de fonctionnement"
         memory_usage: "Utilisation mémoire"
         active_players: "Lecteurs actifs"
+        shard_stats: "Statistiques de Shard"
         footer: "Tous les systèmes opérationnels"
 
     login:

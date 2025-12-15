@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
+const msg_1 = require("../../../utils/msg");
 const event = {
     name: discord_js_1.default.Events.GuildDelete,
     execute: async (guild, client) => {
@@ -39,7 +40,7 @@ const sendLogMessage = async (guild, client) => {
             leaveEmbed.setAuthor({ name: guild.name.slice(0, 256), iconURL: guild.iconURL({ size: 128 }) || undefined });
         if (guild.iconURL())
             leaveEmbed.setThumbnail(guild.iconURL({ size: 256 }));
-        await logChannel.send({ embeds: [leaveEmbed] });
+        await (0, msg_1.send)(client, logChannel.id, { embeds: [leaveEmbed] });
         client.logger.debug(`[SERVER_LEAVE] Log message sent successfully`);
     }
     catch (error) {
@@ -68,7 +69,7 @@ const sendFeedbackRequestDM = async (guild, client) => {
             .setStyle(discord_js_1.default.ButtonStyle.Link)
             .setURL(`https://discord.com/oauth2/authorize?client_id=${client.user?.id}&permissions=8&scope=bot%20applications.commands`)
             .setEmoji('🎵'), new discord_js_1.default.ButtonBuilder().setLabel('Support Server').setStyle(discord_js_1.default.ButtonStyle.Link).setURL(client.config.bot.support_server.invite).setEmoji('🔧'));
-        await dmChannel.send({ content: `Hello! This is **${client.user?.username || 'Music Bot'}**, the music bot that was recently removed from **${guild.name || 'your server'}**.`, embeds: [feedbackEmbed], components: [actionRow] });
+        await (0, msg_1.send)(client, dmChannel.id, { content: `Hello! This is **${client.user?.username || 'Music Bot'}**, the music bot that was recently removed from **${guild.name || 'your server'}**.`, embeds: [feedbackEmbed], components: [actionRow] });
         client.logger.info(`[FEEDBACK] Sent feedback request DM to ${owner.tag} (${owner.id}) for guild ${guild.name || guild.id}`);
     }
     catch (error) {

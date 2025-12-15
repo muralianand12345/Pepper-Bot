@@ -253,6 +253,7 @@ responses:
         uptime: "Uptime"
         memory_usage: "Memory Usage"
         active_players: "Active Players"
+        shard_stats: "Shard Statistics"
         footer: "All systems operational"
 
     login:

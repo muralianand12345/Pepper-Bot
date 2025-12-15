@@ -249,6 +249,7 @@ responses:
         uptime: "Tiempo activo"
         memory_usage: "Uso de memoria"
         active_players: "Reproductores activos"
+        shard_stats: "Estadísticas de Shard"
         footer: "Todos los sistemas operativos"
 
     login:

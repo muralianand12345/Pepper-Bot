@@ -250,6 +250,7 @@ responses:
         uptime: "Время работы"
         memory_usage: "Использование памяти"
         active_players: "Активные плееры"
+        shard_stats: "Статистика шардов"
         footer: "Все системы работают"
 
     login:

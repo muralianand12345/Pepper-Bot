@@ -8,6 +8,7 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const chalk_1 = __importDefault(require("chalk"));
 const discord_js_1 = __importDefault(require("discord.js"));
+const msg_1 = require("./msg");
 const config_1 = require("./config");
 const configManager = config_1.ConfigManager.getInstance();
 /**
@@ -152,7 +153,7 @@ class CommandLogger {
         const logMessage = this.createLogMessage(options);
         this.writeToLogFile(logMessage);
         const embed = await this.createLogEmbed(options);
-        logChannel.send({ embeds: [embed] }).catch((error) => client.logger.error(`[COMMAND_LOG] Send error: ${error}`));
+        await (0, msg_1.send)(client, logChannel.id, { embeds: [embed] }).catch((error) => client.logger.error(`[COMMAND_LOG] Send error: ${error}`));
     }
 }
 exports.CommandLogger = CommandLogger;

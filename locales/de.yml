@@ -250,6 +250,7 @@ responses:
         uptime: "Betriebszeit"
         memory_usage: "Speichernutzung"
         active_players: "Aktive Player"
+        shard_stats: "Shard-Statistiken"
         footer: "Alle Systeme betriebsbereit"
 
     login:

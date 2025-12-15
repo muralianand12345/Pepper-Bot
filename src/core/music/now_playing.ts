@@ -1,6 +1,7 @@
 import discord from 'discord.js';
 import magmastream from 'magmastream';
 
+import { send } from '../../utils/msg';
 import { LocaleDetector } from '../locales';
 import { MusicResponseHandler } from './handlers';
 
@@ -252,8 +253,8 @@ export class NowPlayingManager {
 						.catch(async (error) => {
 							this.client.logger?.warn(`[NowPlayingManager] Failed to edit message: ${error}, creating new one`);
 							this.message = null;
-							const newMessage = await channel.send({ embeds: [embed], components: [musicButton] });
-							this.setMessage(newMessage, false);
+							const newMessage = await send(channel.client, channel.id, { embeds: [embed], components: [musicButton] });
+							if (newMessage) this.setMessage(newMessage, false);
 						});
 				} else {
 					this.message = null;
@@ -282,8 +283,8 @@ export class NowPlayingManager {
 				}
 
 				try {
-					const newMessage = await channel.send({ embeds: [embed], components: [musicButton] });
-					this.setMessage(newMessage, false);
+					const newMessage = await send(channel.client, channel.id, { embeds: [embed], components: [musicButton] });
+					if (newMessage) this.setMessage(newMessage, false);
 					this.client.logger?.debug(`[NowPlayingManager] Created new message in ${channel.name}`);
 				} catch (error) {
 					this.client.logger?.error(`[NowPlayingManager] Failed to create new message: ${error}`);

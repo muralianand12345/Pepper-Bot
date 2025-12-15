@@ -3,6 +3,7 @@ import path from 'path';
 import chalk from 'chalk';
 import discord from 'discord.js';
 
+import { send } from './msg';
 import { ConfigManager } from './config';
 import { ILogger, ICommandLoggerOptions, ICommandLogger } from '../types';
 
@@ -178,6 +179,6 @@ export class CommandLogger implements ICommandLogger {
 		const logMessage = this.createLogMessage(options);
 		this.writeToLogFile(logMessage);
 		const embed = await this.createLogEmbed(options);
-		logChannel.send({ embeds: [embed] }).catch((error) => client.logger.error(`[COMMAND_LOG] Send error: ${error}`));
+		await send(client, logChannel.id, { embeds: [embed] }).catch((error) => client.logger.error(`[COMMAND_LOG] Send error: ${error}`));
 	}
 }

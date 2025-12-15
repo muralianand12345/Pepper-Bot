@@ -1,6 +1,7 @@
 import discord from 'discord.js';
 import magmastream, { ManagerEventTypes } from 'magmastream';
 
+import { send } from '../../../../utils/msg';
 import Formatter from '../../../../utils/format';
 import { LavalinkEvent } from '../../../../types';
 import { ConfigManager } from '../../../../utils/config';
@@ -88,7 +89,7 @@ const lavalinkEvent: LavalinkEvent = {
 					client.logger.warn(`[LAVALINK] Skipping YouTube track: ${track.uri}`);
 					const responseHandler = new MusicResponseHandler(client);
 					const embed = responseHandler.createWarningEmbed(client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || '⚠️ Skipping song! Youtube source detected.').setFooter({ text: client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.", iconURL: client.user?.displayAvatarURL() || '' });
-					return await channel.send({ embeds: [embed] }).then((msg) => wait(5000).then(() => msg.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));
+					return await send(client, channel.id, { embeds: [embed] }).then((msg) => wait(5000).then(() => msg?.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));
 				} else {
 					client.logger.info(`[LAVALINK] Playing YouTube track from playlist: ${track.title}`);
 				}
