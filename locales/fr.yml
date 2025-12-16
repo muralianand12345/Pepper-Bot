@@ -76,13 +76,6 @@ commands:
             limit:
                 name: "limite"
                 description: "Nombre d'éléments principaux à afficher (5-20)"
-    suggest_songs:
-        name: "suggest-songs"
-        description: "Obtenir des recommandations musicales intelligentes basées sur votre historique d'écoute"
-        options:
-            count:
-                name: "nombre"
-                description: "Nombre de recommandations à obtenir (1-20)"
     lyrics:
         name: "lyrics"
         description: "Afficher les paroles de la piste en cours de lecture"
@@ -179,31 +172,6 @@ responses:
             refresh: "Actualiser"
             export: "Exporter les données"
 
-    suggest_songs:
-        title: "Recommandations musicales intelligentes"
-        fresh_title: "Nouvelles recommandations musicales"
-        description: "Basé sur votre chanson préférée : **{song}** de **{artist}**\n\n{spotifyCount} pistes Spotify trouvées sur {totalCount} recommandations"
-        footer: "Demandé par {user}"
-        refreshed_footer: "Actualisé par {user}"
-        top_recommendations: "Meilleures recommandations"
-        more_recommendations: "Plus de recommandations"
-        additional_recommendations: "Recommandations supplémentaires"
-        unknown_track: "Piste inconnue"
-        no_history: "Vous n'avez pas encore d'historique d'écoute. Jouez d'abord quelques chansons !"
-        no_recommendations: 'Aucune recommandation trouvée basée sur "{song}". Essayez de jouer des chansons plus variées !'
-        no_valid_recommendations: "Aucune recommandation valide trouvée"
-        no_additional_recommendations: "Pas de recommandations supplémentaires"
-        no_new_recommendations: "Aucune nouvelle recommandation trouvée"
-        now_playing: "En cours de lecture : **{title}** de **{artist}**"
-        added_tracks: "{count} pistes ajoutées à la file d'attente !"
-        buttons:
-            play_top: "Jouer le meilleur choix"
-            add_all: "Tout ajouter à la file"
-            refresh: "Nouvelles suggestions"
-        errors:
-            invalid_track: "Données de piste invalides pour la recommandation principale"
-            generation_failed: "Échec de la génération des recommandations"
-
     errors:
         music_disabled: "La musique est actuellement désactivée."
         no_player: "Aucune musique n'est en cours de lecture"
@@ -281,6 +249,7 @@ responses:
         uptime: "Temps de fonctionnement"
         memory_usage: "Utilisation mémoire"
         active_players: "Lecteurs actifs"
+        shard_stats: "Statistiques de Shard"
         footer: "Tous les systèmes opérationnels"
 
     login:

@@ -6,10 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRequester = exports.wait = exports.sendTempMessage = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const promises_1 = __importDefault(require("timers/promises"));
+const msg_1 = require("../../utils/msg");
 const sendTempMessage = async (channel, embed, duration = 10000) => {
     if (!channel.isTextBased())
         throw new Error('Channel is not text-based');
-    const message = await channel.send({ embeds: [embed] }).catch((error) => {
+    const message = await (0, msg_1.send)(channel.client, channel.id, { embeds: [embed] }).catch((error) => {
         if (error.code === 50001)
             return null;
         return null;

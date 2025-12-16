@@ -1,5 +1,6 @@
 import discord from 'discord.js';
 
+import { send } from '../../../utils/msg';
 import { BotEvent } from '../../../types';
 
 const event: BotEvent = {
@@ -38,7 +39,7 @@ const sendLogMessage = async (guild: discord.Guild, client: discord.Client): Pro
 		if (guild.name) leaveEmbed.setAuthor({ name: guild.name.slice(0, 256), iconURL: guild.iconURL({ size: 128 }) || undefined });
 		if (guild.iconURL()) leaveEmbed.setThumbnail(guild.iconURL({ size: 256 }));
 
-		await logChannel.send({ embeds: [leaveEmbed] });
+		await send(client, logChannel.id, { embeds: [leaveEmbed] });
 		client.logger.debug(`[SERVER_LEAVE] Log message sent successfully`);
 	} catch (error) {
 		client.logger.error(`[SERVER_LEAVE] Failed to send log message: ${error}`);
@@ -73,8 +74,7 @@ const sendFeedbackRequestDM = async (guild: discord.Guild, client: discord.Clien
 			new discord.ButtonBuilder().setLabel('Support Server').setStyle(discord.ButtonStyle.Link).setURL(client.config.bot.support_server.invite).setEmoji('🔧')
 		);
 
-		await dmChannel.send({ content: `Hello! This is **${client.user?.username || 'Music Bot'}**, the music bot that was recently removed from **${guild.name || 'your server'}**.`, embeds: [feedbackEmbed], components: [actionRow] });
-
+		await send(client, dmChannel.id, { content: `Hello! This is **${client.user?.username || 'Music Bot'}**, the music bot that was recently removed from **${guild.name || 'your server'}**.`, embeds: [feedbackEmbed], components: [actionRow] });
 		client.logger.info(`[FEEDBACK] Sent feedback request DM to ${owner.tag} (${owner.id}) for guild ${guild.name || guild.id}`);
 	} catch (error) {
 		if (error instanceof discord.DiscordAPIError) {

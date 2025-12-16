@@ -6,6 +6,7 @@ var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NowPlayingManager = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
+const msg_1 = require("../../utils/msg");
 const locales_1 = require("../locales");
 const handlers_1 = require("./handlers");
 class NowPlayingManager {
@@ -229,8 +230,9 @@ class NowPlayingManager {
                             .catch(async (error) => {
                             this.client.logger?.warn(`[NowPlayingManager] Failed to edit message: ${error}, creating new one`);
                             this.message = null;
-                            const newMessage = await channel.send({ embeds: [embed], components: [musicButton] });
-                            this.setMessage(newMessage, false);
+                            const newMessage = await (0, msg_1.send)(channel.client, channel.id, { embeds: [embed], components: [musicButton] });
+                            if (newMessage)
+                                this.setMessage(newMessage, false);
                         });
                     }
                     else {
@@ -257,8 +259,9 @@ class NowPlayingManager {
                         this.client.logger?.warn(`[NowPlayingManager] Error cleaning up old messages: ${error}`);
                     }
                     try {
-                        const newMessage = await channel.send({ embeds: [embed], components: [musicButton] });
-                        this.setMessage(newMessage, false);
+                        const newMessage = await (0, msg_1.send)(channel.client, channel.id, { embeds: [embed], components: [musicButton] });
+                        if (newMessage)
+                            this.setMessage(newMessage, false);
                         this.client.logger?.debug(`[NowPlayingManager] Created new message in ${channel.name}`);
                     }
                     catch (error) {

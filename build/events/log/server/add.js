@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
+const msg_1 = require("../../../utils/msg");
 const truncateText = (text, maxLength = 100) => {
     if (!text)
         return 'Unknown';
@@ -44,7 +45,7 @@ const event = {
                     return client.logger.warn(`[SERVER_JOIN] Log channel not found: ${logChannelId}`);
                 if (!logChannel.isTextBased())
                     return client.logger.warn(`[SERVER_JOIN] Log channel is not text-based: ${logChannelId}`);
-                await logChannel.send({ embeds: [embed] });
+                await (0, msg_1.send)(client, logChannel.id, { embeds: [embed] });
                 client.logger.debug(`[SERVER_JOIN] Log message sent successfully`);
             }
             catch (logError) {

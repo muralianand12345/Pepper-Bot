@@ -1,6 +1,7 @@
 import discord from 'discord.js';
 import magmastream, { ManagerEventTypes } from 'magmastream';
 
+import { send } from '../../../../utils/msg';
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
 import { NowPlayingManager, MusicResponseHandler, VoiceChannelStatus } from '../../../../core/music';
@@ -25,7 +26,7 @@ const lavalinkEvent: LavalinkEvent = {
 					} catch (error) {}
 					const responseHandler = new MusicResponseHandler(client);
 					const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
-					await channel.send({ embeds: [disconnectEmbed] });
+					await send(client, channel.id, { embeds: [disconnectEmbed] });
 					await new VoiceChannelStatus(client).clear(player.voiceChannelId || '');
 					client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent for guild ${player.guildId}`);
 				}

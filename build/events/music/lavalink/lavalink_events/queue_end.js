@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = require("magmastream");
+const msg_1 = require("../../../../utils/msg");
 const locales_1 = require("../../../../core/locales");
 const music_1 = require("../../../../core/music");
 const localeDetector = new locales_1.LocaleDetector();
@@ -62,7 +63,7 @@ const validateChannelAccess = async (client, channelId) => {
 const sendQueueEndMessage = async (client, channel, locale) => {
     try {
         const queueEndEmbed = createQueueEndEmbed(client, locale);
-        await channel.send({ embeds: [queueEndEmbed] });
+        await (0, msg_1.send)(client, channel.id, { embeds: [queueEndEmbed] });
         client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${channel.guild.id}`);
     }
     catch (error) {

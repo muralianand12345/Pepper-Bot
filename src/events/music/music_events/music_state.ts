@@ -1,5 +1,6 @@
 import discord from 'discord.js';
 
+import { send } from '../../../utils/msg';
 import { BotEvent } from '../../../types';
 import { LocaleDetector } from '../../../core/locales';
 import { NowPlayingManager, MusicResponseHandler, sendTempMessage, VoiceChannelStatus } from '../../../core/music';
@@ -99,7 +100,7 @@ const event: BotEvent = {
 						const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || '🔌 Disconnecting due to inactivity (5 minutes with no listeners)');
 						const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
 
-						await textChannel.send({ embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
+						await send(client, textChannel.id, { embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
 						NowPlayingManager.removeInstance(player.guildId);
 						currentPlayer.destroy();
 						if (currentTrack) await new VoiceChannelStatus(client).clear(currentPlayer.voiceChannelId || '');

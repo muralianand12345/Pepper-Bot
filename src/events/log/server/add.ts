@@ -1,6 +1,7 @@
 import discord from 'discord.js';
 
 import { BotEvent } from '../../../types';
+import { send } from '../../../utils/msg';
 
 const truncateText = (text: string, maxLength: number = 100): string => {
 	if (!text) return 'Unknown';
@@ -41,7 +42,7 @@ const event: BotEvent = {
 				if (!logChannel) return client.logger.warn(`[SERVER_JOIN] Log channel not found: ${logChannelId}`);
 				if (!logChannel.isTextBased()) return client.logger.warn(`[SERVER_JOIN] Log channel is not text-based: ${logChannelId}`);
 
-				await logChannel.send({ embeds: [embed] });
+				await send(client, logChannel.id, { embeds: [embed] });
 				client.logger.debug(`[SERVER_JOIN] Log message sent successfully`);
 			} catch (logError) {
 				if (logError instanceof discord.DiscordAPIError) {

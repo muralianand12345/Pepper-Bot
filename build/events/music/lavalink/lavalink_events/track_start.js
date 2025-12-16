@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = require("magmastream");
+const msg_1 = require("../../../../utils/msg");
 const format_1 = __importDefault(require("../../../../utils/format"));
 const config_1 = require("../../../../utils/config");
 const locales_1 = require("../../../../core/locales");
@@ -84,7 +85,7 @@ const lavalinkEvent = {
                     client.logger.warn(`[LAVALINK] Skipping YouTube track: ${track.uri}`);
                     const responseHandler = new music_1.MusicResponseHandler(client);
                     const embed = responseHandler.createWarningEmbed(client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || '⚠️ Skipping song! Youtube source detected.').setFooter({ text: client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.", iconURL: client.user?.displayAvatarURL() || '' });
-                    return await channel.send({ embeds: [embed] }).then((msg) => (0, music_1.wait)(5000).then(() => msg.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));
+                    return await (0, msg_1.send)(client, channel.id, { embeds: [embed] }).then((msg) => (0, music_1.wait)(5000).then(() => msg?.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));
                 }
                 else {
                     client.logger.info(`[LAVALINK] Playing YouTube track from playlist: ${track.title}`);

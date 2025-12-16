@@ -1,6 +1,7 @@
 import discord from 'discord.js';
 import magmastream, { ManagerEventTypes } from 'magmastream';
 
+import { send } from '../../../../utils/msg';
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
 import { wait, NowPlayingManager, MusicResponseHandler, VoiceChannelStatus } from '../../../../core/music';
@@ -66,7 +67,7 @@ const validateChannelAccess = async (client: discord.Client, channelId: string):
 const sendQueueEndMessage = async (client: discord.Client, channel: discord.TextChannel, locale: string): Promise<void> => {
 	try {
 		const queueEndEmbed = createQueueEndEmbed(client, locale);
-		await channel.send({ embeds: [queueEndEmbed] });
+		await send(client, channel.id, { embeds: [queueEndEmbed] });
 		client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${channel.guild.id}`);
 	} catch (error) {
 		if (error instanceof discord.DiscordAPIError) {

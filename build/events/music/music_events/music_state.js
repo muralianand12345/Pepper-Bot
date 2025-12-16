@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
+const msg_1 = require("../../../utils/msg");
 const locales_1 = require("../../../core/locales");
 const music_1 = require("../../../core/music");
 const localeDetector = new locales_1.LocaleDetector();
@@ -95,7 +96,7 @@ const event = {
                         const responseHandler = new music_1.MusicResponseHandler(client);
                         const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || '🔌 Disconnecting due to inactivity (5 minutes with no listeners)');
                         const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
-                        await textChannel.send({ embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
+                        await (0, msg_1.send)(client, textChannel.id, { embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
                         music_1.NowPlayingManager.removeInstance(player.guildId);
                         currentPlayer.destroy();
                         if (currentTrack)

@@ -76,13 +76,6 @@ commands:
             limit:
                 name: "limit"
                 description: "Number of top items to display (5-20)"
-    suggest_songs:
-        name: "suggest-songs"
-        description: "Get smart music recommendations based on your listening history"
-        options:
-            count:
-                name: "count"
-                description: "Number of recommendations to get (1-20)"
     lyrics:
         name: "lyrics"
         description: "Display lyrics for the currently playing track"
@@ -183,31 +176,6 @@ responses:
             refresh: "Refresh"
             export: "Export Data"
 
-    suggest_songs:
-        title: "Smart Music Recommendations"
-        fresh_title: "Fresh Music Recommendations"
-        description: "Based on your top song: **{song}** by **{artist}**\n\nFound {spotifyCount} Spotify tracks out of {totalCount} recommendations"
-        footer: "Requested by {user}"
-        refreshed_footer: "Refreshed by {user}"
-        top_recommendations: "Top Recommendations"
-        more_recommendations: "More Recommendations"
-        additional_recommendations: "Additional Recommendations"
-        unknown_track: "Unknown Track"
-        no_history: "You don't have any listening history yet. Play some songs first!"
-        no_recommendations: 'No recommendations found based on "{song}". Try playing more varied songs!'
-        no_valid_recommendations: "No valid recommendations found"
-        no_additional_recommendations: "No additional recommendations"
-        no_new_recommendations: "No new recommendations found"
-        now_playing: "Now playing: **{title}** by **{artist}**"
-        added_tracks: "Added {count} tracks to the queue!"
-        buttons:
-            play_top: "Play Top Pick"
-            add_all: "Add All to Queue"
-            refresh: "Get New Suggestions"
-        errors:
-            invalid_track: "Invalid track data for the top recommendation"
-            generation_failed: "Failed to generate recommendations"
-
     errors:
         music_disabled: "Music is currently disabled."
         no_player: "No music is currently playing"
@@ -285,6 +253,7 @@ responses:
         uptime: "Uptime"
         memory_usage: "Memory Usage"
         active_players: "Active Players"
+        shard_stats: "Shard Statistics"
         footer: "All systems operational"
 
     login:

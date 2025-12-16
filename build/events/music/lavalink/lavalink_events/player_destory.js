@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const magmastream_1 = require("magmastream");
+const msg_1 = require("../../../../utils/msg");
 const locales_1 = require("../../../../core/locales");
 const music_1 = require("../../../../core/music");
 const localeDetector = new locales_1.LocaleDetector();
@@ -23,7 +24,7 @@ const lavalinkEvent = {
                     catch (error) { }
                     const responseHandler = new music_1.MusicResponseHandler(client);
                     const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
-                    await channel.send({ embeds: [disconnectEmbed] });
+                    await (0, msg_1.send)(client, channel.id, { embeds: [disconnectEmbed] });
                     await new music_1.VoiceChannelStatus(client).clear(player.voiceChannelId || '');
                     client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent for guild ${player.guildId}`);
                 }

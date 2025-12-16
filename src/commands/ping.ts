@@ -50,6 +50,32 @@ const pingCommand: Command = {
 			return `🟡 ${connectedNodes.size}/${totalNodes} nodes connected`;
 		};
 
+		const getShardStats = async (): Promise<{ current: number; total: number; guilds: number[]; members: number[]; ping: number[] } | null> => {
+			if (!client.shard) return null;
+			const [guilds, members, ping] = await Promise.all([client.shard.fetchClientValues('guilds.cache.size') as Promise<number[]>, client.shard.broadcastEval((c) => c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0)) as Promise<number[]>, client.shard.fetchClientValues('ws.ping') as Promise<number[]>]).catch(() => [[], [], []]);
+			return { current: client.shard.ids[0] ?? 0, total: client.shard.count, guilds, members, ping };
+		};
+
+		const formatShardStats = (stats: { current: number; total: number; guilds: number[]; members: number[]; ping: number[] }): string => {
+			const totalGuilds = stats.guilds.reduce((a, b) => a + b, 0);
+			const totalMembers = stats.members.reduce((a, b) => a + b, 0);
+			const avgPing = Math.round(stats.ping.reduce((a, b) => a + b, 0) / stats.ping.length);
+			const lines = [
+				`**Current Shard:** #${stats.current}`,
+				`**Total Shards:** ${stats.total}`,
+				`**Total Guilds:** ${totalGuilds.toLocaleString()}`,
+				`**Total Members:** ${totalMembers.toLocaleString()}`,
+				`**Average Ping:** ${avgPing}ms`,
+				'',
+				'**Per Shard:**',
+				...stats.guilds.map((g, i) => {
+					const emoji = stats.ping[i] < 150 ? '🟢' : stats.ping[i] < 350 ? '🟡' : '🔴';
+					return `${emoji} Shard #${i}: ${g.toLocaleString()} guilds, ${stats.members[i].toLocaleString()} members, ${stats.ping[i]}ms`;
+				}),
+			];
+			return lines.join('\n');
+		};
+
 		const getPlayerInfo = async (): Promise<string> => {
 			if (!isOwner) return '';
 
@@ -94,8 +120,11 @@ const pingCommand: Command = {
 
 		if (isOwner) {
 			const playerInfo = await getPlayerInfo();
+			const shardStats = await getShardStats();
 			embed.addFields([{ name: t('responses.ping.active_players'), value: playerInfo.length > 1024 ? playerInfo.substring(0, 1021) + '...' : playerInfo || 'No active players', inline: false }]);
+			if (shardStats) embed.addFields([{ name: t('responses.ping.shard_stats'), value: formatShardStats(shardStats), inline: false }]);
 		}
+
 		await interaction.editReply({ embeds: [embed] });
 	},
 };
