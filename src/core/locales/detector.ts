@@ -5,6 +5,8 @@ import { LocalizationManager } from './manager';
 import music_user from '../../events/database/schema/music_user';
 import music_guild from '../../events/database/schema/music_guild';
 
+export type TranslatorFunction = (key: string, replacements?: Record<string, string | number>) => string;
+
 export class LocaleDetector {
 	private localizationManager: LocalizationManager;
 	private readonly supportedLanguages: Array<{ code: string; name: string }>;

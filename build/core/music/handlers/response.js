@@ -6,27 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MusicResponseHandler = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const func_1 = require("../func");
+const utils_1 = require("../utils");
 const format_1 = __importDefault(require("../../../utils/format"));
 const locales_1 = require("../../locales");
 class MusicResponseHandler {
     constructor(client) {
-        this.trackProgress = (position, duration) => {
-            const safeDuration = Math.max(0, duration);
-            const normalizedPosition = Math.min(Math.max(0, position), Math.max(1, safeDuration));
-            const pctWindow = Math.floor(safeDuration * 0.02); // 2% of duration
-            const dynamicWindow = Math.min(6000, Math.max(2000, pctWindow));
-            const remaining = Math.max(0, safeDuration - normalizedPosition);
-            const displayPositionMs = safeDuration > 0 && remaining <= dynamicWindow ? safeDuration : normalizedPosition;
-            const percentage = safeDuration > 0 ? displayPositionMs / safeDuration : 0;
-            const formattedPosition = format_1.default.msToTime(displayPositionMs);
-            const formattedDuration = format_1.default.msToTime(safeDuration);
-            return {
-                displayPosition: displayPositionMs,
-                percentage,
-                formattedPosition,
-                formattedDuration,
-            };
-        };
         this.createSuccessEmbed = (message) => {
             return new discord_js_1.default.EmbedBuilder()
                 .setColor('#43b581')
@@ -56,30 +40,25 @@ class MusicResponseHandler {
                 .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
         };
         this.createMusicEmbed = async (track, player, locale = 'en') => {
-            if (!track) {
+            if (!track)
                 return new discord_js_1.default.EmbedBuilder()
                     .setColor('#2b2d31')
                     .setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
                     .setDescription('**No track available**')
                     .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
-            }
+            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
             const trackImg = track.thumbnail || track.artworkUrl;
             const trackTitle = format_1.default.truncateText(track.title || 'Unknown Title', 60);
             const trackAuthor = track.author || 'Unknown Artist';
             const trackUri = track.uri || 'https://google.com';
+            const trackDuration = track.isStream ? 'LIVE' : format_1.default.msToTime(track.duration || 0);
             const defaultColor = '#2b2d31';
             let progressText = '';
             if (player && player.queue && (await player.queue.getCurrent()) && track.duration) {
                 try {
-                    const position = Math.max(0, player.position || 0);
-                    const duration = track.duration || 0;
-                    if (duration > 0) {
-                        const progress = this.trackProgress(position, duration);
-                        const length = 15;
-                        const filledBlocks = Math.floor(progress.percentage * length);
-                        const progressBar = '▬'.repeat(filledBlocks) + '●' + '▬'.repeat(Math.max(0, length - filledBlocks - 1));
-                        progressText = `${progressBar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
-                    }
+                    const progress = utils_1.ProgressBarUtils.createBarFromPlayer(player, track.duration);
+                    if (progress)
+                        progressText = `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
                 }
                 catch (error) {
                     this.client.logger?.warn(`[MUSIC_EMBED] Error creating progress bar: ${error}`);
@@ -92,13 +71,10 @@ class MusicResponseHandler {
                 .setDescription(`**${format_1.default.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`);
             if (trackImg)
                 embed.setThumbnail(trackImg);
-            if (progressText) {
-                embed.addFields([{ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false }]);
-                embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
-            }
-            else {
-                embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
-            }
+            if (progressText)
+                embed.addFields({ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false });
+            embed.addFields({ name: this.localizationManager.translate('responses.fields.duration', locale), value: trackDuration, inline: true }, { name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName || 'Unknown', inline: true }, { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData?.username || 'Unknown', inline: true });
+            embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
             return embed;
         };
         this.createTrackEmbed = (track, position, locale = 'en') => {
@@ -109,11 +85,9 @@ class MusicResponseHandler {
                     .setDescription('Invalid track data')
                     .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
             }
-            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
             const title = format_1.default.truncateText(track.title || 'Unknown Title', 60);
             const url = track.uri || 'https://google.com';
             const author = track.author || 'Unknown Artist';
-            const duration = track.isStream ? 'LIVE' : format_1.default.msToTime(track.duration || 0);
             let queueInfo = '';
             if (position === 0) {
                 queueInfo = this.localizationManager.translate('responses.fields.playing_next', locale);
@@ -121,11 +95,7 @@ class MusicResponseHandler {
             else if (position !== null && position !== undefined) {
                 queueInfo = this.localizationManager.translate('responses.fields.position', locale, { position: position + 1 });
             }
-            const fields = [
-                { name: this.localizationManager.translate('responses.fields.duration', locale), value: duration, inline: true },
-                { name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName || 'Unknown', inline: true },
-                { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData?.username || 'Unknown', inline: true },
-            ];
+            const fields = [];
             if (queueInfo)
                 fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: queueInfo, inline: false });
             return new discord_js_1.default.EmbedBuilder()

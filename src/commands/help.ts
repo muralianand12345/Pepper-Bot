@@ -2,8 +2,8 @@ import discord from 'discord.js';
 
 import { AutoComplete } from '../core/commands';
 import { MusicResponseHandler } from '../core/music';
-import { LocalizationManager, LocaleDetector } from '../core/locales';
 import { Command, CommandCategory, COMMAND_CATEGORY_MAP } from '../types';
+import { LocalizationManager, LocaleDetector, TranslatorFunction } from '../core/locales';
 
 const localeDetector = new LocaleDetector();
 const localizationManager = LocalizationManager.getInstance();
@@ -115,7 +115,7 @@ const categorizeCommandsByCategory = (commands: Command[]): Record<CommandCatego
 	return categories;
 };
 
-const formatCommands = (cmds: Command[], t: (key: string, data?: Record<string, any>) => string): string => {
+const formatCommands = (cmds: Command[], t: TranslatorFunction): string => {
 	if (cmds.length === 0) return t('responses.help.no_commands');
 	return cmds.map((cmd) => `\`/${cmd.data.name}\` - ${cmd.data.description}`).join('\n');
 };

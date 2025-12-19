@@ -1,5 +1,7 @@
+export type LocaleValue = string | number | boolean | LocaleData;
+
 export interface LocaleData {
-	[key: string]: any;
+	[key: string]: LocaleValue;
 }
 
 export interface InterpolationData {

@@ -61,12 +61,12 @@ export class SpotifyAutoComplete {
 		if (this.cacheConfig.enabled) this.startCleanupTimer();
 	}
 
-	private generateCacheKey = (type: string, query: string, options?: any): string => {
+	private generateCacheKey = (type: string, query: string, options?: Record<string, unknown>): string => {
 		const optionsStr = options ? JSON.stringify(options) : '';
 		return `${type}:${query}:${optionsStr}`;
 	};
 
-	private getCached = (key: string): any | null => {
+	private getCached = <T>(key: string): T | null => {
 		if (!this.cacheConfig.enabled) return null;
 		const entry = this.cache.get(key);
 		if (!entry) return null;
@@ -76,10 +76,10 @@ export class SpotifyAutoComplete {
 			return null;
 		}
 		entry.lastAccessed = now;
-		return entry.data;
+		return entry.data as T;
 	};
 
-	private setCached = (key: string, data: any, ttl: number): void => {
+	private setCached = <T>(key: string, data: T, ttl: number): void => {
 		if (!this.cacheConfig.enabled) return;
 		const now = Date.now();
 		if (this.cache.size >= this.cacheConfig.maxSize) this.evictLRU();
@@ -177,14 +177,14 @@ export class SpotifyAutoComplete {
 
 	private getMetadataFromUrl = async (url: string): Promise<discord.ApplicationCommandOptionChoiceData> => {
 		const cacheKey = this.generateCacheKey('url', url);
-		const cached = this.getCached(cacheKey);
+		const cached = this.getCached<discord.ApplicationCommandOptionChoiceData>(cacheKey);
 		if (cached) return cached;
 
 		await this.checkToken();
 
 		const urlInfo = this.getSpotifyIdFromUrl(url);
 		if (!urlInfo) {
-			const result = { name: url, value: url };
+			const result: discord.ApplicationCommandOptionChoiceData = { name: url, value: url };
 			this.setCached(cacheKey, result, this.cacheConfig.defaultUrlTTL);
 			return result;
 		}
@@ -210,7 +210,7 @@ export class SpotifyAutoComplete {
 					name = 'Unknown Spotify Content';
 			}
 
-			const result = { name: name.slice(0, 100), value: url };
+			const result: discord.ApplicationCommandOptionChoiceData = { name: name.slice(0, 100), value: url };
 			this.setCached(cacheKey, result, this.cacheConfig.defaultUrlTTL);
 			return result;
 		} catch (error) {
@@ -229,10 +229,8 @@ export class SpotifyAutoComplete {
 		if (!query?.trim()) return [];
 
 		const maxResults = options.maxResults || this.defaultOptions.maxResults;
-		const cacheKey = this.generateCacheKey('search', query.toLowerCase(), {
-			maxResults,
-		});
-		const cached = this.getCached(cacheKey);
+		const cacheKey = this.generateCacheKey('search', query.toLowerCase(), { maxResults });
+		const cached = this.getCached<discord.ApplicationCommandOptionChoiceData[]>(cacheKey);
 		if (cached) return cached;
 
 		await this.checkToken();
@@ -240,19 +238,13 @@ export class SpotifyAutoComplete {
 		try {
 			if (query.startsWith('https://')) {
 				const metadata = await this.getMetadataFromUrl(query);
-				const result = [metadata];
+				const result: discord.ApplicationCommandOptionChoiceData[] = [metadata];
 				this.setCached(cacheKey, result, this.cacheConfig.defaultUrlTTL);
 				return result;
 			}
 
-			const { data } = await this.spotifyApi.get<ISpotifySearchResult>('/search', {
-				params: { q: query, type: 'track', limit: maxResults },
-			});
-
-			const result = data.tracks.items.map((track) => ({
-				name: `${track.name} - ${track.artists[0].name}`.slice(0, 100),
-				value: track.external_urls.spotify,
-			}));
+			const { data } = await this.spotifyApi.get<ISpotifySearchResult>('/search', { params: { q: query, type: 'track', limit: maxResults } });
+			const result: discord.ApplicationCommandOptionChoiceData[] = data.tracks.items.map((track) => ({ name: `${track.name} - ${track.artists[0].name}`.slice(0, 100), value: track.external_urls.spotify }));
 
 			this.setCached(cacheKey, result, this.cacheConfig.defaultSearchTTL);
 			return result;

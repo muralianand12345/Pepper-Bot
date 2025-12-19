@@ -3,7 +3,7 @@ import path from 'path';
 import yaml from 'yaml';
 import discord from 'discord.js';
 
-import { LocaleData, InterpolationData } from '../../types';
+import { LocaleData, InterpolationData, LocaleValue } from '../../types';
 
 export class LocalizationManager {
 	private static instance: LocalizationManager;
@@ -76,7 +76,7 @@ export class LocalizationManager {
 		}
 	};
 
-	private getAllKeys = (obj: Record<string, any>, prefix: string = ''): string[] => {
+	private getAllKeys = (obj: LocaleData, prefix: string = ''): string[] => {
 		const keys: string[] = [];
 
 		for (const [key, value] of Object.entries(obj)) {
@@ -111,10 +111,11 @@ export class LocalizationManager {
 		return this.validationErrors;
 	};
 
-	private getNestedValue = (obj: Record<string, any>, path: string): any => {
+	private getNestedValue = (obj: LocaleData, path: string): LocaleValue | null => {
 		try {
-			return path.split('.').reduce((current, key) => {
-				return current && current[key] !== undefined ? current[key] : null;
+			return path.split('.').reduce<LocaleValue | null>((current, key) => {
+				if (current && typeof current === 'object' && key in current) return (current as LocaleData)[key];
+				return null;
 			}, obj);
 		} catch (error) {
 			return null;
@@ -145,7 +146,8 @@ export class LocalizationManager {
 			translation = localeData ? this.getNestedValue(localeData, key) : null;
 		}
 
-		if (!translation) return key;
+		if (translation === null || typeof translation === 'object') return key;
+		if (typeof translation !== 'string') return String(translation);
 		return this.interpolate(translation, data);
 	};
 

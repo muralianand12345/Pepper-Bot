@@ -42,6 +42,14 @@ export interface IConfig {
 			defaukt_url_ttl: number;
 			cleanup_interval: number;
 		};
+		feature: {
+			voice_status: {
+				enabled: boolean;
+			};
+			progress_bar: {
+				enabled: boolean;
+			};
+		};
 		lavalink: {
 			default_search: magmastream.SearchPlatform;
 			nodes: Array<{

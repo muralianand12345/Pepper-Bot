@@ -75,15 +75,18 @@ const loadEvents = async (client: discord.Client, basePath: string, currentPath:
 };
 
 const setupErrorHandlers = (client: discord.Client): void => {
-	process.on('unhandledRejection', (error: Error) => {
-		client.logger.error(`[UNHANDLED-REJECTION] ${error.name}: ${error.message}`);
-		client.logger.error(`Stack trace: ${error.stack}`);
+	process.on('unhandledRejection', (reason: unknown) => {
+		if (reason instanceof Error) {
+			client.logger.error(`[UNHANDLED-REJECTION] ${reason.name}: ${reason.message}\n${reason.stack}`);
+		} else {
+			client.logger.error(`[UNHANDLED-REJECTION] ${reason}`);
+		}
 	});
 
-	process.on('uncaughtException', (error: Error, origin) => {
+	process.on('uncaughtException', (error: Error, origin: string) => {
 		client.logger.error(`[UNCAUGHT-EXCEPTION] ${error.name}: ${error.message}`);
-		client.logger.error(`[UNCAUGHT-EXCEPTION] Origin: ${origin}`);
-		client.logger.error(`[UNCAUGHT-EXCEPTION] Stack trace: ${error.stack}`);
+		client.logger.error(`Origin: ${origin}\n${error.stack}`);
+		process.exit(1);
 	});
 };
 

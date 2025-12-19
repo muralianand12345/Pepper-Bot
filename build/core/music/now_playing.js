@@ -42,6 +42,8 @@ class NowPlayingManager {
         this.startUpdateInterval = () => {
             if (this.updateInterval)
                 clearInterval(this.updateInterval);
+            if (!this.client.config.music.feature.progress_bar.enabled)
+                return;
             this.updateInterval = setInterval(async () => {
                 if (this.destroyed || this.stopped || this.isUpdating)
                     return;

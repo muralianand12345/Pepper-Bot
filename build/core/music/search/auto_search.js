@@ -167,9 +167,7 @@ class SpotifyAutoComplete {
             if (!query?.trim())
                 return [];
             const maxResults = options.maxResults || this.defaultOptions.maxResults;
-            const cacheKey = this.generateCacheKey('search', query.toLowerCase(), {
-                maxResults,
-            });
+            const cacheKey = this.generateCacheKey('search', query.toLowerCase(), { maxResults });
             const cached = this.getCached(cacheKey);
             if (cached)
                 return cached;
@@ -181,13 +179,8 @@ class SpotifyAutoComplete {
                     this.setCached(cacheKey, result, this.cacheConfig.defaultUrlTTL);
                     return result;
                 }
-                const { data } = await this.spotifyApi.get('/search', {
-                    params: { q: query, type: 'track', limit: maxResults },
-                });
-                const result = data.tracks.items.map((track) => ({
-                    name: `${track.name} - ${track.artists[0].name}`.slice(0, 100),
-                    value: track.external_urls.spotify,
-                }));
+                const { data } = await this.spotifyApi.get('/search', { params: { q: query, type: 'track', limit: maxResults } });
+                const result = data.tracks.items.map((track) => ({ name: `${track.name} - ${track.artists[0].name}`.slice(0, 100), value: track.external_urls.spotify }));
                 this.setCached(cacheKey, result, this.cacheConfig.defaultSearchTTL);
                 return result;
             }

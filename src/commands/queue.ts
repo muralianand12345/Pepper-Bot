@@ -4,13 +4,13 @@ import magmastream from 'magmastream';
 import { Music } from '../core/music';
 import Formatter from '../utils/format';
 import { Command, CommandCategory } from '../types';
-import { LocalizationManager, LocaleDetector } from '../core/locales';
 import { MusicResponseHandler, ProgressBarUtils } from '../core/music';
+import { LocalizationManager, LocaleDetector, TranslatorFunction } from '../core/locales';
 
 const localeDetector = new LocaleDetector();
 const localizationManager = LocalizationManager.getInstance();
 
-const createQueueEmbed = async (player: magmastream.Player, queueTracks: magmastream.Track[], currentPage: number, t: any, client: discord.Client): Promise<discord.EmbedBuilder> => {
+const createQueueEmbed = async (player: magmastream.Player, queueTracks: magmastream.Track[], currentPage: number, t: TranslatorFunction, client: discord.Client): Promise<discord.EmbedBuilder> => {
 	const itemsPerPage = 10;
 	const startIndex = currentPage * itemsPerPage;
 	const endIndex = startIndex + itemsPerPage;
@@ -70,7 +70,7 @@ const createQueueEmbed = async (player: magmastream.Player, queueTracks: magmast
 	return embed;
 };
 
-const createQueueButtons = (page: number, totalPages: number, isEmpty: boolean, t: any, queueLength: number = 0): discord.ActionRowBuilder<discord.ButtonBuilder>[] => {
+const createQueueButtons = (page: number, totalPages: number, isEmpty: boolean, t: TranslatorFunction, queueLength: number = 0): discord.ActionRowBuilder<discord.ButtonBuilder>[] => {
 	const navigationRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
 		new discord.ButtonBuilder()
 			.setCustomId('queue-previous')

@@ -7,8 +7,8 @@ const discord_js_1 = __importDefault(require("discord.js"));
 const music_1 = require("../core/music");
 const format_1 = __importDefault(require("../utils/format"));
 const types_1 = require("../types");
-const locales_1 = require("../core/locales");
 const music_2 = require("../core/music");
+const locales_1 = require("../core/locales");
 const localeDetector = new locales_1.LocaleDetector();
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const createQueueEmbed = async (player, queueTracks, currentPage, t, client) => {

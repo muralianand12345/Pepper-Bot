@@ -2,6 +2,7 @@ import discord from 'discord.js';
 import magmastream from 'magmastream';
 
 import { getRequester } from '../func';
+import { ProgressBarUtils } from '../utils';
 import Formatter from '../../../utils/format';
 import { ITrackProgress } from '../../../types';
 import { LocalizationManager } from '../../locales';
@@ -14,25 +15,6 @@ export class MusicResponseHandler {
 		this.client = client;
 		this.localizationManager = LocalizationManager.getInstance();
 	}
-
-	private trackProgress = (position: number, duration: number): ITrackProgress => {
-		const safeDuration = Math.max(0, duration);
-		const normalizedPosition = Math.min(Math.max(0, position), Math.max(1, safeDuration));
-		const pctWindow = Math.floor(safeDuration * 0.02); // 2% of duration
-		const dynamicWindow = Math.min(6000, Math.max(2000, pctWindow));
-		const remaining = Math.max(0, safeDuration - normalizedPosition);
-		const displayPositionMs = safeDuration > 0 && remaining <= dynamicWindow ? safeDuration : normalizedPosition;
-		const percentage = safeDuration > 0 ? displayPositionMs / safeDuration : 0;
-		const formattedPosition = Formatter.msToTime(displayPositionMs);
-		const formattedDuration = Formatter.msToTime(safeDuration);
-
-		return {
-			displayPosition: displayPositionMs,
-			percentage,
-			formattedPosition,
-			formattedDuration,
-		};
-	};
 
 	public createSuccessEmbed = (message: string): discord.EmbedBuilder => {
 		return new discord.EmbedBuilder()
@@ -67,33 +49,26 @@ export class MusicResponseHandler {
 	};
 
 	public createMusicEmbed = async (track: magmastream.Track | null, player?: magmastream.Player, locale: string = 'en'): Promise<discord.EmbedBuilder> => {
-		if (!track) {
+		if (!track)
 			return new discord.EmbedBuilder()
 				.setColor('#2b2d31')
 				.setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
 				.setDescription('**No track available**')
 				.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
-		}
 
+		const requesterData = track.requester ? getRequester(this.client, track.requester) : null;
 		const trackImg = track.thumbnail || track.artworkUrl;
 		const trackTitle = Formatter.truncateText(track.title || 'Unknown Title', 60);
 		const trackAuthor = track.author || 'Unknown Artist';
 		const trackUri = track.uri || 'https://google.com';
+		const trackDuration = track.isStream ? 'LIVE' : Formatter.msToTime(track.duration || 0);
 		const defaultColor: discord.ColorResolvable = '#2b2d31';
 		let progressText = '';
 
 		if (player && player.queue && (await player.queue.getCurrent()) && track.duration) {
 			try {
-				const position = Math.max(0, player.position || 0);
-				const duration = track.duration || 0;
-				if (duration > 0) {
-					const progress = this.trackProgress(position, duration);
-					const length = 15;
-					const filledBlocks = Math.floor(progress.percentage * length);
-					const progressBar = '▬'.repeat(filledBlocks) + '●' + '▬'.repeat(Math.max(0, length - filledBlocks - 1));
-
-					progressText = `${progressBar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
-				}
+				const progress = ProgressBarUtils.createBarFromPlayer(player, track.duration);
+				if (progress) progressText = `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
 			} catch (error) {
 				this.client.logger?.warn(`[MUSIC_EMBED] Error creating progress bar: ${error}`);
 				progressText = '';
@@ -106,12 +81,9 @@ export class MusicResponseHandler {
 			.setDescription(`**${Formatter.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`);
 
 		if (trackImg) embed.setThumbnail(trackImg);
-		if (progressText) {
-			embed.addFields([{ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false }]);
-			embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
-		} else {
-			embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
-		}
+		if (progressText) embed.addFields({ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false });
+		embed.addFields({ name: this.localizationManager.translate('responses.fields.duration', locale), value: trackDuration, inline: true }, { name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName || 'Unknown', inline: true }, { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData?.username || 'Unknown', inline: true });
+		embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
 
 		return embed;
 	};
@@ -125,11 +97,9 @@ export class MusicResponseHandler {
 				.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
 		}
 
-		const requesterData = track.requester ? getRequester(this.client, track.requester) : null;
 		const title = Formatter.truncateText(track.title || 'Unknown Title', 60);
 		const url = track.uri || 'https://google.com';
 		const author = track.author || 'Unknown Artist';
-		const duration = track.isStream ? 'LIVE' : Formatter.msToTime(track.duration || 0);
 
 		let queueInfo = '';
 		if (position === 0) {
@@ -138,11 +108,7 @@ export class MusicResponseHandler {
 			queueInfo = this.localizationManager.translate('responses.fields.position', locale, { position: position + 1 });
 		}
 
-		const fields = [
-			{ name: this.localizationManager.translate('responses.fields.duration', locale), value: duration, inline: true },
-			{ name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName || 'Unknown', inline: true },
-			{ name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData?.username || 'Unknown', inline: true },
-		];
+		const fields = [];
 
 		if (queueInfo) fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: queueInfo, inline: false });
 

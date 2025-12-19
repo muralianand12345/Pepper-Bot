@@ -4,6 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VoiceChannelStatus = exports.ProgressBarUtils = void 0;
+const discord_js_1 = __importDefault(require("discord.js"));
+const pepper_1 = __importDefault(require("../../pepper"));
 const format_1 = __importDefault(require("../../utils/format"));
 class ProgressBarUtils {
     static renderBar(percentage, length = 15) {
@@ -27,6 +29,8 @@ class ProgressBarUtils {
         return { displayPosition: displayPositionMs, percentage, formattedPosition: format_1.default.msToTime(displayPositionMs), formattedDuration: format_1.default.msToTime(safeDuration) };
     }
     static createBarFromPlayer(player, trackDurationMs, length = 15) {
+        if (!pepper_1.default.config.music.feature.progress_bar.enabled)
+            return null;
         const positionMs = Number.isFinite(player?.position) ? Number(player.position) : 0;
         const durationMs = typeof trackDurationMs === 'number' && trackDurationMs > 0 ? trackDurationMs : 0;
         if (!durationMs || durationMs <= 0)
@@ -39,24 +43,112 @@ class ProgressBarUtils {
 exports.ProgressBarUtils = ProgressBarUtils;
 class VoiceChannelStatus {
     constructor(client) {
+        this.queue = new Map();
+        this.lastUpdateTime = new Map();
+        this.processing = false;
+        this.rateLimitedUntil = 0;
+        this.MIN_INTERVAL = 5000;
+        this.RATE_LIMIT_BACKOFF = 30000;
+        this.DEBOUNCE_DELAY = 1000;
+        this.debounceTimers = new Map();
         this.set = async (voiceChannelId, status) => {
+            if (!this.client.config.music.feature.voice_status.enabled)
+                return false;
+            if (!voiceChannelId)
+                return false;
+            return new Promise((resolve) => {
+                const existingTimer = this.debounceTimers.get(voiceChannelId);
+                if (existingTimer)
+                    clearTimeout(existingTimer);
+                const timer = setTimeout(() => {
+                    this.debounceTimers.delete(voiceChannelId);
+                    this.enqueue(voiceChannelId, status, resolve);
+                }, this.DEBOUNCE_DELAY);
+                this.debounceTimers.set(voiceChannelId, timer);
+            });
+        };
+        this.enqueue = (voiceChannelId, status, resolve) => {
+            const truncatedStatus = status?.slice(0, 500) ?? null;
+            const existingUpdate = this.queue.get(voiceChannelId);
+            if (existingUpdate)
+                existingUpdate.resolve(false);
+            this.queue.set(voiceChannelId, { voiceChannelId, status: truncatedStatus, resolve, timestamp: Date.now() });
+            this.processQueue();
+        };
+        this.processQueue = async () => {
+            if (this.processing || this.queue.size === 0)
+                return;
+            if (Date.now() < this.rateLimitedUntil) {
+                const delay = this.rateLimitedUntil - Date.now();
+                setTimeout(() => this.processQueue(), delay);
+                return;
+            }
+            this.processing = true;
             try {
-                if (!voiceChannelId)
-                    return false;
-                const truncatedStatus = status?.slice(0, 500) ?? null;
-                await this.client.rest.put(`/channels/${voiceChannelId}/voice-status`, { body: { status: truncatedStatus } });
+                const entries = Array.from(this.queue.entries());
+                for (const [channelId, update] of entries) {
+                    const lastUpdate = this.lastUpdateTime.get(channelId) || 0;
+                    const timeSinceLastUpdate = Date.now() - lastUpdate;
+                    if (timeSinceLastUpdate < this.MIN_INTERVAL) {
+                        const delay = this.MIN_INTERVAL - timeSinceLastUpdate;
+                        await this.sleep(delay);
+                    }
+                    if (Date.now() < this.rateLimitedUntil) {
+                        this.processing = false;
+                        this.processQueue();
+                        return;
+                    }
+                    this.queue.delete(channelId);
+                    const success = await this.executeUpdate(update);
+                    update.resolve(success);
+                    if (success)
+                        this.lastUpdateTime.set(channelId, Date.now());
+                }
+            }
+            finally {
+                this.processing = false;
+                if (this.queue.size > 0)
+                    this.processQueue();
+            }
+        };
+        this.executeUpdate = async (update) => {
+            try {
+                await this.client.rest.put(`/channels/${update.voiceChannelId}/voice-status`, { body: { status: update.status } });
                 return true;
             }
             catch (error) {
-                if (error?.code === 50013) {
-                    this.client.logger?.warn?.(`[VOICE_STATUS] Missing permissions to set voice status: ${error}`);
-                }
-                else {
-                    this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status: ${error}`);
-                }
-                return false;
+                return this.handleError(error, update.voiceChannelId);
             }
         };
+        this.handleError = (error, channelId) => {
+            if (!(error instanceof discord_js_1.default.DiscordAPIError)) {
+                this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status: ${error}`);
+                return false;
+            }
+            if (error.code === 50013) {
+                this.client.logger?.warn?.(`[VOICE_STATUS] Missing permissions for channel ${channelId}`);
+                return false;
+            }
+            if (error.status === 429 || error.code === 429) {
+                const rawError = error.rawError;
+                const backoffMs = typeof rawError?.retry_after === 'number' && rawError.retry_after > 0 ? rawError.retry_after * 1000 : this.RATE_LIMIT_BACKOFF;
+                this.rateLimitedUntil = Date.now() + backoffMs;
+                this.client.logger?.warn?.(`[VOICE_STATUS] Rate limited, backing off for ${Math.ceil(backoffMs / 1000)}s`);
+                return false;
+            }
+            if (error.code === 10003) {
+                this.client.logger?.warn?.(`[VOICE_STATUS] Channel ${channelId} not found`);
+                this.lastUpdateTime.delete(channelId);
+                return false;
+            }
+            if (error.code === 50001) {
+                this.client.logger?.warn?.(`[VOICE_STATUS] Missing access to channel ${channelId}`);
+                return false;
+            }
+            this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status: ${error.message}`);
+            return false;
+        };
+        this.sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         this.clear = async (voiceChannelId) => {
             return this.set(voiceChannelId, null);
         };
@@ -98,6 +190,25 @@ class VoiceChannelStatus {
             if (!voiceChannelId)
                 return false;
             return this.clear(voiceChannelId);
+        };
+        this.clearPendingUpdates = (voiceChannelId) => {
+            if (voiceChannelId) {
+                const timer = this.debounceTimers.get(voiceChannelId);
+                if (timer)
+                    clearTimeout(timer);
+                this.debounceTimers.delete(voiceChannelId);
+                const pending = this.queue.get(voiceChannelId);
+                if (pending) {
+                    pending.resolve(false);
+                    this.queue.delete(voiceChannelId);
+                }
+            }
+            else {
+                this.debounceTimers.forEach((timer) => clearTimeout(timer));
+                this.debounceTimers.clear();
+                this.queue.forEach((update) => update.resolve(false));
+                this.queue.clear();
+            }
         };
         this.client = client;
     }
