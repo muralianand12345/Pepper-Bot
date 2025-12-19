@@ -71,14 +71,18 @@ const loadEvents = async (client, basePath, currentPath = basePath, ignoreFolder
     }
 };
 const setupErrorHandlers = (client) => {
-    process.on('unhandledRejection', (error) => {
-        client.logger.error(`[UNHANDLED-REJECTION] ${error.name}: ${error.message}`);
-        client.logger.error(`Stack trace: ${error.stack}`);
+    process.on('unhandledRejection', (reason) => {
+        if (reason instanceof Error) {
+            client.logger.error(`[UNHANDLED-REJECTION] ${reason.name}: ${reason.message}\n${reason.stack}`);
+        }
+        else {
+            client.logger.error(`[UNHANDLED-REJECTION] ${reason}`);
+        }
     });
     process.on('uncaughtException', (error, origin) => {
         client.logger.error(`[UNCAUGHT-EXCEPTION] ${error.name}: ${error.message}`);
-        client.logger.error(`[UNCAUGHT-EXCEPTION] Origin: ${origin}`);
-        client.logger.error(`[UNCAUGHT-EXCEPTION] Stack trace: ${error.stack}`);
+        client.logger.error(`Origin: ${origin}\n${error.stack}`);
+        process.exit(1);
     });
 };
 const initializeBot = async (client) => {
