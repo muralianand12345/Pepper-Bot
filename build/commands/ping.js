@@ -118,11 +118,11 @@ const pingCommand = {
             .setTimestamp();
         if (isOwner) {
             const playerInfo = await getPlayerInfo();
+            const shardStats = await getShardStats();
             embed.addFields([{ name: t('responses.ping.active_players'), value: playerInfo.length > 1024 ? playerInfo.substring(0, 1021) + '...' : playerInfo || 'No active players', inline: false }]);
+            if (shardStats)
+                embed.addFields([{ name: t('responses.ping.shard_stats'), value: formatShardStats(shardStats), inline: false }]);
         }
-        const shardStats = await getShardStats();
-        if (shardStats)
-            embed.addFields([{ name: t('responses.ping.shard_stats'), value: formatShardStats(shardStats), inline: false }]);
         await interaction.editReply({ embeds: [embed] });
     },
 };
