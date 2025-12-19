@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VoiceChannelStatus = exports.ProgressBarUtils = void 0;
+const pepper_1 = __importDefault(require("../../pepper"));
 const format_1 = __importDefault(require("../../utils/format"));
 class ProgressBarUtils {
     static renderBar(percentage, length = 15) {
@@ -27,6 +28,8 @@ class ProgressBarUtils {
         return { displayPosition: displayPositionMs, percentage, formattedPosition: format_1.default.msToTime(displayPositionMs), formattedDuration: format_1.default.msToTime(safeDuration) };
     }
     static createBarFromPlayer(player, trackDurationMs, length = 15) {
+        if (!pepper_1.default.config.music.feature.progress_bar.enabled)
+            return null;
         const positionMs = Number.isFinite(player?.position) ? Number(player.position) : 0;
         const durationMs = typeof trackDurationMs === 'number' && trackDurationMs > 0 ? trackDurationMs : 0;
         if (!durationMs || durationMs <= 0)
@@ -41,6 +44,8 @@ class VoiceChannelStatus {
     constructor(client) {
         this.set = async (voiceChannelId, status) => {
             try {
+                if (!this.client.config.music.feature.voice_status.enabled)
+                    return false;
                 if (!voiceChannelId)
                     return false;
                 const truncatedStatus = status?.slice(0, 500) ?? null;

@@ -1,6 +1,7 @@
 import discord from 'discord.js';
 import magmastream from 'magmastream';
 
+import client from '../../pepper';
 import Formatter from '../../utils/format';
 import { ProgressComputation } from '../../types';
 
@@ -28,6 +29,7 @@ export class ProgressBarUtils {
 	}
 
 	static createBarFromPlayer(player: magmastream.Player, trackDurationMs?: number, length: number = 15): ProgressComputation | null {
+		if (!client.config.music.feature.progress_bar.enabled) return null;
 		const positionMs = Number.isFinite(player?.position) ? Number(player.position) : 0;
 		const durationMs = typeof trackDurationMs === 'number' && trackDurationMs > 0 ? trackDurationMs : 0;
 		if (!durationMs || durationMs <= 0) return null;
@@ -47,6 +49,7 @@ export class VoiceChannelStatus {
 
 	set = async (voiceChannelId: string, status: string | null): Promise<boolean> => {
 		try {
+			if (!this.client.config.music.feature.voice_status.enabled) return false;
 			if (!voiceChannelId) return false;
 			const truncatedStatus = status?.slice(0, 500) ?? null;
 			await this.client.rest.put(`/channels/${voiceChannelId}/voice-status`, { body: { status: truncatedStatus } });
