@@ -90,3 +90,10 @@ export interface PlaylistResponse {
 	hasMore: boolean;
 	nextOffset: number;
 }
+
+export interface StatusUpdate {
+	voiceChannelId: string;
+	status: string | null;
+	resolve: (value: boolean) => void;
+	timestamp: number;
+}

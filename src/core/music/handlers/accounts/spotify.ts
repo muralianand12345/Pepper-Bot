@@ -40,7 +40,7 @@ export class SpotifyManager {
 		return data.userId;
 	};
 
-	private makeRequest = async (url: string, tokens: { access: string; refresh: string }, userId: string, options: any = {}): Promise<any> => {
+	private makeRequest = async (url: string, tokens: { access: string; refresh: string }, userId: string, options: Record<string, any> = {}): Promise<any> => {
 		try {
 			const response = await axios({ url, headers: { Authorization: `Bearer ${tokens.access}` }, ...options });
 			return response.data;

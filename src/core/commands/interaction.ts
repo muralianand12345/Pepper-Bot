@@ -9,10 +9,10 @@ import music_guild from '../../events/database/schema/music_guild';
 export class CommandInteractionHandler {
 	private static cooldown: discord.Collection<string, number> = new discord.Collection();
 	private client: discord.Client;
-	private interaction: discord.Interaction;
+	private interaction: discord.ChatInputCommandInteraction<discord.CacheType> | discord.StringSelectMenuInteraction<discord.CacheType> | discord.ButtonInteraction<discord.CacheType> | discord.AutocompleteInteraction<discord.CacheType> | discord.ModalSubmitInteraction<discord.CacheType> | discord.MessageComponentInteraction<discord.CacheType>;
 	private localeDetector: LocaleDetector;
 
-	constructor(client: discord.Client, interaction: discord.Interaction) {
+	constructor(client: discord.Client, interaction: discord.ChatInputCommandInteraction<discord.CacheType> | discord.StringSelectMenuInteraction<discord.CacheType> | discord.ButtonInteraction<discord.CacheType> | discord.AutocompleteInteraction<discord.CacheType> | discord.ModalSubmitInteraction<discord.CacheType> | discord.MessageComponentInteraction<discord.CacheType>) {
 		this.client = client;
 		this.interaction = interaction;
 		this.localeDetector = new LocaleDetector();
@@ -76,8 +76,8 @@ export class CommandInteractionHandler {
 		try {
 			const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000));
 			const replyPromise = (async () => {
-				const locale = await this.localeDetector.detectLocale(this.interaction as any);
-				const t = await this.localeDetector.getTranslator(this.interaction as any);
+				const locale = await this.localeDetector.detectLocale(this.interaction);
+				const t = await this.localeDetector.getTranslator(this.interaction);
 				const message = t(messageKey, data);
 				if (this.interaction.isRepliable() && !this.interaction.replied && !this.interaction.deferred) await this.interaction.reply({ embeds: [new MusicResponseHandler(this.client).createErrorEmbed(message, locale)], flags: discord.MessageFlags.Ephemeral });
 			})();
