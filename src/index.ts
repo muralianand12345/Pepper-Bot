@@ -13,5 +13,5 @@ manager.on('shardCreate', (shard: discord.Shard) => logger.info(`[INDEX] Launche
 
 manager
 	.spawn()
-	.then((shards: discord.Collection<number, discord.Shard>) => shards.forEach((shard: discord.Shard) => shard.on(discord.ShardEvents.Message, (message) => logger.success(`[INDEX] (SHARD ${shard.id}) ${message._eval} => ${message._result}`))))
+	.then((shards: discord.Collection<number, discord.Shard>) => shards.forEach((shard: discord.Shard) => shard.on(discord.ShardEvents.Message, (message) => logger.debug(`[INDEX] (SHARD ${shard.id}) ${message._eval} => ${message._result}`))))
 	.catch((error: Error) => logger.error(error));
