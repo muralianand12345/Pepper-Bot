@@ -4,6 +4,10 @@ import music_guild from '../../../events/database/schema/music_guild';
 import { IMusicUser, IMusicGuild, ISongs, ChartAnalytics } from '../../../types';
 
 export class MusicDB {
+	private static isGuildData = (data: IMusicUser | IMusicGuild): data is IMusicGuild => {
+		return 'guildId' in data;
+	};
+
 	private static addMusicDB = async <T extends IMusicUser | IMusicGuild>(data: T, songs_data: ISongs): Promise<void> => {
 		try {
 			if (!data.songs) data.songs = [];
@@ -15,11 +19,9 @@ export class MusicDB {
 			} else {
 				data.songs.push(songs_data);
 			}
-			if ((data as any).dj !== undefined && (data as any).dj !== null && typeof (data as any).dj !== 'string') {
-				try {
-					client.logger.warn(`[MusicDB] Coercing non-string dj field to null. Value type=${typeof (data as any).dj}`);
-				} catch {}
-				(data as any).dj = null;
+			if (this.isGuildData(data) && data.dj !== undefined && data.dj !== null && typeof data.dj !== 'string') {
+				client.logger.warn(`[MusicDB] Coercing non-string dj field to null. Value type=${typeof data.dj}`);
+				data.dj = null;
 			}
 			await data.save();
 		} catch (err) {
@@ -58,7 +60,6 @@ export class MusicDB {
 			throw new Error(`Failed to add music guild data: ${err}`);
 		}
 	};
-
 
 	public static getUserTopSongs = async (userId: string, limit: number = 20): Promise<ISongs[]> => {
 		try {

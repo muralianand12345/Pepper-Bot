@@ -129,31 +129,37 @@ export class VoiceChannelStatus {
 		}
 	};
 
-	private handleError = (error: Error | unknown | any, channelId: string): boolean => {
-		if (error?.code === 50013) {
+	private handleError = (error: unknown, channelId: string): boolean => {
+		if (!(error instanceof discord.DiscordAPIError)) {
+			this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status: ${error}`);
+			return false;
+		}
+
+		if (error.code === 50013) {
 			this.client.logger?.warn?.(`[VOICE_STATUS] Missing permissions for channel ${channelId}`);
 			return false;
 		}
 
-		if (error?.status === 429 || error?.code === 429) {
-			const retryAfter = error?.retry_after || error?.retryAfter || 30;
+		if (error.status === 429 || error.code === 429) {
+			const rawError = error.rawError as { retry_after?: number };
+			const retryAfter = rawError?.retry_after ?? 30;
 			this.rateLimitedUntil = Date.now() + retryAfter * 1000;
 			this.client.logger?.warn?.(`[VOICE_STATUS] Rate limited, backing off for ${retryAfter}s`);
 			return false;
 		}
 
-		if (error?.code === 10003) {
+		if (error.code === 10003) {
 			this.client.logger?.warn?.(`[VOICE_STATUS] Channel ${channelId} not found`);
 			this.lastUpdateTime.delete(channelId);
 			return false;
 		}
 
-		if (error?.code === 50001) {
+		if (error.code === 50001) {
 			this.client.logger?.warn?.(`[VOICE_STATUS] Missing access to channel ${channelId}`);
 			return false;
 		}
 
-		this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status: ${error}`);
+		this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status: ${error.message}`);
 		return false;
 	};
 

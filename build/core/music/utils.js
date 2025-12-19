@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VoiceChannelStatus = exports.ProgressBarUtils = void 0;
+const discord_js_1 = __importDefault(require("discord.js"));
 const pepper_1 = __importDefault(require("../../pepper"));
 const format_1 = __importDefault(require("../../utils/format"));
 class ProgressBarUtils {
@@ -120,26 +121,31 @@ class VoiceChannelStatus {
             }
         };
         this.handleError = (error, channelId) => {
-            if (error?.code === 50013) {
+            if (!(error instanceof discord_js_1.default.DiscordAPIError)) {
+                this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status: ${error}`);
+                return false;
+            }
+            if (error.code === 50013) {
                 this.client.logger?.warn?.(`[VOICE_STATUS] Missing permissions for channel ${channelId}`);
                 return false;
             }
-            if (error?.status === 429 || error?.code === 429) {
-                const retryAfter = error?.retry_after || error?.retryAfter || 30;
+            if (error.status === 429 || error.code === 429) {
+                const rawError = error.rawError;
+                const retryAfter = rawError?.retry_after ?? 30;
                 this.rateLimitedUntil = Date.now() + retryAfter * 1000;
                 this.client.logger?.warn?.(`[VOICE_STATUS] Rate limited, backing off for ${retryAfter}s`);
                 return false;
             }
-            if (error?.code === 10003) {
+            if (error.code === 10003) {
                 this.client.logger?.warn?.(`[VOICE_STATUS] Channel ${channelId} not found`);
                 this.lastUpdateTime.delete(channelId);
                 return false;
             }
-            if (error?.code === 50001) {
+            if (error.code === 50001) {
                 this.client.logger?.warn?.(`[VOICE_STATUS] Missing access to channel ${channelId}`);
                 return false;
             }
-            this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status: ${error}`);
+            this.client.logger?.error?.(`[VOICE_STATUS] Failed to set status: ${error.message}`);
             return false;
         };
         this.sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

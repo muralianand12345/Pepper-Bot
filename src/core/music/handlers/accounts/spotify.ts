@@ -1,9 +1,9 @@
-import axios from 'axios';
 import crypto from 'crypto';
 import discord from 'discord.js';
+import axios, { AxiosError } from 'axios';
 
 import { ConfigManager } from '../../../../utils/config';
-import { PlaylistItem, PlaylistResponse } from '../../../../types';
+import { PlaylistItem, PlaylistResponse, SpotifyTokens, SpotifyPlaylistsResponse } from '../../../../types';
 import UserAccount from '../../../../events/database/schema/account_user';
 
 const configManager = ConfigManager.getInstance();
@@ -40,16 +40,17 @@ export class SpotifyManager {
 		return data.userId;
 	};
 
-	private makeRequest = async (url: string, tokens: { access: string; refresh: string }, userId: string, options: Record<string, any> = {}): Promise<any> => {
+	private makeRequest = async <T>(url: string, tokens: SpotifyTokens, userId: string, options: Record<string, unknown> = {}): Promise<T> => {
 		try {
 			const response = await axios({ url, headers: { Authorization: `Bearer ${tokens.access}` }, ...options });
-			return response.data;
-		} catch (error: any) {
-			if (error.response?.status === 401) {
+			return response.data as T;
+		} catch (error: unknown) {
+			const axiosError = error as AxiosError;
+			if (axiosError.response?.status === 401) {
 				const newTokens = await this.refreshTokens(tokens.refresh, userId);
 				if (!newTokens) throw error;
 				const retryResponse = await axios({ url, headers: { Authorization: `Bearer ${newTokens.access}` }, ...options });
-				return retryResponse.data;
+				return retryResponse.data as T;
 			}
 			throw error;
 		}
@@ -89,13 +90,13 @@ export class SpotifyManager {
 		}
 	};
 
-	getAccount = async (userId: string): Promise<{ access: string; refresh: string } | null> => {
+	getAccount = async (userId: string): Promise<SpotifyTokens | null> => {
 		try {
 			const userAccount = await UserAccount.findOne({ userId });
 			if (!userAccount) return null;
-			const spotifyAccount = userAccount.accounts.find((acc: any) => acc.type === 'spotify');
-			if (!spotifyAccount || !spotifyAccount.token) return null;
-			return spotifyAccount.token;
+			const spotifyAccount = userAccount.accounts.find((acc) => acc.type === 'spotify');
+			if (!spotifyAccount?.token) return null;
+			return { access: spotifyAccount.token.access, refresh: spotifyAccount.token.refresh };
 		} catch (error) {
 			this.client.logger.error(`Error getting account: ${error}`);
 			return null;
@@ -136,11 +137,11 @@ export class SpotifyManager {
 		try {
 			const tokens = await this.getAccount(userId);
 			if (!tokens) return null;
-			const data = await this.makeRequest('https://api.spotify.com/v1/me/playlists', tokens, userId, { params: { limit, offset } });
+			const data = await this.makeRequest<SpotifyPlaylistsResponse>('https://api.spotify.com/v1/me/playlists', tokens, userId, { params: { limit, offset } });
 			const spotifyId = await this.getSpotifyId(tokens.access);
 			if (!spotifyId) return null;
-			const owned = (data.items || []).filter((playlist: any) => playlist.owner && playlist.owner.id === spotifyId);
-			const playlists: PlaylistItem[] = owned.map((playlist: any) => ({ name: `${playlist.name} - Spotify`, value: playlist.external_urls.spotify }));
+			const owned = (data.items || []).filter((playlist) => playlist.owner?.id === spotifyId);
+			const playlists: PlaylistItem[] = owned.map((playlist) => ({ name: `${playlist.name} - Spotify`, value: playlist.external_urls.spotify }));
 			return { playlists, hasMore: data.next !== null, nextOffset: offset + limit };
 		} catch (error) {
 			this.client.logger.error(`Error getting playlists: ${error}`);

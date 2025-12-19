@@ -89,11 +89,7 @@ const pingCommand: Command = {
 					const guildName = guild?.name || 'Unknown Guild';
 					const channelName = voiceChannel && 'name' in voiceChannel ? voiceChannel.name : 'Unknown Channel';
 					let userCount = 0;
-					if (voiceChannel && 'members' in voiceChannel) {
-						const membersObj: any = voiceChannel.members;
-						const membersArray = membersObj.cache ? Array.from(membersObj.cache.values()) : Array.from(membersObj.values ? membersObj.values() : []);
-						userCount = membersArray.filter((m: any) => !m.user.bot).length;
-					}
+					if (voiceChannel && voiceChannel.isVoiceBased()) userCount = voiceChannel.members.filter((m: discord.GuildMember) => !m.user.bot).size;
 					const trackInfo = currentTrack ? `${currentTrack.title} - ${currentTrack.author}`.slice(0, 50) : 'No track playing';
 					const status = player.playing ? '▶️' : player.paused ? '⏸️' : '⏹️';
 					const queueSize = await player.queue.size();

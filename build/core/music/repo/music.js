@@ -12,6 +12,9 @@ class MusicDB {
 }
 exports.MusicDB = MusicDB;
 _a = MusicDB;
+MusicDB.isGuildData = (data) => {
+    return 'guildId' in data;
+};
 MusicDB.addMusicDB = async (data, songs_data) => {
     try {
         if (!data.songs)
@@ -26,11 +29,8 @@ MusicDB.addMusicDB = async (data, songs_data) => {
         else {
             data.songs.push(songs_data);
         }
-        if (data.dj !== undefined && data.dj !== null && typeof data.dj !== 'string') {
-            try {
-                pepper_1.default.logger.warn(`[MusicDB] Coercing non-string dj field to null. Value type=${typeof data.dj}`);
-            }
-            catch { }
+        if (_a.isGuildData(data) && data.dj !== undefined && data.dj !== null && typeof data.dj !== 'string') {
+            pepper_1.default.logger.warn(`[MusicDB] Coercing non-string dj field to null. Value type=${typeof data.dj}`);
             data.dj = null;
         }
         await data.save();

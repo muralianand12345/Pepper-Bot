@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SpotifyManager = void 0;
-const axios_1 = __importDefault(require("axios"));
 const crypto_1 = __importDefault(require("crypto"));
+const axios_1 = __importDefault(require("axios"));
 const config_1 = require("../../../../utils/config");
 const account_user_1 = __importDefault(require("../../../../events/database/schema/account_user"));
 const configManager = config_1.ConfigManager.getInstance();
@@ -18,7 +18,8 @@ class SpotifyManager {
                 return response.data;
             }
             catch (error) {
-                if (error.response?.status === 401) {
+                const axiosError = error;
+                if (axiosError.response?.status === 401) {
                     const newTokens = await this.refreshTokens(tokens.refresh, userId);
                     if (!newTokens)
                         throw error;
@@ -69,9 +70,9 @@ class SpotifyManager {
                 if (!userAccount)
                     return null;
                 const spotifyAccount = userAccount.accounts.find((acc) => acc.type === 'spotify');
-                if (!spotifyAccount || !spotifyAccount.token)
+                if (!spotifyAccount?.token)
                     return null;
-                return spotifyAccount.token;
+                return { access: spotifyAccount.token.access, refresh: spotifyAccount.token.refresh };
             }
             catch (error) {
                 this.client.logger.error(`Error getting account: ${error}`);
@@ -117,7 +118,7 @@ class SpotifyManager {
                 const spotifyId = await this.getSpotifyId(tokens.access);
                 if (!spotifyId)
                     return null;
-                const owned = (data.items || []).filter((playlist) => playlist.owner && playlist.owner.id === spotifyId);
+                const owned = (data.items || []).filter((playlist) => playlist.owner?.id === spotifyId);
                 const playlists = owned.map((playlist) => ({ name: `${playlist.name} - Spotify`, value: playlist.external_urls.spotify }));
                 return { playlists, hasMore: data.next !== null, nextOffset: offset + limit };
             }

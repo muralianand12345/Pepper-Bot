@@ -97,7 +97,9 @@ class LocalizationManager {
         this.getNestedValue = (obj, path) => {
             try {
                 return path.split('.').reduce((current, key) => {
-                    return current && current[key] !== undefined ? current[key] : null;
+                    if (current && typeof current === 'object' && key in current)
+                        return current[key];
+                    return null;
                 }, obj);
             }
             catch (error) {
@@ -126,8 +128,10 @@ class LocalizationManager {
                 localeData = this.locales.get(this.defaultLocale);
                 translation = localeData ? this.getNestedValue(localeData, key) : null;
             }
-            if (!translation)
+            if (translation === null || typeof translation === 'object')
                 return key;
+            if (typeof translation !== 'string')
+                return String(translation);
             return this.interpolate(translation, data);
         };
         this.getCommandLocalizations = (key) => {
