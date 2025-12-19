@@ -131,9 +131,9 @@ class VoiceChannelStatus {
             }
             if (error.status === 429 || error.code === 429) {
                 const rawError = error.rawError;
-                const retryAfter = rawError?.retry_after ?? 30;
-                this.rateLimitedUntil = Date.now() + retryAfter * 1000;
-                this.client.logger?.warn?.(`[VOICE_STATUS] Rate limited, backing off for ${retryAfter}s`);
+                const backoffMs = typeof rawError?.retry_after === 'number' && rawError.retry_after > 0 ? rawError.retry_after * 1000 : this.RATE_LIMIT_BACKOFF;
+                this.rateLimitedUntil = Date.now() + backoffMs;
+                this.client.logger?.warn?.(`[VOICE_STATUS] Rate limited, backing off for ${Math.ceil(backoffMs / 1000)}s`);
                 return false;
             }
             if (error.code === 10003) {
