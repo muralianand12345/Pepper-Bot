@@ -3,6 +3,7 @@ logs
 magmastream
 /lavalink/plugins
 lavalink/logs
+plugins
 
 .DS_Store
 **/.DS_Store

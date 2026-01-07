@@ -24,7 +24,14 @@ const initializeManager = (config: IConfig, client: discord.Client) => {
 		lastFmApiKey: configManager.getLastFmApiKey(),
 		nodes: config.music.lavalink.nodes,
 		useNode: UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
-		enabledPlugins: [new MagmaConnect({ debug: configManager.isDebugMode() })],
+		enabledPlugins: [
+			new MagmaConnect({ 
+				debug: configManager.isDebugMode(),
+				nodeLocations: {
+					'Pepper -1': { region: 'india' }
+				},
+			})
+		],
 		send: (packet: DiscordPacket): void => {
 			const guild = client.guilds.cache.get(packet.d?.guild_id);
 			if (guild) guild.shard.send(packet);

@@ -890,10 +890,10 @@ magic-bytes.js@^1.10.0:
   resolved "https://registry.yarnpkg.com/magic-bytes.js/-/magic-bytes.js-1.12.1.tgz#031fedceb1fc652c1ccd917c6b45a6e8d6554245"
   integrity sha512-ThQLOhN86ZkJ7qemtVRGYM+gRgR8GEXNli9H/PMvpnZsE44Xfh3wx9kGJaldg314v85m+bFW6WBMaVHJc/c3zA==
 
-magma-connect@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/magma-connect/-/magma-connect-1.0.2.tgz#2b30295d97ffeb4a3a1039521b9265a9f1138089"
-  integrity sha512-brYWWWRqcz7mi8SdEMCWZ6S4P5MnwkgKkILgumTd7ajnl10M3X4PbzaEGa/Wnz8oVvn7La37o3PuTUqaY7qgug==
+magma-connect@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/magma-connect/-/magma-connect-1.0.3.tgz#106b95a8a2450939d445f36958b4a29d398608a4"
+  integrity sha512-nyBmmlSktbXgiBmhBVXcz9pve7aLa7WNd+O7DtC6sIr+Y0Z3JFxFSEdpTBLCGAwo9OsNF/Rh8JnrVoih93Sxgw==
   dependencies:
     tslib "^2.8.1"
 
