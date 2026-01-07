@@ -61,6 +61,32 @@ export class NowPlayingManager {
 		this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after stop: ${err}`));
 	};
 
+	public disableButtons = async (): Promise<boolean> => {
+		const currentMessage = this.message;
+		if (!currentMessage) {
+			this.client.logger?.debug(`[NowPlayingManager] No message to disable buttons on`);
+			return false;
+		}
+
+		try {
+			const isValid = await this.validateMessageAccess(currentMessage);
+			if (!isValid || !currentMessage.editable) {
+				this.client.logger?.warn(`[NowPlayingManager] Message not valid or editable for disabling buttons`);
+				return false;
+			}
+
+			const locale = await this.getGuildLocale();
+			const disabledButtons = new MusicResponseHandler(this.client).getMusicButton(true, locale);
+
+			await currentMessage.edit({ components: [disabledButtons] });
+			this.client.logger?.debug(`[NowPlayingManager] Disabled buttons on now playing message`);
+			return true;
+		} catch (error) {
+			this.client.logger?.warn(`[NowPlayingManager] Failed to disable buttons: ${error}`);
+			return false;
+		}
+	};
+
 	private startUpdateInterval = (): void => {
 		if (this.updateInterval) clearInterval(this.updateInterval);
 		if (!this.client.config.music.feature.progress_bar.enabled) return;

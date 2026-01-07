@@ -93,10 +93,11 @@ const event = {
                     const currentMemberCount = currentChannel.members.filter((member) => !member.user.bot).size;
                     if (currentMemberCount === 0) {
                         client.logger.info(`[VOICE_STATE] Voice channel still empty after 5 minutes, disconnecting from guild ${player.guildId}`);
+                        const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, currentPlayer, client);
+                        await nowPlayingManager.disableButtons();
                         const responseHandler = new music_1.MusicResponseHandler(client);
                         const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || '🔌 Disconnecting due to inactivity (5 minutes with no listeners)');
-                        const disabledButtons = responseHandler.getMusicButton(true, guildLocale);
-                        await (0, msg_1.send)(client, textChannel.id, { embeds: [disconnectEmbed], components: [disabledButtons] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
+                        await (0, msg_1.send)(client, textChannel.id, { embeds: [disconnectEmbed] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
                         music_1.NowPlayingManager.removeInstance(player.guildId);
                         currentPlayer.destroy();
                         if (currentTrack)

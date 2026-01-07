@@ -25,7 +25,14 @@ const initializeManager = (config, client) => {
         lastFmApiKey: configManager.getLastFmApiKey(),
         nodes: config.music.lavalink.nodes,
         useNode: magmastream_1.UseNodeOptions.LeastLoad, // UseNodeOptions.LeastLoad | UseNodeOptions.LeastPlayers
-        enabledPlugins: [new magma_connect_1.MagmaConnect({ debug: configManager.isDebugMode() })],
+        enabledPlugins: [
+            new magma_connect_1.MagmaConnect({
+                debug: configManager.isDebugMode(),
+                nodeLocations: {
+                    'Pepper -1': { region: 'india' }
+                },
+            })
+        ],
         send: (packet) => {
             const guild = client.guilds.cache.get(packet.d?.guild_id);
             if (guild)
