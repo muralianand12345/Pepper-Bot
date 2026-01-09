@@ -90,7 +90,8 @@ const sendQueueEndMessage = async (client, channel, locale) => {
 const handlePlayerCleanup = async (player, guildId, client) => {
     const nowPlayingManager = music_1.NowPlayingManager.getInstance(guildId, player, client);
     nowPlayingManager.onStop();
-    const CLEANUP_DELAY = 120000; // Reduced to 2 minutes for faster cleanup when autoplay fails
+    await nowPlayingManager.disableButtons();
+    const CLEANUP_DELAY = 120000;
     const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
     const scheduledAt = Date.now();
     player.cleanupScheduledAt = scheduledAt;
