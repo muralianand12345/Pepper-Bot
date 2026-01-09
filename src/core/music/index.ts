@@ -3,6 +3,7 @@ import magmastream, { TrackUtils } from 'magmastream';
 
 import Formatter from '../../utils/format';
 import { LocaleDetector } from '../locales';
+import { checkUserPremium } from '../commands/premium';
 import { ProgressBarUtils, VoiceChannelStatus } from './utils';
 import music_guild from '../../events/database/schema/music_guild';
 import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator } from './handlers';
@@ -89,16 +90,8 @@ export class Music {
 		return query;
 	};
 
-	private checkUserPremium = async (userId: string): Promise<{ isPremium: boolean; tier: number }> => {
-		const guild = this.client.guilds.cache.get(this.client.config.bot.support_server.id);
-		if (!guild) return { isPremium: false, tier: 0 };
-		const member = await guild.members.fetch(userId).catch(() => null);
-		if (!member) return { isPremium: false, tier: 0 };
-		return { isPremium: true, tier: 1 };
-	};
-
 	private getPlaylistLimit = async (userId: string, playlist: magmastream.PlaylistData): Promise<magmastream.PlaylistData> => {
-		const { isPremium, tier } = await this.checkUserPremium(userId);
+		const { isPremium, tier } = await checkUserPremium(this.client, userId);
 		const userTier = this.client.config.premium.tiers.find((t: { id: number }) => t.id === (isPremium ? tier : 0));
 		const limit = userTier?.feature?.playlist_limit || null;
 		if (limit === null) return playlist;

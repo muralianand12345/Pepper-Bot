@@ -33,6 +33,7 @@ const buildResultEmbed = (result, t) => {
 };
 const loginCommand = {
     cooldown: 15,
+    premium: true,
     category: types_1.CommandCategory.MUSIC,
     data: new discord_js_1.default.SlashCommandBuilder()
         .setName('login')
