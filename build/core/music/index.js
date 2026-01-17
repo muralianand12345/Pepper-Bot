@@ -44,6 +44,7 @@ const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = __importStar(require("magmastream"));
 const format_1 = __importDefault(require("../../utils/format"));
 const locales_1 = require("../locales");
+const premium_1 = require("../commands/premium");
 const utils_1 = require("./utils");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
 const handlers_1 = require("./handlers");
@@ -114,17 +115,8 @@ class Music {
             }
             return query;
         };
-        this.checkUserPremium = async (userId) => {
-            const guild = this.client.guilds.cache.get(this.client.config.bot.support_server.id);
-            if (!guild)
-                return { isPremium: false, tier: 0 };
-            const member = await guild.members.fetch(userId).catch(() => null);
-            if (!member)
-                return { isPremium: false, tier: 0 };
-            return { isPremium: true, tier: 1 };
-        };
         this.getPlaylistLimit = async (userId, playlist) => {
-            const { isPremium, tier } = await this.checkUserPremium(userId);
+            const { isPremium, tier } = await (0, premium_1.checkUserPremium)(this.client, userId);
             const userTier = this.client.config.premium.tiers.find((t) => t.id === (isPremium ? tier : 0));
             const limit = userTier?.feature?.playlist_limit || null;
             if (limit === null)

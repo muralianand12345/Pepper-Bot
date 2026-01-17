@@ -209,6 +209,7 @@ responses:
         missing_dj_role: "Você precisa do cargo **{role}** para usar este comando."
         member_not_found: "Não foi possível verificar suas permissões. Por favor, tente novamente."
         volume_error: "Ocorreu um erro ao definir o volume"
+        premium_required: "⭐ Este comando requer **Premium**. Junte-se ao nosso servidor de suporte para obter acesso!"
 
     language:
         user_set: "Seu idioma foi definido para **{language}**"

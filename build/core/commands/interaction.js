@@ -7,6 +7,7 @@ exports.CommandInteractionHandler = void 0;
 const ms_1 = __importDefault(require("ms"));
 const discord_js_1 = __importDefault(require("discord.js"));
 const locales_1 = require("../locales");
+const premium_1 = require("./premium");
 const music_1 = require("../music");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
 class CommandInteractionHandler {
@@ -113,6 +114,9 @@ class CommandInteractionHandler {
             }
             const ownerResult = await this.handleOwner(command);
             if (ownerResult === false)
+                return false;
+            const premiumResult = await this.handlePremium(command);
+            if (premiumResult === false)
                 return false;
             if (!this.client.config.bot.owners.includes(this.interaction.user.id)) {
                 const djResult = await this.handleDJ(command);
@@ -240,6 +244,22 @@ class CommandInteractionHandler {
                 return false;
             }
             return true;
+        };
+        this.handlePremium = async (command) => {
+            if (!command.premium)
+                return true;
+            try {
+                const { isPremium } = await (0, premium_1.checkUserPremium)(this.client, this.interaction.user.id);
+                if (!isPremium) {
+                    await this.sendErrorReply('responses.errors.premium_required');
+                    return false;
+                }
+                return true;
+            }
+            catch (error) {
+                this.client.logger.error(`[INTERACTION_CREATE] Error checking premium status: ${error}`);
+                return true;
+            }
         };
         this.handleDJ = async (command) => {
             if (!command.dj || !this.interaction.guild || !this.interaction.guildId)

@@ -213,6 +213,7 @@ responses:
         missing_dj_role: "You need the **{role}** role to use this command."
         member_not_found: "Unable to verify your permissions. Please try again."
         volume_error: "An error occurred while setting the volume"
+        premium_required: "⭐ This command requires **Premium**. Join our support server to get access!"
 
     language:
         user_set: "Your language has been set to **{language}**"

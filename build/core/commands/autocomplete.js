@@ -58,11 +58,21 @@ class AutoComplete {
                     }
                     catch (error) {
                         this.client.logger.warn(`[PLAY_AUTOCOMPLETE] Spotify error: ${error}`);
-                        await this.safeRespond([{ name: cleanValue.slice(0, AutoComplete.MAX_CHOICE_NAME_LENGTH), value: focused.value }]);
+                        if (cleanValue.length <= AutoComplete.MAX_CHOICE_NAME_LENGTH) {
+                            await this.safeRespond([{ name: cleanValue.slice(0, AutoComplete.MAX_CHOICE_NAME_LENGTH), value: cleanValue }]);
+                        }
+                        else {
+                            await this.safeRespond([]);
+                        }
                     }
                 }
                 else {
-                    await this.safeRespond([{ name: cleanValue.slice(0, AutoComplete.MAX_CHOICE_NAME_LENGTH), value: focused.value }]);
+                    if (cleanValue.length <= AutoComplete.MAX_CHOICE_NAME_LENGTH) {
+                        await this.safeRespond([{ name: cleanValue.slice(0, AutoComplete.MAX_CHOICE_NAME_LENGTH), value: cleanValue }]);
+                    }
+                    else {
+                        await this.safeRespond([]);
+                    }
                 }
             }
             catch (error) {
