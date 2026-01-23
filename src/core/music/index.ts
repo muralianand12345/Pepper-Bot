@@ -14,6 +14,7 @@ export * from './utils';
 export * from './search';
 export * from './handlers';
 export * from './now_playing';
+export * from './activity_check';
 
 export const MUSIC_CONFIG = {
 	ERROR_SEARCH_TEXT: 'Unable To Fetch Results',

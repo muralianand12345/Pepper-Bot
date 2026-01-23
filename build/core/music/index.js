@@ -54,6 +54,7 @@ __exportStar(require("./utils"), exports);
 __exportStar(require("./search"), exports);
 __exportStar(require("./handlers"), exports);
 __exportStar(require("./now_playing"), exports);
+__exportStar(require("./activity_check"), exports);
 exports.MUSIC_CONFIG = {
     ERROR_SEARCH_TEXT: 'Unable To Fetch Results',
     DEFAULT_SEARCH_TEXT: 'Please enter a song name or url',

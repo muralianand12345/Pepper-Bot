@@ -64,18 +64,22 @@ const webhookLiveSongs = async (client, track, player) => {
 };
 const lavalinkEvent = {
     name: magmastream_1.ManagerEventTypes.TrackStart,
-    execute: async (player, track, _payload, client) => {
-        if (!player?.textChannelId || !client?.channels)
-            return;
+    execute: async (player, track, payload, client) => {
         try {
-            const channel = (await client.channels.fetch(player.textChannelId));
-            if (!channel?.isTextBased())
-                return;
+            if (!player?.guildId || !track)
+                return client.logger.warn('[TRACK_START] Missing player or track');
+            const channel = client.channels.cache.get(String(player.textChannelId));
+            if (!channel)
+                return client.logger.warn(`[TRACK_START] Text channel not found for guild ${player.guildId}`);
             let guildLocale = 'en';
             try {
                 guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
             }
-            catch (error) { }
+            catch (error) {
+                client.logger.warn(`[TRACK_START] Error getting guild locale: ${error}`);
+            }
+            const voiceStatus = new music_1.VoiceChannelStatus(client);
+            await voiceStatus.setPlaying(player, track);
             const requesterData = track.requester ? (0, music_1.getRequester)(client, track.requester) : null;
             if (YTREGEX.test(track.uri)) {
                 const queueSize = await player.queue.size();
@@ -119,6 +123,15 @@ const lavalinkEvent = {
             }
             catch (nowPlayingError) {
                 client.logger.error(`[LAVALINK] Failed to create/update now playing message: ${nowPlayingError}`);
+            }
+            try {
+                if (!music_1.ActivityCheckManager.hasInstance(player.guildId)) {
+                    music_1.ActivityCheckManager.getInstance(player.guildId, player, client);
+                    client.logger.debug(`[LAVALINK] Activity check manager initialized for guild ${player.guildId}`);
+                }
+            }
+            catch (activityError) {
+                client.logger.error(`[LAVALINK] Failed to initialize activity check manager: ${activityError}`);
             }
             try {
                 await webhookLiveSongs(client, track, player);

@@ -6,13 +6,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const music_1 = require("../../../core/music");
 const locales_1 = require("../../../core/locales");
-const MUSIC_BUTTON_IDS = ['pause-music', 'resume-music', 'skip-music', 'stop-music', 'loop-music'];
+const MUSIC_BUTTON_IDS = ['pause-music', 'resume-music', 'skip-music', 'stop-music', 'loop-music', 'activity-check-continue'];
 const localeDetector = new locales_1.LocaleDetector();
 const validateButtonInteraction = (interaction) => {
     return interaction.isButton() && MUSIC_BUTTON_IDS.includes(interaction.customId);
 };
 const handleMusicButtonAction = async (interaction, client) => {
     try {
+        if (interaction.customId === 'activity-check-continue') {
+            await handleActivityCheckContinue(interaction, client);
+            return;
+        }
         const music = new music_1.Music(client, interaction);
         const nowPlayingManager = interaction.guildId ? music_1.NowPlayingManager.getInstance(interaction.guildId, client.manager.getPlayer(interaction.guildId), client) : null;
         switch (interaction.customId) {
@@ -55,6 +59,30 @@ const handleMusicButtonAction = async (interaction, client) => {
             }
         }
     }
+};
+const handleActivityCheckContinue = async (interaction, client) => {
+    const guildId = interaction.guildId;
+    if (!guildId) {
+        await interaction.reply({ content: '❌ This button can only be used in a server.', flags: discord_js_1.default.MessageFlags.Ephemeral });
+        return;
+    }
+    const player = client.manager.getPlayer(guildId);
+    if (!player) {
+        await interaction.reply({ content: '❌ No active music player found.', flags: discord_js_1.default.MessageFlags.Ephemeral });
+        return;
+    }
+    if (!music_1.ActivityCheckManager.hasInstance(guildId)) {
+        await interaction.reply({ content: '❌ No activity check is pending.', flags: discord_js_1.default.MessageFlags.Ephemeral });
+        return;
+    }
+    const activityCheckManager = music_1.ActivityCheckManager.getInstance(guildId, player, client);
+    if (!activityCheckManager.isPending()) {
+        await interaction.reply({ content: '❌ This activity check has already been handled.', flags: discord_js_1.default.MessageFlags.Ephemeral });
+        return;
+    }
+    await interaction.deferUpdate();
+    await activityCheckManager.onContinueConfirmed();
+    client.logger.info(`[MUSIC_BUTTON] Activity check confirmed by user ${interaction.user.id} in guild ${guildId}`);
 };
 const event = {
     name: discord_js_1.default.Events.InteractionCreate,

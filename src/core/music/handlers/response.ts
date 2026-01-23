@@ -4,7 +4,6 @@ import magmastream from 'magmastream';
 import { getRequester } from '../func';
 import { ProgressBarUtils } from '../utils';
 import Formatter from '../../../utils/format';
-import { ITrackProgress } from '../../../types';
 import { LocalizationManager } from '../../locales';
 
 export class MusicResponseHandler {
@@ -48,6 +47,44 @@ export class MusicResponseHandler {
 			.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
 	};
 
+	public createActivityCheckEmbed = (locale: string = 'en'): discord.EmbedBuilder => {
+		const title = this.localizationManager.translate('responses.activity_check.title', locale) || '⏰ Are you still listening?';
+		const description = this.localizationManager.translate('responses.activity_check.description', locale) || 'Music has been playing for over 6 hours.\n\nClick the button below to continue listening, or the player will be disconnected in 5 minutes.';
+
+		return new discord.EmbedBuilder()
+			.setColor('#faa61a')
+			.setTitle(title)
+			.setDescription(description)
+			.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
+			.setTimestamp();
+	};
+
+	public createActivityCheckConfirmedEmbed = (locale: string = 'en'): discord.EmbedBuilder => {
+		const message = this.localizationManager.translate('responses.activity_check.confirmed', locale) || '✅ Great! Music will continue playing. See you in another 6 hours!';
+
+		return new discord.EmbedBuilder()
+			.setColor('#43b581')
+			.setDescription(message)
+			.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
+			.setTimestamp();
+	};
+
+	public createActivityCheckTimeoutEmbed = (locale: string = 'en'): discord.EmbedBuilder => {
+		const message = this.localizationManager.translate('responses.activity_check.timeout', locale) || '⏱️ No response received. The activity check has expired.';
+
+		return new discord.EmbedBuilder()
+			.setColor('#f04747')
+			.setDescription(message)
+			.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
+			.setTimestamp();
+	};
+
+	public getActivityCheckButton = (disabled: boolean = false, locale: string = 'en'): discord.ActionRowBuilder<discord.ButtonBuilder> => {
+		const label = this.localizationManager.translate('responses.buttons.continue_listening', locale) || 'Continue Listening';
+
+		return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setCustomId('activity-check-continue').setLabel(label).setStyle(discord.ButtonStyle.Success).setEmoji('✅').setDisabled(disabled));
+	};
+
 	public createMusicEmbed = async (track: magmastream.Track | null, player?: magmastream.Player, locale: string = 'en'): Promise<discord.EmbedBuilder> => {
 		if (!track)
 			return new discord.EmbedBuilder()
@@ -61,82 +98,76 @@ export class MusicResponseHandler {
 		const trackTitle = Formatter.truncateText(track.title || 'Unknown Title', 60);
 		const trackAuthor = track.author || 'Unknown Artist';
 		const trackUri = track.uri || 'https://google.com';
-		const trackDuration = track.isStream ? 'LIVE' : Formatter.msToTime(track.duration || 0);
-		const defaultColor: discord.ColorResolvable = '#2b2d31';
-		let progressText = '';
-
-		if (player && player.queue && (await player.queue.getCurrent()) && track.duration) {
-			try {
-				const progress = ProgressBarUtils.createBarFromPlayer(player, track.duration);
-				if (progress) progressText = `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
-			} catch (error) {
-				this.client.logger?.warn(`[MUSIC_EMBED] Error creating progress bar: ${error}`);
-				progressText = '';
-			}
-		}
+		const trackDuration = track.isStream ? this.localizationManager.translate('responses.queue.live', locale) : Formatter.msToTime(track.duration);
 
 		const embed = new discord.EmbedBuilder()
-			.setColor(defaultColor)
+			.setColor('#2b2d31')
 			.setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
-			.setDescription(`**${Formatter.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`);
+			.setDescription(`**[${trackTitle}](${trackUri})**\nby ${trackAuthor}`)
+			.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
 
 		if (trackImg) embed.setThumbnail(trackImg);
-		if (progressText) embed.addFields({ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false });
-		embed.addFields({ name: this.localizationManager.translate('responses.fields.duration', locale), value: trackDuration, inline: true }, { name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName || 'Unknown', inline: true }, { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData?.username || 'Unknown', inline: true });
-		embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
 
+		const fields: discord.APIEmbedField[] = [{ name: this.localizationManager.translate('responses.fields.duration', locale), value: trackDuration, inline: true }];
+
+		if (track.sourceName) fields.push({ name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName, inline: true });
+		if (requesterData) fields.push({ name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData.username, inline: true });
+
+		if (player && !track.isStream) {
+			const progress = ProgressBarUtils.createBarFromPlayer(player, track.duration);
+			if (progress) fields.push({ name: this.localizationManager.translate('responses.fields.progress', locale), value: `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``, inline: false });
+		}
+
+		embed.addFields(fields);
 		return embed;
 	};
 
-	public createTrackEmbed = (track: magmastream.Track, position?: number | null, locale: string = 'en'): discord.EmbedBuilder => {
-		if (!track) {
-			return new discord.EmbedBuilder()
-				.setColor('#f04747')
-				.setTitle('Error')
-				.setDescription('Invalid track data')
-				.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
-		}
+	public createTrackEmbed = (track: magmastream.Track, position: number, locale: string = 'en'): discord.EmbedBuilder => {
+		const requesterData = track.requester ? getRequester(this.client, track.requester) : null;
+		const trackImg = track.thumbnail || track.artworkUrl;
+		const trackTitle = Formatter.truncateText(track.title || 'Unknown Title', 60);
+		const trackAuthor = track.author || 'Unknown Artist';
+		const trackUri = track.uri || 'https://google.com';
+		const trackDuration = track.isStream ? this.localizationManager.translate('responses.queue.live', locale) : Formatter.msToTime(track.duration);
 
-		const title = Formatter.truncateText(track.title || 'Unknown Title', 60);
-		const url = track.uri || 'https://google.com';
-		const author = track.author || 'Unknown Artist';
-
-		let queueInfo = '';
-		if (position === 0) {
-			queueInfo = this.localizationManager.translate('responses.fields.playing_next', locale);
-		} else if (position !== null && position !== undefined) {
-			queueInfo = this.localizationManager.translate('responses.fields.position', locale, { position: position + 1 });
-		}
-
-		const fields = [];
-
-		if (queueInfo) fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: queueInfo, inline: false });
-
-		return new discord.EmbedBuilder()
-			.setColor('#5865f2')
+		const embed = new discord.EmbedBuilder()
+			.setColor('#43b581')
 			.setTitle(this.localizationManager.translate('responses.music.track_added', locale))
-			.setDescription(`**${Formatter.hyperlink(title, url)}**\nby ${author}`)
-			.setThumbnail(track.artworkUrl || track.thumbnail || null)
-			.addFields(fields)
-			.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
-			.setTimestamp();
+			.setDescription(`**[${trackTitle}](${trackUri})**\nby ${trackAuthor}`)
+			.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
+
+		if (trackImg) embed.setThumbnail(trackImg);
+
+		const fields: discord.APIEmbedField[] = [{ name: this.localizationManager.translate('responses.fields.duration', locale), value: trackDuration, inline: true }];
+
+		if (track.sourceName) fields.push({ name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName, inline: true });
+
+		if (position > 0) {
+			fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: this.localizationManager.translate('responses.fields.position', locale, { position: position + 1 }), inline: true });
+		} else {
+			fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: this.localizationManager.translate('responses.fields.playing_next', locale), inline: true });
+		}
+
+		if (requesterData) fields.push({ name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData.username, inline: true });
+
+		embed.addFields(fields);
+		return embed;
 	};
 
-	public createPlaylistEmbed = (playlist: magmastream.PlaylistData, requester: discord.User, locale: string = 'en'): discord.EmbedBuilder => {
-		if (!playlist || !playlist.tracks || playlist.tracks.length === 0) {
+	public createPlaylistEmbed = (playlist: magmastream.PlaylistData | null, requester: discord.User, locale: string = 'en'): discord.EmbedBuilder => {
+		if (!playlist) {
 			return new discord.EmbedBuilder()
 				.setColor('#f04747')
-				.setTitle('Error')
-				.setDescription('Invalid playlist data')
+				.setDescription('Failed to load playlist')
 				.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
 		}
 
-		const playlistName = Formatter.truncateText(playlist.name || 'Untitled Playlist', 50);
+		const playlistName = Formatter.truncateText(playlist.name || 'Unknown Playlist', 60);
 		const trackPreview = playlist.tracks
 			.slice(0, 5)
-			.map((track, i) => {
-				const title = Formatter.truncateText(track.title || 'Unknown Title', 40);
-				return `**${i + 1}.** ${title}`;
+			.map((track, index) => {
+				const title = Formatter.truncateText(track.title || 'Unknown', 40);
+				return `**${index + 1}.** ${title}`;
 			})
 			.join('\n');
 		const moreTracksText = playlist.tracks.length > 5 ? `\n*...and ${playlist.tracks.length - 5} more tracks*` : '';

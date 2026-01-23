@@ -146,6 +146,13 @@ responses:
         playlist_truncated: "Añadidas {added}/{total} pistas. Únete a nuestro servidor de soporte para listas de reproducción ilimitadas!"
         volume_set: "Volumen establecido en {volume}%"
 
+    activity_check:
+        title: "⏰ ¿Sigues escuchando?"
+        description: "La música ha estado sonando por más de 6 horas.\n\nHaz clic en el botón de abajo para continuar escuchando, o el reproductor se desconectará en 5 minutos."
+        confirmed: "✅ ¡Perfecto! La música seguirá sonando. ¡Nos vemos en otras 6 horas!"
+        timeout: "⏱️ No se recibió respuesta. La verificación de actividad ha expirado."
+        disconnected: "🔌 Desconectado por inactividad (sin respuesta a la verificación de actividad)"
+
     chart:
         user_title: "Chart de música de {user}"
         guild_title: "Chart del servidor {guild}"
