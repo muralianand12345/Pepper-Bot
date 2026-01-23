@@ -4,7 +4,7 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 import { send } from '../../../../utils/msg';
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
-import { NowPlayingManager, MusicResponseHandler, VoiceChannelStatus } from '../../../../core/music';
+import { NowPlayingManager, ActivityCheckManager, MusicResponseHandler, VoiceChannelStatus } from '../../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
@@ -36,6 +36,7 @@ const lavalinkEvent: LavalinkEvent = {
 		}
 
 		NowPlayingManager.removeInstance(player.guildId);
+		ActivityCheckManager.removeInstance(player.guildId);
 
 		client.logger.info(`[LAVALINK] Player for guild ${guild.name} (${guild.id}) destroyed`);
 	},

@@ -147,6 +147,13 @@ responses:
         playlist_truncated: "Hinzugefügt {added}/{total} Titel. Tritt unserem Support-Server bei, um unbegrenzte Playlists zu erhalten!"
         volume_set: "Lautstärke auf {volume}% eingestellt"
 
+    activity_check:
+        title: "⏰ Hörst du noch zu?"
+        description: "Die Musik läuft seit über 6 Stunden.\n\nKlicke unten auf die Schaltfläche, um weiterzuhören, sonst wird der Player in 5 Minuten getrennt."
+        confirmed: "✅ Super! Die Musik wird weiter abgespielt. Wir sehen uns in weiteren 6 Stunden!"
+        timeout: "⏱️ Keine Antwort erhalten. Die Aktivitätsprüfung ist abgelaufen."
+        disconnected: "🔌 Aufgrund von Inaktivität getrennt (keine Antwort auf die Aktivitätsprüfung)"
+
     chart:
         user_title: "{user}s Musik-Chart"
         guild_title: "{guild} Server-Chart"
@@ -210,6 +217,7 @@ responses:
         missing_dj_role: "Du benötigst die **{role}**-Rolle, um diesen Befehl zu verwenden."
         member_not_found: "Deine Berechtigungen konnten nicht überprüft werden. Bitte versuche es erneut."
         volume_error: "Beim Einstellen der Lautstärke ist ein Fehler aufgetreten"
+        premium_required: "⭐ Dieser Befehl erfordert **Premium**. Tritt unserem Support-Server bei, um Zugang zu erhalten!"
 
     language:
         user_set: "Deine Sprache wurde auf **{language}** festgelegt"

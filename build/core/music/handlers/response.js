@@ -39,6 +39,36 @@ class MusicResponseHandler {
                 .setDescription(`⚠️ ${message}`)
                 .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
         };
+        this.createActivityCheckEmbed = (locale = 'en') => {
+            const title = this.localizationManager.translate('responses.activity_check.title', locale) || '⏰ Are you still listening?';
+            const description = this.localizationManager.translate('responses.activity_check.description', locale) || 'Music has been playing for over 6 hours.\n\nClick the button below to continue listening, or the player will be disconnected in 5 minutes.';
+            return new discord_js_1.default.EmbedBuilder()
+                .setColor('#faa61a')
+                .setTitle(title)
+                .setDescription(description)
+                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
+                .setTimestamp();
+        };
+        this.createActivityCheckConfirmedEmbed = (locale = 'en') => {
+            const message = this.localizationManager.translate('responses.activity_check.confirmed', locale) || '✅ Great! Music will continue playing. See you in another 6 hours!';
+            return new discord_js_1.default.EmbedBuilder()
+                .setColor('#43b581')
+                .setDescription(message)
+                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
+                .setTimestamp();
+        };
+        this.createActivityCheckTimeoutEmbed = (locale = 'en') => {
+            const message = this.localizationManager.translate('responses.activity_check.timeout', locale) || '⏱️ No response received. The activity check has expired.';
+            return new discord_js_1.default.EmbedBuilder()
+                .setColor('#f04747')
+                .setDescription(message)
+                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
+                .setTimestamp();
+        };
+        this.getActivityCheckButton = (disabled = false, locale = 'en') => {
+            const label = this.localizationManager.translate('responses.buttons.continue_listening', locale) || 'Continue Listening';
+            return new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('activity-check-continue').setLabel(label).setStyle(discord_js_1.default.ButtonStyle.Success).setEmoji('✅').setDisabled(disabled));
+        };
         this.createMusicEmbed = async (track, player, locale = 'en') => {
             if (!track)
                 return new discord_js_1.default.EmbedBuilder()
@@ -51,76 +81,68 @@ class MusicResponseHandler {
             const trackTitle = format_1.default.truncateText(track.title || 'Unknown Title', 60);
             const trackAuthor = track.author || 'Unknown Artist';
             const trackUri = track.uri || 'https://google.com';
-            const trackDuration = track.isStream ? 'LIVE' : format_1.default.msToTime(track.duration || 0);
-            const defaultColor = '#2b2d31';
-            let progressText = '';
-            if (player && player.queue && (await player.queue.getCurrent()) && track.duration) {
-                try {
-                    const progress = utils_1.ProgressBarUtils.createBarFromPlayer(player, track.duration);
-                    if (progress)
-                        progressText = `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``;
-                }
-                catch (error) {
-                    this.client.logger?.warn(`[MUSIC_EMBED] Error creating progress bar: ${error}`);
-                    progressText = '';
-                }
-            }
+            const trackDuration = track.isStream ? this.localizationManager.translate('responses.queue.live', locale) : format_1.default.msToTime(track.duration);
             const embed = new discord_js_1.default.EmbedBuilder()
-                .setColor(defaultColor)
+                .setColor('#2b2d31')
                 .setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
-                .setDescription(`**${format_1.default.hyperlink(trackTitle, trackUri)}**\nby **${trackAuthor}**`);
+                .setDescription(`**[${trackTitle}](${trackUri})**\nby ${trackAuthor}`)
+                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
             if (trackImg)
                 embed.setThumbnail(trackImg);
-            if (progressText)
-                embed.addFields({ name: this.localizationManager.translate('responses.fields.progress', locale), value: progressText, inline: false });
-            embed.addFields({ name: this.localizationManager.translate('responses.fields.duration', locale), value: trackDuration, inline: true }, { name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName || 'Unknown', inline: true }, { name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData?.username || 'Unknown', inline: true });
-            embed.setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() }).setTimestamp();
+            const fields = [{ name: this.localizationManager.translate('responses.fields.duration', locale), value: trackDuration, inline: true }];
+            if (track.sourceName)
+                fields.push({ name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName, inline: true });
+            if (requesterData)
+                fields.push({ name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData.username, inline: true });
+            if (player && !track.isStream) {
+                const progress = utils_1.ProgressBarUtils.createBarFromPlayer(player, track.duration);
+                if (progress)
+                    fields.push({ name: this.localizationManager.translate('responses.fields.progress', locale), value: `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``, inline: false });
+            }
+            embed.addFields(fields);
             return embed;
         };
         this.createTrackEmbed = (track, position, locale = 'en') => {
-            if (!track) {
-                return new discord_js_1.default.EmbedBuilder()
-                    .setColor('#f04747')
-                    .setTitle('Error')
-                    .setDescription('Invalid track data')
-                    .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
-            }
-            const title = format_1.default.truncateText(track.title || 'Unknown Title', 60);
-            const url = track.uri || 'https://google.com';
-            const author = track.author || 'Unknown Artist';
-            let queueInfo = '';
-            if (position === 0) {
-                queueInfo = this.localizationManager.translate('responses.fields.playing_next', locale);
-            }
-            else if (position !== null && position !== undefined) {
-                queueInfo = this.localizationManager.translate('responses.fields.position', locale, { position: position + 1 });
-            }
-            const fields = [];
-            if (queueInfo)
-                fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: queueInfo, inline: false });
-            return new discord_js_1.default.EmbedBuilder()
-                .setColor('#5865f2')
+            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
+            const trackImg = track.thumbnail || track.artworkUrl;
+            const trackTitle = format_1.default.truncateText(track.title || 'Unknown Title', 60);
+            const trackAuthor = track.author || 'Unknown Artist';
+            const trackUri = track.uri || 'https://google.com';
+            const trackDuration = track.isStream ? this.localizationManager.translate('responses.queue.live', locale) : format_1.default.msToTime(track.duration);
+            const embed = new discord_js_1.default.EmbedBuilder()
+                .setColor('#43b581')
                 .setTitle(this.localizationManager.translate('responses.music.track_added', locale))
-                .setDescription(`**${format_1.default.hyperlink(title, url)}**\nby ${author}`)
-                .setThumbnail(track.artworkUrl || track.thumbnail || null)
-                .addFields(fields)
-                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
-                .setTimestamp();
+                .setDescription(`**[${trackTitle}](${trackUri})**\nby ${trackAuthor}`)
+                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
+            if (trackImg)
+                embed.setThumbnail(trackImg);
+            const fields = [{ name: this.localizationManager.translate('responses.fields.duration', locale), value: trackDuration, inline: true }];
+            if (track.sourceName)
+                fields.push({ name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName, inline: true });
+            if (position > 0) {
+                fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: this.localizationManager.translate('responses.fields.position', locale, { position: position + 1 }), inline: true });
+            }
+            else {
+                fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: this.localizationManager.translate('responses.fields.playing_next', locale), inline: true });
+            }
+            if (requesterData)
+                fields.push({ name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData.username, inline: true });
+            embed.addFields(fields);
+            return embed;
         };
         this.createPlaylistEmbed = (playlist, requester, locale = 'en') => {
-            if (!playlist || !playlist.tracks || playlist.tracks.length === 0) {
+            if (!playlist) {
                 return new discord_js_1.default.EmbedBuilder()
                     .setColor('#f04747')
-                    .setTitle('Error')
-                    .setDescription('Invalid playlist data')
+                    .setDescription('Failed to load playlist')
                     .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
             }
-            const playlistName = format_1.default.truncateText(playlist.name || 'Untitled Playlist', 50);
+            const playlistName = format_1.default.truncateText(playlist.name || 'Unknown Playlist', 60);
             const trackPreview = playlist.tracks
                 .slice(0, 5)
-                .map((track, i) => {
-                const title = format_1.default.truncateText(track.title || 'Unknown Title', 40);
-                return `**${i + 1}.** ${title}`;
+                .map((track, index) => {
+                const title = format_1.default.truncateText(track.title || 'Unknown', 40);
+                return `**${index + 1}.** ${title}`;
             })
                 .join('\n');
             const moreTracksText = playlist.tracks.length > 5 ? `\n*...and ${playlist.tracks.length - 5} more tracks*` : '';

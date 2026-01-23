@@ -146,6 +146,13 @@ responses:
         playlist_truncated: "Ajouté(s) {added}/{total} titres. Rejoignez notre serveur d'assistance pour des playlists illimitées !"
         volume_set: "Volume réglé à {volume}%"
 
+    activity_check:
+        title: "⏰ Vous écoutez toujours ?"
+        description: "La musique joue depuis plus de 6 heures.\n\nCliquez sur le bouton ci-dessous pour continuer l'écoute, sinon le lecteur sera déconnecté dans 5 minutes."
+        confirmed: "✅ Parfait ! La musique va continuer. À dans 6 heures !"
+        timeout: "⏱️ Aucune réponse reçue. Le contrôle d'activité a expiré."
+        disconnected: "🔌 Déconnecté pour inactivité (aucune réponse au contrôle d'activité)"
+
     chart:
         user_title: "Classement musical de {user}"
         guild_title: "Classement du serveur {guild}"
@@ -209,6 +216,7 @@ responses:
         missing_dj_role: "Vous avez besoin du rôle **{role}** pour utiliser cette commande."
         member_not_found: "Impossible de vérifier vos permissions. Veuillez réessayer."
         volume_error: "Une erreur s'est produite lors du réglage du volume"
+        premium_required: "⭐ Cette commande nécessite **Premium**. Rejoignez notre serveur de support pour y accéder !"
 
     language:
         user_set: "Votre langue a été définie sur **{language}**"

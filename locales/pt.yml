@@ -146,6 +146,13 @@ responses:
         playlist_truncated: "Adicionadas {added}/{total} faixas. Junte-se ao nosso servidor de suporte para playlists ilimitadas!"
         volume_set: "Volume definido para {volume}%"
 
+    activity_check:
+        title: "⏰ Ainda está ouvindo?"
+        description: "A música está tocando há mais de 6 horas.\n\nClique no botão abaixo para continuar ouvindo, ou o player será desconectado em 5 minutos."
+        confirmed: "✅ Ótimo! A música continuará tocando. Nos vemos em mais 6 horas!"
+        timeout: "⏱️ Nenhuma resposta recebida. A verificação de atividade expirou."
+        disconnected: "🔌 Desconectado por inatividade (nenhuma resposta à verificação de atividade)"
+
     chart:
         user_title: "Chart de música de {user}"
         guild_title: "Chart do servidor {guild}"
@@ -209,6 +216,7 @@ responses:
         missing_dj_role: "Você precisa do cargo **{role}** para usar este comando."
         member_not_found: "Não foi possível verificar suas permissões. Por favor, tente novamente."
         volume_error: "Ocorreu um erro ao definir o volume"
+        premium_required: "⭐ Este comando requer **Premium**. Junte-se ao nosso servidor de suporte para obter acesso!"
 
     language:
         user_set: "Seu idioma foi definido para **{language}**"

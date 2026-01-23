@@ -5,6 +5,7 @@ import discord from 'discord.js';
 import { Command } from '../../types';
 import { ConfigManager } from '../../utils/config';
 
+export * from './premium';
 export * from './interaction';
 export * from './autocomplete';
 

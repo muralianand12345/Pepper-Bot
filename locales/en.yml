@@ -150,6 +150,13 @@ responses:
         playlist_truncated: "Added {added}/{total} tracks. Join our support server for unlimited playlists!"
         volume_set: "Volume set to {volume}%"
 
+    activity_check:
+        title: "⏰ Are you still listening?"
+        description: "Music has been playing for over 6 hours.\n\nClick the button below to continue listening, or the player will be disconnected in 5 minutes."
+        confirmed: "✅ Great! Music will continue playing. See you in another 6 hours!"
+        timeout: "⏱️ No response received. The activity check has expired."
+        disconnected: "🔌 Disconnected due to inactivity (no response to activity check)"
+
     chart:
         user_title: "{user}'s Music Chart"
         guild_title: "{guild} Server Chart"
@@ -213,6 +220,7 @@ responses:
         missing_dj_role: "You need the **{role}** role to use this command."
         member_not_found: "Unable to verify your permissions. Please try again."
         volume_error: "An error occurred while setting the volume"
+        premium_required: "⭐ This command requires **Premium**. Join our support server to get access!"
 
     language:
         user_set: "Your language has been set to **{language}**"
@@ -242,6 +250,7 @@ responses:
         stop: "Stop"
         loop: "Loop"
         support_server: "Support Server"
+        continue_listening: "Continue Listening"
 
     ping:
         title: "🏓 Pong!"

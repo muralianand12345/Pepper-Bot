@@ -40,6 +40,7 @@ declare module 'magmastream' {
 	interface Player {
 		cleanupScheduledAt?: number;
 		lastUpdateTime?: number;
+		sessionStartTime?: number;
 	}
 }
 

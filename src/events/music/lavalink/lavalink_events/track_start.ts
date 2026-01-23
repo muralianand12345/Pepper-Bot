@@ -6,7 +6,7 @@ import Formatter from '../../../../utils/format';
 import { LavalinkEvent } from '../../../../types';
 import { ConfigManager } from '../../../../utils/config';
 import { LocaleDetector } from '../../../../core/locales';
-import { wait, MusicDB, NowPlayingManager, getRequester, VoiceChannelStatus, MusicResponseHandler } from '../../../../core/music';
+import { wait, MusicDB, NowPlayingManager, ActivityCheckManager, getRequester, VoiceChannelStatus, MusicResponseHandler } from '../../../../core/music';
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 const localeDetector = new LocaleDetector();
@@ -67,17 +67,22 @@ const webhookLiveSongs = async (client: discord.Client, track: magmastream.Track
 
 const lavalinkEvent: LavalinkEvent = {
 	name: ManagerEventTypes.TrackStart,
-	execute: async (player: magmastream.Player, track: magmastream.Track, _payload: magmastream.TrackStartEvent, client: discord.Client) => {
-		if (!player?.textChannelId || !client?.channels) return;
-
+	execute: async (player: magmastream.Player, track: magmastream.Track, payload: magmastream.TrackStartEvent, client: discord.Client) => {
 		try {
-			const channel = (await client.channels.fetch(player.textChannelId)) as discord.TextChannel;
-			if (!channel?.isTextBased()) return;
+			if (!player?.guildId || !track) return client.logger.warn('[TRACK_START] Missing player or track');
+
+			const channel = client.channels.cache.get(String(player.textChannelId)) as discord.TextChannel;
+			if (!channel) return client.logger.warn(`[TRACK_START] Text channel not found for guild ${player.guildId}`);
 
 			let guildLocale = 'en';
 			try {
 				guildLocale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
-			} catch (error) {}
+			} catch (error) {
+				client.logger.warn(`[TRACK_START] Error getting guild locale: ${error}`);
+			}
+
+			const voiceStatus = new VoiceChannelStatus(client);
+			await voiceStatus.setPlaying(player, track);
 
 			const requesterData = track.requester ? getRequester(client, track.requester) : null;
 			if (YTREGEX.test(track.uri)) {
@@ -125,6 +130,15 @@ const lavalinkEvent: LavalinkEvent = {
 				client.logger.debug(`[LAVALINK] Now playing message created/updated for ${track.title}`);
 			} catch (nowPlayingError) {
 				client.logger.error(`[LAVALINK] Failed to create/update now playing message: ${nowPlayingError}`);
+			}
+
+			try {
+				if (!ActivityCheckManager.hasInstance(player.guildId)) {
+					ActivityCheckManager.getInstance(player.guildId, player, client);
+					client.logger.debug(`[LAVALINK] Activity check manager initialized for guild ${player.guildId}`);
+				}
+			} catch (activityError) {
+				client.logger.error(`[LAVALINK] Failed to initialize activity check manager: ${activityError}`);
 			}
 
 			try {

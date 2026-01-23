@@ -93,8 +93,9 @@ const sendQueueEndMessage = async (client: discord.Client, channel: discord.Text
 const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, client: discord.Client): Promise<void> => {
 	const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, client);
 	nowPlayingManager.onStop();
+	await nowPlayingManager.disableButtons();
 
-	const CLEANUP_DELAY = 120000; // Reduced to 2 minutes for faster cleanup when autoplay fails
+	const CLEANUP_DELAY = 120000;
 	const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
 
 	const scheduledAt = Date.now();

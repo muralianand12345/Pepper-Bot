@@ -32,6 +32,7 @@ const buildResultEmbed = (result: 'success' | 'failed' | 'timeout', t: (key: str
 
 const loginCommand: Command = {
 	cooldown: 15,
+	premium: true,
 	category: CommandCategory.MUSIC,
 	data: new discord.SlashCommandBuilder()
 		.setName('login')

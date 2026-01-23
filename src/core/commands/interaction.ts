@@ -3,6 +3,7 @@ import discord from 'discord.js';
 
 import { Command } from '../../types';
 import { LocaleDetector } from '../locales';
+import { checkUserPremium } from './premium';
 import { MusicResponseHandler } from '../music';
 import music_guild from '../../events/database/schema/music_guild';
 
@@ -112,6 +113,9 @@ export class CommandInteractionHandler {
 
 		const ownerResult = await this.handleOwner(command);
 		if (ownerResult === false) return false;
+
+		const premiumResult = await this.handlePremium(command);
+		if (premiumResult === false) return false;
 
 		if (!this.client.config.bot.owners.includes(this.interaction.user.id)) {
 			const djResult = await this.handleDJ(command);
@@ -244,6 +248,21 @@ export class CommandInteractionHandler {
 			return false;
 		}
 		return true;
+	};
+
+	private handlePremium = async (command: Command): Promise<boolean> => {
+		if (!command.premium) return true;
+		try {
+			const { isPremium } = await checkUserPremium(this.client, this.interaction.user.id);
+			if (!isPremium) {
+				await this.sendErrorReply('responses.errors.premium_required');
+				return false;
+			}
+			return true;
+		} catch (error) {
+			this.client.logger.error(`[INTERACTION_CREATE] Error checking premium status: ${error}`);
+			return true;
+		}
 	};
 
 	private handleDJ = async (command: Command): Promise<boolean> => {
