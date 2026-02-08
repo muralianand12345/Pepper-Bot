@@ -14,7 +14,7 @@ export const send = async (client: discord.Client, channelId: string, message: s
 					}
 					return { found: false };
 				},
-				{ context: { channelId, message } }
+				{ context: { channelId, message } },
 			)
 			.catch((): BroadcastResult[] => [{ found: false }]);
 

@@ -304,15 +304,15 @@ responses:
             other: 'Autres commandes'
 
     lyrics:
-        title: "Paroles"
+        title: 'Paroles'
         not_found: 'Aucune parole trouvée pour « {title} » de {artist}'
         empty: 'Les paroles de « {title} » de {artist} sont vides ou indisponibles'
         not_spotify: 'Les paroles sont disponibles uniquement pour les titres Spotify. En cours : « {title} » de {artist}'
-        fetching: "🔍 Récupération des paroles, veuillez patienter..."
-        page: "Page"
+        fetching: '🔍 Récupération des paroles, veuillez patienter...'
+        page: 'Page'
         buttons:
-            previous: "Précédent"
-            next: "Suivant"
+            previous: 'Précédent'
+            next: 'Suivant'
 
     queue:
         title: "File d'attente musicale"

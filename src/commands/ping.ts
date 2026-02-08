@@ -94,7 +94,7 @@ const pingCommand: Command = {
 					const status = player.playing ? '▶️' : player.paused ? '⏸️' : '⏹️';
 					const queueSize = await player.queue.size();
 					return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Users: ${userCount} ${userCount === 1 ? 'user' : 'users'}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize + 1} songs\n` + `└ Node: ${player.node.options.identifier}`;
-				})
+				}),
 			);
 			return playerInfos.join('\n\n');
 		};

@@ -1,377 +1,377 @@
 commands:
     play:
-        name: "play"
-        description: "Spiele einen Song per Songname oder URL ab"
+        name: 'play'
+        description: 'Spiele einen Song per Songname oder URL ab'
         options:
             song:
-                name: "song"
-                description: "Liedname/URL"
+                name: 'song'
+                description: 'Liedname/URL'
     pause:
-        name: "pause"
-        description: "Pausiere die aktuell spielende Musik"
+        name: 'pause'
+        description: 'Pausiere die aktuell spielende Musik'
     resume:
-        name: "resume"
-        description: "Setze die pausierte Musik fort"
+        name: 'resume'
+        description: 'Setze die pausierte Musik fort'
     skip:
-        name: "skip"
-        description: "Überspringe den aktuellen Song und spiele den nächsten"
+        name: 'skip'
+        description: 'Überspringe den aktuellen Song und spiele den nächsten'
     stop:
-        name: "stop"
-        description: "Stoppe die Musik und trenne die Verbindung zum Sprachkanal"
+        name: 'stop'
+        description: 'Stoppe die Musik und trenne die Verbindung zum Sprachkanal'
     loop:
-        name: "loop"
-        description: "Wiederholungsmodus für den aktuellen Track umschalten"
+        name: 'loop'
+        description: 'Wiederholungsmodus für den aktuellen Track umschalten'
     autoplay:
-        name: "autoplay"
-        description: "Intelligente Autoplay-Funktion basierend auf deinen Musikvorlieben umschalten"
+        name: 'autoplay'
+        description: 'Intelligente Autoplay-Funktion basierend auf deinen Musikvorlieben umschalten'
         options:
             enabled:
-                name: "aktiviert"
-                description: "Autoplay aktivieren oder deaktivieren"
+                name: 'aktiviert'
+                description: 'Autoplay aktivieren oder deaktivieren'
     language:
-        name: "language"
-        description: "Spracheinstellungen für den Bot festlegen"
+        name: 'language'
+        description: 'Spracheinstellungen für den Bot festlegen'
         options:
             scope:
-                name: "bereich"
-                description: "Sprache für Benutzer oder Server festlegen"
+                name: 'bereich'
+                description: 'Sprache für Benutzer oder Server festlegen'
                 choices:
-                    user: "benutzer"
-                    server: "server"
-                    reset: "zurücksetzen"
+                    user: 'benutzer'
+                    server: 'server'
+                    reset: 'zurücksetzen'
             language:
-                name: "sprache"
-                description: "Wähle deine bevorzugte Sprache"
+                name: 'sprache'
+                description: 'Wähle deine bevorzugte Sprache'
     feedback:
-        name: "feedback"
-        description: "Sende Feedback an die Entwickler"
+        name: 'feedback'
+        description: 'Sende Feedback an die Entwickler'
     ping:
-        name: "ping"
-        description: "Überprüfe die Latenz und den Verbindungsstatus des Bots"
+        name: 'ping'
+        description: 'Überprüfe die Latenz und den Verbindungsstatus des Bots'
     help:
-        name: "help"
-        description: "Zeige alle verfügbaren Befehle und ihre Beschreibungen an"
+        name: 'help'
+        description: 'Zeige alle verfügbaren Befehle und ihre Beschreibungen an'
         options:
             command:
-                name: "befehl"
-                description: "Erhalte detaillierte Informationen über einen bestimmten Befehl"
+                name: 'befehl'
+                description: 'Erhalte detaillierte Informationen über einen bestimmten Befehl'
     filter:
-        name: "filter"
-        description: "Wende Audiofilter an, um dein Musikerlebnis zu verbessern"
+        name: 'filter'
+        description: 'Wende Audiofilter an, um dein Musikerlebnis zu verbessern'
         options:
             type:
-                name: "typ"
-                description: "Wähle einen Audiofilter zum Anwenden"
+                name: 'typ'
+                description: 'Wähle einen Audiofilter zum Anwenden'
     chart:
-        name: "chart"
-        description: "Zeige Musikanalysen und Charts an"
+        name: 'chart'
+        description: 'Zeige Musikanalysen und Charts an'
         options:
             scope:
-                name: "bereich"
-                description: "Wähle den Bereich für die Analysen"
+                name: 'bereich'
+                description: 'Wähle den Bereich für die Analysen'
                 choices:
-                    user: "Persönlich"
-                    guild: "Server"
-                    global: "Global"
+                    user: 'Persönlich'
+                    guild: 'Server'
+                    global: 'Global'
             limit:
-                name: "limit"
-                description: "Anzahl der anzuzeigenden Top-Einträge (5-20)"
+                name: 'limit'
+                description: 'Anzahl der anzuzeigenden Top-Einträge (5-20)'
     lyrics:
-        name: "lyrics"
-        description: "Zeige den Liedtext für den aktuell spielenden Track an"
+        name: 'lyrics'
+        description: 'Zeige den Liedtext für den aktuell spielenden Track an'
     queue:
-        name: "queue"
-        description: "Zeige und verwalte die Musikwarteschlange"
+        name: 'queue'
+        description: 'Zeige und verwalte die Musikwarteschlange'
 
     dj:
-        name: "dj"
-        description: "Verwalte die DJ-Rolle für Musikbefehle"
+        name: 'dj'
+        description: 'Verwalte die DJ-Rolle für Musikbefehle'
         options:
             role:
-                name: "rolle"
-                description: "Die Rolle, die als DJ-Rolle festgelegt/entfernt werden soll (leer lassen zum Erstellen/Deaktivieren)"
+                name: 'rolle'
+                description: 'Die Rolle, die als DJ-Rolle festgelegt/entfernt werden soll (leer lassen zum Erstellen/Deaktivieren)'
     login:
-        name: "login"
-        description: "Verbinde dein Musikkonto mit Pepper"
+        name: 'login'
+        description: 'Verbinde dein Musikkonto mit Pepper'
         options:
             account:
-                name: "konto"
-                description: "Der Musikdienst zum Verbinden"
+                name: 'konto'
+                description: 'Der Musikdienst zum Verbinden'
                 choices:
-                    spotify: "Spotify"
+                    spotify: 'Spotify'
     logout:
-        name: "logout"
-        description: "Trenne dein Musikkonto von Pepper"
+        name: 'logout'
+        description: 'Trenne dein Musikkonto von Pepper'
         options:
             account:
-                name: "konto"
-                description: "Der Musikdienst zum Trennen"
+                name: 'konto'
+                description: 'Der Musikdienst zum Trennen'
                 choices:
-                    spotify: "Spotify"
+                    spotify: 'Spotify'
     volume:
-        name: "volume"
-        description: "Lautstärke der Musikwiedergabe einstellen"
+        name: 'volume'
+        description: 'Lautstärke der Musikwiedergabe einstellen'
         options:
             volume:
-                name: "lautstärke"
-                description: "Lautstärkepegel (1-100)"
+                name: 'lautstärke'
+                description: 'Lautstärkepegel (1-100)'
 
 responses:
     music:
-        connected: "Verbunden mit {channelName}"
-        paused: "Musik pausiert!"
-        resumed: "Musik fortgesetzt!"
-        skipped: "Aktuellen Song übersprungen!"
-        stopped: "Musikplayer gestoppt und vom Sprachkanal getrennt"
-        loop_enabled: "Wiederholung ist jetzt aktiviert"
-        loop_disabled: "Wiederholung ist jetzt deaktiviert"
+        connected: 'Verbunden mit {channelName}'
+        paused: 'Musik pausiert!'
+        resumed: 'Musik fortgesetzt!'
+        skipped: 'Aktuellen Song übersprungen!'
+        stopped: 'Musikplayer gestoppt und vom Sprachkanal getrennt'
+        loop_enabled: 'Wiederholung ist jetzt aktiviert'
+        loop_disabled: 'Wiederholung ist jetzt deaktiviert'
         autoplay_enabled: "🎵 Intelligentes Autoplay ist jetzt **aktiviert**\n\nWenn die Warteschlange leer ist, füge ich automatisch Songs basierend auf deinen Musikvorlieben hinzu."
         autoplay_disabled: "⏹️ Autoplay ist jetzt **deaktiviert**\n\nDie Wiedergabe stoppt, wenn die Warteschlange leer ist."
-        autoplay_failed: "🔄 Autoplay konnte keine passenden Empfehlungen finden und wurde automatisch deaktiviert"
-        now_playing: "Wird jetzt gespielt"
-        track_added: "Track zur Warteschlange hinzugefügt"
-        playlist_added: "Playlist zur Warteschlange hinzugefügt"
-        queue_empty: "🎵 Alle Musik in der Warteschlange wurde abgespielt"
-        disconnected: "🔌 Musikplayer getrennt"
-        disconnected_inactivity: "🔌 Trennung wegen Inaktivität (5 Minuten ohne Zuhörer)"
-        disconnected_autoplay_failed: "🔌 Trennung - Autoplay konnte keine neuen Songs finden"
-        paused_empty_channel: "⏸️ Wiedergabe pausiert, da der Sprachkanal leer ist"
-        resumed_members_joined: "▶️ Wiedergabe fortgesetzt"
-        youtube_blocked: "⚠️ Song wird übersprungen! YouTube-Quelle erkannt."
-        youtube_footer: "Wir unterstützen keine YouTube-Links aufgrund der YouTube-Nutzungsbedingungen."
-        filter_applied: "{filter}-Filter angewendet"
-        playlist_truncated: "Hinzugefügt {added}/{total} Titel. Tritt unserem Support-Server bei, um unbegrenzte Playlists zu erhalten!"
-        volume_set: "Lautstärke auf {volume}% eingestellt"
+        autoplay_failed: '🔄 Autoplay konnte keine passenden Empfehlungen finden und wurde automatisch deaktiviert'
+        now_playing: 'Wird jetzt gespielt'
+        track_added: 'Track zur Warteschlange hinzugefügt'
+        playlist_added: 'Playlist zur Warteschlange hinzugefügt'
+        queue_empty: '🎵 Alle Musik in der Warteschlange wurde abgespielt'
+        disconnected: '🔌 Musikplayer getrennt'
+        disconnected_inactivity: '🔌 Trennung wegen Inaktivität (5 Minuten ohne Zuhörer)'
+        disconnected_autoplay_failed: '🔌 Trennung - Autoplay konnte keine neuen Songs finden'
+        paused_empty_channel: '⏸️ Wiedergabe pausiert, da der Sprachkanal leer ist'
+        resumed_members_joined: '▶️ Wiedergabe fortgesetzt'
+        youtube_blocked: '⚠️ Song wird übersprungen! YouTube-Quelle erkannt.'
+        youtube_footer: 'Wir unterstützen keine YouTube-Links aufgrund der YouTube-Nutzungsbedingungen.'
+        filter_applied: '{filter}-Filter angewendet'
+        playlist_truncated: 'Hinzugefügt {added}/{total} Titel. Tritt unserem Support-Server bei, um unbegrenzte Playlists zu erhalten!'
+        volume_set: 'Lautstärke auf {volume}% eingestellt'
 
     activity_check:
-        title: "⏰ Hörst du noch zu?"
+        title: '⏰ Hörst du noch zu?'
         description: "Die Musik läuft seit über 6 Stunden.\n\nKlicke unten auf die Schaltfläche, um weiterzuhören, sonst wird der Player in 5 Minuten getrennt."
-        confirmed: "✅ Super! Die Musik wird weiter abgespielt. Wir sehen uns in weiteren 6 Stunden!"
-        timeout: "⏱️ Keine Antwort erhalten. Die Aktivitätsprüfung ist abgelaufen."
-        disconnected: "🔌 Aufgrund von Inaktivität getrennt (keine Antwort auf die Aktivitätsprüfung)"
+        confirmed: '✅ Super! Die Musik wird weiter abgespielt. Wir sehen uns in weiteren 6 Stunden!'
+        timeout: '⏱️ Keine Antwort erhalten. Die Aktivitätsprüfung ist abgelaufen.'
+        disconnected: '🔌 Aufgrund von Inaktivität getrennt (keine Antwort auf die Aktivitätsprüfung)'
 
     chart:
-        user_title: "{user}s Musik-Chart"
-        guild_title: "{guild} Server-Chart"
-        global_title: "Globales Musik-Chart"
-        no_user_data: "Du hast noch keine Musik gehört. Spiele ein paar Songs ab, um deine Charts zu sehen!"
-        no_guild_data: "Dieser Server hat noch keine Musikdaten. Spielt ein paar Songs ab, um die Server-Charts zu sehen!"
-        no_global_data: "Momentan sind keine globalen Musikdaten verfügbar."
-        total_tracks: "Tracks insgesamt"
-        unique_artists: "verschiedene Künstler"
-        total_listening_time: "Gesamthörzeit"
-        average_plays: "durchschnittliche Wiedergaben pro Track"
-        recent_activity: "diese Woche gespielte Tracks"
-        top_tracks: "Top-Tracks"
-        listening_stats: "Hörstatistiken"
-        total_hours: "Stunden insgesamt"
-        avg_song_length: "Durchschn. Songlänge"
-        this_week: "Diese Woche"
-        tracks: "Tracks"
-        plays: "Wiedergaben"
-        no_data: "Keine Daten verfügbar"
-        footer: "Musik-Analytics-Dashboard"
-        export_success: "{count} {scope}-Tracks erfolgreich als CSV exportiert"
+        user_title: '{user}s Musik-Chart'
+        guild_title: '{guild} Server-Chart'
+        global_title: 'Globales Musik-Chart'
+        no_user_data: 'Du hast noch keine Musik gehört. Spiele ein paar Songs ab, um deine Charts zu sehen!'
+        no_guild_data: 'Dieser Server hat noch keine Musikdaten. Spielt ein paar Songs ab, um die Server-Charts zu sehen!'
+        no_global_data: 'Momentan sind keine globalen Musikdaten verfügbar.'
+        total_tracks: 'Tracks insgesamt'
+        unique_artists: 'verschiedene Künstler'
+        total_listening_time: 'Gesamthörzeit'
+        average_plays: 'durchschnittliche Wiedergaben pro Track'
+        recent_activity: 'diese Woche gespielte Tracks'
+        top_tracks: 'Top-Tracks'
+        listening_stats: 'Hörstatistiken'
+        total_hours: 'Stunden insgesamt'
+        avg_song_length: 'Durchschn. Songlänge'
+        this_week: 'Diese Woche'
+        tracks: 'Tracks'
+        plays: 'Wiedergaben'
+        no_data: 'Keine Daten verfügbar'
+        footer: 'Musik-Analytics-Dashboard'
+        export_success: '{count} {scope}-Tracks erfolgreich als CSV exportiert'
         buttons:
-            refresh: "Aktualisieren"
-            export: "Daten exportieren"
+            refresh: 'Aktualisieren'
+            export: 'Daten exportieren'
 
     errors:
-        music_disabled: "Musik ist derzeit deaktiviert."
-        no_player: "Es wird gerade keine Musik abgespielt"
-        no_voice_channel: "Du musst in einem Sprachkanal sein"
-        not_same_voice: "Du bist nicht im selben Sprachkanal wie der Bot"
-        no_permission_join: "Ich habe keine Berechtigung, {channelName} beizutreten"
-        need_permissions: "Ich brauche die Berechtigungen zum `Beitreten` und `Sprechen` in {channelName}"
-        not_in_server: "Du bist nicht auf dem Server"
-        server_only: "Dieser Befehl kann nur auf einem Server verwendet werden"
-        already_paused: "Die Musik ist bereits pausiert"
-        already_playing: "Die Musik spielt bereits"
-        no_queue: "Es sind keine Songs in der Warteschlange"
-        queue_too_small: "Es sind nur {count} Songs in der Warteschlange"
-        no_results: "Ergebnisse konnten nicht abgerufen werden"
-        no_permission: "🚫 {user}, du hast keine Berechtigung, diesen Befehl zu verwenden!"
-        missing_user_perms: "🚫 Du hast keine `{permissions}`-Berechtigung, um diesen Befehl zu verwenden!"
-        missing_bot_perms: "🚫 Ich brauche `{permissions}`-Berechtigungen, um diesen Befehl auszuführen!"
-        general_error: "Beim Ausführen dieses Befehls ist ein Fehler aufgetreten."
-        play_error: "Beim Verarbeiten des Songs ist ein Fehler aufgetreten"
-        stop_error: "Beim Stoppen des Songs ist ein Fehler aufgetreten"
-        pause_error: "Beim Pausieren des Songs ist ein Fehler aufgetreten"
-        resume_error: "Beim Fortsetzen des Songs ist ein Fehler aufgetreten"
-        skip_error: "Beim Überspringen des Songs ist ein Fehler aufgetreten"
-        loop_error: "Beim Umschalten der Wiederholung ist ein Fehler aufgetreten"
-        autoplay_error: "Beim Umschalten von Autoplay ist ein Fehler aufgetreten."
-        contact_dev: "Wenn das Problem weiterhin besteht, verwende bitte /feedback oder kontaktiere den Entwickler"
-        filter_error: "Beim Anwenden des Filters ist ein Fehler aufgetreten"
-        filter_not_found: "Filter `{filter}` nicht gefunden. Verfügbare Filter: {available}"
-        feedback_failed: "Feedback konnte nicht gesendet werden. Bitte versuche es später erneut."
-        no_current_track: "Es wird gerade kein Track abgespielt"
-        lyrics_plugin_missing: "Die Liedtext-Funktion ist auf diesem Lavalink-Node nicht verfügbar."
-        lyrics_error: "Beim Abrufen der Liedtexte ist ein Fehler aufgetreten"
-        dj_error: "Beim Verwalten der DJ-Rolle ist ein Fehler aufgetreten. Bitte versuche es später erneut."
-        dj_role_create_failed: "DJ-Rolle konnte nicht erstellt werden. Bitte überprüfe die Bot-Berechtigungen und versuche es erneut."
-        missing_dj_role: "Du benötigst die **{role}**-Rolle, um diesen Befehl zu verwenden."
-        member_not_found: "Deine Berechtigungen konnten nicht überprüft werden. Bitte versuche es erneut."
-        volume_error: "Beim Einstellen der Lautstärke ist ein Fehler aufgetreten"
-        premium_required: "⭐ Dieser Befehl erfordert **Premium**. Tritt unserem Support-Server bei, um Zugang zu erhalten!"
+        music_disabled: 'Musik ist derzeit deaktiviert.'
+        no_player: 'Es wird gerade keine Musik abgespielt'
+        no_voice_channel: 'Du musst in einem Sprachkanal sein'
+        not_same_voice: 'Du bist nicht im selben Sprachkanal wie der Bot'
+        no_permission_join: 'Ich habe keine Berechtigung, {channelName} beizutreten'
+        need_permissions: 'Ich brauche die Berechtigungen zum `Beitreten` und `Sprechen` in {channelName}'
+        not_in_server: 'Du bist nicht auf dem Server'
+        server_only: 'Dieser Befehl kann nur auf einem Server verwendet werden'
+        already_paused: 'Die Musik ist bereits pausiert'
+        already_playing: 'Die Musik spielt bereits'
+        no_queue: 'Es sind keine Songs in der Warteschlange'
+        queue_too_small: 'Es sind nur {count} Songs in der Warteschlange'
+        no_results: 'Ergebnisse konnten nicht abgerufen werden'
+        no_permission: '🚫 {user}, du hast keine Berechtigung, diesen Befehl zu verwenden!'
+        missing_user_perms: '🚫 Du hast keine `{permissions}`-Berechtigung, um diesen Befehl zu verwenden!'
+        missing_bot_perms: '🚫 Ich brauche `{permissions}`-Berechtigungen, um diesen Befehl auszuführen!'
+        general_error: 'Beim Ausführen dieses Befehls ist ein Fehler aufgetreten.'
+        play_error: 'Beim Verarbeiten des Songs ist ein Fehler aufgetreten'
+        stop_error: 'Beim Stoppen des Songs ist ein Fehler aufgetreten'
+        pause_error: 'Beim Pausieren des Songs ist ein Fehler aufgetreten'
+        resume_error: 'Beim Fortsetzen des Songs ist ein Fehler aufgetreten'
+        skip_error: 'Beim Überspringen des Songs ist ein Fehler aufgetreten'
+        loop_error: 'Beim Umschalten der Wiederholung ist ein Fehler aufgetreten'
+        autoplay_error: 'Beim Umschalten von Autoplay ist ein Fehler aufgetreten.'
+        contact_dev: 'Wenn das Problem weiterhin besteht, verwende bitte /feedback oder kontaktiere den Entwickler'
+        filter_error: 'Beim Anwenden des Filters ist ein Fehler aufgetreten'
+        filter_not_found: 'Filter `{filter}` nicht gefunden. Verfügbare Filter: {available}'
+        feedback_failed: 'Feedback konnte nicht gesendet werden. Bitte versuche es später erneut.'
+        no_current_track: 'Es wird gerade kein Track abgespielt'
+        lyrics_plugin_missing: 'Die Liedtext-Funktion ist auf diesem Lavalink-Node nicht verfügbar.'
+        lyrics_error: 'Beim Abrufen der Liedtexte ist ein Fehler aufgetreten'
+        dj_error: 'Beim Verwalten der DJ-Rolle ist ein Fehler aufgetreten. Bitte versuche es später erneut.'
+        dj_role_create_failed: 'DJ-Rolle konnte nicht erstellt werden. Bitte überprüfe die Bot-Berechtigungen und versuche es erneut.'
+        missing_dj_role: 'Du benötigst die **{role}**-Rolle, um diesen Befehl zu verwenden.'
+        member_not_found: 'Deine Berechtigungen konnten nicht überprüft werden. Bitte versuche es erneut.'
+        volume_error: 'Beim Einstellen der Lautstärke ist ein Fehler aufgetreten'
+        premium_required: '⭐ Dieser Befehl erfordert **Premium**. Tritt unserem Support-Server bei, um Zugang zu erhalten!'
 
     language:
-        user_set: "Deine Sprache wurde auf **{language}** festgelegt"
-        server_set: "Serversprache wurde auf **{language}** festgelegt (nur Admin)"
-        reset: "Spracheinstellung wurde zurückgesetzt. Discord-Sprache wird verwendet."
-        same_language: "Sprache ist bereits auf **{language}** eingestellt"
-        unsupported: "Sprache **{language}** wird nicht unterstützt. Unterstützte Sprachen: {languages}"
-        no_permission: "Du benötigst die Berechtigung **Server verwalten**, um die Serversprache zu ändern"
+        user_set: 'Deine Sprache wurde auf **{language}** festgelegt'
+        server_set: 'Serversprache wurde auf **{language}** festgelegt (nur Admin)'
+        reset: 'Spracheinstellung wurde zurückgesetzt. Discord-Sprache wird verwendet.'
+        same_language: 'Sprache ist bereits auf **{language}** eingestellt'
+        unsupported: 'Sprache **{language}** wird nicht unterstützt. Unterstützte Sprachen: {languages}'
+        no_permission: 'Du benötigst die Berechtigung **Server verwalten**, um die Serversprache zu ändern'
 
     fields:
-        duration: "Dauer"
-        source: "Quelle"
-        requested_by: "Angefragt von"
-        queue_info: "Warteschlangen-Info"
-        position: "Position #{position}"
-        playing_next: "Wird als nächstes gespielt"
-        tracks: "Tracks"
-        total_duration: "Gesamtdauer"
-        avg_duration: "Durchschn. Dauer"
-        added_by: "Hinzugefügt von"
-        progress: "Fortschritt"
+        duration: 'Dauer'
+        source: 'Quelle'
+        requested_by: 'Angefragt von'
+        queue_info: 'Warteschlangen-Info'
+        position: 'Position #{position}'
+        playing_next: 'Wird als nächstes gespielt'
+        tracks: 'Tracks'
+        total_duration: 'Gesamtdauer'
+        avg_duration: 'Durchschn. Dauer'
+        added_by: 'Hinzugefügt von'
+        progress: 'Fortschritt'
 
     buttons:
-        pause: "Pause"
-        resume: "Fortsetzen"
-        skip: "Überspringen"
-        stop: "Stopp"
-        loop: "Wiederholen"
-        support_server: "Support-Server"
+        pause: 'Pause'
+        resume: 'Fortsetzen'
+        skip: 'Überspringen'
+        stop: 'Stopp'
+        loop: 'Wiederholen'
+        support_server: 'Support-Server'
 
     ping:
-        title: "🏓 Pong!"
-        description: "Bot-Latenz und Verbindungsinformationen"
-        api_latency: "API-Latenz"
-        websocket_latency: "WebSocket-Latenz"
-        database_latency: "Datenbank-Latenz"
-        music_nodes: "Musik-Nodes"
-        uptime: "Betriebszeit"
-        memory_usage: "Speichernutzung"
-        active_players: "Aktive Player"
-        shard_stats: "Shard-Statistiken"
-        footer: "Alle Systeme betriebsbereit"
+        title: '🏓 Pong!'
+        description: 'Bot-Latenz und Verbindungsinformationen'
+        api_latency: 'API-Latenz'
+        websocket_latency: 'WebSocket-Latenz'
+        database_latency: 'Datenbank-Latenz'
+        music_nodes: 'Musik-Nodes'
+        uptime: 'Betriebszeit'
+        memory_usage: 'Speichernutzung'
+        active_players: 'Aktive Player'
+        shard_stats: 'Shard-Statistiken'
+        footer: 'Alle Systeme betriebsbereit'
 
     login:
         already_logged_in:
-            title: "❌ Bereits angemeldet"
+            title: '❌ Bereits angemeldet'
             description: "Du hast bereits ein Spotify-Konto verbunden.\n\nBitte verwende `/logout spotify`, wenn du ein anderes Konto verbinden möchtest."
-        connect_title: "🎵 Spotify-Konto verbinden"
+        connect_title: '🎵 Spotify-Konto verbinden'
         connect_description: "Klicke auf den Button unten, um Pepper den Zugriff auf dein Spotify-Konto zu erlauben.\n\n**Angeforderte Berechtigungen:**\n• Deine Playlists lesen"
-        auth_footer: "Der Autorisierungslink läuft in 10 Minuten ab"
+        auth_footer: 'Der Autorisierungslink läuft in 10 Minuten ab'
         success:
-            title: "✅ Erfolgreich verbunden"
+            title: '✅ Erfolgreich verbunden'
             description: "Dein Spotify-Konto wurde mit Pepper verknüpft!\n\nDu kannst jetzt Musikbefehle mit deinen Spotify-Einstellungen verwenden."
         failed:
-            title: "❌ Verbindung fehlgeschlagen"
+            title: '❌ Verbindung fehlgeschlagen'
             description: "Bei der Authentifizierung ist etwas schiefgelaufen.\n\nBitte versuche `/login spotify` erneut."
         timeout:
-            title: "⏱️ Sitzung abgelaufen"
+            title: '⏱️ Sitzung abgelaufen'
             description: "Die Authentifizierungssitzung ist abgelaufen.\n\nBitte führe `/login spotify` erneut aus, um einen neuen Autorisierungslink zu erhalten."
 
     logout:
         not_logged_in:
-            title: "❌ Nicht angemeldet"
+            title: '❌ Nicht angemeldet'
             description: "Du hast kein Spotify-Konto verbunden.\n\nVerwende `/login spotify`, um dein Konto zu verbinden."
         disconnect_error:
-            title: "❌ Fehler"
-            description: "Dein Spotify-Konto konnte nicht getrennt werden. Bitte versuche es später erneut."
+            title: '❌ Fehler'
+            description: 'Dein Spotify-Konto konnte nicht getrennt werden. Bitte versuche es später erneut.'
         disconnected:
-            title: "✅ Konto getrennt"
+            title: '✅ Konto getrennt'
             description: "Dein Spotify-Konto wurde erfolgreich von Pepper getrennt.\n\nDu kannst dich jederzeit mit `/login spotify` erneut verbinden."
 
     help:
-        title: "📚 Befehlshilfe"
-        description: "Hier sind alle {total} verfügbaren Befehle. Verwende `{prefix}help <befehl>` für detaillierte Informationen."
-        footer: "Verwende `/help <befehl>` für mehr Details zu einem bestimmten Befehl"
-        command_footer: "Befehlsinformationen"
-        command_not_found: "Befehl `{command}` nicht gefunden."
-        cooldown: "Abklingzeit"
-        permissions: "Berechtigungen"
-        category: "Kategorie"
-        options: "Optionen"
-        no_cooldown: "Keine"
-        owner_only: "Nur Besitzer"
-        none: "Keine"
-        no_commands: "Keine Befehle in dieser Kategorie"
+        title: '📚 Befehlshilfe'
+        description: 'Hier sind alle {total} verfügbaren Befehle. Verwende `{prefix}help <befehl>` für detaillierte Informationen.'
+        footer: 'Verwende `/help <befehl>` für mehr Details zu einem bestimmten Befehl'
+        command_footer: 'Befehlsinformationen'
+        command_not_found: 'Befehl `{command}` nicht gefunden.'
+        cooldown: 'Abklingzeit'
+        permissions: 'Berechtigungen'
+        category: 'Kategorie'
+        options: 'Optionen'
+        no_cooldown: 'Keine'
+        owner_only: 'Nur Besitzer'
+        none: 'Keine'
+        no_commands: 'Keine Befehle in dieser Kategorie'
         categories:
-            music: "Musik-Befehle"
-            utility: "Dienstprogramm-Befehle"
-            other: "Sonstige Befehle"
+            music: 'Musik-Befehle'
+            utility: 'Dienstprogramm-Befehle'
+            other: 'Sonstige Befehle'
 
     lyrics:
-        title: "Songtext"
+        title: 'Songtext'
         not_found: 'Kein Songtext gefunden für „{title}" von {artist}'
         empty: 'Songtext für „{title}" von {artist} ist leer oder nicht verfügbar'
         not_spotify: 'Songtexte sind nur für Spotify-Titel verfügbar. Aktuell läuft: „{title}" von {artist}'
-        fetching: "🔍 Songtext wird abgerufen, einen Moment bitte..."
-        page: "Seite"
+        fetching: '🔍 Songtext wird abgerufen, einen Moment bitte...'
+        page: 'Seite'
         buttons:
-            previous: "Zurück"
-            next: "Weiter"
+            previous: 'Zurück'
+            next: 'Weiter'
 
     queue:
-        title: "Musik-Warteschlange"
-        empty: "Die Warteschlange ist leer. Füge Songs mit `/play` hinzu!"
-        now_playing: "Wird jetzt gespielt"
-        upcoming: "Als nächstes"
-        tracks_in_queue: "Tracks in der Warteschlange"
-        total_duration: "Gesamtdauer"
-        live_streams: "Livestreams"
-        live: "LIVE"
-        page: "Seite"
-        progress: "Fortschritt"
-        shuffled: "Warteschlange wurde gemischt!"
-        cleared: "Warteschlange wurde geleert!"
-        removed: "{count} Track(s) aus der Warteschlange entfernt"
-        remove_failed: "Track(s) konnten nicht aus der Warteschlange entfernt werden"
+        title: 'Musik-Warteschlange'
+        empty: 'Die Warteschlange ist leer. Füge Songs mit `/play` hinzu!'
+        now_playing: 'Wird jetzt gespielt'
+        upcoming: 'Als nächstes'
+        tracks_in_queue: 'Tracks in der Warteschlange'
+        total_duration: 'Gesamtdauer'
+        live_streams: 'Livestreams'
+        live: 'LIVE'
+        page: 'Seite'
+        progress: 'Fortschritt'
+        shuffled: 'Warteschlange wurde gemischt!'
+        cleared: 'Warteschlange wurde geleert!'
+        removed: '{count} Track(s) aus der Warteschlange entfernt'
+        remove_failed: 'Track(s) konnten nicht aus der Warteschlange entfernt werden'
         moved: '"{track}" von Position {from} nach Position {to} verschoben'
-        move_failed: "Track konnte nicht in der Warteschlange verschoben werden"
-        track_not_found: "Track an der angegebenen Position nicht gefunden"
-        same_position: "Ausgangs- und Zielposition sind identisch"
-        invalid_position: "Ungültige Position. Bitte gib eine Zahl zwischen 1 und der Warteschlangengröße ein."
-        invalid_range: "Ungültiger Bereich. Verwende das Format: start-ende (z.B. 1-5)"
-        invalid_positions: "Ungültige Positionen. Verwende das Format: 1,3,5 oder 1-5"
-        invalid_move_positions: "Ungültige Positionen. Beide Positionen müssen zwischen 1 und der Warteschlangengröße liegen."
+        move_failed: 'Track konnte nicht in der Warteschlange verschoben werden'
+        track_not_found: 'Track an der angegebenen Position nicht gefunden'
+        same_position: 'Ausgangs- und Zielposition sind identisch'
+        invalid_position: 'Ungültige Position. Bitte gib eine Zahl zwischen 1 und der Warteschlangengröße ein.'
+        invalid_range: 'Ungültiger Bereich. Verwende das Format: start-ende (z.B. 1-5)'
+        invalid_positions: 'Ungültige Positionen. Verwende das Format: 1,3,5 oder 1-5'
+        invalid_move_positions: 'Ungültige Positionen. Beide Positionen müssen zwischen 1 und der Warteschlangengröße liegen.'
         buttons:
-            previous: "Zurück"
-            next: "Weiter"
-            shuffle: "Mischen"
-            move: "Verschieben"
-            clear: "Leeren"
-            remove: "Entfernen"
+            previous: 'Zurück'
+            next: 'Weiter'
+            shuffle: 'Mischen'
+            move: 'Verschieben'
+            clear: 'Leeren'
+            remove: 'Entfernen'
         remove_modal:
-            title: "Songs aus Warteschlange entfernen"
-            position_label: "Zu entfernende Position(en)"
-            position_placeholder: "z.B. 3 oder 1,3,5 oder 1-5"
+            title: 'Songs aus Warteschlange entfernen'
+            position_label: 'Zu entfernende Position(en)'
+            position_placeholder: 'z.B. 3 oder 1,3,5 oder 1-5'
         move_modal:
-            title: "Song in Warteschlange verschieben"
-            from_label: "Aktuelle Position"
-            from_placeholder: "z.B. 5"
-            to_label: "Neue Position"
-            to_placeholder: "z.B. 2"
+            title: 'Song in Warteschlange verschieben'
+            from_label: 'Aktuelle Position'
+            from_placeholder: 'z.B. 5'
+            to_label: 'Neue Position'
+            to_placeholder: 'z.B. 2'
 
     dj:
-        role_set: "DJ-Rolle wurde auf **{role}** festgelegt. Mitglieder mit dieser Rolle können jetzt die Musikwiedergabe steuern."
-        role_removed: "DJ-Rolle **{role}** wurde entfernt. Alle Mitglieder können jetzt die Musikwiedergabe steuern."
-        role_changed: "DJ-Rolle wurde von **{oldRole}** zu **{newRole}** geändert."
-        role_created_and_set: "DJ-Rolle **{role}** wurde erstellt und festgelegt. Mitglieder mit dieser Rolle können jetzt die Musikwiedergabe steuern."
-        role_disabled: "DJ-System wurde deaktiviert. Die zuvor festgelegte Rolle **{role}** wird für die Musiksteuerung nicht mehr benötigt."
+        role_set: 'DJ-Rolle wurde auf **{role}** festgelegt. Mitglieder mit dieser Rolle können jetzt die Musikwiedergabe steuern.'
+        role_removed: 'DJ-Rolle **{role}** wurde entfernt. Alle Mitglieder können jetzt die Musikwiedergabe steuern.'
+        role_changed: 'DJ-Rolle wurde von **{oldRole}** zu **{newRole}** geändert.'
+        role_created_and_set: 'DJ-Rolle **{role}** wurde erstellt und festgelegt. Mitglieder mit dieser Rolle können jetzt die Musikwiedergabe steuern.'
+        role_disabled: 'DJ-System wurde deaktiviert. Die zuvor festgelegte Rolle **{role}** wird für die Musiksteuerung nicht mehr benötigt.'
 
     feedback:
-        sent: "Vielen Dank für dein Feedback! Es wurde an die Entwickler gesendet."
+        sent: 'Vielen Dank für dein Feedback! Es wurde an die Entwickler gesendet.'
 
-    default_search: "Bitte gib einen Songnamen oder eine URL ein"
+    default_search: 'Bitte gib einen Songnamen oder eine URL ein'
 
 modals:
     feedback:
-        title: "Feedback senden"
-        type_label: "Feedback-Typ"
-        type_placeholder: "Fehlerbericht, Funktionsanfrage, Allgemeines Feedback, etc."
-        feedback_label: "Dein Feedback"
-        feedback_placeholder: "Bitte beschreibe dein Feedback ausführlich..."
+        title: 'Feedback senden'
+        type_label: 'Feedback-Typ'
+        type_placeholder: 'Fehlerbericht, Funktionsanfrage, Allgemeines Feedback, etc.'
+        feedback_label: 'Dein Feedback'
+        feedback_placeholder: 'Bitte beschreibe dein Feedback ausführlich...'

@@ -17,7 +17,10 @@ const EnvSchema = zod_1.z.object({
             return val.toLowerCase() === 'true';
         return val;
     }),
-    API_PORT: zod_1.z.union([zod_1.z.number(), zod_1.z.string()]).optional().transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val)),
+    API_PORT: zod_1.z
+        .union([zod_1.z.number(), zod_1.z.string()])
+        .optional()
+        .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val)),
     LASTFM_API_KEY: zod_1.z.string(),
     SPOTIFY_CLIENT_ID: zod_1.z.string(),
     SPOTIFY_CLIENT_SECRET: zod_1.z.string(),

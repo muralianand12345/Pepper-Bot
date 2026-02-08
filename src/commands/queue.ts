@@ -95,7 +95,7 @@ const createQueueButtons = (page: number, totalPages: number, isEmpty: boolean, 
 			.setLabel(t('responses.queue.buttons.move'))
 			.setStyle(discord.ButtonStyle.Secondary)
 			.setEmoji('🔄')
-			.setDisabled(isEmpty || queueLength < 2)
+			.setDisabled(isEmpty || queueLength < 2),
 	);
 
 	const actionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setCustomId('queue-remove').setLabel(t('responses.queue.buttons.remove')).setStyle(discord.ButtonStyle.Secondary).setEmoji('➖').setDisabled(isEmpty), new discord.ButtonBuilder().setCustomId('queue-clear').setLabel(t('responses.queue.buttons.clear')).setStyle(discord.ButtonStyle.Danger).setEmoji('🗑️').setDisabled(isEmpty));

@@ -56,7 +56,7 @@ export class SpotifyAutoComplete {
 					}
 				}
 				return Promise.reject(error);
-			}
+			},
 		);
 		if (this.cacheConfig.enabled) this.startCleanupTimer();
 	}

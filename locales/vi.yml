@@ -297,15 +297,15 @@ responses:
             other: 'Lệnh khác'
 
     lyrics:
-        title: "Lời bài hát"
+        title: 'Lời bài hát'
         not_found: 'Không tìm thấy lời bài hát cho "{title}" của {artist}'
         empty: 'Lời bài hát cho "{title}" của {artist} trống hoặc không khả dụng'
         not_spotify: 'Lời bài hát chỉ khả dụng cho các bài hát từ Spotify. Đang phát: "{title}" của {artist}'
-        fetching: "🔍 Đang tải lời bài hát, vui lòng đợi một chút..."
-        page: "Trang"
+        fetching: '🔍 Đang tải lời bài hát, vui lòng đợi một chút...'
+        page: 'Trang'
         buttons:
-            previous: "Trước"
-            next: "Tiếp"
+            previous: 'Trước'
+            next: 'Tiếp'
 
     queue:
         title: 'Hàng đợi nhạc'

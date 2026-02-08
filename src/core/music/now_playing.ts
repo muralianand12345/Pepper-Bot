@@ -302,7 +302,7 @@ export class NowPlayingManager {
 							(msg as discord.Message)
 								.delete()
 								.then(() => {})
-								.catch(() => {})
+								.catch(() => {}),
 						);
 					}
 					await Promise.all(deletePromises);

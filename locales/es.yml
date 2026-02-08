@@ -304,15 +304,15 @@ responses:
             other: 'Otros comandos'
 
     lyrics:
-        title: "Letra"
+        title: 'Letra'
         not_found: 'No se encontró la letra de "{title}" de {artist}'
         empty: 'La letra de "{title}" de {artist} está vacía o no disponible'
         not_spotify: 'Las letras solo están disponibles para pistas de Spotify. Reproduciendo: "{title}" de {artist}'
-        fetching: "🔍 Buscando la letra, esto puede tardar un momento..."
-        page: "Página"
+        fetching: '🔍 Buscando la letra, esto puede tardar un momento...'
+        page: 'Página'
         buttons:
-            previous: "Anterior"
-            next: "Siguiente"
+            previous: 'Anterior'
+            next: 'Siguiente'
 
     queue:
         title: 'Cola de música'

@@ -13,7 +13,10 @@ const EnvSchema = z.object({
 		if (typeof val === 'string') return val.toLowerCase() === 'true';
 		return val;
 	}),
-	API_PORT: z.union([z.number(), z.string()]).optional().transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val)),
+	API_PORT: z
+		.union([z.number(), z.string()])
+		.optional()
+		.transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val)),
 	LASTFM_API_KEY: z.string(),
 	SPOTIFY_CLIENT_ID: z.string(),
 	SPOTIFY_CLIENT_SECRET: z.string(),

@@ -29,9 +29,9 @@ const initializeManager = (config, client) => {
             new magma_connect_1.MagmaConnect({
                 debug: configManager.isDebugMode(),
                 nodeLocations: {
-                    'Pepper -1': { region: 'india' }
+                    'Pepper -1': { region: 'india' },
                 },
-            })
+            }),
         ],
         send: (packet) => {
             const guild = client.guilds.cache.get(packet.d?.guild_id);

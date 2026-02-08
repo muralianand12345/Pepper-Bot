@@ -69,7 +69,7 @@ plugins:
             albumLoadLimit: 6
             countryCode: IN
             keyID: your key id
-            mediaAPIToken: ""
+            mediaAPIToken: ''
             musicKitKey: |
                 -----BEGIN PRIVATE KEY-----
                 your key
@@ -118,15 +118,15 @@ plugins:
             ytdlp: false
         spotify:
             albumLoadLimit: 6
-            clientId: ""
-            clientSecret: ""
+            clientId: ''
+            clientSecret: ''
             countryCode: IN
             customTokenEndpoint: http://localhost:8080/api/token
             localFiles: false
             playlistLoadLimit: 6
             preferAnonymousToken: false
             resolveArtistsInSearch: true
-            spDc: ""
+            spDc: ''
         tidal:
             countryCode: US
             searchLimit: 6
@@ -137,7 +137,7 @@ plugins:
             recommendationsLoadLimit: 10
             userToken: your user token
         yandexmusic:
-            accessToken: ""
+            accessToken: ''
             albumLoadLimit: 1
             artistLoadLimit: 1
             playlistLoadLimit: 1
@@ -158,7 +158,7 @@ plugins:
             - WEBEMBEDDED
         enabled: true
 sentry:
-    dsn: ""
+    dsn: ''
     environment: production
 server:
     address: 0.0.0.0

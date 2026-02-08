@@ -11,7 +11,7 @@ services:
         networks:
             - pepper-network
         ports:
-          - 25704:25704
+            - 25704:25704
 
     bot:
         build: .

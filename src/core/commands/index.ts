@@ -27,7 +27,7 @@ export class CommandManager {
 			commandFiles.map(async (file) => {
 				const { default: command } = await import(path.join(directory, file));
 				return command;
-			})
+			}),
 		);
 	};
 

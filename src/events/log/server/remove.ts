@@ -71,7 +71,7 @@ const sendFeedbackRequestDM = async (guild: discord.Guild, client: discord.Clien
 				.setStyle(discord.ButtonStyle.Link)
 				.setURL(`https://discord.com/oauth2/authorize?client_id=${client.user?.id}&permissions=8&scope=bot%20applications.commands`)
 				.setEmoji('🎵'),
-			new discord.ButtonBuilder().setLabel('Support Server').setStyle(discord.ButtonStyle.Link).setURL(client.config.bot.support_server.invite).setEmoji('🔧')
+			new discord.ButtonBuilder().setLabel('Support Server').setStyle(discord.ButtonStyle.Link).setURL(client.config.bot.support_server.invite).setEmoji('🔧'),
 		);
 
 		await send(client, dmChannel.id, { content: `Hello! This is **${client.user?.username || 'Music Bot'}**, the music bot that was recently removed from **${guild.name || 'your server'}**.`, embeds: [feedbackEmbed], components: [actionRow] });

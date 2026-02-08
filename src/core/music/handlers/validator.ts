@@ -142,5 +142,3 @@ export class MusicPlayerValidator {
 		return [true, null];
 	};
 }
-
-// if (this.ytRegex.test(query))
