@@ -2,10 +2,10 @@
 bot:
     # Discord user IDs with administrative access to the bot
     owners:
-        - "1234567890"
+        - '1234567890'
     support_server:
-        id: "1030400987040600064"
-        invite: "https://discord.gg/XzE9hSbsNb"
+        id: '1030400987040600064'
+        invite: 'https://discord.gg/XzE9hSbsNb'
 
     # Bot's presence settings shown in Discord
     presence:
@@ -13,25 +13,25 @@ bot:
         status: dnd # Status options: online, idle, dnd (do not disturb), invisible
         interval: 10000 # Rotation interval in milliseconds (10 seconds)
         activity: # Different status messages that will rotate
-            - name: "your Favorite Songs" # Status message text
-              type: "PLAYING" # Activity type
-            - name: "<clientname> Radio!" # <clientname> will be replaced with actual bot name
-              type: "LISTENING"
-            - name: "<usersize> Users!" # <usersize> will show total users count
-              type: "LISTENING"
-            - name: "version <version>" # <version> will be replaced with bot version
-              type: "PLAYING"
-            - name: "with <guildsize> Servers!" # <guildsize> shows total server count
-              type: "PLAYING"
-            - name: "<channelsize> Channels!" # <channelsize> shows total channels
-              type: "WATCHING"
+            - name: 'your Favorite Songs' # Status message text
+              type: 'PLAYING' # Activity type
+            - name: '<clientname> Radio!' # <clientname> will be replaced with actual bot name
+              type: 'LISTENING'
+            - name: '<usersize> Users!' # <usersize> will show total users count
+              type: 'LISTENING'
+            - name: 'version <version>' # <version> will be replaced with bot version
+              type: 'PLAYING'
+            - name: 'with <guildsize> Servers!' # <guildsize> shows total server count
+              type: 'PLAYING'
+            - name: '<channelsize> Channels!' # <channelsize> shows total channels
+              type: 'WATCHING'
     command:
         cooldown_message: You are on `<duration>` cooldown! # Message shown when command is on cooldown
 
     # Logging channel configuration
     log:
-        command: "1234567890" # Channel ID for command usage logs
-        server: "1234567890" # Channel ID for server join/leave logs
+        command: '1234567890' # Channel ID for command usage logs
+        server: '1234567890' # Channel ID for server join/leave logs
 
 # Music playback configuration
 music:
@@ -51,10 +51,10 @@ music:
             #          vksearch, ytmsearch
         # Audio nodes (servers) for processing music - ordered by priority
         nodes:
-            - identifier: "Pepper 1" # Friendly name for the node
-              host: "lavalink.muralianand.in" # Server hostname/IP
+            - identifier: 'Pepper 1' # Friendly name for the node
+              host: 'lavalink.muralianand.in' # Server hostname/IP
               port: 25773 # Connection port
-              password: "4Vzm^mZw2CJG@P7pMM5$" # Authentication password
+              password: '4Vzm^mZw2CJG@P7pMM5$' # Authentication password
               nodePriority: 1 # Priority level (lower number = higher priority)
               useSSL: true # Whether to use SSL/TLS
               maxRetryAttempts: 100000 # Number of retry attempts on failure
@@ -65,10 +65,10 @@ music:
               isBackup: false # Whether this node is a backup
 
             # Backup node - used if primary node fails
-            - identifier: "Pepper 2"
-              host: "lavalink.jirayu.net"
+            - identifier: 'Pepper 2'
+              host: 'lavalink.jirayu.net'
               port: 13592
-              password: "youshallnotpass"
+              password: 'youshallnotpass'
               nodePriority: 4
               useSSL: false
               maxRetryAttempts: 100000

@@ -48,14 +48,7 @@ const event: BotEvent = {
 					.setTitle('📝 Server Leave Feedback')
 					.setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL({ size: 128 }) })
 					.setDescription(`Feedback from **${interaction.user.tag}** after removing the bot from a server.\n\nServer ID: \`${guildId}\``)
-					.addFields(
-						{ name: '🎵 Audio Quality Rating', value: `**${audioQuality}/5**`, inline: true },
-						{ name: '🔧 Usability Rating', value: `**${usability}/5**`, inline: true },
-						{ name: '🧩 Features Feedback', value: features || 'No feedback provided', inline: false },
-						{ name: '⚠️ Issues Experienced', value: issues || 'No issues reported', inline: false },
-						{ name: '❌ Removal Reason', value: reason, inline: false },
-						{ name: '💡 User Information', value: `• ID: \`${interaction.user.id}\`\n• Created: <t:${Math.floor(interaction.user.createdTimestamp / 1000)}:R>`, inline: false }
-					)
+					.addFields({ name: '🎵 Audio Quality Rating', value: `**${audioQuality}/5**`, inline: true }, { name: '🔧 Usability Rating', value: `**${usability}/5**`, inline: true }, { name: '🧩 Features Feedback', value: features || 'No feedback provided', inline: false }, { name: '⚠️ Issues Experienced', value: issues || 'No issues reported', inline: false }, { name: '❌ Removal Reason', value: reason, inline: false }, { name: '💡 User Information', value: `• ID: \`${interaction.user.id}\`\n• Created: <t:${Math.floor(interaction.user.createdTimestamp / 1000)}:R>`, inline: false })
 					.setFooter({ text: `Server Leave Feedback | ${new Date().toLocaleDateString()}`, iconURL: client.user?.displayAvatarURL() })
 					.setTimestamp();
 

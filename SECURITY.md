@@ -19,10 +19,10 @@ We take the security of Pepper Music Bot seriously. If you believe you've found 
 1. **DO NOT** disclose the vulnerability publicly until it has been addressed.
 2. Email the vulnerability details to [Murali Anand](mailto:smurali1607@gmail.com).
 3. Include the following information in your report:
-   - Description of the vulnerability
-   - Steps to reproduce the issue
-   - Potential impact
-   - Any suggested fixes (if applicable)
+    - Description of the vulnerability
+    - Steps to reproduce the issue
+    - Potential impact
+    - Any suggested fixes (if applicable)
 
 ### What to Expect
 
@@ -36,33 +36,33 @@ We take the security of Pepper Music Bot seriously. If you believe you've found 
 ### For Bot Administrators
 
 1. **API Keys & Tokens**:
-   - Never share your Discord bot token or other API keys.
-   - Rotate API keys regularly, especially if you suspect they may have been compromised.
-   - Use environment variables or secure configuration files to store sensitive credentials.
+    - Never share your Discord bot token or other API keys.
+    - Rotate API keys regularly, especially if you suspect they may have been compromised.
+    - Use environment variables or secure configuration files to store sensitive credentials.
 
 2. **Permissions**:
-   - Follow the principle of least privilege when configuring bot permissions.
-   - Regularly audit the bot's permissions across all servers.
+    - Follow the principle of least privilege when configuring bot permissions.
+    - Regularly audit the bot's permissions across all servers.
 
 3. **Bot Hosting**:
-   - Keep your bot's hosting environment up-to-date with the latest security patches.
-   - Enable firewalls and restrict network access to trusted sources.
-   - Use HTTPS for all API communications.
+    - Keep your bot's hosting environment up-to-date with the latest security patches.
+    - Enable firewalls and restrict network access to trusted sources.
+    - Use HTTPS for all API communications.
 
 4. **MongoDB Security**:
-   - Secure your MongoDB instance with strong authentication.
-   - Do not expose your database to the public internet.
-   - Regularly back up your database.
+    - Secure your MongoDB instance with strong authentication.
+    - Do not expose your database to the public internet.
+    - Regularly back up your database.
 
 ### For Users
 
 1. **Commands & Input**:
-   - Be cautious about the commands you run, especially in public channels.
-   - Report any suspicious bot behavior to server administrators.
+    - Be cautious about the commands you run, especially in public channels.
+    - Report any suspicious bot behavior to server administrators.
 
 2. **Personal Data**:
-   - Be aware that the bot stores listening history for recommendation features.
-   - Use the `/chart personal` command to review what data is being stored.
+    - Be aware that the bot stores listening history for recommendation features.
+    - Use the `/chart personal` command to review what data is being stored.
 
 ## Security Features
 

@@ -5,22 +5,22 @@ Thank you for your interest in contributing to Pepper Music Bot! This document p
 ## Table of Contents
 
 - [Contributing to Pepper Bot](#contributing-to-pepper-bot)
-  - [Table of Contents](#table-of-contents)
-  - [Code of Conduct](#code-of-conduct)
-  - [Getting Started](#getting-started)
-    - [Development Environment Setup](#development-environment-setup)
-    - [Project Structure](#project-structure)
-  - [How to Contribute](#how-to-contribute)
-    - [Reporting Bugs](#reporting-bugs)
-    - [Suggesting Features](#suggesting-features)
-    - [Pull Requests](#pull-requests)
-  - [Coding Standards](#coding-standards)
-    - [TypeScript Guidelines](#typescript-guidelines)
-    - [Style Guide](#style-guide)
-    - [Documentation](#documentation)
-  - [Testing](#testing)
-  - [Commit Guidelines](#commit-guidelines)
-  - [Release Process](#release-process)
+    - [Table of Contents](#table-of-contents)
+    - [Code of Conduct](#code-of-conduct)
+    - [Getting Started](#getting-started)
+        - [Development Environment Setup](#development-environment-setup)
+        - [Project Structure](#project-structure)
+    - [How to Contribute](#how-to-contribute)
+        - [Reporting Bugs](#reporting-bugs)
+        - [Suggesting Features](#suggesting-features)
+        - [Pull Requests](#pull-requests)
+    - [Coding Standards](#coding-standards)
+        - [TypeScript Guidelines](#typescript-guidelines)
+        - [Style Guide](#style-guide)
+        - [Documentation](#documentation)
+    - [Testing](#testing)
+    - [Commit Guidelines](#commit-guidelines)
+    - [Release Process](#release-process)
 
 ## Code of Conduct
 
@@ -124,9 +124,9 @@ git push origin feature/your-feature-name
 ```
 
 6. **Submit a Pull Request**
-   - Provide a clear description of your changes
-   - Link any related issues
-   - Explain your approach and design decisions
+    - Provide a clear description of your changes
+    - Link any related issues
+    - Explain your approach and design decisions
 
 ## Coding Standards
 
@@ -154,15 +154,15 @@ Example:
 ```typescript
 // Good example
 const fetchUserData = async (userId: string): Promise<UserData> => {
-    const response = await apiClient.get(`/users/${userId}`);
-    return response.data;
+	const response = await apiClient.get(`/users/${userId}`);
+	return response.data;
 };
 
 // Bad example
 function fetchUserData(userId) {
-    return apiClient.get('/users/' + userId).then(function(response) {
-        return response.data;
-    });
+	return apiClient.get('/users/' + userId).then(function (response) {
+		return response.data;
+	});
 }
 ```
 
@@ -175,7 +175,7 @@ function fetchUserData(userId) {
 
 Example:
 
-```typescript
+````typescript
 /**
  * Formats milliseconds to a readable time string (HH:MM:SS)
  *
@@ -189,7 +189,7 @@ Example:
 public static msToTime(ms: number): string {
     // Implementation...
 }
-```
+````
 
 ## Testing
 
@@ -203,6 +203,7 @@ Currently, the project doesn't have automated tests. If you're adding new featur
 - Reference issues and pull requests in the body
 
 Commit types:
+
 - `feat:` - A new feature
 - `fix:` - A bug fix
 - `docs:` - Documentation changes
@@ -213,6 +214,7 @@ Commit types:
 - `chore:` - Changes to the build process or tools
 
 Example:
+
 ```
 feat: add support for Spotify playlist recommendations
 

@@ -129,4 +129,3 @@ class MusicPlayerValidator {
     }
 }
 exports.MusicPlayerValidator = MusicPlayerValidator;
-// if (this.ytRegex.test(query))

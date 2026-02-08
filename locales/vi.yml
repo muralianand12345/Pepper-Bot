@@ -1,373 +1,369 @@
 commands:
     play:
-        name: "play"
-        description: "Phát nhạc qua tên bài hát hoặc url"
+        name: 'play'
+        description: 'Phát nhạc qua tên bài hát hoặc url'
         options:
             song:
-                name: "song"
-                description: "Tên bài hát/URL"
+                name: 'song'
+                description: 'Tên bài hát/URL'
     pause:
-        name: "pause"
-        description: "Tạm dừng nhạc đang phát"
+        name: 'pause'
+        description: 'Tạm dừng nhạc đang phát'
     resume:
-        name: "resume"
-        description: "Tiếp tục phát nhạc đã tạm dừng"
+        name: 'resume'
+        description: 'Tiếp tục phát nhạc đã tạm dừng'
     skip:
-        name: "skip"
-        description: "Bỏ qua bài hát hiện tại và phát bài tiếp theo"
+        name: 'skip'
+        description: 'Bỏ qua bài hát hiện tại và phát bài tiếp theo'
     stop:
-        name: "stop"
-        description: "Dừng nhạc và ngắt kết nối khỏi kênh thoại"
+        name: 'stop'
+        description: 'Dừng nhạc và ngắt kết nối khỏi kênh thoại'
     loop:
-        name: "loop"
-        description: "Bật/tắt chế độ lặp lại bài hát hiện tại"
+        name: 'loop'
+        description: 'Bật/tắt chế độ lặp lại bài hát hiện tại'
     autoplay:
-        name: "autoplay"
-        description: "Bật/tắt tự động phát nhạc thông minh dựa trên sở thích của bạn"
+        name: 'autoplay'
+        description: 'Bật/tắt tự động phát nhạc thông minh dựa trên sở thích của bạn'
         options:
             enabled:
-                name: "enabled"
-                description: "Bật hoặc tắt tự động phát"
+                name: 'enabled'
+                description: 'Bật hoặc tắt tự động phát'
     language:
-        name: "language"
-        description: "Đặt ngôn ngữ cho bot"
+        name: 'language'
+        description: 'Đặt ngôn ngữ cho bot'
         options:
             scope:
-                name: "scope"
-                description: "Đặt ngôn ngữ cho người dùng hoặc máy chủ"
+                name: 'scope'
+                description: 'Đặt ngôn ngữ cho người dùng hoặc máy chủ'
                 choices:
-                    user: "user"
-                    server: "server"
-                    reset: "reset"
+                    user: 'user'
+                    server: 'server'
+                    reset: 'reset'
             language:
-                name: "language"
-                description: "Chọn ngôn ngữ ưa thích của bạn"
+                name: 'language'
+                description: 'Chọn ngôn ngữ ưa thích của bạn'
     feedback:
-        name: "feedback"
-        description: "Gửi phản hồi cho nhà phát triển"
+        name: 'feedback'
+        description: 'Gửi phản hồi cho nhà phát triển'
     ping:
-        name: "ping"
-        description: "Kiểm tra độ trễ và trạng thái kết nối của bot"
+        name: 'ping'
+        description: 'Kiểm tra độ trễ và trạng thái kết nối của bot'
     help:
-        name: "help"
-        description: "Hiển thị tất cả lệnh có sẵn và mô tả của chúng"
+        name: 'help'
+        description: 'Hiển thị tất cả lệnh có sẵn và mô tả của chúng'
         options:
             command:
-                name: "command"
-                description: "Xem thông tin chi tiết về một lệnh cụ thể"
+                name: 'command'
+                description: 'Xem thông tin chi tiết về một lệnh cụ thể'
     filter:
-        name: "filter"
-        description: "Áp dụng bộ lọc âm thanh để nâng cao trải nghiệm nghe nhạc"
+        name: 'filter'
+        description: 'Áp dụng bộ lọc âm thanh để nâng cao trải nghiệm nghe nhạc'
         options:
             type:
-                name: "type"
-                description: "Chọn bộ lọc âm thanh để áp dụng"
+                name: 'type'
+                description: 'Chọn bộ lọc âm thanh để áp dụng'
     chart:
-        name: "chart"
-        description: "Hiển thị biểu đồ và phân tích âm nhạc"
+        name: 'chart'
+        description: 'Hiển thị biểu đồ và phân tích âm nhạc'
         options:
             scope:
-                name: "scope"
-                description: "Chọn phạm vi cho phân tích"
+                name: 'scope'
+                description: 'Chọn phạm vi cho phân tích'
                 choices:
-                    user: "Cá nhân"
-                    guild: "Máy chủ"
-                    global: "Toàn cầu"
+                    user: 'Cá nhân'
+                    guild: 'Máy chủ'
+                    global: 'Toàn cầu'
             limit:
-                name: "limit"
-                description: "Số lượng mục hàng đầu để hiển thị (5-20)"
+                name: 'limit'
+                description: 'Số lượng mục hàng đầu để hiển thị (5-20)'
     lyrics:
-        name: "lyrics"
-        description: "Hiển thị lời bài hát đang phát"
-        options:
-            skip_track_source:
-                name: "skip_track_source"
-                description: "Bỏ qua việc sử dụng URL nguồn của bài hát khi tìm kiếm lời"
+        name: 'lyrics'
+        description: 'Hiển thị lời bài hát đang phát'
     queue:
-        name: "queue"
-        description: "Hiển thị và quản lý hàng đợi nhạc"
+        name: 'queue'
+        description: 'Hiển thị và quản lý hàng đợi nhạc'
 
     dj:
-        name: "dj"
-        description: "Quản lý vai trò DJ cho các lệnh nhạc"
+        name: 'dj'
+        description: 'Quản lý vai trò DJ cho các lệnh nhạc'
         options:
             role:
-                name: "role"
-                description: "Vai trò để đặt/xóa làm vai trò DJ (để trống để tạo/tắt)"
+                name: 'role'
+                description: 'Vai trò để đặt/xóa làm vai trò DJ (để trống để tạo/tắt)'
 
     login:
-        name: "login"
-        description: "Kết nối tài khoản nhạc của bạn với Pepper"
+        name: 'login'
+        description: 'Kết nối tài khoản nhạc của bạn với Pepper'
         options:
             account:
-                name: "account"
-                description: "Dịch vụ nhạc để kết nối"
+                name: 'account'
+                description: 'Dịch vụ nhạc để kết nối'
                 choices:
-                    spotify: "Spotify"
+                    spotify: 'Spotify'
 
     logout:
-        name: "logout"
-        description: "Ngắt kết nối tài khoản nhạc của bạn khỏi Pepper"
+        name: 'logout'
+        description: 'Ngắt kết nối tài khoản nhạc của bạn khỏi Pepper'
         options:
             account:
-                name: "account"
-                description: "Dịch vụ nhạc để ngắt kết nối"
+                name: 'account'
+                description: 'Dịch vụ nhạc để ngắt kết nối'
                 choices:
-                    spotify: "Spotify"
+                    spotify: 'Spotify'
 
     volume:
-        name: "volume"
-        description: "Đặt âm lượng phát nhạc"
+        name: 'volume'
+        description: 'Đặt âm lượng phát nhạc'
         options:
             volume:
-                name: "volume"
-                description: "Mức âm lượng (1-100)"
+                name: 'volume'
+                description: 'Mức âm lượng (1-100)'
 
 responses:
     music:
-        connected: "Đã kết nối đến {channelName}"
-        paused: "Đã tạm dừng nhạc!"
-        resumed: "Đã tiếp tục phát nhạc!"
-        skipped: "Đã bỏ qua bài hát hiện tại!"
-        stopped: "Đã dừng trình phát nhạc và ngắt kết nối khỏi kênh thoại"
-        loop_enabled: "Đã bật chế độ lặp lại"
-        loop_disabled: "Đã tắt chế độ lặp lại"
+        connected: 'Đã kết nối đến {channelName}'
+        paused: 'Đã tạm dừng nhạc!'
+        resumed: 'Đã tiếp tục phát nhạc!'
+        skipped: 'Đã bỏ qua bài hát hiện tại!'
+        stopped: 'Đã dừng trình phát nhạc và ngắt kết nối khỏi kênh thoại'
+        loop_enabled: 'Đã bật chế độ lặp lại'
+        loop_disabled: 'Đã tắt chế độ lặp lại'
         autoplay_enabled: "🎵 Tự động phát thông minh đã được **bật**\n\nKhi hàng đợi trống, tôi sẽ tự động thêm các bài hát dựa trên sở thích âm nhạc của bạn."
         autoplay_disabled: "⏹️ Tự động phát đã được **tắt**\n\nPhát nhạc sẽ dừng khi hàng đợi trống."
-        autoplay_failed: "🔄 Tự động phát không thể tìm thấy các đề xuất phù hợp và đã được tự động tắt"
-        now_playing: "Đang phát"
-        track_added: "Đã thêm bài hát vào hàng đợi"
-        playlist_added: "Đã thêm danh sách phát vào hàng đợi"
-        queue_empty: "🎵 Đã phát hết tất cả nhạc trong hàng đợi"
-        disconnected: "🔌 Trình phát nhạc đã ngắt kết nối"
-        disconnected_inactivity: "🔌 Ngắt kết nối do không hoạt động (5 phút không có người nghe)"
-        disconnected_autoplay_failed: "🔌 Ngắt kết nối - tự động phát không thể tìm thấy bài hát mới để phát"
-        paused_empty_channel: "⏸️ Đã tạm dừng phát nhạc vì kênh thoại trống"
-        resumed_members_joined: "▶️ Đã tiếp tục phát nhạc"
-        youtube_blocked: "⚠️ Bỏ qua bài hát! Phát hiện nguồn Youtube."
-        youtube_footer: "Chúng tôi không hỗ trợ liên kết Youtube do điều khoản dịch vụ của YouTube."
-        filter_applied: "Đã áp dụng bộ lọc {filter}"
-        playlist_truncated: "Đã thêm {added}/{total} bài hát. Tham gia máy chủ hỗ trợ của chúng tôi để có danh sách phát không giới hạn!"
-        volume_set: "Đã đặt âm lượng ở {volume}%"
+        autoplay_failed: '🔄 Tự động phát không thể tìm thấy các đề xuất phù hợp và đã được tự động tắt'
+        now_playing: 'Đang phát'
+        track_added: 'Đã thêm bài hát vào hàng đợi'
+        playlist_added: 'Đã thêm danh sách phát vào hàng đợi'
+        queue_empty: '🎵 Đã phát hết tất cả nhạc trong hàng đợi'
+        disconnected: '🔌 Trình phát nhạc đã ngắt kết nối'
+        disconnected_inactivity: '🔌 Ngắt kết nối do không hoạt động (5 phút không có người nghe)'
+        disconnected_autoplay_failed: '🔌 Ngắt kết nối - tự động phát không thể tìm thấy bài hát mới để phát'
+        paused_empty_channel: '⏸️ Đã tạm dừng phát nhạc vì kênh thoại trống'
+        resumed_members_joined: '▶️ Đã tiếp tục phát nhạc'
+        youtube_blocked: '⚠️ Bỏ qua bài hát! Phát hiện nguồn Youtube.'
+        youtube_footer: 'Chúng tôi không hỗ trợ liên kết Youtube do điều khoản dịch vụ của YouTube.'
+        filter_applied: 'Đã áp dụng bộ lọc {filter}'
+        playlist_truncated: 'Đã thêm {added}/{total} bài hát. Tham gia máy chủ hỗ trợ của chúng tôi để có danh sách phát không giới hạn!'
+        volume_set: 'Đã đặt âm lượng ở {volume}%'
 
     activity_check:
-        title: "⏰ Bạn vẫn đang nghe nhạc chứ?"
+        title: '⏰ Bạn vẫn đang nghe nhạc chứ?'
         description: "Nhạc đã phát liên tục hơn 6 giờ.\n\nNhấp vào nút bên dưới để tiếp tục nghe, hoặc trình phát sẽ bị ngắt kết nối sau 5 phút."
-        confirmed: "✅ Tuyệt vời! Nhạc sẽ tiếp tục phát. Hẹn gặp lại sau 6 giờ nữa!"
-        timeout: "⏱️ Không nhận được phản hồi. Kiểm tra hoạt động đã hết hạn."
-        disconnected: "🔌 Ngắt kết nối do không hoạt động (không phản hồi kiểm tra hoạt động)"
+        confirmed: '✅ Tuyệt vời! Nhạc sẽ tiếp tục phát. Hẹn gặp lại sau 6 giờ nữa!'
+        timeout: '⏱️ Không nhận được phản hồi. Kiểm tra hoạt động đã hết hạn.'
+        disconnected: '🔌 Ngắt kết nối do không hoạt động (không phản hồi kiểm tra hoạt động)'
 
     chart:
-        user_title: "Bảng xếp hạng nhạc của {user}"
-        guild_title: "Bảng xếp hạng máy chủ {guild}"
-        global_title: "Bảng xếp hạng nhạc toàn cầu"
-        no_user_data: "Bạn chưa nghe nhạc nào. Hãy bắt đầu phát một số bài hát để xem bảng xếp hạng của bạn!"
-        no_guild_data: "Máy chủ này chưa có dữ liệu nhạc nào. Hãy bắt đầu phát một số bài hát để xem bảng xếp hạng máy chủ!"
-        no_global_data: "Không có dữ liệu nhạc toàn cầu vào lúc này."
-        total_tracks: "tổng số bài hát"
-        unique_artists: "nghệ sĩ duy nhất"
-        total_listening_time: "tổng thời gian nghe nhạc"
-        average_plays: "trung bình lượt phát mỗi bài"
-        recent_activity: "bài hát đã phát trong tuần này"
-        top_tracks: "Bài hát hàng đầu"
-        listening_stats: "Thống kê nghe nhạc"
-        total_hours: "Tổng số giờ"
-        avg_song_length: "Độ dài bài hát TB"
-        this_week: "Tuần này"
-        tracks: "bài hát"
-        plays: "lượt phát"
-        no_data: "Không có dữ liệu"
-        footer: "Bảng điều khiển phân tích âm nhạc"
-        export_success: "Đã xuất thành công {count} bài hát {scope} sang CSV"
+        user_title: 'Bảng xếp hạng nhạc của {user}'
+        guild_title: 'Bảng xếp hạng máy chủ {guild}'
+        global_title: 'Bảng xếp hạng nhạc toàn cầu'
+        no_user_data: 'Bạn chưa nghe nhạc nào. Hãy bắt đầu phát một số bài hát để xem bảng xếp hạng của bạn!'
+        no_guild_data: 'Máy chủ này chưa có dữ liệu nhạc nào. Hãy bắt đầu phát một số bài hát để xem bảng xếp hạng máy chủ!'
+        no_global_data: 'Không có dữ liệu nhạc toàn cầu vào lúc này.'
+        total_tracks: 'tổng số bài hát'
+        unique_artists: 'nghệ sĩ duy nhất'
+        total_listening_time: 'tổng thời gian nghe nhạc'
+        average_plays: 'trung bình lượt phát mỗi bài'
+        recent_activity: 'bài hát đã phát trong tuần này'
+        top_tracks: 'Bài hát hàng đầu'
+        listening_stats: 'Thống kê nghe nhạc'
+        total_hours: 'Tổng số giờ'
+        avg_song_length: 'Độ dài bài hát TB'
+        this_week: 'Tuần này'
+        tracks: 'bài hát'
+        plays: 'lượt phát'
+        no_data: 'Không có dữ liệu'
+        footer: 'Bảng điều khiển phân tích âm nhạc'
+        export_success: 'Đã xuất thành công {count} bài hát {scope} sang CSV'
 
     errors:
-        generic: "Đã xảy ra lỗi khi xử lý yêu cầu của bạn"
-        not_in_voice: "Bạn cần ở trong một kênh thoại để sử dụng lệnh này"
-        different_voice: "Bạn cần ở cùng kênh thoại với bot để sử dụng lệnh này"
-        no_player: "Không có trình phát nhạc nào đang hoạt động trong máy chủ này"
-        no_queue: "Hàng đợi hiện đang trống"
-        invalid_url: "URL không hợp lệ hoặc không được hỗ trợ"
-        no_results: "Không tìm thấy kết quả nào cho truy vấn của bạn"
-        search_error: "Đã xảy ra lỗi khi tìm kiếm bài hát"
-        play_error: "Đã xảy ra lỗi khi phát bài hát"
-        stop_error: "Đã xảy ra lỗi khi dừng bài hát"
-        pause_error: "Đã xảy ra lỗi khi tạm dừng bài hát"
-        resume_error: "Đã xảy ra lỗi khi tiếp tục phát bài hát"
-        skip_error: "Đã xảy ra lỗi khi bỏ qua bài hát"
-        loop_error: "Đã xảy ra lỗi khi bật/tắt chế độ lặp lại"
-        autoplay_error: "Đã xảy ra lỗi khi bật/tắt tự động phát."
-        contact_dev: "Nếu sự cố này vẫn tiếp diễn, vui lòng sử dụng /feedback hoặc liên hệ nhà phát triển"
-        filter_error: "Đã xảy ra lỗi khi áp dụng bộ lọc"
-        filter_not_found: "Không tìm thấy bộ lọc `{filter}`. Các bộ lọc có sẵn: {available}"
-        feedback_failed: "Không thể gửi phản hồi. Vui lòng thử lại sau."
-        no_current_track: "Không có bài hát nào đang phát"
-        lyrics_plugin_missing: "Chức năng lời bài hát không khả dụng trên nút lavalink này."
-        lyrics_error: "Đã xảy ra lỗi khi tải lời bài hát"
-        dj_error: "Đã xảy ra lỗi khi quản lý vai trò DJ. Vui lòng thử lại sau."
-        dj_role_create_failed: "Không thể tạo vai trò DJ. Vui lòng kiểm tra quyền của bot và thử lại."
-        missing_dj_role: "Bạn cần có vai trò **{role}** để sử dụng lệnh này."
-        member_not_found: "Không thể xác minh quyền của bạn. Vui lòng thử lại."
-        volume_error: "Đã xảy ra lỗi khi đặt âm lượng"
-        premium_required: "⭐ Lệnh này yêu cầu **Premium**. Tham gia máy chủ hỗ trợ của chúng tôi để được truy cập!"
+        generic: 'Đã xảy ra lỗi khi xử lý yêu cầu của bạn'
+        not_in_voice: 'Bạn cần ở trong một kênh thoại để sử dụng lệnh này'
+        different_voice: 'Bạn cần ở cùng kênh thoại với bot để sử dụng lệnh này'
+        no_player: 'Không có trình phát nhạc nào đang hoạt động trong máy chủ này'
+        no_queue: 'Hàng đợi hiện đang trống'
+        invalid_url: 'URL không hợp lệ hoặc không được hỗ trợ'
+        no_results: 'Không tìm thấy kết quả nào cho truy vấn của bạn'
+        search_error: 'Đã xảy ra lỗi khi tìm kiếm bài hát'
+        play_error: 'Đã xảy ra lỗi khi phát bài hát'
+        stop_error: 'Đã xảy ra lỗi khi dừng bài hát'
+        pause_error: 'Đã xảy ra lỗi khi tạm dừng bài hát'
+        resume_error: 'Đã xảy ra lỗi khi tiếp tục phát bài hát'
+        skip_error: 'Đã xảy ra lỗi khi bỏ qua bài hát'
+        loop_error: 'Đã xảy ra lỗi khi bật/tắt chế độ lặp lại'
+        autoplay_error: 'Đã xảy ra lỗi khi bật/tắt tự động phát.'
+        contact_dev: 'Nếu sự cố này vẫn tiếp diễn, vui lòng sử dụng /feedback hoặc liên hệ nhà phát triển'
+        filter_error: 'Đã xảy ra lỗi khi áp dụng bộ lọc'
+        filter_not_found: 'Không tìm thấy bộ lọc `{filter}`. Các bộ lọc có sẵn: {available}'
+        feedback_failed: 'Không thể gửi phản hồi. Vui lòng thử lại sau.'
+        no_current_track: 'Không có bài hát nào đang phát'
+        lyrics_plugin_missing: 'Chức năng lời bài hát không khả dụng trên nút lavalink này.'
+        lyrics_error: 'Đã xảy ra lỗi khi tải lời bài hát'
+        dj_error: 'Đã xảy ra lỗi khi quản lý vai trò DJ. Vui lòng thử lại sau.'
+        dj_role_create_failed: 'Không thể tạo vai trò DJ. Vui lòng kiểm tra quyền của bot và thử lại.'
+        missing_dj_role: 'Bạn cần có vai trò **{role}** để sử dụng lệnh này.'
+        member_not_found: 'Không thể xác minh quyền của bạn. Vui lòng thử lại.'
+        volume_error: 'Đã xảy ra lỗi khi đặt âm lượng'
+        premium_required: '⭐ Lệnh này yêu cầu **Premium**. Tham gia máy chủ hỗ trợ của chúng tôi để được truy cập!'
 
     language:
-        user_set: "Ngôn ngữ của bạn đã được đặt thành **{language}**"
-        server_set: "Ngôn ngữ máy chủ đã được đặt thành **{language}** (Chỉ Admin)"
-        reset: "Đã đặt lại tùy chọn ngôn ngữ. Sử dụng ngôn ngữ của Discord."
-        same_language: "Ngôn ngữ đã được đặt thành **{language}**"
-        unsupported: "Ngôn ngữ **{language}** không được hỗ trợ. Các ngôn ngữ được hỗ trợ: {languages}"
-        no_permission: "Bạn cần quyền **Quản lý máy chủ** để thay đổi ngôn ngữ máy chủ"
+        user_set: 'Ngôn ngữ của bạn đã được đặt thành **{language}**'
+        server_set: 'Ngôn ngữ máy chủ đã được đặt thành **{language}** (Chỉ Admin)'
+        reset: 'Đã đặt lại tùy chọn ngôn ngữ. Sử dụng ngôn ngữ của Discord.'
+        same_language: 'Ngôn ngữ đã được đặt thành **{language}**'
+        unsupported: 'Ngôn ngữ **{language}** không được hỗ trợ. Các ngôn ngữ được hỗ trợ: {languages}'
+        no_permission: 'Bạn cần quyền **Quản lý máy chủ** để thay đổi ngôn ngữ máy chủ'
 
     fields:
-        duration: "Thời lượng"
-        source: "Nguồn"
-        requested_by: "Được yêu cầu bởi"
-        queue_info: "Thông tin hàng đợi"
-        position: "Vị trí #{position}"
-        playing_next: "Phát tiếp theo"
-        tracks: "Bài hát"
-        total_duration: "Tổng thời lượng"
-        avg_duration: "Thời lượng TB"
-        added_by: "Được thêm bởi"
-        progress: "Tiến độ"
+        duration: 'Thời lượng'
+        source: 'Nguồn'
+        requested_by: 'Được yêu cầu bởi'
+        queue_info: 'Thông tin hàng đợi'
+        position: 'Vị trí #{position}'
+        playing_next: 'Phát tiếp theo'
+        tracks: 'Bài hát'
+        total_duration: 'Tổng thời lượng'
+        avg_duration: 'Thời lượng TB'
+        added_by: 'Được thêm bởi'
+        progress: 'Tiến độ'
 
     buttons:
-        pause: "Tạm dừng"
-        resume: "Tiếp tục"
-        skip: "Bỏ qua"
-        stop: "Dừng"
-        loop: "Lặp lại"
-        support_server: "Máy chủ hỗ trợ"
-        continue_listening: "Tiếp tục nghe"
+        pause: 'Tạm dừng'
+        resume: 'Tiếp tục'
+        skip: 'Bỏ qua'
+        stop: 'Dừng'
+        loop: 'Lặp lại'
+        support_server: 'Máy chủ hỗ trợ'
+        continue_listening: 'Tiếp tục nghe'
 
     ping:
-        title: "🏓 Pong!"
-        description: "Độ trễ của bot và thông tin kết nối"
-        api_latency: "Độ trễ API"
-        websocket_latency: "Độ trễ WebSocket"
-        database_latency: "Độ trễ cơ sở dữ liệu"
-        music_nodes: "Nút nhạc"
-        uptime: "Thời gian hoạt động"
-        memory_usage: "Sử dụng bộ nhớ"
-        active_players: "Trình phát đang hoạt động"
-        shard_stats: "Thống kê Shard"
-        footer: "Tất cả hệ thống hoạt động bình thường"
+        title: '🏓 Pong!'
+        description: 'Độ trễ của bot và thông tin kết nối'
+        api_latency: 'Độ trễ API'
+        websocket_latency: 'Độ trễ WebSocket'
+        database_latency: 'Độ trễ cơ sở dữ liệu'
+        music_nodes: 'Nút nhạc'
+        uptime: 'Thời gian hoạt động'
+        memory_usage: 'Sử dụng bộ nhớ'
+        active_players: 'Trình phát đang hoạt động'
+        shard_stats: 'Thống kê Shard'
+        footer: 'Tất cả hệ thống hoạt động bình thường'
 
     login:
         already_logged_in:
-            title: "❌ Đã đăng nhập"
+            title: '❌ Đã đăng nhập'
             description: "Bạn đã có tài khoản Spotify được kết nối.\n\nVui lòng sử dụng `/logout spotify` nếu bạn muốn kết nối tài khoản khác."
-        connect_title: "🎵 Kết nối tài khoản Spotify"
+        connect_title: '🎵 Kết nối tài khoản Spotify'
         connect_description: "Nhấp vào nút bên dưới để ủy quyền cho Pepper truy cập tài khoản Spotify của bạn.\n\n**Quyền được yêu cầu:**\n• Đọc danh sách phát của bạn"
-        auth_footer: "Liên kết ủy quyền hết hạn sau 10 phút"
+        auth_footer: 'Liên kết ủy quyền hết hạn sau 10 phút'
         success:
-            title: "✅ Kết nối thành công"
+            title: '✅ Kết nối thành công'
             description: "Tài khoản Spotify của bạn đã được liên kết với Pepper!\n\nBây giờ bạn có thể sử dụng các lệnh nhạc với tùy chọn Spotify của mình."
         failed:
-            title: "❌ Kết nối thất bại"
+            title: '❌ Kết nối thất bại'
             description: "Đã xảy ra sự cố trong quá trình xác thực.\n\nVui lòng thử lại `/login spotify`."
         timeout:
-            title: "⏱️ Phiên đã hết hạn"
+            title: '⏱️ Phiên đã hết hạn'
             description: "Phiên xác thực đã hết hạn.\n\nVui lòng chạy lại `/login spotify` để nhận liên kết ủy quyền mới."
 
     logout:
         not_logged_in:
-            title: "❌ Chưa đăng nhập"
+            title: '❌ Chưa đăng nhập'
             description: "Bạn không có tài khoản Spotify nào được kết nối.\n\nSử dụng `/login spotify` để kết nối tài khoản của bạn."
         disconnect_error:
-            title: "❌ Lỗi"
-            description: "Không thể ngắt kết nối tài khoản Spotify của bạn. Vui lòng thử lại sau."
+            title: '❌ Lỗi'
+            description: 'Không thể ngắt kết nối tài khoản Spotify của bạn. Vui lòng thử lại sau.'
         disconnected:
-            title: "✅ Đã ngắt kết nối tài khoản"
+            title: '✅ Đã ngắt kết nối tài khoản'
             description: "Tài khoản Spotify của bạn đã được ngắt kết nối thành công khỏi Pepper.\n\nBạn có thể kết nối lại bất cứ lúc nào bằng cách sử dụng `/login spotify`."
 
     help:
-        title: "📚 Trợ giúp lệnh"
-        description: "Dưới đây là tất cả {total} lệnh có sẵn. Sử dụng `{prefix}help <lệnh>` để biết thông tin chi tiết."
-        footer: "Sử dụng `/help <lệnh>` để biết thêm chi tiết về một lệnh cụ thể"
-        command_footer: "Thông tin lệnh"
-        command_not_found: "Không tìm thấy lệnh `{command}`."
-        cooldown: "Thời gian chờ"
-        permissions: "Quyền"
-        category: "Danh mục"
-        options: "Tùy chọn"
-        no_cooldown: "Không có"
-        owner_only: "Chỉ chủ sở hữu"
-        none: "Không có"
-        no_commands: "Không có lệnh nào trong danh mục này"
+        title: '📚 Trợ giúp lệnh'
+        description: 'Dưới đây là tất cả {total} lệnh có sẵn. Sử dụng `{prefix}help <lệnh>` để biết thông tin chi tiết.'
+        footer: 'Sử dụng `/help <lệnh>` để biết thêm chi tiết về một lệnh cụ thể'
+        command_footer: 'Thông tin lệnh'
+        command_not_found: 'Không tìm thấy lệnh `{command}`.'
+        cooldown: 'Thời gian chờ'
+        permissions: 'Quyền'
+        category: 'Danh mục'
+        options: 'Tùy chọn'
+        no_cooldown: 'Không có'
+        owner_only: 'Chỉ chủ sở hữu'
+        none: 'Không có'
+        no_commands: 'Không có lệnh nào trong danh mục này'
         categories:
-            music: "Lệnh nhạc"
-            utility: "Lệnh tiện ích"
-            other: "Lệnh khác"
+            music: 'Lệnh nhạc'
+            utility: 'Lệnh tiện ích'
+            other: 'Lệnh khác'
 
     lyrics:
-        title: "Lời bài hát"
+        title: 'Lời bài hát'
         not_found: 'Không tìm thấy lời bài hát cho "{title}" của {artist}'
         empty: 'Lời bài hát cho "{title}" của {artist} trống hoặc không khả dụng'
-        provider: "Nhà cung cấp"
-        source: "Nguồn"
-        page: "Trang"
+        not_spotify: 'Lời bài hát chỉ khả dụng cho các bài hát từ Spotify. Đang phát: "{title}" của {artist}'
+        fetching: '🔍 Đang tải lời bài hát, vui lòng đợi một chút...'
+        page: 'Trang'
         buttons:
-            previous: "Trước"
-            next: "Tiếp"
+            previous: 'Trước'
+            next: 'Tiếp'
 
     queue:
-        title: "Hàng đợi nhạc"
-        empty: "Hàng đợi đang trống. Thêm một số bài hát với `/play`!"
-        now_playing: "Đang phát"
-        upcoming: "Tiếp theo"
-        tracks_in_queue: "bài hát trong hàng đợi"
-        total_duration: "tổng thời lượng"
-        live_streams: "phát trực tiếp"
-        live: "TRỰC TIẾP"
-        page: "Trang"
-        progress: "Tiến độ"
-        shuffled: "Hàng đợi đã được xáo trộn!"
-        cleared: "Hàng đợi đã được xóa!"
-        removed: "Đã xóa {count} bài hát khỏi hàng đợi"
-        remove_failed: "Không thể xóa bài hát khỏi hàng đợi"
+        title: 'Hàng đợi nhạc'
+        empty: 'Hàng đợi đang trống. Thêm một số bài hát với `/play`!'
+        now_playing: 'Đang phát'
+        upcoming: 'Tiếp theo'
+        tracks_in_queue: 'bài hát trong hàng đợi'
+        total_duration: 'tổng thời lượng'
+        live_streams: 'phát trực tiếp'
+        live: 'TRỰC TIẾP'
+        page: 'Trang'
+        progress: 'Tiến độ'
+        shuffled: 'Hàng đợi đã được xáo trộn!'
+        cleared: 'Hàng đợi đã được xóa!'
+        removed: 'Đã xóa {count} bài hát khỏi hàng đợi'
+        remove_failed: 'Không thể xóa bài hát khỏi hàng đợi'
         moved: 'Đã di chuyển "{track}" từ vị trí {from} đến vị trí {to}'
-        move_failed: "Không thể di chuyển bài hát trong hàng đợi"
-        track_not_found: "Không tìm thấy bài hát ở vị trí được chỉ định"
-        same_position: "Vị trí nguồn và đích giống nhau"
-        invalid_position: "Vị trí không hợp lệ. Vui lòng nhập số từ 1 đến kích thước hàng đợi."
-        invalid_range: "Phạm vi không hợp lệ. Sử dụng định dạng: bắt đầu-kết thúc (ví dụ: 1-5)"
-        invalid_positions: "Vị trí không hợp lệ. Sử dụng định dạng: 1,3,5 hoặc 1-5"
-        invalid_move_positions: "Vị trí không hợp lệ. Cả hai vị trí phải nằm trong khoảng từ 1 đến kích thước hàng đợi."
+        move_failed: 'Không thể di chuyển bài hát trong hàng đợi'
+        track_not_found: 'Không tìm thấy bài hát ở vị trí được chỉ định'
+        same_position: 'Vị trí nguồn và đích giống nhau'
+        invalid_position: 'Vị trí không hợp lệ. Vui lòng nhập số từ 1 đến kích thước hàng đợi.'
+        invalid_range: 'Phạm vi không hợp lệ. Sử dụng định dạng: bắt đầu-kết thúc (ví dụ: 1-5)'
+        invalid_positions: 'Vị trí không hợp lệ. Sử dụng định dạng: 1,3,5 hoặc 1-5'
+        invalid_move_positions: 'Vị trí không hợp lệ. Cả hai vị trí phải nằm trong khoảng từ 1 đến kích thước hàng đợi.'
         buttons:
-            previous: "Trước"
-            next: "Tiếp"
-            shuffle: "Xáo trộn"
-            move: "Di chuyển"
-            clear: "Xóa"
-            remove: "Gỡ bỏ"
+            previous: 'Trước'
+            next: 'Tiếp'
+            shuffle: 'Xáo trộn'
+            move: 'Di chuyển'
+            clear: 'Xóa'
+            remove: 'Gỡ bỏ'
         remove_modal:
-            title: "Xóa bài hát khỏi hàng đợi"
-            position_label: "Vị trí cần xóa"
-            position_placeholder: "ví dụ: 3 hoặc 1,3,5 hoặc 1-5"
+            title: 'Xóa bài hát khỏi hàng đợi'
+            position_label: 'Vị trí cần xóa'
+            position_placeholder: 'ví dụ: 3 hoặc 1,3,5 hoặc 1-5'
         move_modal:
-            title: "Di chuyển bài hát trong hàng đợi"
-            from_label: "Vị trí hiện tại"
-            from_placeholder: "ví dụ: 5"
-            to_label: "Vị trí mới"
-            to_placeholder: "ví dụ: 2"
+            title: 'Di chuyển bài hát trong hàng đợi'
+            from_label: 'Vị trí hiện tại'
+            from_placeholder: 'ví dụ: 5'
+            to_label: 'Vị trí mới'
+            to_placeholder: 'ví dụ: 2'
 
     dj:
-        role_set: "Vai trò DJ đã được đặt thành **{role}**. Các thành viên có vai trò này giờ đây có thể điều khiển phát nhạc."
-        role_removed: "Vai trò DJ **{role}** đã được xóa. Tất cả thành viên giờ đây có thể điều khiển phát nhạc."
-        role_changed: "Vai trò DJ đã được thay đổi từ **{oldRole}** sang **{newRole}**."
-        role_created_and_set: "Vai trò DJ **{role}** đã được tạo và đặt. Các thành viên có vai trò này giờ đây có thể điều khiển phát nhạc."
-        role_disabled: "Hệ thống DJ đã bị tắt. Vai trò **{role}** đã được đặt trước đây không còn được yêu cầu để điều khiển nhạc."
+        role_set: 'Vai trò DJ đã được đặt thành **{role}**. Các thành viên có vai trò này giờ đây có thể điều khiển phát nhạc.'
+        role_removed: 'Vai trò DJ **{role}** đã được xóa. Tất cả thành viên giờ đây có thể điều khiển phát nhạc.'
+        role_changed: 'Vai trò DJ đã được thay đổi từ **{oldRole}** sang **{newRole}**.'
+        role_created_and_set: 'Vai trò DJ **{role}** đã được tạo và đặt. Các thành viên có vai trò này giờ đây có thể điều khiển phát nhạc.'
+        role_disabled: 'Hệ thống DJ đã bị tắt. Vai trò **{role}** đã được đặt trước đây không còn được yêu cầu để điều khiển nhạc.'
 
     feedback:
-        sent: "Cảm ơn bạn đã phản hồi! Phản hồi của bạn đã được gửi đến nhà phát triển."
+        sent: 'Cảm ơn bạn đã phản hồi! Phản hồi của bạn đã được gửi đến nhà phát triển.'
 
-    default_search: "Vui lòng nhập tên bài hát hoặc url"
+    default_search: 'Vui lòng nhập tên bài hát hoặc url'
 
 modals:
     feedback:
-        title: "Gửi phản hồi"
-        type_label: "Loại phản hồi"
-        type_placeholder: "Báo cáo lỗi, Yêu cầu tính năng, Phản hồi chung, v.v."
-        feedback_label: "Phản hồi của bạn"
-        feedback_placeholder: "Vui lòng mô tả chi tiết phản hồi của bạn..."
+        title: 'Gửi phản hồi'
+        type_label: 'Loại phản hồi'
+        type_placeholder: 'Báo cáo lỗi, Yêu cầu tính năng, Phản hồi chung, v.v.'
+        feedback_label: 'Phản hồi của bạn'
+        feedback_placeholder: 'Vui lòng mô tả chi tiết phản hồi của bạn...'
