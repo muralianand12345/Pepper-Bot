@@ -11,13 +11,7 @@ const localizationManager = locales_1.LocalizationManager.getInstance();
 const lyricsCommand = {
     cooldown: 5,
     category: types_1.CommandCategory.MUSIC,
-    data: new discord_js_1.default.SlashCommandBuilder()
-        .setName('lyrics')
-        .setDescription('Display lyrics for the currently playing track')
-        .setNameLocalizations(localizationManager.getCommandLocalizations('commands.lyrics.name'))
-        .setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.lyrics.description'))
-        .setContexts(discord_js_1.default.InteractionContextType.Guild)
-        .addBooleanOption((option) => option.setName('skip_track_source').setDescription("Skip using the track's source URL when searching for lyrics").setNameLocalizations(localizationManager.getCommandLocalizations('commands.lyrics.options.skip_track_source.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.lyrics.options.skip_track_source.description')).setRequired(false)),
+    data: new discord_js_1.default.SlashCommandBuilder().setName('lyrics').setDescription('Display lyrics for the currently playing track').setNameLocalizations(localizationManager.getCommandLocalizations('commands.lyrics.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.lyrics.description')).setContexts(discord_js_1.default.InteractionContextType.Guild),
     execute: async (interaction, client) => {
         const music = new music_1.Music(client, interaction);
         await music.lyrics();

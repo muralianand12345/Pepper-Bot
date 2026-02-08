@@ -79,10 +79,6 @@ commands:
     lyrics:
         name: "lyrics"
         description: "Zeige den Liedtext für den aktuell spielenden Track an"
-        options:
-            skip_track_source:
-                name: "track_quelle_überspringen"
-                description: "Überspringe die Track-Quell-URL bei der Liedtextsuche"
     queue:
         name: "queue"
         description: "Zeige und verwalte die Musikwarteschlange"
@@ -309,11 +305,11 @@ responses:
             other: "Sonstige Befehle"
 
     lyrics:
-        title: "Liedtext"
-        not_found: 'Kein Liedtext für "{title}" von {artist} gefunden'
-        empty: 'Liedtext für "{title}" von {artist} ist leer oder nicht verfügbar'
-        provider: "Anbieter"
-        source: "Quelle"
+        title: "Songtext"
+        not_found: 'Kein Songtext gefunden für „{title}" von {artist}'
+        empty: 'Songtext für „{title}" von {artist} ist leer oder nicht verfügbar'
+        not_spotify: 'Songtexte sind nur für Spotify-Titel verfügbar. Aktuell läuft: „{title}" von {artist}'
+        fetching: "🔍 Songtext wird abgerufen, einen Moment bitte..."
         page: "Seite"
         buttons:
             previous: "Zurück"

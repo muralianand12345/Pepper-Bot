@@ -1,6 +1,8 @@
+import axios from 'axios';
 import discord from 'discord.js';
 import magmastream, { TrackUtils } from 'magmastream';
 
+import { Lyrics } from './lyrics';
 import Formatter from '../../utils/format';
 import { LocaleDetector } from '../locales';
 import { checkUserPremium } from '../commands/premium';
@@ -523,40 +525,31 @@ export class Music {
 			if (!isValid) return await this.interaction.editReply({ embeds: [embed] });
 		}
 
-		if (!this.isDeferred && !this.interaction.deferred) {
-			await this.interaction.deferReply();
-			this.isDeferred = true;
-		}
-
 		try {
 			const currentTrack = await player.queue.getCurrent();
 			if (!currentTrack) {
 				const embed = responseHandler.createErrorEmbed(this.t('responses.errors.no_current_track'), this.locale);
 				return await this.interaction.editReply({ embeds: [embed] });
 			}
-			const skipTrackSource = this.interaction instanceof discord.ChatInputCommandInteraction ? this.interaction.options.getBoolean('skip_track_source') || false : false;
-			const lyricsData = await player.getCurrentLyrics(skipTrackSource);
 
-			if (!lyricsData || (!lyricsData.text && (!lyricsData.lines || lyricsData.lines.length === 0))) {
-				const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.not_found', { title: currentTrack.title || 'Unknown Track', artist: currentTrack.author || 'Unknown Artist' }));
+			const spotifyUrlRegex = /https?:\/\/open\.spotify\.com\/track\/[a-zA-Z0-9]+/;
+			const spotifyUrl = currentTrack.uri && spotifyUrlRegex.test(currentTrack.uri) ? currentTrack.uri : null;
+
+			if (!spotifyUrl) {
+				const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.not_spotify', { title: currentTrack.title || 'Unknown Track', artist: currentTrack.author || 'Unknown Artist' }));
 				return await this.interaction.editReply({ embeds: [embed] });
 			}
 
 			const trackTitle = Formatter.truncateText(currentTrack.title || 'Unknown Track', 50);
 			const trackArtist = Formatter.truncateText(currentTrack.author || 'Unknown Artist', 30);
 
-			let lyricsText = '';
-			if (lyricsData.text) {
-				lyricsText = lyricsData.text;
-			} else if (lyricsData.lines && lyricsData.lines.length > 0) {
-				lyricsText = lyricsData.lines
-					.map((line: magmastream.LyricsLine) => line.line)
-					.filter((line: string) => line && line.trim() !== '')
-					.join('\n');
-			}
+			await this.interaction.editReply({ embeds: [responseHandler.createInfoEmbed(this.t('responses.lyrics.fetching'))] });
+
+			const lyricsProvider = new Lyrics();
+			const lyricsText = await lyricsProvider.getPlainText(spotifyUrl);
 
 			if (!lyricsText || lyricsText.trim() === '') {
-				const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.empty', { title: trackTitle, artist: trackArtist }));
+				const embed = responseHandler.createInfoEmbed(this.t('responses.lyrics.not_found', { title: trackTitle, artist: trackArtist }));
 				return await this.interaction.editReply({ embeds: [embed] });
 			}
 
@@ -597,8 +590,6 @@ export class Music {
 				if (i === 0) {
 					embed.setTitle(`🎵 ${this.t('responses.lyrics.title')} - ${trackTitle}`);
 					embed.setAuthor({ name: trackArtist, iconURL: currentTrack.thumbnail || currentTrack.artworkUrl || undefined });
-					if (lyricsData.provider) embed.addFields({ name: this.t('responses.lyrics.provider'), value: lyricsData.provider, inline: true });
-					if (lyricsData.source) embed.addFields({ name: this.t('responses.lyrics.source'), value: lyricsData.source, inline: true });
 					if (currentTrack.thumbnail || currentTrack.artworkUrl) embed.setThumbnail(currentTrack.thumbnail || currentTrack.artworkUrl);
 				}
 
@@ -657,17 +648,8 @@ export class Music {
 				});
 			}
 		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message.includes('lavalyrics-plugin') || error.message.includes('lavasrc-plugin') || error.message.includes('java-lyrics-plugin')) {
-					await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.lyrics_plugin_missing'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
-				} else {
-					await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.lyrics_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
-					this.client.logger.error(`[LYRICS] Command error: ${error}`);
-				}
-			} else {
-				await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.lyrics_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
-				this.client.logger.error(`[LYRICS] Command error: ${error}`);
-			}
+			await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.lyrics_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
+			this.client.logger.error(`[LYRICS] Command error: ${error}`);
 		}
 	};
 
