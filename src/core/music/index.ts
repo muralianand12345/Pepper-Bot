@@ -12,6 +12,7 @@ export * from './func';
 export * from './repo';
 export * from './utils';
 export * from './search';
+export * from './lyrics';
 export * from './handlers';
 export * from './now_playing';
 export * from './activity_check';
@@ -620,7 +621,7 @@ export class Music {
 						.setLabel(this.t('responses.lyrics.buttons.next'))
 						.setStyle(discord.ButtonStyle.Secondary)
 						.setEmoji('➡️')
-						.setDisabled(embeds.length <= 1)
+						.setDisabled(embeds.length <= 1),
 				);
 
 				const message = await this.interaction.editReply({ embeds: [embeds[currentPage]], components: [row] });
@@ -644,7 +645,7 @@ export class Music {
 							.setLabel(this.t('responses.lyrics.buttons.next'))
 							.setStyle(discord.ButtonStyle.Secondary)
 							.setEmoji('➡️')
-							.setDisabled(currentPage === embeds.length - 1)
+							.setDisabled(currentPage === embeds.length - 1),
 					);
 
 					await i.update({ embeds: [embeds[currentPage]], components: [updatedRow] });
@@ -773,7 +774,7 @@ export class Music {
 						.setLabel(this.t('responses.queue.buttons.move'))
 						.setStyle(discord.ButtonStyle.Secondary)
 						.setEmoji('🔄')
-						.setDisabled(isEmpty || queueTracks.length < 2)
+						.setDisabled(isEmpty || queueTracks.length < 2),
 				);
 				const actionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setCustomId('queue-remove').setLabel(this.t('responses.queue.buttons.remove')).setStyle(discord.ButtonStyle.Secondary).setEmoji('➖').setDisabled(isEmpty), new discord.ButtonBuilder().setCustomId('queue-clear').setLabel(this.t('responses.queue.buttons.clear')).setStyle(discord.ButtonStyle.Danger).setEmoji('🗑️').setDisabled(isEmpty));
 				return [navigationRow, actionRow];
@@ -844,12 +845,7 @@ export class Music {
 				});
 
 				collector.on('end', async () => {
-					const disabledNavigationRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
-						new discord.ButtonBuilder().setCustomId('queue-previous').setLabel(this.t('responses.queue.buttons.previous')).setStyle(discord.ButtonStyle.Secondary).setEmoji('⬅️').setDisabled(true),
-						new discord.ButtonBuilder().setCustomId('queue-next').setLabel(this.t('responses.queue.buttons.next')).setStyle(discord.ButtonStyle.Secondary).setEmoji('➡️').setDisabled(true),
-						new discord.ButtonBuilder().setCustomId('queue-shuffle').setLabel(this.t('responses.queue.buttons.shuffle')).setStyle(discord.ButtonStyle.Primary).setEmoji('🔀').setDisabled(true),
-						new discord.ButtonBuilder().setCustomId('queue-move').setLabel(this.t('responses.queue.buttons.move')).setStyle(discord.ButtonStyle.Secondary).setEmoji('🔄').setDisabled(true)
-					);
+					const disabledNavigationRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setCustomId('queue-previous').setLabel(this.t('responses.queue.buttons.previous')).setStyle(discord.ButtonStyle.Secondary).setEmoji('⬅️').setDisabled(true), new discord.ButtonBuilder().setCustomId('queue-next').setLabel(this.t('responses.queue.buttons.next')).setStyle(discord.ButtonStyle.Secondary).setEmoji('➡️').setDisabled(true), new discord.ButtonBuilder().setCustomId('queue-shuffle').setLabel(this.t('responses.queue.buttons.shuffle')).setStyle(discord.ButtonStyle.Primary).setEmoji('🔀').setDisabled(true), new discord.ButtonBuilder().setCustomId('queue-move').setLabel(this.t('responses.queue.buttons.move')).setStyle(discord.ButtonStyle.Secondary).setEmoji('🔄').setDisabled(true));
 
 					const disabledActionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setCustomId('queue-remove').setLabel(this.t('responses.queue.buttons.remove')).setStyle(discord.ButtonStyle.Secondary).setEmoji('➖').setDisabled(true), new discord.ButtonBuilder().setCustomId('queue-clear').setLabel(this.t('responses.queue.buttons.clear')).setStyle(discord.ButtonStyle.Danger).setEmoji('🗑️').setDisabled(true));
 					await this.interaction.editReply({ components: [disabledNavigationRow, disabledActionRow] }).catch(() => {});

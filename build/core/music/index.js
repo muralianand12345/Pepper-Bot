@@ -52,6 +52,7 @@ __exportStar(require("./func"), exports);
 __exportStar(require("./repo"), exports);
 __exportStar(require("./utils"), exports);
 __exportStar(require("./search"), exports);
+__exportStar(require("./lyrics"), exports);
 __exportStar(require("./handlers"), exports);
 __exportStar(require("./now_playing"), exports);
 __exportStar(require("./activity_check"), exports);

@@ -126,3 +126,17 @@ export interface SpotifyUserProfile {
 	id: string;
 	display_name?: string;
 }
+
+export interface LyricLine {
+	startTimeMs: string;
+	words: string;
+	syllables: string[];
+	endTimeMs: string;
+	transliteratedWords: string;
+}
+
+export interface LyricsResponse {
+	error: boolean;
+	syncType: 'LINE_SYNCED' | 'UNSYNCED' | string;
+	lines: LyricLine[];
+}
