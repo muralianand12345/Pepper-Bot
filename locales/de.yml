@@ -82,7 +82,6 @@ commands:
     queue:
         name: 'queue'
         description: 'Zeige und verwalte die Musikwarteschlange'
-
     dj:
         name: 'dj'
         description: 'Verwalte die DJ-Rolle für Musikbefehle'
@@ -115,6 +114,9 @@ commands:
             volume:
                 name: 'lautstärke'
                 description: 'Lautstärkepegel (1-100)'
+    24-7:
+        name: '24-7'
+        description: '24/7-Modus umschalten, um den Bot im Sprachkanal zu halten'
 
 responses:
     music:
@@ -142,6 +144,8 @@ responses:
         filter_applied: '{filter}-Filter angewendet'
         playlist_truncated: 'Hinzugefügt {added}/{total} Titel. Tritt unserem Support-Server bei, um unbegrenzte Playlists zu erhalten!'
         volume_set: 'Lautstärke auf {volume}% eingestellt'
+        twenty_four_seven_enabled: '24/7-Modus aktiviert. Der Bot bleibt im Sprachkanal, auch wenn keine Musik abgespielt wird.'
+        twenty_four_seven_disabled: '24/7-Modus deaktiviert. Der Bot verlässt den Sprachkanal, wenn die Musik gestoppt wird oder die Warteschlange leer ist.'
 
     activity_check:
         title: '⏰ Hörst du noch zu?'
@@ -214,6 +218,7 @@ responses:
         member_not_found: 'Deine Berechtigungen konnten nicht überprüft werden. Bitte versuche es erneut.'
         volume_error: 'Beim Einstellen der Lautstärke ist ein Fehler aufgetreten'
         premium_required: '⭐ Dieser Befehl erfordert **Premium**. Tritt unserem Support-Server bei, um Zugang zu erhalten!'
+        twenty_four_seven_error: 'Beim Umschalten des 24/7-Modus ist ein Fehler aufgetreten'
 
     language:
         user_set: 'Deine Sprache wurde auf **{language}** festgelegt'

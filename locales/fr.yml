@@ -114,6 +114,9 @@ commands:
             volume:
                 name: 'volume'
                 description: 'Niveau de volume (1-100)'
+    24-7:
+        name: '24-7'
+        description: "Activer/désactiver le mode 24/7 pour garder le bot dans le salon vocal"
 
 responses:
     music:
@@ -141,6 +144,8 @@ responses:
         filter_applied: 'Filtre {filter} appliqué'
         playlist_truncated: "Ajouté(s) {added}/{total} titres. Rejoignez notre serveur d'assistance pour des playlists illimitées !"
         volume_set: 'Volume réglé à {volume}%'
+        twenty_four_seven_enabled: "Mode 24/7 activé. Le bot restera dans le salon vocal même lorsqu'aucune musique n'est en cours de lecture."
+        twenty_four_seven_disabled: "Mode 24/7 désactivé. Le bot quittera le salon vocal lorsque la musique sera arrêtée ou que la file d'attente sera vide."
 
     activity_check:
         title: '⏰ Vous écoutez toujours ?'
@@ -213,6 +218,7 @@ responses:
         member_not_found: 'Impossible de vérifier vos permissions. Veuillez réessayer.'
         volume_error: "Une erreur s'est produite lors du réglage du volume"
         premium_required: '⭐ Cette commande nécessite **Premium**. Rejoignez notre serveur de support pour y accéder !'
+        twenty_four_seven_error: "Une erreur s'est produite lors du basculement du mode 24/7"
 
     language:
         user_set: 'Votre langue a été définie sur **{language}**'

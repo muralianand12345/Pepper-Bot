@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const msg_1 = require("../../../utils/msg");
 const locales_1 = require("../../../core/locales");
+const music_guild_1 = __importDefault(require("../../../events/database/schema/music_guild"));
 const music_1 = require("../../../core/music");
 const localeDetector = new locales_1.LocaleDetector();
 const event = {
@@ -67,6 +68,16 @@ const event = {
             await (0, music_1.sendTempMessage)(textChannel, embed);
         }
         if (memberCount === 0) {
+            let isTwentyFourSeven = false;
+            try {
+                const guild = await music_guild_1.default.findOne({ guildId: newState.guild.id });
+                isTwentyFourSeven = guild?.twentyFourSeven ?? false;
+            }
+            catch (error) {
+                client.logger.warn(`[VOICE_STATE] Failed to check 24/7 mode: ${error}`);
+            }
+            if (isTwentyFourSeven)
+                return client.logger.info(`[VOICE_STATE] 24/7 mode enabled for guild ${player.guildId}, staying connected`);
             if (!player.paused && player.playing) {
                 player.pause(true);
                 if (currentTrack)

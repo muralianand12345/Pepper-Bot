@@ -4,6 +4,7 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 import { send } from '../../../../utils/msg';
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
+import music_guild from '../../../../events/database/schema/music_guild';
 import { wait, NowPlayingManager, MusicResponseHandler, VoiceChannelStatus } from '../../../../core/music';
 
 const localeDetector = new LocaleDetector();
@@ -94,6 +95,13 @@ const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, 
 	const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, client);
 	nowPlayingManager.onStop();
 	await nowPlayingManager.disableButtons();
+
+	try {
+		const guild = await music_guild.findOne({ guildId });
+		if (guild?.twentyFourSeven) return client.logger.info(`[QUEUE_END] 24/7 mode enabled for guild ${guildId}, skipping player cleanup`);
+	} catch (error) {
+		client.logger.warn(`[QUEUE_END] Failed to check 24/7 mode for guild ${guildId}: ${error}`);
+	}
 
 	const CLEANUP_DELAY = 120000;
 	const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;

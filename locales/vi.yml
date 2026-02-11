@@ -82,7 +82,6 @@ commands:
     queue:
         name: 'queue'
         description: 'Hiển thị và quản lý hàng đợi nhạc'
-
     dj:
         name: 'dj'
         description: 'Quản lý vai trò DJ cho các lệnh nhạc'
@@ -90,7 +89,6 @@ commands:
             role:
                 name: 'role'
                 description: 'Vai trò để đặt/xóa làm vai trò DJ (để trống để tạo/tắt)'
-
     login:
         name: 'login'
         description: 'Kết nối tài khoản nhạc của bạn với Pepper'
@@ -100,7 +98,6 @@ commands:
                 description: 'Dịch vụ nhạc để kết nối'
                 choices:
                     spotify: 'Spotify'
-
     logout:
         name: 'logout'
         description: 'Ngắt kết nối tài khoản nhạc của bạn khỏi Pepper'
@@ -110,7 +107,6 @@ commands:
                 description: 'Dịch vụ nhạc để ngắt kết nối'
                 choices:
                     spotify: 'Spotify'
-
     volume:
         name: 'volume'
         description: 'Đặt âm lượng phát nhạc'
@@ -118,6 +114,9 @@ commands:
             volume:
                 name: 'volume'
                 description: 'Mức âm lượng (1-100)'
+    24-7:
+        name: '24-7'
+        description: 'Bật/tắt chế độ 24/7 để giữ bot trong kênh thoại'
 
 responses:
     music:
@@ -145,6 +144,8 @@ responses:
         filter_applied: 'Đã áp dụng bộ lọc {filter}'
         playlist_truncated: 'Đã thêm {added}/{total} bài hát. Tham gia máy chủ hỗ trợ của chúng tôi để có danh sách phát không giới hạn!'
         volume_set: 'Đã đặt âm lượng ở {volume}%'
+        twenty_four_seven_enabled: 'Đã bật chế độ 24/7. Bot sẽ ở lại kênh thoại ngay cả khi không phát nhạc.'
+        twenty_four_seven_disabled: 'Đã tắt chế độ 24/7. Bot sẽ rời kênh thoại khi nhạc dừng hoặc hàng đợi trống.'
 
     activity_check:
         title: '⏰ Bạn vẫn đang nghe nhạc chứ?'
@@ -205,6 +206,7 @@ responses:
         member_not_found: 'Không thể xác minh quyền của bạn. Vui lòng thử lại.'
         volume_error: 'Đã xảy ra lỗi khi đặt âm lượng'
         premium_required: '⭐ Lệnh này yêu cầu **Premium**. Tham gia máy chủ hỗ trợ của chúng tôi để được truy cập!'
+        twenty_four_seven_error: 'Đã xảy ra lỗi khi chuyển đổi chế độ 24/7'
 
     language:
         user_set: 'Ngôn ngữ của bạn đã được đặt thành **{language}**'

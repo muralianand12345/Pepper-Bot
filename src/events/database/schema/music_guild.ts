@@ -7,6 +7,7 @@ const musicGuildSchema = new Schema<IMusicGuild>({
 	guildId: { type: String, required: true },
 	language: { type: String, required: false, default: null },
 	dj: { type: String, required: false, default: null, set: (v: string | null | undefined) => (typeof v === 'string' || v === null || v === undefined ? v : null) },
+	twentyFourSeven: { type: Boolean, required: false, default: false },
 	songs: [
 		{
 			track: { type: String, required: true },

@@ -3,6 +3,7 @@ import discord from 'discord.js';
 import { send } from '../../../utils/msg';
 import { BotEvent } from '../../../types';
 import { LocaleDetector } from '../../../core/locales';
+import music_guild from '../../../events/database/schema/music_guild';
 import { NowPlayingManager, MusicResponseHandler, sendTempMessage, VoiceChannelStatus } from '../../../core/music';
 
 const localeDetector = new LocaleDetector();
@@ -68,6 +69,16 @@ const event: BotEvent = {
 		}
 
 		if (memberCount === 0) {
+			let isTwentyFourSeven = false;
+			try {
+				const guild = await music_guild.findOne({ guildId: newState.guild.id });
+				isTwentyFourSeven = guild?.twentyFourSeven ?? false;
+			} catch (error) {
+				client.logger.warn(`[VOICE_STATE] Failed to check 24/7 mode: ${error}`);
+			}
+
+			if (isTwentyFourSeven) return client.logger.info(`[VOICE_STATE] 24/7 mode enabled for guild ${player.guildId}, staying connected`);
+
 			if (!player.paused && player.playing) {
 				player.pause(true);
 				if (currentTrack) await new VoiceChannelStatus(client).setPaused(player, currentTrack);

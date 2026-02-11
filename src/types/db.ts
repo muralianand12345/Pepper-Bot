@@ -6,6 +6,7 @@ export interface IMusicGuild extends mongoose.Document {
 	guildId: string;
 	language?: string | null;
 	dj: string | null;
+	twentyFourSeven?: boolean;
 	songs: Array<ISongs>;
 }
 

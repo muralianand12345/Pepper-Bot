@@ -884,6 +884,27 @@ class Music {
                 await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.volume_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
             }
         };
+        this.twentyFourSeven = async () => {
+            await this.interaction.deferReply();
+            await this.initializeLocale();
+            const responseHandler = new handlers_1.MusicResponseHandler(this.client);
+            try {
+                let guild = await music_guild_1.default.findOne({ guildId: this.interaction.guildId });
+                if (!guild) {
+                    guild = new music_guild_1.default({ guildId: this.interaction.guildId, dj: null, songs: [], twentyFourSeven: true });
+                    await guild.save();
+                    return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.twenty_four_seven_enabled'))] });
+                }
+                guild.twentyFourSeven = !guild.twentyFourSeven;
+                await guild.save();
+                const message = guild.twentyFourSeven ? this.t('responses.music.twenty_four_seven_enabled') : this.t('responses.music.twenty_four_seven_disabled');
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message)] });
+            }
+            catch (error) {
+                this.client.logger.error(`[MUSIC] 24/7 mode error: ${error}`);
+                await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.twenty_four_seven_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
+            }
+        };
         this.client = client;
         this.interaction = interaction;
         this.localeDetector = new locales_1.LocaleDetector();

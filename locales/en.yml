@@ -119,6 +119,10 @@ commands:
                 name: 'volume'
                 description: 'Volume level (1-100)'
 
+    24-7:
+        name: '24-7'
+        description: 'Toggle 24/7 mode to keep the bot in the voice channel'
+
 responses:
     music:
         connected: 'Connected to {channelName}'
@@ -145,6 +149,8 @@ responses:
         filter_applied: 'Applied {filter} filter'
         playlist_truncated: 'Added {added}/{total} tracks. Join our support server for unlimited playlists!'
         volume_set: 'Volume set to {volume}%'
+        twenty_four_seven_enabled: '24/7 mode enabled. The bot will stay in the voice channel even when no music is playing.'
+        twenty_four_seven_disabled: '24/7 mode disabled. The bot will leave the voice channel when music is stopped or the queue is empty.'
 
     activity_check:
         title: '⏰ Are you still listening?'
@@ -216,6 +222,7 @@ responses:
         member_not_found: 'Unable to verify your permissions. Please try again.'
         volume_error: 'An error occurred while setting the volume'
         premium_required: '⭐ This command requires **Premium**. Join our support server to get access!'
+        twenty_four_seven_error: 'An error occurred while toggling 24/7 mode'
 
     language:
         user_set: 'Your language has been set to **{language}**'

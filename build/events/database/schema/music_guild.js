@@ -6,6 +6,7 @@ const musicGuildSchema = new mongoose_1.Schema({
     guildId: { type: String, required: true },
     language: { type: String, required: false, default: null },
     dj: { type: String, required: false, default: null, set: (v) => (typeof v === 'string' || v === null || v === undefined ? v : null) },
+    twentyFourSeven: { type: Boolean, required: false, default: false },
     songs: [
         {
             track: { type: String, required: true },
