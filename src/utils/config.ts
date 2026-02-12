@@ -31,11 +31,6 @@ const EnvSchema = z.object({
 	REDIS_PREFIX: z.string().optional(),
 });
 
-/**
- * Manages application configuration using environment variables
- * Implements the Singleton pattern to ensure only one configuration instance exists
- * @class ConfigManager
- */
 export class ConfigManager {
 	private static instance: ConfigManager;
 	private config: z.infer<typeof EnvSchema>;

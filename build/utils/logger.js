@@ -11,11 +11,6 @@ const discord_js_1 = __importDefault(require("discord.js"));
 const msg_1 = require("./msg");
 const config_1 = require("./config");
 const configManager = config_1.ConfigManager.getInstance();
-/**
- * Logger class for logging messages to console and file.
- * Supports different log levels: success, log, error, warn, info, debug.
- * Logs are stored in a structured directory based on date.
- */
 class Logger {
     constructor(baseDirPath = '../../logs') {
         this.getCurrentTimestamp = () => {
@@ -86,10 +81,6 @@ class Logger {
     }
 }
 exports.Logger = Logger;
-/**
- * Class responsible for logging Discord bot command executions.
- * Handles both file-based logging and Discord channel logging with embeds.
- */
 class CommandLogger {
     constructor(logsPath = '../../logs') {
         this.logFilePath = path_1.default.join(__dirname, logsPath, 'bot-user-log.log');
