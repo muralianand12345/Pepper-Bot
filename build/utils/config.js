@@ -34,11 +34,6 @@ const EnvSchema = zod_1.z.object({
     REDIS_PASSWORD: zod_1.z.string().optional(),
     REDIS_PREFIX: zod_1.z.string().optional(),
 });
-/**
- * Manages application configuration using environment variables
- * Implements the Singleton pattern to ensure only one configuration instance exists
- * @class ConfigManager
- */
 class ConfigManager {
     constructor() {
         this.getConfig = () => {

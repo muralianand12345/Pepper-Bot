@@ -7,6 +7,7 @@ const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = require("magmastream");
 const msg_1 = require("../../../../utils/msg");
 const locales_1 = require("../../../../core/locales");
+const music_guild_1 = __importDefault(require("../../../../events/database/schema/music_guild"));
 const music_1 = require("../../../../core/music");
 const localeDetector = new locales_1.LocaleDetector();
 const createQueueEndEmbed = (client, locale = 'en') => {
@@ -91,6 +92,14 @@ const handlePlayerCleanup = async (player, guildId, client) => {
     const nowPlayingManager = music_1.NowPlayingManager.getInstance(guildId, player, client);
     nowPlayingManager.onStop();
     await nowPlayingManager.disableButtons();
+    try {
+        const guild = await music_guild_1.default.findOne({ guildId });
+        if (guild?.twentyFourSeven)
+            return client.logger.info(`[QUEUE_END] 24/7 mode enabled for guild ${guildId}, skipping player cleanup`);
+    }
+    catch (error) {
+        client.logger.warn(`[QUEUE_END] Failed to check 24/7 mode for guild ${guildId}: ${error}`);
+    }
     const CLEANUP_DELAY = 120000;
     const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
     const scheduledAt = Date.now();

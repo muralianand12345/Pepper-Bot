@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import discord from 'discord.js';
 
 import { Command, CommandCategory } from '../types';
+import music_guild from '../events/database/schema/music_guild';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
 
 const localeDetector = new LocaleDetector();
@@ -93,7 +94,12 @@ const pingCommand: Command = {
 					const trackInfo = currentTrack ? `${currentTrack.title} - ${currentTrack.author}`.slice(0, 50) : 'No track playing';
 					const status = player.playing ? '▶️' : player.paused ? '⏸️' : '⏹️';
 					const queueSize = await player.queue.size();
-					return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Users: ${userCount} ${userCount === 1 ? 'user' : 'users'}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize + 1} songs\n` + `└ Node: ${player.node.options.identifier}`;
+					let is247 = false;
+					try {
+						const guildData = await music_guild.findOne({ guildId: player.guildId });
+						is247 = guildData?.twentyFourSeven ?? false;
+					} catch {}
+					return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Users: ${userCount} ${userCount === 1 ? 'user' : 'users'}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize + 1} songs\n` + `└ 24/7: ${is247 ? '✅' : '❌'}\n` + `└ Node: ${player.node.options.identifier}`;
 				}),
 			);
 			return playerInfos.join('\n\n');

@@ -1,12 +1,4 @@
-/**
- * A utility class for formatting text and time values
- */
 class Formatter {
-	/**
-	 * Converts milliseconds to a formatted time string (HH:MM:SS)
-	 * @param ms - Time in milliseconds
-	 * @returns Formatted time string
-	 */
 	public static msToTime = (ms: number): string => {
 		const seconds = Math.floor(ms / 1000);
 		const hours = Math.floor(seconds / 3600);
@@ -20,11 +12,6 @@ class Formatter {
 		return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 	};
 
-	/**
-	 * Formats a duration in seconds into a human-readable string
-	 * @param seconds - Duration in seconds
-	 * @returns Formatted duration string
-	 */
 	public static formatUptime = (seconds: number): string => {
 		const years = Math.floor(seconds / 31536000);
 		const months = Math.floor(seconds / 2592000);
@@ -42,11 +29,6 @@ class Formatter {
 		return parts.join(' ') || '< 1m';
 	};
 
-	/**
-	 * Formats a listening time in seconds into a human-readable string
-	 * @param seconds - Listening time in seconds
-	 * @returns Formatted listening time string
-	 */
 	public static formatListeningTime = (seconds: number): string => {
 		if (seconds < 60) return '< 1m';
 
@@ -94,34 +76,16 @@ class Formatter {
 		return `${minutes}m`;
 	};
 
-	/**
-	 * Truncates text to a specified length and appends an ellipsis if necessary
-	 * @param text - The text to truncate
-	 * @param maxLength - Maximum length of the text
-	 * @param ellipsis - String to append if text is truncated
-	 * @returns Truncated text
-	 */
 	public static truncateText = (text: string, maxLength: number = 50, ellipsis: string = '...'): string => {
 		if (Array.from(text).length > maxLength) text = text.slice(0, maxLength) + ellipsis;
 		return text;
 	};
 
-	/**
-	 * Formats a string as a hyperlink
-	 * @param text - The text to display
-	 * @param url - The URL to link to
-	 * @returns Formatted hyperlink string
-	 */
 	public static hyperlink = (text: string, url: string): string => {
 		const escapedText = text.replace(/\[/g, '［').replace(/\]/g, '］');
 		return `[${escapedText}](${url})`;
 	};
 
-	/**
-	 * Formats a number of bytes into a human-readable string
-	 * @param bytes - The number of bytes
-	 * @returns Formatted byte string
-	 */
 	public static formatBytes = (bytes: number): string => {
 		if (bytes === 0) return '0 B';
 		const k = 1024;

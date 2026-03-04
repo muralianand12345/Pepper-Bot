@@ -11,11 +11,6 @@ type LogMessage = string | Error;
 
 const configManager = ConfigManager.getInstance();
 
-/**
- * Logger class for logging messages to console and file.
- * Supports different log levels: success, log, error, warn, info, debug.
- * Logs are stored in a structured directory based on date.
- */
 export class Logger implements ILogger {
 	private readonly logsBasePath: string;
 	private readonly logFilePath: string;
@@ -102,10 +97,6 @@ export class Logger implements ILogger {
 	};
 }
 
-/**
- * Class responsible for logging Discord bot command executions.
- * Handles both file-based logging and Discord channel logging with embeds.
- */
 export class CommandLogger implements ICommandLogger {
 	private readonly logFilePath: string;
 
