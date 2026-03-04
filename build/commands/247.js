@@ -11,6 +11,7 @@ const localizationManager = locales_1.LocalizationManager.getInstance();
 const twentyFourSevenCommand = {
     cooldown: 5,
     dj: true,
+    premium: true,
     category: types_1.CommandCategory.MUSIC,
     data: new discord_js_1.default.SlashCommandBuilder().setName('24-7').setDescription('Toggle 24/7 mode to keep the bot in the voice channel').setNameLocalizations(localizationManager.getCommandLocalizations('commands.24-7.name')).setDescriptionLocalizations(localizationManager.getCommandLocalizations('commands.24-7.description')).setContexts(discord_js_1.default.InteractionContextType.Guild),
     execute: async (interaction, client) => {
