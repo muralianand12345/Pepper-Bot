@@ -40,6 +40,7 @@ const event: BotEvent = {
 		if (newState.id === client.user?.id && newState.channelId && oldState.channelId && newState.channelId !== oldState.channelId) {
 			client.logger.info(`[VOICE_STATE] Bot was moved to different voice channel in guild ${newState.guild.id}`);
 			if (player.voiceChannelId !== newState.channelId) player.voiceChannelId = newState.channelId;
+			music_guild.updateOne({ guildId: newState.guild.id, twentyFourSeven: true }, { $set: { voiceChannelId: newState.channelId } }).catch((error) => client.logger.warn(`[VOICE_STATE] Failed to update 24/7 voice channel: ${error}`));
 			return;
 		}
 

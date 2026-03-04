@@ -146,6 +146,7 @@ responses:
         volume_set: 'Đã đặt âm lượng ở {volume}%'
         twenty_four_seven_enabled: 'Đã bật chế độ 24/7. Bot sẽ ở lại kênh thoại ngay cả khi không phát nhạc.'
         twenty_four_seven_disabled: 'Đã tắt chế độ 24/7. Bot sẽ rời kênh thoại khi nhạc dừng hoặc hàng đợi trống.'
+        twenty_four_seven_reconnected: '🔄 Chế độ 24/7: Đã kết nối lại sau khi khởi động lại'
 
     activity_check:
         title: '⏰ Bạn vẫn đang nghe nhạc chứ?'

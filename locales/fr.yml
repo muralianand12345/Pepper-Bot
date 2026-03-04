@@ -146,6 +146,7 @@ responses:
         volume_set: 'Volume réglé à {volume}%'
         twenty_four_seven_enabled: "Mode 24/7 activé. Le bot restera dans le salon vocal même lorsqu'aucune musique n'est en cours de lecture."
         twenty_four_seven_disabled: "Mode 24/7 désactivé. Le bot quittera le salon vocal lorsque la musique sera arrêtée ou que la file d'attente sera vide."
+        twenty_four_seven_reconnected: '🔄 Mode 24/7 : Reconnecté après le redémarrage'
 
     activity_check:
         title: '⏰ Vous écoutez toujours ?'

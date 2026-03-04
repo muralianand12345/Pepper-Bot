@@ -146,6 +146,7 @@ responses:
         volume_set: 'Lautstärke auf {volume}% eingestellt'
         twenty_four_seven_enabled: '24/7-Modus aktiviert. Der Bot bleibt im Sprachkanal, auch wenn keine Musik abgespielt wird.'
         twenty_four_seven_disabled: '24/7-Modus deaktiviert. Der Bot verlässt den Sprachkanal, wenn die Musik gestoppt wird oder die Warteschlange leer ist.'
+        twenty_four_seven_reconnected: '🔄 24/7-Modus: Nach Neustart wieder verbunden'
 
     activity_check:
         title: '⏰ Hörst du noch zu?'

@@ -107,6 +107,14 @@ export class Music {
 		};
 	};
 
+	private updateTwentyFourSevenChannels = async (guildId: string, voiceChannelId: string, textChannelId: string): Promise<void> => {
+		try {
+			await music_guild.updateOne({ guildId, twentyFourSeven: true }, { $set: { voiceChannelId, textChannelId } });
+		} catch (error) {
+			this.client.logger.error(`[MUSIC] Failed to update 24/7 channels: ${error}`);
+		}
+	};
+
 	searchResults = async (res: magmastream.SearchResult, player: magmastream.Player): Promise<discord.Message<boolean> | void> => {
 		const responseHandler = new MusicResponseHandler(this.client);
 
@@ -197,6 +205,8 @@ export class Music {
 				embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }))],
 			});
 		}
+
+		this.updateTwentyFourSevenChannels(this.interaction.guildId || '', guildMember?.voice.channelId || '', this.interaction.channelId);
 
 		try {
 			const res = await this.lavaSearch(query);
@@ -934,15 +944,38 @@ export class Music {
 		await this.initializeLocale();
 		const responseHandler = new MusicResponseHandler(this.client);
 
+		const validator = new VoiceChannelValidator(this.client, this.interaction);
+		const [isGuildValid, guildEmbed] = await validator.validateGuildContext();
+		if (!isGuildValid) return await this.interaction.editReply({ embeds: [guildEmbed] });
+
+		const [isVoiceValid, voiceEmbed] = await validator.validateVoiceConnection();
+		if (!isVoiceValid) return await this.interaction.editReply({ embeds: [voiceEmbed] });
+
+		const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
+
 		try {
 			let guild = await music_guild.findOne({ guildId: this.interaction.guildId });
 			if (!guild) {
-				guild = new music_guild({ guildId: this.interaction.guildId!, dj: null, songs: [], twentyFourSeven: true });
+				guild = new music_guild({
+					guildId: this.interaction.guildId!,
+					dj: null,
+					songs: [],
+					twentyFourSeven: true,
+					voiceChannelId: guildMember?.voice.channelId || null,
+					textChannelId: this.interaction.channelId || null,
+				});
 				await guild.save();
 				return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.twenty_four_seven_enabled'))] });
 			}
 
 			guild.twentyFourSeven = !guild.twentyFourSeven;
+			if (guild.twentyFourSeven) {
+				guild.voiceChannelId = guildMember?.voice.channelId || null;
+				guild.textChannelId = this.interaction.channelId || null;
+			} else {
+				guild.voiceChannelId = null;
+				guild.textChannelId = null;
+			}
 			await guild.save();
 			const message = guild.twentyFourSeven ? this.t('responses.music.twenty_four_seven_enabled') : this.t('responses.music.twenty_four_seven_disabled');
 			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message)] });
