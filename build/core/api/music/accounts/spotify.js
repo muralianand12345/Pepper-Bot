@@ -69,7 +69,7 @@ class SpotifyAPIHandler {
                 }));
                 return;
             }
-            const username = await spotifyManager.getSpotifyUsername(tokens.access);
+            const username = await spotifyManager.getSpotifyUsername({ access: tokens.access, refresh: tokens.refresh }, userId);
             const saved = await spotifyManager.saveAccount(userId, tokens, username || undefined);
             if (!saved) {
                 (0, authEmitter_1.emitAuthResult)(userId, 'failed');

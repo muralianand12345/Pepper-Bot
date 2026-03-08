@@ -90,7 +90,7 @@ export default class SpotifyAPIHandler {
 			return;
 		}
 
-		const username = await spotifyManager.getSpotifyUsername(tokens.access);
+		const username = await spotifyManager.getSpotifyUsername({ access: tokens.access, refresh: tokens.refresh }, userId);
 		const saved = await spotifyManager.saveAccount(userId, tokens, username || undefined);
 		if (!saved) {
 			emitAuthResult(userId, 'failed');
