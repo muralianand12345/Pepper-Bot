@@ -1,11 +1,12 @@
-import axios from 'axios';
 import discord from 'discord.js';
 import magmastream, { TrackUtils } from 'magmastream';
 
 import { Lyrics } from './lyrics';
 import Formatter from '../../utils/format';
 import { LocaleDetector } from '../locales';
+import { NowPlayingManager } from './now_playing';
 import { checkUserPremium } from '../commands/premium';
+import { ActivityCheckManager } from './activity_check';
 import { ProgressBarUtils, VoiceChannelStatus } from './utils';
 import music_guild from '../../events/database/schema/music_guild';
 import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator } from './handlers';
@@ -115,13 +116,26 @@ export class Music {
 		}
 	};
 
+	private isTwentyFourSeven = async (guildId: string): Promise<boolean> => {
+		try {
+			const guild = await music_guild.findOne({ guildId });
+			return guild?.twentyFourSeven ?? false;
+		} catch (error) {
+			this.client.logger.warn(`[MUSIC] Failed to check 24/7 mode: ${error}`);
+			return false;
+		}
+	};
+
 	searchResults = async (res: magmastream.SearchResult, player: magmastream.Player): Promise<discord.Message<boolean> | void> => {
 		const responseHandler = new MusicResponseHandler(this.client);
 
 		switch (res.loadType) {
 			case 'empty': {
 				const currentTrack = await player.queue.getCurrent();
-				if (!currentTrack) player.destroy();
+				if (!currentTrack) {
+					const is247 = await this.isTwentyFourSeven(this.interaction.guildId || '');
+					if (!is247) player.destroy();
+				}
 				await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_results'), this.locale)] });
 				break;
 			}
@@ -241,8 +255,20 @@ export class Music {
 		}
 
 		try {
-			player.destroy();
-			await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'))] });
+			const is247 = await this.isTwentyFourSeven(this.interaction.guildId || '');
+
+			if (is247) {
+				player.queue.clear();
+				player.stop();
+				const nowPlayingManager = NowPlayingManager.getInstance(player.guildId, player, this.client);
+				nowPlayingManager.onStop();
+				await nowPlayingManager.disableButtons();
+				ActivityCheckManager.removeInstance(player.guildId);
+				await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped_twenty_four_seven'))] });
+			} else {
+				player.destroy();
+				await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'))] });
+			}
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Stop error: ${error}`);
 			await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.stop_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord.MessageFlags.Ephemeral });
@@ -345,7 +371,10 @@ export class Music {
 
 				player.stop(1);
 				const queueSize = await player.queue.size();
-				if (queueSize === 0 && this.interaction.guildId) player.destroy();
+				if (queueSize === 0 && this.interaction.guildId) {
+					const is247 = await this.isTwentyFourSeven(this.interaction.guildId);
+					if (!is247) player.destroy();
+				}
 			} else {
 				player.stop();
 			}

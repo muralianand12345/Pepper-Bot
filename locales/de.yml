@@ -147,6 +147,7 @@ responses:
         twenty_four_seven_enabled: '24/7-Modus aktiviert. Der Bot bleibt im Sprachkanal, auch wenn keine Musik abgespielt wird.'
         twenty_four_seven_disabled: '24/7-Modus deaktiviert. Der Bot verlässt den Sprachkanal, wenn die Musik gestoppt wird oder die Warteschlange leer ist.'
         twenty_four_seven_reconnected: '🔄 24/7-Modus: Nach Neustart wieder verbunden'
+        stopped_twenty_four_seven: 'Wiedergabe gestoppt. Der 24/7-Modus ist aktiv, der Bot bleibt im Sprachkanal.'
 
     activity_check:
         title: '⏰ Hörst du noch zu?'
@@ -154,6 +155,7 @@ responses:
         confirmed: '✅ Super! Die Musik wird weiter abgespielt. Wir sehen uns in weiteren 6 Stunden!'
         timeout: '⏱️ Keine Antwort erhalten. Die Aktivitätsprüfung ist abgelaufen.'
         disconnected: '🔌 Aufgrund von Inaktivität getrennt (keine Antwort auf die Aktivitätsprüfung)'
+        stopped_twenty_four_seven: '⏹️ Wiedergabe wegen Inaktivität gestoppt. Der 24/7-Modus ist aktiv, der Bot bleibt im Sprachkanal.'
 
     chart:
         user_title: '{user}s Musik-Chart'
