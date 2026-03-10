@@ -3,37 +3,8 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 
 import { send } from '../../../../utils/msg';
 import { LavalinkEvent } from '../../../../types';
-import { MUSIC_CONFIG, MusicResponseHandler } from '../../../../core/music';
 import music_guild from '../../../../events/database/schema/music_guild';
-
-const patchNodeRest = (node: magmastream.Node, client: discord.Client): void => {
-	const rest = node.rest as any;
-	if (rest._patched) return;
-
-	const originalUpdatePlayer = rest.updatePlayer.bind(rest);
-
-	rest.updatePlayer = async (options: any): Promise<any> => {
-		try {
-			const data = options?.data ?? options;
-			const guildId = options?.guildId ?? data?.guildId;
-
-			if (data?.voice && !data.voice.channelId && guildId) {
-				const player = client.manager.getPlayer(guildId);
-				if (player?.voiceChannelId) {
-					data.voice.channelId = player.voiceChannelId;
-					client.logger.debug(`[REST_PATCH] Injected channelId ${player.voiceChannelId} for guild ${guildId}`);
-				}
-			}
-		} catch (err) {
-			client.logger.warn(`[REST_PATCH] Failed to inject channelId: ${err}`);
-		}
-
-		return originalUpdatePlayer(options);
-	};
-
-	rest._patched = true;
-	client.logger.info(`[REST_PATCH] Patched Rest.updatePlayer on node ${node.options.identifier}`);
-};
+import { MUSIC_CONFIG, MusicResponseHandler } from '../../../../core/music';
 
 const reconnectTwentyFourSevenGuilds = async (client: discord.Client): Promise<void> => {
 	try {
@@ -112,7 +83,6 @@ const lavalinkEvent: LavalinkEvent = {
 	name: ManagerEventTypes.NodeConnect,
 	execute: async (node: magmastream.Node, client: discord.Client) => {
 		client.logger.success(`[LAVALINK] Node ${node.options.identifier} connected`);
-		patchNodeRest(node, client);
 		await reconnectTwentyFourSevenGuilds(client);
 	},
 };

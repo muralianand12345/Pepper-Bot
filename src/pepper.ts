@@ -14,7 +14,6 @@ const initializeManager = (config: IConfig, client: discord.Client) => {
 		stateStorage: {
 			type: StateStorageType.Redis,
 			redisConfig: configManager.getRedisConfig(),
-			deleteInactivePlayers: true,
 		},
 		enablePriorityMode: true,
 		playNextOnEnd: true,
