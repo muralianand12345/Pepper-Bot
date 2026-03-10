@@ -147,6 +147,7 @@ responses:
         twenty_four_seven_enabled: 'Modo 24/7 activado. El bot permanecerá en el canal de voz aunque no se esté reproduciendo música.'
         twenty_four_seven_disabled: 'Modo 24/7 desactivado. El bot abandonará el canal de voz cuando la música se detenga o la cola esté vacía.'
         twenty_four_seven_reconnected: '🔄 Modo 24/7: Reconectado después del reinicio'
+        stopped_twenty_four_seven: 'Reproducción detenida. El modo 24/7 está activo, el bot permanecerá en el canal de voz.'
 
     activity_check:
         title: '⏰ ¿Sigues escuchando?'
@@ -154,6 +155,7 @@ responses:
         confirmed: '✅ ¡Perfecto! La música seguirá sonando. ¡Nos vemos en otras 6 horas!'
         timeout: '⏱️ No se recibió respuesta. La verificación de actividad ha expirado.'
         disconnected: '🔌 Desconectado por inactividad (sin respuesta a la verificación de actividad)'
+        stopped_twenty_four_seven: '⏹️ Reproducción detenida por inactividad. El modo 24/7 está activo, el bot permanecerá en el canal de voz.'
 
     chart:
         user_title: 'Chart de música de {user}'

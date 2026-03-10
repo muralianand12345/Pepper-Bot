@@ -152,6 +152,7 @@ responses:
         twenty_four_seven_enabled: '24/7 mode enabled. The bot will stay in the voice channel even when no music is playing.'
         twenty_four_seven_disabled: '24/7 mode disabled. The bot will leave the voice channel when music is stopped or the queue is empty.'
         twenty_four_seven_reconnected: '🔄 24/7 mode: Reconnected after restart'
+        stopped_twenty_four_seven: 'Stopped playback. 24/7 mode is active, so the bot will remain in the voice channel.'
 
     activity_check:
         title: '⏰ Are you still listening?'
@@ -159,6 +160,7 @@ responses:
         confirmed: '✅ Great! Music will continue playing. See you in another 6 hours!'
         timeout: '⏱️ No response received. The activity check has expired.'
         disconnected: '🔌 Disconnected due to inactivity (no response to activity check)'
+        stopped_twenty_four_seven: '⏹️ Stopped playback due to inactivity. 24/7 mode is active, so the bot will remain in the voice channel.'
 
     chart:
         user_title: "{user}'s Music Chart"

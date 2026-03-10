@@ -147,6 +147,7 @@ responses:
         twenty_four_seven_enabled: "Mode 24/7 activé. Le bot restera dans le salon vocal même lorsqu'aucune musique n'est en cours de lecture."
         twenty_four_seven_disabled: "Mode 24/7 désactivé. Le bot quittera le salon vocal lorsque la musique sera arrêtée ou que la file d'attente sera vide."
         twenty_four_seven_reconnected: '🔄 Mode 24/7 : Reconnecté après le redémarrage'
+        stopped_twenty_four_seven: "Lecture arrêtée. Le mode 24/7 est actif, le bot restera dans le salon vocal."
 
     activity_check:
         title: '⏰ Vous écoutez toujours ?'
@@ -154,6 +155,7 @@ responses:
         confirmed: '✅ Parfait ! La musique va continuer. À dans 6 heures !'
         timeout: "⏱️ Aucune réponse reçue. Le contrôle d'activité a expiré."
         disconnected: "🔌 Déconnecté pour inactivité (aucune réponse au contrôle d'activité)"
+        stopped_twenty_four_seven: "⏹️ Lecture arrêtée pour inactivité. Le mode 24/7 est actif, le bot restera dans le salon vocal."
 
     chart:
         user_title: 'Classement musical de {user}'

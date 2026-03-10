@@ -89,20 +89,20 @@ class SpotifyManager {
                 return false;
             }
         };
-        this.getSpotifyUsername = async (accessToken) => {
+        this.getSpotifyUsername = async (tokens, userId) => {
             try {
-                const response = await axios_1.default.get('https://api.spotify.com/v1/me', { headers: { Authorization: `Bearer ${accessToken}` } });
-                return response.data.display_name || response.data.id || null;
+                const data = await this.makeRequest('https://api.spotify.com/v1/me', tokens, userId);
+                return data.display_name || data.id || null;
             }
             catch (error) {
                 this.client.logger.error(`Error getting Spotify username: ${error}`);
                 return null;
             }
         };
-        this.getSpotifyId = async (accessToken) => {
+        this.getSpotifyId = async (tokens, userId) => {
             try {
-                const response = await axios_1.default.get('https://api.spotify.com/v1/me', { headers: { Authorization: `Bearer ${accessToken}` } });
-                return response.data.id || null;
+                const data = await this.makeRequest('https://api.spotify.com/v1/me', tokens, userId);
+                return data.id || null;
             }
             catch (error) {
                 this.client.logger.error(`Error getting Spotify ID: ${error}`);
@@ -115,7 +115,7 @@ class SpotifyManager {
                 if (!tokens)
                     return null;
                 const data = await this.makeRequest('https://api.spotify.com/v1/me/playlists', tokens, userId, { params: { limit, offset } });
-                const spotifyId = await this.getSpotifyId(tokens.access);
+                const spotifyId = await this.getSpotifyId(tokens, userId);
                 if (!spotifyId)
                     return null;
                 const owned = (data.items || []).filter((playlist) => playlist.owner?.id === spotifyId);
