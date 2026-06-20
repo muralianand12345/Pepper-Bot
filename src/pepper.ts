@@ -31,6 +31,8 @@ const initializeManager = (config: IConfig, client: discord.Client) => {
 				},
 			}),
 		],
+		getUser: (id: string) => client.users.cache.get(id),
+		getGuild: (id: string) => client.guilds.cache.get(id),
 		send: (packet: DiscordPacket): void => {
 			const guild = client.guilds.cache.get(packet.d?.guild_id);
 			if (guild) guild.shard.send(packet);

@@ -32,6 +32,8 @@ const initializeManager = (config, client) => {
                 },
             }),
         ],
+        getUser: (id) => client.users.cache.get(id),
+        getGuild: (id) => client.guilds.cache.get(id),
         send: (packet) => {
             const guild = client.guilds.cache.get(packet.d?.guild_id);
             if (guild)
