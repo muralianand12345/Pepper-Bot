@@ -27,7 +27,7 @@ export const wait = async (ms: number): Promise<void> => {
 	await timers.setTimeout(ms);
 };
 
-export const getRequester = (client: discord.Client, user: discord.User | discord.ClientUser | magmastream.PortableUser | string | null): ISongsUser | null => {
+export const getRequester = (client: discord.Client, user: discord.User | discord.ClientUser | magmastream.PortableUser | magmastream.AnyUser | string | null): ISongsUser | null => {
 	if (!user) return null;
 
 	if (typeof user === 'string') {
@@ -39,5 +39,5 @@ export const getRequester = (client: discord.Client, user: discord.User | discor
 	if (user instanceof discord.ClientUser) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
 	if (user instanceof discord.User) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
 
-	return { id: user.id, username: user.username ?? 'Unknown', discriminator: '0000', avatar: undefined };
+	return { id: String(user.id), username: user.username ?? 'Unknown', discriminator: '0000', avatar: undefined };
 };

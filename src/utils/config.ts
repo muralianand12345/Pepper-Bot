@@ -131,7 +131,7 @@ export class ConfigManager {
 		if (this.config.REDIS_HOST && this.config.REDIS_PORT) {
 			return {
 				host: this.config.REDIS_HOST,
-				port: this.config.REDIS_PORT,
+				port: parseInt(this.config.REDIS_PORT, 10),
 				password: this.config.REDIS_PASSWORD,
 				db: 0,
 				prefix: this.config.REDIS_PREFIX || 'pepper:',

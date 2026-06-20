@@ -42,6 +42,6 @@ const getRequester = (client, user) => {
         return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
     if (user instanceof discord_js_1.default.User)
         return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
-    return { id: user.id, username: user.username ?? 'Unknown', discriminator: '0000', avatar: undefined };
+    return { id: String(user.id), username: user.username ?? 'Unknown', discriminator: '0000', avatar: undefined };
 };
 exports.getRequester = getRequester;
