@@ -43,6 +43,7 @@ exports.Music = exports.MUSIC_CONFIG = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = __importStar(require("magmastream"));
 const lyrics_1 = require("./lyrics");
+const func_1 = require("./func");
 const format_1 = __importDefault(require("../../utils/format"));
 const locales_1 = require("../locales");
 const premium_1 = require("../commands/premium");
@@ -696,7 +697,8 @@ class Music {
                             const title = format_1.default.truncateText(track.title, 35);
                             const artist = format_1.default.truncateText(track.author, 20);
                             const duration = track.isStream ? this.t('responses.queue.live') : format_1.default.msToTime(track.duration);
-                            const requester = track.requester ? ` • ${track.requester.username}` : '';
+                            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
+                            const requester = requesterData ? ` • ${requesterData.username}` : '';
                             return `**${position}.** **${title}** - ${artist}\n└ ${duration}${requester}`;
                         })
                             .join('\n\n');

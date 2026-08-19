@@ -2,6 +2,7 @@ import discord from 'discord.js';
 import magmastream, { TrackUtils } from 'magmastream';
 
 import { Lyrics } from './lyrics';
+import { getRequester } from './func';
 import Formatter from '../../utils/format';
 import { LocaleDetector } from '../locales';
 import { checkUserPremium } from '../commands/premium';
@@ -723,7 +724,8 @@ export class Music {
 							const title = Formatter.truncateText(track.title, 35);
 							const artist = Formatter.truncateText(track.author, 20);
 							const duration = track.isStream ? this.t('responses.queue.live') : Formatter.msToTime(track.duration);
-							const requester = track.requester ? ` • ${track.requester.username}` : '';
+							const requesterData = track.requester ? getRequester(this.client, track.requester) : null;
+							const requester = requesterData ? ` • ${requesterData.username}` : '';
 							return `**${position}.** **${title}** - ${artist}\n└ ${duration}${requester}`;
 						})
 						.join('\n\n');
