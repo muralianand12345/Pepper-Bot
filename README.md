@@ -1,8 +1,8 @@
 # Pepper Bot 🎵
 
-![Version](https://img.shields.io/badge/version-5.9.1-blue)
-![Discord.js](https://img.shields.io/badge/discord.js-v14.18.0-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.8.2-blue)
+![Version](https://img.shields.io/badge/version-5.10.0-blue)
+![Discord.js](https://img.shields.io/badge/discord.js-v14.27.0-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-blue)
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)
 
 A powerful Discord music bot with smart autoplay, multi-language support, and advanced analytics. Built with TypeScript, Discord.js v14, and Lavalink for high-quality audio streaming.
