@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import discord from 'discord.js';
 
 import { Command } from '../../types';
+import { isPrimaryShard } from '../../utils/shard';
 import { ConfigManager } from '../../utils/config';
 
 export * from './premium';
@@ -32,6 +33,8 @@ export class CommandManager {
 	};
 
 	private register = async () => {
+		if (!isPrimaryShard(this.client)) return this.client.logger.debug(`[COMMAND] Skipping global command registration on shard ${this.client.shard?.ids[0]} (primary shard only).`);
+
 		const rest = new discord.REST({ version: '10' }).setToken(configManager.getToken() ?? '');
 		await rest.put(discord.Routes.applicationCommands(this.client.user?.id ?? ''), { body: this.commands.map((command) => command.toJSON()) });
 		this.client.logger.success('[COMMAND] Successfully registered application commands.');

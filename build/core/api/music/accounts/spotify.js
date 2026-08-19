@@ -17,7 +17,7 @@ class SpotifyAPIHandler {
             if (error) {
                 const userId = music_1.SpotifyManager.validateState(state);
                 if (userId)
-                    (0, authEmitter_1.emitAuthResult)(userId, 'failed');
+                    await (0, authEmitter_1.broadcastAuthResult)(this.client, userId, 'failed');
                 res.status(400).send((0, view_1.generateHTML)({
                     title: 'Spotify Login Failed',
                     icon: '✕',
@@ -57,7 +57,7 @@ class SpotifyAPIHandler {
             const spotifyManager = new music_1.SpotifyManager(this.client);
             const tokens = await spotifyManager.exchangeCodeForTokens(code);
             if (!tokens) {
-                (0, authEmitter_1.emitAuthResult)(userId, 'failed');
+                await (0, authEmitter_1.broadcastAuthResult)(this.client, userId, 'failed');
                 res.status(500).send((0, view_1.generateHTML)({
                     title: 'Connection Error',
                     icon: '✕',
@@ -72,7 +72,7 @@ class SpotifyAPIHandler {
             const username = await spotifyManager.getSpotifyUsername({ access: tokens.access, refresh: tokens.refresh }, userId);
             const saved = await spotifyManager.saveAccount(userId, tokens, username || undefined);
             if (!saved) {
-                (0, authEmitter_1.emitAuthResult)(userId, 'failed');
+                await (0, authEmitter_1.broadcastAuthResult)(this.client, userId, 'failed');
                 res.status(500).send((0, view_1.generateHTML)({
                     title: 'Save Error',
                     icon: '✕',
@@ -84,7 +84,7 @@ class SpotifyAPIHandler {
                 }));
                 return;
             }
-            (0, authEmitter_1.emitAuthResult)(userId, 'success');
+            await (0, authEmitter_1.broadcastAuthResult)(this.client, userId, 'success');
             res.status(200).send((0, view_1.generateHTML)({
                 title: 'Successfully Connected',
                 icon: '✓',

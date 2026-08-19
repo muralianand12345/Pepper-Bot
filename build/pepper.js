@@ -7,6 +7,7 @@ const discord_js_1 = __importDefault(require("discord.js"));
 const magma_connect_1 = require("magma-connect");
 const magmastream_1 = require("magmastream");
 const locales_1 = require("./core/locales");
+const authEmitter_1 = require("./utils/authEmitter");
 const logger_1 = require("./utils/logger");
 const config_1 = require("./utils/config");
 const configManager = config_1.ConfigManager.getInstance();
@@ -15,7 +16,7 @@ const initializeManager = (config, client) => {
         stateStorage: {
             type: magmastream_1.StateStorageType.Redis,
             redisConfig: configManager.getRedisConfig(),
-            deleteInactivePlayers: true,
+            deleteDestroyedPlayers: true,
         },
         enablePriorityMode: true,
         playNextOnEnd: true,
@@ -38,6 +39,8 @@ const initializeManager = (config, client) => {
             if (guild)
                 guild.shard.send(packet);
         },
+        getUser: (id) => client.users.cache.get(id),
+        getGuild: (id) => client.guilds.cache.get(id),
     });
 };
 const createClient = () => {
@@ -50,6 +53,7 @@ const createClient = () => {
     client.manager = initializeManager(client.config, client);
     client.localizationManager = locales_1.LocalizationManager.getInstance();
     client.on(discord_js_1.default.Events.Raw, (d) => client.manager.updateVoiceState(d));
+    (0, authEmitter_1.registerAuthBridge)(client);
     return client;
 };
 const client = createClient();

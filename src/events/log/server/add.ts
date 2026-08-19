@@ -2,6 +2,7 @@ import discord from 'discord.js';
 
 import { BotEvent } from '../../../types';
 import { send } from '../../../utils/msg';
+import { getGlobalGuildCount, invalidateStatsCache } from '../../../utils/shard';
 
 const truncateText = (text: string, maxLength: number = 100): string => {
 	if (!text) return 'Unknown';
@@ -17,11 +18,14 @@ const event: BotEvent = {
 
 			client.logger.info(`[SERVER_JOIN] Joined ${guildName} (${guildId})`);
 
+			invalidateStatsCache();
+			const totalGuilds = await getGlobalGuildCount(client);
+
 			const embed = new discord.EmbedBuilder()
 				.setTitle('New Server Joined')
-				.setDescription(`I have joined **${guildName}** (${guildId}). Now in **${client.guilds.cache.size}** servers.`)
+				.setDescription(`I have joined **${guildName}** (${guildId}). Now in **${totalGuilds.toLocaleString()}** servers.`)
 				.setColor('#00ff00')
-				.setFooter({ text: `Now in ${client.guilds.cache.size} servers` })
+				.setFooter({ text: `Now in ${totalGuilds.toLocaleString()} servers` })
 				.setTimestamp();
 
 			if (guild.name) embed.setAuthor({ name: truncateText(guild.name, 256), iconURL: guild.iconURL({ size: 128 }) || undefined });
@@ -38,11 +42,7 @@ const event: BotEvent = {
 				const logChannelId = client.config?.bot?.log?.server;
 				if (!logChannelId) return client.logger.warn(`[SERVER_JOIN] No log channel configured`);
 
-				const logChannel = client.channels.cache.get(logChannelId) as discord.TextChannel;
-				if (!logChannel) return client.logger.warn(`[SERVER_JOIN] Log channel not found: ${logChannelId}`);
-				if (!logChannel.isTextBased()) return client.logger.warn(`[SERVER_JOIN] Log channel is not text-based: ${logChannelId}`);
-
-				await send(client, logChannel.id, { embeds: [embed] });
+				await send(client, logChannelId.toString(), { embeds: [embed] });
 				client.logger.debug(`[SERVER_JOIN] Log message sent successfully`);
 			} catch (logError) {
 				if (logError instanceof discord.DiscordAPIError) {

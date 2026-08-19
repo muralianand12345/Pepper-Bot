@@ -8,31 +8,6 @@ const magmastream_1 = require("magmastream");
 const msg_1 = require("../../../../utils/msg");
 const music_1 = require("../../../../core/music");
 const music_guild_1 = __importDefault(require("../../../../events/database/schema/music_guild"));
-const patchNodeRest = (node, client) => {
-    const rest = node.rest;
-    if (rest._patched)
-        return;
-    const originalUpdatePlayer = rest.updatePlayer.bind(rest);
-    rest.updatePlayer = async (options) => {
-        try {
-            const data = options?.data ?? options;
-            const guildId = options?.guildId ?? data?.guildId;
-            if (data?.voice && !data.voice.channelId && guildId) {
-                const player = client.manager.getPlayer(guildId);
-                if (player?.voiceChannelId) {
-                    data.voice.channelId = player.voiceChannelId;
-                    client.logger.debug(`[REST_PATCH] Injected channelId ${player.voiceChannelId} for guild ${guildId}`);
-                }
-            }
-        }
-        catch (err) {
-            client.logger.warn(`[REST_PATCH] Failed to inject channelId: ${err}`);
-        }
-        return originalUpdatePlayer(options);
-    };
-    rest._patched = true;
-    client.logger.info(`[REST_PATCH] Patched Rest.updatePlayer on node ${node.options.identifier}`);
-};
 const reconnectTwentyFourSevenGuilds = async (client) => {
     try {
         const guilds = await music_guild_1.default.find({
@@ -47,7 +22,7 @@ const reconnectTwentyFourSevenGuilds = async (client) => {
             try {
                 const guild = client.guilds.cache.get(guildData.guildId);
                 if (!guild) {
-                    client.logger.warn(`[24/7_RECONNECT] Guild ${guildData.guildId} not in cache, skipping`);
+                    client.logger.debug(`[24/7_RECONNECT] Guild ${guildData.guildId} not on this shard, skipping`);
                     continue;
                 }
                 const existingPlayer = client.manager.getPlayer(guildData.guildId);
@@ -101,7 +76,6 @@ const lavalinkEvent = {
     name: magmastream_1.ManagerEventTypes.NodeConnect,
     execute: async (node, client) => {
         client.logger.success(`[LAVALINK] Node ${node.options.identifier} connected`);
-        patchNodeRest(node, client);
         await reconnectTwentyFourSevenGuilds(client);
     },
 };

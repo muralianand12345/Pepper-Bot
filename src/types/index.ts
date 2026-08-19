@@ -10,7 +10,7 @@ import { LocalizationManager } from '../core/locales';
 declare global {
 	namespace NodeJS {
 		interface ProcessEnv {
-			DEBUG_MODE: boolean | string;
+			DEBUG_MODE?: string;
 			TOKEN: string;
 			MONGO_URI: string;
 			API_PORT?: string;

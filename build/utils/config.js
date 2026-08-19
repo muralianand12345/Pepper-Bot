@@ -30,7 +30,10 @@ const EnvSchema = zod_1.z.object({
     OPENAI_API_KEY: zod_1.z.string(),
     OPENAI_BASE_URL: zod_1.z.string(),
     REDIS_HOST: zod_1.z.string().optional(),
-    REDIS_PORT: zod_1.z.string().optional(),
+    REDIS_PORT: zod_1.z
+        .union([zod_1.z.number(), zod_1.z.string()])
+        .optional()
+        .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val)),
     REDIS_PASSWORD: zod_1.z.string().optional(),
     REDIS_PREFIX: zod_1.z.string().optional(),
 });

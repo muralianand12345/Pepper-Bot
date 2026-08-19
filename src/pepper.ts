@@ -4,6 +4,7 @@ import { Manager, UseNodeOptions, StateStorageType, AutoPlayPlatform, DiscordPac
 
 import { Command, IConfig } from './types';
 import { LocalizationManager } from './core/locales';
+import { registerAuthBridge } from './utils/authEmitter';
 import { Logger, CommandLogger } from './utils/logger';
 import { ConfigManager, loadConfig } from './utils/config';
 
@@ -14,7 +15,7 @@ const initializeManager = (config: IConfig, client: discord.Client) => {
 		stateStorage: {
 			type: StateStorageType.Redis,
 			redisConfig: configManager.getRedisConfig(),
-			deleteInactivePlayers: true,
+			deleteDestroyedPlayers: true,
 		},
 		enablePriorityMode: true,
 		playNextOnEnd: true,
@@ -36,6 +37,8 @@ const initializeManager = (config: IConfig, client: discord.Client) => {
 			const guild = client.guilds.cache.get(packet.d?.guild_id);
 			if (guild) guild.shard.send(packet);
 		},
+		getUser: (id: string) => client.users.cache.get(id),
+		getGuild: (id: string) => client.guilds.cache.get(id),
 	});
 };
 
@@ -50,6 +53,7 @@ const createClient = (): discord.Client => {
 	client.manager = initializeManager(client.config, client);
 	client.localizationManager = LocalizationManager.getInstance();
 	client.on(discord.Events.Raw, (d) => client.manager.updateVoiceState(d));
+	registerAuthBridge(client);
 
 	return client;
 };

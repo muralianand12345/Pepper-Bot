@@ -53,27 +53,40 @@ const pingCommand = {
                 return '🟢 All nodes connected';
             return `🟡 ${connectedNodes.size}/${totalNodes} nodes connected`;
         };
+        const settle = async (promise) => promise.then((value) => (Array.isArray(value) ? value : []), () => []);
         const getShardStats = async () => {
             if (!client.shard)
                 return null;
-            const [guilds, members, ping] = await Promise.all([client.shard.fetchClientValues('guilds.cache.size'), client.shard.broadcastEval((c) => c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0)), client.shard.fetchClientValues('ws.ping')]).catch(() => [[], [], []]);
-            return { current: client.shard.ids[0] ?? 0, total: client.shard.count, guilds, members, ping };
+            const [guilds, members, players, ping] = await Promise.all([
+                settle(client.shard.fetchClientValues('guilds.cache.size')),
+                settle(client.shard.broadcastEval((c) => c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0))),
+                settle(client.shard.broadcastEval((c) => c.manager?.players.size ?? 0)),
+                settle(client.shard.fetchClientValues('ws.ping')),
+            ]);
+            return { current: client.shard.ids[0] ?? 0, total: client.shard.count, guilds, members, players, ping };
         };
         const formatShardStats = (stats) => {
-            const totalGuilds = stats.guilds.reduce((a, b) => a + b, 0);
-            const totalMembers = stats.members.reduce((a, b) => a + b, 0);
-            const avgPing = Math.round(stats.ping.reduce((a, b) => a + b, 0) / stats.ping.length);
+            const shardCount = Math.max(stats.guilds.length, stats.members.length, stats.ping.length);
+            const totalGuilds = stats.guilds.reduce((a, b) => a + (b ?? 0), 0);
+            const totalMembers = stats.members.reduce((a, b) => a + (b ?? 0), 0);
+            const totalPlayers = stats.players.reduce((a, b) => a + (b ?? 0), 0);
+            const reportedPings = stats.ping.filter((p) => typeof p === 'number' && p >= 0);
+            const avgPing = reportedPings.length ? Math.round(reportedPings.reduce((a, b) => a + b, 0) / reportedPings.length) : -1;
             const lines = [
                 `**Current Shard:** #${stats.current}`,
-                `**Total Shards:** ${stats.total}`,
+                `**Total Shards:** ${stats.total}${shardCount && shardCount !== stats.total ? ` (${shardCount} responding)` : ''}`,
                 `**Total Guilds:** ${totalGuilds.toLocaleString()}`,
                 `**Total Members:** ${totalMembers.toLocaleString()}`,
-                `**Average Ping:** ${avgPing}ms`,
+                `**Total Players:** ${totalPlayers.toLocaleString()}`,
+                `**Average Ping:** ${avgPing === -1 ? 'N/A' : `${avgPing}ms`}`,
                 '',
                 '**Per Shard:**',
-                ...stats.guilds.map((g, i) => {
-                    const emoji = stats.ping[i] < 150 ? '🟢' : stats.ping[i] < 350 ? '🟡' : '🔴';
-                    return `${emoji} Shard #${i}: ${g.toLocaleString()} guilds, ${stats.members[i].toLocaleString()} members, ${stats.ping[i]}ms`;
+                ...Array.from({ length: shardCount }, (_, i) => {
+                    const shardPing = stats.ping[i];
+                    if (shardPing === undefined || stats.guilds[i] === undefined)
+                        return `⚫ Shard #${i}: unreachable`;
+                    const emoji = shardPing < 150 ? '🟢' : shardPing < 350 ? '🟡' : '🔴';
+                    return `${emoji} Shard #${i}: ${(stats.guilds[i] ?? 0).toLocaleString()} guilds, ${(stats.members[i] ?? 0).toLocaleString()} members, ${(stats.players[i] ?? 0).toLocaleString()} players, ${shardPing}ms`;
                 }),
             ];
             return lines.join('\n');
@@ -82,8 +95,9 @@ const pingCommand = {
             if (!isOwner)
                 return '';
             const players = Array.from(client.manager.players.values());
+            const shardLabel = client.shard ? ` (shard #${client.shard.ids[0] ?? 0})` : '';
             if (players.length === 0)
-                return 'No active players';
+                return `No active players${shardLabel}`;
             const playerInfos = await Promise.all(players.map(async (player) => {
                 const guild = client.guilds.cache.get(player.guildId);
                 const voiceChannel = client.channels.cache.get(player.voiceChannelId || '');
@@ -104,7 +118,7 @@ const pingCommand = {
                 catch { }
                 return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Users: ${userCount} ${userCount === 1 ? 'user' : 'users'}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize + 1} songs\n` + `└ 24/7: ${is247 ? '✅' : '❌'}\n` + `└ Node: ${player.node.options.identifier}`;
             }));
-            return playerInfos.join('\n\n');
+            return `**Players on this shard${shardLabel ? ` #${client.shard?.ids[0] ?? 0}` : ''}:**\n\n` + playerInfos.join('\n\n');
         };
         const embed = new discord_js_1.default.EmbedBuilder()
             .setColor('#5865f2')
