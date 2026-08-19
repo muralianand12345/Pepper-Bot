@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const discord_js_1 = __importDefault(require("discord.js"));
 const types_1 = require("../types");
-const music_guild_1 = __importDefault(require("../events/database/schema/music_guild"));
 const locales_1 = require("../core/locales");
 const localeDetector = new locales_1.LocaleDetector();
 const localizationManager = locales_1.LocalizationManager.getInstance();
@@ -110,13 +109,7 @@ const pingCommand = {
                 const trackInfo = currentTrack ? `${currentTrack.title} - ${currentTrack.author}`.slice(0, 50) : 'No track playing';
                 const status = player.playing ? '▶️' : player.paused ? '⏸️' : '⏹️';
                 const queueSize = await player.queue.size();
-                let is247 = false;
-                try {
-                    const guildData = await music_guild_1.default.findOne({ guildId: player.guildId });
-                    is247 = guildData?.twentyFourSeven ?? false;
-                }
-                catch { }
-                return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Users: ${userCount} ${userCount === 1 ? 'user' : 'users'}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize + 1} songs\n` + `└ 24/7: ${is247 ? '✅' : '❌'}\n` + `└ Node: ${player.node.options.identifier}`;
+                return `${status} **${guildName}**\n` + `└ Channel: ${channelName}\n` + `└ Users: ${userCount} ${userCount === 1 ? 'user' : 'users'}\n` + `└ Track: ${trackInfo}\n` + `└ Queue: ${queueSize + 1} songs\n` + `└ Node: ${player.node.options.identifier}`;
             }));
             return `**Players on this shard${shardLabel ? ` #${client.shard?.ids[0] ?? 0}` : ''}:**\n\n` + playerInfos.join('\n\n');
         };

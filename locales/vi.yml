@@ -114,9 +114,6 @@ commands:
             volume:
                 name: 'volume'
                 description: 'Mức âm lượng (1-100)'
-    24-7:
-        name: '24-7'
-        description: 'Bật/tắt chế độ 24/7 để giữ bot trong kênh thoại'
 
 responses:
     music:
@@ -144,10 +141,6 @@ responses:
         filter_applied: 'Đã áp dụng bộ lọc {filter}'
         playlist_truncated: 'Đã thêm {added}/{total} bài hát. Tham gia máy chủ hỗ trợ của chúng tôi để có danh sách phát không giới hạn!'
         volume_set: 'Đã đặt âm lượng ở {volume}%'
-        twenty_four_seven_enabled: 'Đã bật chế độ 24/7. Bot sẽ ở lại kênh thoại ngay cả khi không phát nhạc.'
-        twenty_four_seven_disabled: 'Đã tắt chế độ 24/7. Bot sẽ rời kênh thoại khi nhạc dừng hoặc hàng đợi trống.'
-        twenty_four_seven_reconnected: '🔄 Chế độ 24/7: Đã kết nối lại sau khi khởi động lại'
-        stopped_twenty_four_seven: 'Đã dừng phát nhạc. Chế độ 24/7 đang hoạt động, bot sẽ ở lại kênh thoại.'
 
     activity_check:
         title: '⏰ Bạn vẫn đang nghe nhạc chứ?'
@@ -155,7 +148,6 @@ responses:
         confirmed: '✅ Tuyệt vời! Nhạc sẽ tiếp tục phát. Hẹn gặp lại sau 6 giờ nữa!'
         timeout: '⏱️ Không nhận được phản hồi. Kiểm tra hoạt động đã hết hạn.'
         disconnected: '🔌 Ngắt kết nối do không hoạt động (không phản hồi kiểm tra hoạt động)'
-        stopped_twenty_four_seven: '⏹️ Đã dừng phát nhạc do không hoạt động. Chế độ 24/7 đang hoạt động, bot sẽ ở lại kênh thoại.'
 
     chart:
         user_title: 'Bảng xếp hạng nhạc của {user}'
@@ -209,7 +201,6 @@ responses:
         member_not_found: 'Không thể xác minh quyền của bạn. Vui lòng thử lại.'
         volume_error: 'Đã xảy ra lỗi khi đặt âm lượng'
         premium_required: '⭐ Lệnh này yêu cầu **Premium**. Tham gia máy chủ hỗ trợ của chúng tôi để được truy cập!'
-        twenty_four_seven_error: 'Đã xảy ra lỗi khi chuyển đổi chế độ 24/7'
 
     language:
         user_set: 'Ngôn ngữ của bạn đã được đặt thành **{language}**'

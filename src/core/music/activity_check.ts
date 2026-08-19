@@ -4,7 +4,6 @@ import magmastream from 'magmastream';
 import { send } from '../../utils/msg';
 import { LocaleDetector } from '../locales';
 import { MusicResponseHandler } from './handlers';
-import music_guild from '../../events/database/schema/music_guild';
 
 const ACTIVITY_CHECK_INTERVAL = 6 * 60 * 60 * 1000; // 6 hours
 const RESPONSE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
@@ -193,37 +192,6 @@ export class ActivityCheckManager {
 			} catch (error) {
 				this.client.logger?.warn(`[ActivityCheckManager] Failed to update timeout message: ${error}`);
 			}
-		}
-
-		let is247 = false;
-		try {
-			const guild = await music_guild.findOne({ guildId: this.player.guildId });
-			is247 = guild?.twentyFourSeven ?? false;
-		} catch (error) {
-			this.client.logger?.warn(`[ActivityCheckManager] Failed to check 24/7 mode: ${error}`);
-		}
-
-		if (is247) {
-			this.client.logger?.info(`[ActivityCheckManager] 24/7 mode enabled for guild ${this.player.guildId}, stopping playback but keeping connection`);
-			this.player.queue.clear();
-			this.player.stop();
-			this.isPendingResponse = false;
-			this.activeMessage = null;
-			this.startCheckTimer();
-
-			if (textChannelId) {
-				try {
-					const channel = await this.client.channels.fetch(textChannelId);
-					if (channel?.isTextBased()) {
-						const responseHandler = new MusicResponseHandler(this.client);
-						const embed = responseHandler.createInfoEmbed(this.client.localizationManager?.translate('responses.activity_check.stopped_twenty_four_seven', locale) || '⏹️ Stopped playback due to inactivity. 24/7 mode is active, so the bot will remain in the voice channel.');
-						await send(this.client, channel.id, { embeds: [embed] });
-					}
-				} catch (error) {
-					this.client.logger?.warn(`[ActivityCheckManager] Failed to send 24/7 stop message: ${error}`);
-				}
-			}
-			return;
 		}
 
 		this.client.logger?.info(`[ActivityCheckManager] No response received for guild ${this.player.guildId}, destroying player`);

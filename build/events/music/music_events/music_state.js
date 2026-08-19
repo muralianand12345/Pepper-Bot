@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const msg_1 = require("../../../utils/msg");
 const locales_1 = require("../../../core/locales");
-const music_guild_1 = __importDefault(require("../../../events/database/schema/music_guild"));
 const music_1 = require("../../../core/music");
 const localeDetector = new locales_1.LocaleDetector();
 const event = {
@@ -41,7 +40,6 @@ const event = {
             client.logger.info(`[VOICE_STATE] Bot was moved to different voice channel in guild ${newState.guild.id}`);
             if (player.voiceChannelId !== newState.channelId)
                 player.voiceChannelId = newState.channelId;
-            music_guild_1.default.updateOne({ guildId: newState.guild.id, twentyFourSeven: true }, { $set: { voiceChannelId: newState.channelId } }).catch((error) => client.logger.warn(`[VOICE_STATE] Failed to update 24/7 voice channel: ${error}`));
             return;
         }
         if (!player.voiceChannelId)
@@ -69,16 +67,6 @@ const event = {
             await (0, music_1.sendTempMessage)(textChannel, embed);
         }
         if (memberCount === 0) {
-            let isTwentyFourSeven = false;
-            try {
-                const guild = await music_guild_1.default.findOne({ guildId: newState.guild.id });
-                isTwentyFourSeven = guild?.twentyFourSeven ?? false;
-            }
-            catch (error) {
-                client.logger.warn(`[VOICE_STATE] Failed to check 24/7 mode: ${error}`);
-            }
-            if (isTwentyFourSeven)
-                return client.logger.info(`[VOICE_STATE] 24/7 mode enabled for guild ${player.guildId}, staying connected`);
             if (!player.paused && player.playing) {
                 player.pause(true);
                 if (currentTrack)

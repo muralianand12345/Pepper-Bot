@@ -114,9 +114,6 @@ commands:
             volume:
                 name: 'lautstärke'
                 description: 'Lautstärkepegel (1-100)'
-    24-7:
-        name: '24-7'
-        description: '24/7-Modus umschalten, um den Bot im Sprachkanal zu halten'
 
 responses:
     music:
@@ -144,10 +141,6 @@ responses:
         filter_applied: '{filter}-Filter angewendet'
         playlist_truncated: 'Hinzugefügt {added}/{total} Titel. Tritt unserem Support-Server bei, um unbegrenzte Playlists zu erhalten!'
         volume_set: 'Lautstärke auf {volume}% eingestellt'
-        twenty_four_seven_enabled: '24/7-Modus aktiviert. Der Bot bleibt im Sprachkanal, auch wenn keine Musik abgespielt wird.'
-        twenty_four_seven_disabled: '24/7-Modus deaktiviert. Der Bot verlässt den Sprachkanal, wenn die Musik gestoppt wird oder die Warteschlange leer ist.'
-        twenty_four_seven_reconnected: '🔄 24/7-Modus: Nach Neustart wieder verbunden'
-        stopped_twenty_four_seven: 'Wiedergabe gestoppt. Der 24/7-Modus ist aktiv, der Bot bleibt im Sprachkanal.'
 
     activity_check:
         title: '⏰ Hörst du noch zu?'
@@ -155,7 +148,6 @@ responses:
         confirmed: '✅ Super! Die Musik wird weiter abgespielt. Wir sehen uns in weiteren 6 Stunden!'
         timeout: '⏱️ Keine Antwort erhalten. Die Aktivitätsprüfung ist abgelaufen.'
         disconnected: '🔌 Aufgrund von Inaktivität getrennt (keine Antwort auf die Aktivitätsprüfung)'
-        stopped_twenty_four_seven: '⏹️ Wiedergabe wegen Inaktivität gestoppt. Der 24/7-Modus ist aktiv, der Bot bleibt im Sprachkanal.'
 
     chart:
         user_title: '{user}s Musik-Chart'
@@ -221,7 +213,6 @@ responses:
         member_not_found: 'Deine Berechtigungen konnten nicht überprüft werden. Bitte versuche es erneut.'
         volume_error: 'Beim Einstellen der Lautstärke ist ein Fehler aufgetreten'
         premium_required: '⭐ Dieser Befehl erfordert **Premium**. Tritt unserem Support-Server bei, um Zugang zu erhalten!'
-        twenty_four_seven_error: 'Beim Umschalten des 24/7-Modus ist ein Fehler aufgetreten'
 
     language:
         user_set: 'Deine Sprache wurde auf **{language}** festgelegt'
