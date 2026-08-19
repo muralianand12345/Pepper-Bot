@@ -2,24 +2,18 @@ import discord from 'discord.js';
 import timers from 'timers/promises';
 import magmastream from 'magmastream';
 
-import { send } from '../../utils/msg';
+import { sendRef, deleteMessage } from '../../utils/msg';
 import { ISongsUser } from '../../types';
 
 export const sendTempMessage = async (channel: discord.TextChannel, embed: discord.EmbedBuilder, duration: number = 10000): Promise<void> => {
 	if (!channel.isTextBased()) throw new Error('Channel is not text-based');
 
-	const message = await send(channel.client, channel.id, { embeds: [embed] }).catch((error) => {
-		if (error.code === 50001) return null;
-		return null;
-	});
+	const ref = await sendRef(channel.client, channel.id, { embeds: [embed] }).catch(() => null);
 
-	if (!message) return;
+	if (!ref) return;
 
 	setTimeout(() => {
-		message.delete().catch((deleteError) => {
-			if (deleteError.code !== 10008) {
-			}
-		});
+		deleteMessage(channel.client, ref.channelId, ref.messageId).catch(() => {});
 	}, duration);
 };
 
@@ -27,7 +21,7 @@ export const wait = async (ms: number): Promise<void> => {
 	await timers.setTimeout(ms);
 };
 
-export const getRequester = (client: discord.Client, user: discord.User | discord.ClientUser | magmastream.PortableUser | string | null): ISongsUser | null => {
+export const getRequester = (client: discord.Client, user: magmastream.AnyUser | string | null): ISongsUser | null => {
 	if (!user) return null;
 
 	if (typeof user === 'string') {
@@ -39,5 +33,6 @@ export const getRequester = (client: discord.Client, user: discord.User | discor
 	if (user instanceof discord.ClientUser) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
 	if (user instanceof discord.User) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
 
-	return { id: user.id, username: user.username ?? 'Unknown', discriminator: '0000', avatar: undefined };
+	const { id, username } = user as magmastream.PortableUser;
+	return { id, username: username ?? 'Unknown', discriminator: '0000', avatar: undefined };
 };

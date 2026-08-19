@@ -132,11 +132,11 @@ export class CommandLogger implements ICommandLogger {
 		if (!guild) {
 			embed.addFields({ name: 'Guild', value: 'DM' });
 		} else {
-			const botGuildNickname = await client.guilds.cache
+			const botGuildNickname = (await client.guilds.cache
 				.get(guild.id)
 				?.members.fetch(client.user!.id)
 				.then((member: discord.GuildMember) => member.displayName)
-				.catch(() => 'N/A');
+				.catch(() => 'N/A')) ?? 'N/A';
 			embed.addFields({ name: 'Guild', value: `${guild.name} (${guild.id})` }, { name: 'Bot Nickname', value: `${botGuildNickname}` });
 		}
 
@@ -164,12 +164,10 @@ export class CommandLogger implements ICommandLogger {
 		if (!client?.config?.bot?.log?.command) return client.logger.error('[COMMAND_LOG] Missing log channel configuration');
 		if (!user) client.logger.error(`[COMMAND_LOG] User is undefined! ${commandName}`);
 
-		const logChannel = client.channels.cache.get(client.config.bot.log.command.toString()) as discord.TextChannel | undefined;
-		if (!logChannel || !(logChannel instanceof discord.TextChannel)) return client.logger.error(`[COMMAND_LOG] Invalid log channel: ${client.config.bot.log.command}`);
-
+		const logChannelId = client.config.bot.log.command.toString();
 		const logMessage = this.createLogMessage(options);
 		this.writeToLogFile(logMessage);
 		const embed = await this.createLogEmbed(options);
-		await send(client, logChannel.id, { embeds: [embed] }).catch((error) => client.logger.error(`[COMMAND_LOG] Send error: ${error}`));
+		await send(client, logChannelId, { embeds: [embed] }).catch((error) => client.logger.error(`[COMMAND_LOG] Send error: ${error}`));
 	}
 }

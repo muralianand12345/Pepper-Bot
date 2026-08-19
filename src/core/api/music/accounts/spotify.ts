@@ -3,7 +3,7 @@ import discord from 'discord.js';
 
 import { generateHTML } from '../view';
 import { SpotifyManager } from '../../../music';
-import { emitAuthResult } from '../../../../utils/authEmitter';
+import { broadcastAuthResult } from '../../../../utils/authEmitter';
 
 export default class SpotifyAPIHandler {
 	private client: discord.Client;
@@ -26,7 +26,7 @@ export default class SpotifyAPIHandler {
 
 		if (error) {
 			const userId = SpotifyManager.validateState(state as string);
-			if (userId) emitAuthResult(userId, 'failed');
+			if (userId) await broadcastAuthResult(this.client, userId, 'failed');
 			res.status(400).send(
 				generateHTML({
 					title: 'Spotify Login Failed',
@@ -75,7 +75,7 @@ export default class SpotifyAPIHandler {
 		const spotifyManager = new SpotifyManager(this.client);
 		const tokens = await spotifyManager.exchangeCodeForTokens(code);
 		if (!tokens) {
-			emitAuthResult(userId, 'failed');
+			await broadcastAuthResult(this.client, userId, 'failed');
 			res.status(500).send(
 				generateHTML({
 					title: 'Connection Error',
@@ -93,7 +93,7 @@ export default class SpotifyAPIHandler {
 		const username = await spotifyManager.getSpotifyUsername({ access: tokens.access, refresh: tokens.refresh }, userId);
 		const saved = await spotifyManager.saveAccount(userId, tokens, username || undefined);
 		if (!saved) {
-			emitAuthResult(userId, 'failed');
+			await broadcastAuthResult(this.client, userId, 'failed');
 			res.status(500).send(
 				generateHTML({
 					title: 'Save Error',
@@ -108,7 +108,7 @@ export default class SpotifyAPIHandler {
 			return;
 		}
 
-		emitAuthResult(userId, 'success');
+		await broadcastAuthResult(this.client, userId, 'success');
 		res.status(200).send(
 			generateHTML({
 				title: 'Successfully Connected',

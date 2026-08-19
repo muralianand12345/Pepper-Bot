@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const msg_1 = require("../../../utils/msg");
+const shard_1 = require("../../../utils/shard");
 const event = {
     name: discord_js_1.default.Events.GuildDelete,
     execute: async (guild, client) => {
@@ -24,23 +25,20 @@ const sendLogMessage = async (guild, client) => {
         const logChannelId = client.config?.bot?.log?.server;
         if (!logChannelId)
             return client.logger.warn(`[SERVER_LEAVE] No log channel configured`);
-        const logChannel = client.channels.cache.get(logChannelId);
-        if (!logChannel)
-            return client.logger.warn(`[SERVER_LEAVE] Log channel not found: ${logChannelId}`);
-        if (!logChannel.isTextBased())
-            return client.logger.warn(`[SERVER_LEAVE] Log channel is not text-based: ${logChannelId}`);
+        (0, shard_1.invalidateStatsCache)();
+        const totalGuilds = await (0, shard_1.getGlobalGuildCount)(client);
         const leaveEmbed = new discord_js_1.default.EmbedBuilder()
             .setTitle('Server Left')
-            .setDescription(`I have left **${guild.name || 'Unknown Guild'}** (${guild.id}). Now in **${client.guilds.cache.size}** servers.`)
+            .setDescription(`I have left **${guild.name || 'Unknown Guild'}** (${guild.id}). Now in **${totalGuilds.toLocaleString()}** servers.`)
             .addFields({ name: 'Members', value: guild.memberCount?.toString() || 'Unknown', inline: true }, { name: 'Owner', value: guild.ownerId ? `<@${guild.ownerId}>` : 'Unknown Owner', inline: true }, { name: 'Created', value: guild.createdAt ? `<t:${Math.floor(guild.createdAt.getTime() / 1000)}:D>` : 'Unknown Date', inline: true })
             .setColor('#ff0000')
-            .setFooter({ text: `Now in ${client.guilds.cache.size} servers` })
+            .setFooter({ text: `Now in ${totalGuilds.toLocaleString()} servers` })
             .setTimestamp();
         if (guild.name)
             leaveEmbed.setAuthor({ name: guild.name.slice(0, 256), iconURL: guild.iconURL({ size: 128 }) || undefined });
         if (guild.iconURL())
             leaveEmbed.setThumbnail(guild.iconURL({ size: 256 }));
-        await (0, msg_1.send)(client, logChannel.id, { embeds: [leaveEmbed] });
+        await (0, msg_1.send)(client, logChannelId.toString(), { embeds: [leaveEmbed] });
         client.logger.debug(`[SERVER_LEAVE] Log message sent successfully`);
     }
     catch (error) {

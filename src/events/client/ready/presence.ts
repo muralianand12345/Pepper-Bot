@@ -2,6 +2,7 @@ import discord from 'discord.js';
 
 import { version } from '../../../../package.json';
 import { BotEvent, BotPresence } from '../../../types';
+import { getGlobalStats, GlobalStats } from '../../../utils/shard';
 
 const ACTIVITY_TYPE_MAP: Record<string, discord.ActivityType> = {
 	PLAYING: discord.ActivityType.Playing,
@@ -11,20 +12,22 @@ const ACTIVITY_TYPE_MAP: Record<string, discord.ActivityType> = {
 	COMPETING: discord.ActivityType.Competing,
 };
 
-const processActivityName = (name: string, client: discord.Client): string => {
+const processActivityName = (name: string, client: discord.Client, stats: GlobalStats): string => {
 	const replacements = {
 		'<version>': version,
 		'<clientname>': client.user?.username,
-		'<usersize>': client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0).toString(),
-		'<playersize>': client.manager.players.size.toString(),
-		'<guildsize>': client.guilds.cache.size.toString(),
-		'<channelsize>': client.channels.cache.size.toString(),
+		'<usersize>': stats.members.toLocaleString(),
+		'<playersize>': stats.players.toLocaleString(),
+		'<guildsize>': stats.guilds.toLocaleString(),
+		'<channelsize>': stats.channels.toLocaleString(),
+		'<shardsize>': stats.shards.toLocaleString(),
+		'<shardid>': (client.shard?.ids[0] ?? 0).toString(),
 	};
 
 	return Object.entries(replacements).reduce((acc, [token, value]) => acc.replace(new RegExp(token, 'g'), value ?? ''), name);
 };
 
-const createActivityList = (client: discord.Client, activities: BotPresence[]): BotPresence[] => activities.map((activity) => ({ name: processActivityName(activity.name, client), type: ACTIVITY_TYPE_MAP[activity.type] || discord.ActivityType.Playing }));
+const createActivityList = (client: discord.Client, activities: BotPresence[], stats: GlobalStats): BotPresence[] => activities.map((activity) => ({ name: processActivityName(activity.name, client, stats), type: ACTIVITY_TYPE_MAP[activity.type] || discord.ActivityType.Playing }));
 
 const event: BotEvent = {
 	name: discord.Events.ClientReady,
@@ -32,11 +35,17 @@ const event: BotEvent = {
 		if (!client.config.bot.presence.enabled) return;
 
 		let currentIndex = 0;
-		setInterval(() => {
-			let activityList = createActivityList(client, client.config.bot.presence.activity);
-			if (currentIndex >= activityList.length) currentIndex = 0;
-			client.user?.setActivity(activityList[currentIndex]);
-			currentIndex++;
+		setInterval(async () => {
+			try {
+				const stats = await getGlobalStats(client);
+				const activityList = createActivityList(client, client.config.bot.presence.activity, stats);
+				if (!activityList.length) return;
+				if (currentIndex >= activityList.length) currentIndex = 0;
+				client.user?.setActivity(activityList[currentIndex]);
+				currentIndex++;
+			} catch (error) {
+				client.logger.warn(`[PRESENCE] Failed to update activity: ${error}`);
+			}
 		}, client.config.bot.presence.interval);
 
 		client.user?.setStatus(client.config.bot.presence.status);

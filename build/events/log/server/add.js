@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const msg_1 = require("../../../utils/msg");
+const shard_1 = require("../../../utils/shard");
 const truncateText = (text, maxLength = 100) => {
     if (!text)
         return 'Unknown';
@@ -17,11 +18,13 @@ const event = {
             const guildName = truncateText(guild.name || 'Unknown Guild', 50);
             const guildId = guild.id || 'Unknown ID';
             client.logger.info(`[SERVER_JOIN] Joined ${guildName} (${guildId})`);
+            (0, shard_1.invalidateStatsCache)();
+            const totalGuilds = await (0, shard_1.getGlobalGuildCount)(client);
             const embed = new discord_js_1.default.EmbedBuilder()
                 .setTitle('New Server Joined')
-                .setDescription(`I have joined **${guildName}** (${guildId}). Now in **${client.guilds.cache.size}** servers.`)
+                .setDescription(`I have joined **${guildName}** (${guildId}). Now in **${totalGuilds.toLocaleString()}** servers.`)
                 .setColor('#00ff00')
-                .setFooter({ text: `Now in ${client.guilds.cache.size} servers` })
+                .setFooter({ text: `Now in ${totalGuilds.toLocaleString()} servers` })
                 .setTimestamp();
             if (guild.name)
                 embed.setAuthor({ name: truncateText(guild.name, 256), iconURL: guild.iconURL({ size: 128 }) || undefined });
@@ -40,12 +43,7 @@ const event = {
                 const logChannelId = client.config?.bot?.log?.server;
                 if (!logChannelId)
                     return client.logger.warn(`[SERVER_JOIN] No log channel configured`);
-                const logChannel = client.channels.cache.get(logChannelId);
-                if (!logChannel)
-                    return client.logger.warn(`[SERVER_JOIN] Log channel not found: ${logChannelId}`);
-                if (!logChannel.isTextBased())
-                    return client.logger.warn(`[SERVER_JOIN] Log channel is not text-based: ${logChannelId}`);
-                await (0, msg_1.send)(client, logChannel.id, { embeds: [embed] });
+                await (0, msg_1.send)(client, logChannelId.toString(), { embeds: [embed] });
                 client.logger.debug(`[SERVER_JOIN] Log message sent successfully`);
             }
             catch (logError) {

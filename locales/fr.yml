@@ -114,9 +114,6 @@ commands:
             volume:
                 name: 'volume'
                 description: 'Niveau de volume (1-100)'
-    24-7:
-        name: '24-7'
-        description: "Activer/désactiver le mode 24/7 pour garder le bot dans le salon vocal"
 
 responses:
     music:
@@ -144,10 +141,6 @@ responses:
         filter_applied: 'Filtre {filter} appliqué'
         playlist_truncated: "Ajouté(s) {added}/{total} titres. Rejoignez notre serveur d'assistance pour des playlists illimitées !"
         volume_set: 'Volume réglé à {volume}%'
-        twenty_four_seven_enabled: "Mode 24/7 activé. Le bot restera dans le salon vocal même lorsqu'aucune musique n'est en cours de lecture."
-        twenty_four_seven_disabled: "Mode 24/7 désactivé. Le bot quittera le salon vocal lorsque la musique sera arrêtée ou que la file d'attente sera vide."
-        twenty_four_seven_reconnected: '🔄 Mode 24/7 : Reconnecté après le redémarrage'
-        stopped_twenty_four_seven: "Lecture arrêtée. Le mode 24/7 est actif, le bot restera dans le salon vocal."
 
     activity_check:
         title: '⏰ Vous écoutez toujours ?'
@@ -155,7 +148,6 @@ responses:
         confirmed: '✅ Parfait ! La musique va continuer. À dans 6 heures !'
         timeout: "⏱️ Aucune réponse reçue. Le contrôle d'activité a expiré."
         disconnected: "🔌 Déconnecté pour inactivité (aucune réponse au contrôle d'activité)"
-        stopped_twenty_four_seven: "⏹️ Lecture arrêtée pour inactivité. Le mode 24/7 est actif, le bot restera dans le salon vocal."
 
     chart:
         user_title: 'Classement musical de {user}'
@@ -221,7 +213,6 @@ responses:
         member_not_found: 'Impossible de vérifier vos permissions. Veuillez réessayer.'
         volume_error: "Une erreur s'est produite lors du réglage du volume"
         premium_required: '⭐ Cette commande nécessite **Premium**. Rejoignez notre serveur de support pour y accéder !'
-        twenty_four_seven_error: "Une erreur s'est produite lors du basculement du mode 24/7"
 
     language:
         user_set: 'Votre langue a été définie sur **{language}**'

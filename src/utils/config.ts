@@ -26,7 +26,10 @@ const EnvSchema = z.object({
 	OPENAI_API_KEY: z.string(),
 	OPENAI_BASE_URL: z.string(),
 	REDIS_HOST: z.string().optional(),
-	REDIS_PORT: z.string().optional(),
+	REDIS_PORT: z
+		.union([z.number(), z.string()])
+		.optional()
+		.transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val)),
 	REDIS_PASSWORD: z.string().optional(),
 	REDIS_PREFIX: z.string().optional(),
 });

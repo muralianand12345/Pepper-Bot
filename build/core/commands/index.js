@@ -43,6 +43,7 @@ exports.CommandManager = void 0;
 const path_1 = __importDefault(require("path"));
 const promises_1 = __importDefault(require("fs/promises"));
 const discord_js_1 = __importDefault(require("discord.js"));
+const shard_1 = require("../../utils/shard");
 const config_1 = require("../../utils/config");
 __exportStar(require("./premium"), exports);
 __exportStar(require("./interaction"), exports);
@@ -60,6 +61,8 @@ class CommandManager {
             }));
         };
         this.register = async () => {
+            if (!(0, shard_1.isPrimaryShard)(this.client))
+                return this.client.logger.debug(`[COMMAND] Skipping global command registration on shard ${this.client.shard?.ids[0]} (primary shard only).`);
             const rest = new discord_js_1.default.REST({ version: '10' }).setToken(configManager.getToken() ?? '');
             await rest.put(discord_js_1.default.Routes.applicationCommands(this.client.user?.id ?? ''), { body: this.commands.map((command) => command.toJSON()) });
             this.client.logger.success('[COMMAND] Successfully registered application commands.');

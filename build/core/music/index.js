@@ -43,11 +43,10 @@ exports.Music = exports.MUSIC_CONFIG = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const magmastream_1 = __importStar(require("magmastream"));
 const lyrics_1 = require("./lyrics");
+const func_1 = require("./func");
 const format_1 = __importDefault(require("../../utils/format"));
 const locales_1 = require("../locales");
-const now_playing_1 = require("./now_playing");
 const premium_1 = require("../commands/premium");
-const activity_check_1 = require("./activity_check");
 const utils_1 = require("./utils");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
 const handlers_1 = require("./handlers");
@@ -133,22 +132,17 @@ class Music {
                 tracks: limitedTracks,
             };
         };
-        this.updateTwentyFourSevenChannels = async (guildId, voiceChannelId, textChannelId) => {
-            try {
-                await music_guild_1.default.updateOne({ guildId, twentyFourSeven: true }, { $set: { voiceChannelId, textChannelId } });
-            }
-            catch (error) {
-                this.client.logger.error(`[MUSIC] Failed to update 24/7 channels: ${error}`);
-            }
+        this.startPlayback = async (player) => {
+            if (player.paused)
+                await player.pause(false);
+            await player.play();
         };
-        this.isTwentyFourSeven = async (guildId) => {
+        this.resetNodePlayerState = async (player) => {
             try {
-                const guild = await music_guild_1.default.findOne({ guildId });
-                return guild?.twentyFourSeven ?? false;
+                await player.node.rest.updatePlayer({ guildId: player.guildId, data: { paused: false } });
             }
             catch (error) {
-                this.client.logger.warn(`[MUSIC] Failed to check 24/7 mode: ${error}`);
-                return false;
+                this.client.logger.warn(`[MUSIC] Failed to reset node player state for guild ${player.guildId}: ${error}`);
             }
         };
         this.searchResults = async (res, player) => {
@@ -156,11 +150,8 @@ class Music {
             switch (res.loadType) {
                 case 'empty': {
                     const currentTrack = await player.queue.getCurrent();
-                    if (!currentTrack) {
-                        const is247 = await this.isTwentyFourSeven(this.interaction.guildId || '');
-                        if (!is247)
-                            player.destroy();
-                    }
+                    if (!currentTrack)
+                        player.destroy();
                     await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_results'), this.locale)] });
                     break;
                 }
@@ -169,8 +160,8 @@ class Music {
                     const track = res.tracks[0];
                     await player.queue.add(track);
                     const queueSize = await player.queue.size();
-                    if (!player.playing && !player.paused && queueSize === 0)
-                        player.play();
+                    if (!player.playing && queueSize === 0)
+                        await this.startPlayback(player);
                     await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, queueSize, this.locale)] });
                     break;
                 }
@@ -181,10 +172,10 @@ class Music {
                     const originalLength = res.playlist.tracks.length;
                     const limitedPlaylist = await this.getPlaylistLimit(this.interaction.user.id, res.playlist);
                     const wasTruncated = limitedPlaylist.tracks.length < originalLength;
+                    const wasIdle = !player.playing && !(await player.queue.getCurrent());
                     await player.queue.add(limitedPlaylist.tracks);
-                    const shouldPlay = !player.playing && !player.paused;
-                    if (shouldPlay)
-                        player.play();
+                    if (wasIdle)
+                        await this.startPlayback(player);
                     const embed = responseHandler.createPlaylistEmbed(limitedPlaylist, this.interaction.user, this.locale);
                     if (wasTruncated) {
                         embed.setFooter({ text: this.t('responses.music.playlist_truncated', { added: limitedPlaylist.tracks.length, total: originalLength }) });
@@ -229,6 +220,7 @@ class Music {
                     textChannelId: this.interaction.channelId,
                     ...exports.MUSIC_CONFIG.PLAYER_OPTIONS,
                 });
+                await this.resetNodePlayerState(player);
             }
             const guild = this.interaction.guild;
             const botMember = guild.members.me;
@@ -239,7 +231,6 @@ class Music {
                     embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }))],
                 });
             }
-            this.updateTwentyFourSevenChannels(this.interaction.guildId || '', guildMember?.voice.channelId || '', this.interaction.channelId);
             try {
                 const res = await this.lavaSearch(query);
                 if (res.loadType === 'error')
@@ -272,20 +263,8 @@ class Music {
                     return await this.interaction.editReply({ embeds: [embed] });
             }
             try {
-                const is247 = await this.isTwentyFourSeven(this.interaction.guildId || '');
-                if (is247) {
-                    player.queue.clear();
-                    player.stop();
-                    const nowPlayingManager = now_playing_1.NowPlayingManager.getInstance(player.guildId, player, this.client);
-                    nowPlayingManager.onStop();
-                    await nowPlayingManager.disableButtons();
-                    activity_check_1.ActivityCheckManager.removeInstance(player.guildId);
-                    await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped_twenty_four_seven'))] });
-                }
-                else {
-                    player.destroy();
-                    await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'))] });
-                }
+                player.destroy();
+                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.stopped'))] });
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Stop error: ${error}`);
@@ -382,11 +361,8 @@ class Music {
                         return await this.interaction.editReply({ embeds: [errorEmbed] });
                     player.stop(1);
                     const queueSize = await player.queue.size();
-                    if (queueSize === 0 && this.interaction.guildId) {
-                        const is247 = await this.isTwentyFourSeven(this.interaction.guildId);
-                        if (!is247)
-                            player.destroy();
-                    }
+                    if (queueSize === 0)
+                        player.destroy();
                 }
                 else {
                     player.stop();
@@ -721,7 +697,8 @@ class Music {
                             const title = format_1.default.truncateText(track.title, 35);
                             const artist = format_1.default.truncateText(track.author, 20);
                             const duration = track.isStream ? this.t('responses.queue.live') : format_1.default.msToTime(track.duration);
-                            const requester = track.requester ? ` • ${track.requester.username}` : '';
+                            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
+                            const requester = requesterData ? ` • ${requesterData.username}` : '';
                             return `**${position}.** **${title}** - ${artist}\n└ ${duration}${requester}`;
                         })
                             .join('\n\n');
@@ -921,50 +898,6 @@ class Music {
             catch (error) {
                 this.client.logger.error(`[MUSIC] Volume error: ${error}`);
                 await this.interaction.followUp({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.volume_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
-            }
-        };
-        this.twentyFourSeven = async () => {
-            await this.interaction.deferReply();
-            await this.initializeLocale();
-            const responseHandler = new handlers_1.MusicResponseHandler(this.client);
-            const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
-            const [isGuildValid, guildEmbed] = await validator.validateGuildContext();
-            if (!isGuildValid)
-                return await this.interaction.editReply({ embeds: [guildEmbed] });
-            const [isVoiceValid, voiceEmbed] = await validator.validateVoiceConnection();
-            if (!isVoiceValid)
-                return await this.interaction.editReply({ embeds: [voiceEmbed] });
-            const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
-            try {
-                let guild = await music_guild_1.default.findOne({ guildId: this.interaction.guildId });
-                if (!guild) {
-                    guild = new music_guild_1.default({
-                        guildId: this.interaction.guildId,
-                        dj: null,
-                        songs: [],
-                        twentyFourSeven: true,
-                        voiceChannelId: guildMember?.voice.channelId || null,
-                        textChannelId: this.interaction.channelId || null,
-                    });
-                    await guild.save();
-                    return await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.twenty_four_seven_enabled'))] });
-                }
-                guild.twentyFourSeven = !guild.twentyFourSeven;
-                if (guild.twentyFourSeven) {
-                    guild.voiceChannelId = guildMember?.voice.channelId || null;
-                    guild.textChannelId = this.interaction.channelId || null;
-                }
-                else {
-                    guild.voiceChannelId = null;
-                    guild.textChannelId = null;
-                }
-                await guild.save();
-                const message = guild.twentyFourSeven ? this.t('responses.music.twenty_four_seven_enabled') : this.t('responses.music.twenty_four_seven_disabled');
-                await this.interaction.editReply({ embeds: [responseHandler.createSuccessEmbed(message)] });
-            }
-            catch (error) {
-                this.client.logger.error(`[MUSIC] 24/7 mode error: ${error}`);
-                await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.twenty_four_seven_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
             }
         };
         this.client = client;

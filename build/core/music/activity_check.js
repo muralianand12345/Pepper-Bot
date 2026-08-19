@@ -1,14 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ActivityCheckManager = void 0;
 const msg_1 = require("../../utils/msg");
 const locales_1 = require("../locales");
 const handlers_1 = require("./handlers");
-const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
 const ACTIVITY_CHECK_INTERVAL = 6 * 60 * 60 * 1000; // 6 hours
 const RESPONSE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 class ActivityCheckManager {
@@ -150,36 +146,6 @@ class ActivityCheckManager {
                 catch (error) {
                     this.client.logger?.warn(`[ActivityCheckManager] Failed to update timeout message: ${error}`);
                 }
-            }
-            let is247 = false;
-            try {
-                const guild = await music_guild_1.default.findOne({ guildId: this.player.guildId });
-                is247 = guild?.twentyFourSeven ?? false;
-            }
-            catch (error) {
-                this.client.logger?.warn(`[ActivityCheckManager] Failed to check 24/7 mode: ${error}`);
-            }
-            if (is247) {
-                this.client.logger?.info(`[ActivityCheckManager] 24/7 mode enabled for guild ${this.player.guildId}, stopping playback but keeping connection`);
-                this.player.queue.clear();
-                this.player.stop();
-                this.isPendingResponse = false;
-                this.activeMessage = null;
-                this.startCheckTimer();
-                if (textChannelId) {
-                    try {
-                        const channel = await this.client.channels.fetch(textChannelId);
-                        if (channel?.isTextBased()) {
-                            const responseHandler = new handlers_1.MusicResponseHandler(this.client);
-                            const embed = responseHandler.createInfoEmbed(this.client.localizationManager?.translate('responses.activity_check.stopped_twenty_four_seven', locale) || '⏹️ Stopped playback due to inactivity. 24/7 mode is active, so the bot will remain in the voice channel.');
-                            await (0, msg_1.send)(this.client, channel.id, { embeds: [embed] });
-                        }
-                    }
-                    catch (error) {
-                        this.client.logger?.warn(`[ActivityCheckManager] Failed to send 24/7 stop message: ${error}`);
-                    }
-                }
-                return;
             }
             this.client.logger?.info(`[ActivityCheckManager] No response received for guild ${this.player.guildId}, destroying player`);
             if (textChannelId) {
