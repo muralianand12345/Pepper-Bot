@@ -120,6 +120,38 @@ export class Music {
 		}
 	};
 
+	private clearOrphanedQueueState = async (player: magmastream.Player): Promise<void> => {
+		try {
+			const orphanedCurrent = await player.queue.getCurrent();
+			const orphanedSize = await player.queue.size();
+			if (!orphanedCurrent && !orphanedSize) return;
+
+			await player.queue.clear();
+			await player.queue.clearPrevious();
+			await player.queue.setCurrent(null);
+			player.playing = false;
+			player.paused = false;
+			this.client.logger.warn(`[MUSIC] Cleared orphaned queue state for guild ${player.guildId} (current: ${orphanedCurrent?.title ?? 'none'}, queued: ${orphanedSize})`);
+		} catch (error) {
+			this.client.logger.warn(`[MUSIC] Failed to clear orphaned queue state for guild ${player.guildId}: ${error}`);
+		}
+	};
+
+	private ensureVoiceConnection = async (player: magmastream.Player, voiceChannelId: string): Promise<boolean> => {
+		try {
+			if (player.voiceChannelId !== voiceChannelId) {
+				player.voiceChannelId = voiceChannelId;
+				player.options.voiceChannelId = voiceChannelId;
+			}
+			player.connect();
+			if (player.paused) await player.pause(false);
+			return true;
+		} catch (error) {
+			this.client.logger.error(`[MUSIC] Failed to connect player for guild ${player.guildId}: ${error}`);
+			return false;
+		}
+	};
+
 	searchResults = async (res: magmastream.SearchResult, player: magmastream.Player): Promise<discord.Message<boolean> | void> => {
 		const responseHandler = new MusicResponseHandler(this.client);
 
@@ -133,9 +165,10 @@ export class Music {
 			case 'track':
 			case 'search': {
 				const track = res.tracks[0];
+				const wasIdle = !player.playing && !(await player.queue.getCurrent());
 				await player.queue.add(track);
 				const queueSize = await player.queue.size();
-				if (!player.playing && queueSize === 0) await this.startPlayback(player);
+				if (wasIdle) await this.startPlayback(player);
 				await this.interaction.editReply({ embeds: [responseHandler.createTrackEmbed(track, queueSize, this.locale)] });
 				break;
 			}
@@ -183,6 +216,9 @@ export class Music {
 		}
 
 		const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
+		const memberVoiceChannelId = guildMember?.voice.channelId;
+		if (!memberVoiceChannelId) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.no_voice_channel'), this.locale)] });
+
 		let player = this.client.manager.getPlayer(this.interaction.guildId || '');
 
 		if (player) {
@@ -194,19 +230,21 @@ export class Music {
 		if (!player) {
 			player = this.client.manager.create({
 				guildId: this.interaction.guildId || '',
-				voiceChannelId: guildMember?.voice.channelId || '',
+				voiceChannelId: memberVoiceChannelId,
 				textChannelId: this.interaction.channelId,
 				...MUSIC_CONFIG.PLAYER_OPTIONS,
 			});
+			await this.clearOrphanedQueueState(player);
 			await this.resetNodePlayerState(player);
 		}
 
 		const guild = this.interaction.guild!;
 		const botMember = guild.members.me;
-		const needsConnection = !botMember?.voice.channelId || botMember.voice.channelId !== guildMember?.voice.channelId;
+		const needsConnection = !botMember?.voice.channelId || botMember.voice.channelId !== memberVoiceChannelId;
 
-		if (needsConnection || !['CONNECTING', 'CONNECTED'].includes(player.state)) {
-			player.connect();
+		if (needsConnection || player.voiceChannelId !== memberVoiceChannelId || !['CONNECTING', 'CONNECTED'].includes(player.state)) {
+			const connected = await this.ensureVoiceConnection(player, memberVoiceChannelId);
+			if (!connected) return await this.interaction.editReply({ embeds: [responseHandler.createErrorEmbed(this.t('responses.errors.play_error'), this.locale, true)], components: [responseHandler.getSupportButton(this.locale)] });
 			await this.interaction.editReply({
 				embeds: [responseHandler.createSuccessEmbed(this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }))],
 			});

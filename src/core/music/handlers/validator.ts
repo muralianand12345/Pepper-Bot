@@ -88,9 +88,11 @@ export class VoiceChannelValidator {
 		const botMember = guild.members.me;
 		const isPlayerActuallyConnected = botMember?.voice.channelId === player.voiceChannelId && player.state === 'CONNECTED';
 
-		if (!isPlayerActuallyConnected && player.voiceChannelId) {
-			this.client.logger.warn(`[VALIDATOR] Found stale player for guild ${guild.id}, destroying...`);
-			player.destroy();
+		// A player whose voiceChannelId was nulled (manual disconnect / 4014 close) is just as stale as one
+		// pointing at the wrong channel — it can never connect again and it keeps the queue state alive.
+		if (!isPlayerActuallyConnected && (player.voiceChannelId || !botMember?.voice.channelId)) {
+			this.client.logger.warn(`[VALIDATOR] Found stale player for guild ${guild.id} (voiceChannelId: ${player.voiceChannelId ?? 'none'}, state: ${player.state}), destroying...`);
+			await player.destroy();
 			return [true, await this.createErrorEmbed('')];
 		}
 
