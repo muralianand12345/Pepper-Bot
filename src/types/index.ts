@@ -14,6 +14,7 @@ declare global {
 			TOKEN: string;
 			MONGO_URI: string;
 			API_PORT?: string;
+			STATS_API_KEY?: string;
 			LASTFM_API_KEY: string;
 			SPOTIFY_CLIENT_ID: string;
 			SPOTIFY_CLIENT_SECRET: string;

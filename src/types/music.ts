@@ -140,3 +140,105 @@ export interface LyricsResponse {
 	syncType: 'LINE_SYNCED' | 'UNSYNCED' | string;
 	lines: LyricLine[];
 }
+
+export interface StatsRealtimeTrack {
+	guildId: string;
+	guildName: string | null;
+	voiceChannelId: string | null;
+	listeners: number;
+	playing: boolean;
+	paused: boolean;
+	position: number;
+	queueSize: number;
+	title: string;
+	author: string;
+	uri: string;
+	duration: number;
+	artworkUrl: string | null;
+	sourceName: string;
+	requester: ISongsUser | null;
+	shardId: number;
+}
+
+export interface StatsRealtime {
+	players: number;
+	playing: number;
+	paused: number;
+	idle: number;
+	listeners: number;
+	guilds: number;
+	members: number;
+	channels: number;
+	shards: number;
+	uptime: number;
+	nowPlaying: StatsRealtimeTrack[];
+}
+
+export interface StatsOverview {
+	uniqueSongs: number;
+	totalPlays: number;
+	uniqueArtists: number;
+	estimatedPlaytimeMs: number;
+	activeGuilds: number;
+	trackedListeners: number;
+	songsLastPlayed24h: number;
+	songsLastPlayed7d: number;
+	lastPlayedAt: Date | null;
+}
+
+export interface StatsTopRequester {
+	rank: number;
+	userId: string;
+	username: string | null;
+	avatar: string | null;
+	totalPlays: number;
+	uniqueSongs: number;
+	uniqueArtists: number;
+	estimatedPlaytimeMs: number;
+	lastPlayedAt: Date | null;
+}
+
+export interface StatsServerPlaytime {
+	guildId: string;
+	guildName: string | null;
+	estimatedPlaytimeMs: number;
+	totalPlays: number;
+	uniqueSongs: number;
+}
+
+export interface StatsPlaytime {
+	estimatedPlaytimeMs: number;
+	totalPlays: number;
+	trackedGuilds: number;
+	servers: StatsServerPlaytime[];
+}
+
+export interface StatsServerTopSong {
+	title: string;
+	author: string;
+	uri: string;
+	artworkUrl: string | null;
+	plays: number;
+}
+
+export interface StatsServerInsight {
+	guildId: string;
+	guildName: string | null;
+	guildIcon: string | null;
+	memberCount: number | null;
+	totalPlays: number;
+	uniqueSongs: number;
+	uniqueArtists: number;
+	estimatedPlaytimeMs: number;
+	averagePlaysPerSong: number;
+	sources: string[];
+	topSong: StatsServerTopSong | null;
+	lastPlayedAt: Date | null;
+	live: boolean;
+}
+
+export interface StatsGuildMeta {
+	name: string | null;
+	icon: string | null;
+	memberCount: number | null;
+}
