@@ -83,33 +83,28 @@ export class MusicDB {
 
 	public static getGlobalTopSongs = async (limit: number = 20): Promise<ISongs[]> => {
 		try {
-			const result = await music_guild.aggregate([
-				{ $unwind: '$songs' },
-				{ $match: { 'songs.played_number': { $gt: 0 } } },
-				{
-					$group: {
-						_id: '$songs.uri',
-						title: { $first: '$songs.title' },
-						author: { $first: '$songs.author' },
-						duration: { $first: '$songs.duration' },
-						artworkUrl: { $first: '$songs.artworkUrl' },
-						thumbnail: { $first: '$songs.thumbnail' },
-						sourceName: { $first: '$songs.sourceName' },
-						uri: { $first: '$songs.uri' },
-						track: { $first: '$songs.track' },
-						identifier: { $first: '$songs.identifier' },
-						isrc: { $first: '$songs.isrc' },
-						isSeekable: { $first: '$songs.isSeekable' },
-						isStream: { $first: '$songs.isStream' },
-						requester: { $first: '$songs.requester' },
-						played_number: { $sum: '$songs.played_number' },
-						timestamp: { $max: '$songs.timestamp' },
+			const result = await music_guild
+				.aggregate([
+					{ $unwind: '$songs' },
+					{ $match: { 'songs.played_number': { $gt: 0 } } },
+					{ $group: { _id: '$songs.uri', played_number: { $sum: '$songs.played_number' }, timestamp: { $max: '$songs.timestamp' } } },
+					{ $match: { played_number: { $gt: 0 } } },
+					{ $sort: { played_number: -1, _id: 1 } },
+					{ $limit: limit },
+					{
+						$lookup: {
+							from: music_guild.collection.name,
+							localField: '_id',
+							foreignField: 'songs.uri',
+							let: { uri: '$_id' },
+							pipeline: [{ $unwind: '$songs' }, { $match: { $expr: { $eq: ['$songs.uri', '$$uri'] } } }, { $limit: 1 }, { $replaceRoot: { newRoot: '$songs' } }],
+							as: 'detail',
+						},
 					},
-				},
-				{ $match: { played_number: { $gt: 0 } } },
-				{ $sort: { played_number: -1 } },
-				{ $limit: limit },
-			]);
+					{ $match: { 'detail.0': { $exists: true } } },
+					{ $replaceRoot: { newRoot: { $mergeObjects: [{ $first: '$detail' }, { _id: '$_id', played_number: '$played_number', timestamp: '$timestamp' }] } } },
+				])
+				.allowDiskUse(true);
 			return result || [];
 		} catch (err) {
 			client.logger.error(`Error in getGlobalTopSongs: ${err}`);

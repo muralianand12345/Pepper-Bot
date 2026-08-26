@@ -146,7 +146,6 @@ StatsDB.getPlaytime = async (limit = 10) => {
 StatsDB.serverInsightStages = (limit) => [
     { $unwind: '$songs' },
     { $match: { 'songs.played_number': { $gt: 0 } } },
-    { $sort: { 'songs.played_number': -1 } },
     {
         $group: {
             _id: '$guildId',
@@ -156,10 +155,15 @@ StatsDB.serverInsightStages = (limit) => [
             sources: { $addToSet: '$songs.sourceName' },
             estimatedPlaytimeMs: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } },
             lastPlayedAt: { $max: '$songs.timestamp' },
-            topSong: { $first: { title: '$songs.title', author: '$songs.author', uri: '$songs.uri', artworkUrl: '$songs.artworkUrl', plays: '$songs.played_number' } },
+            topSong: {
+                $top: {
+                    sortBy: { 'songs.played_number': -1 },
+                    output: { title: '$songs.title', author: '$songs.author', uri: '$songs.uri', artworkUrl: '$songs.artworkUrl', plays: '$songs.played_number' },
+                },
+            },
         },
     },
-    { $sort: { totalPlays: -1 } },
+    { $sort: { totalPlays: -1, _id: 1 } },
     ...(limit ? [{ $limit: limit }] : []),
     {
         $project: {
@@ -206,7 +210,7 @@ StatsDB.getServerInsights = async (limit = 10) => {
 StatsDB.getServerInsight = async (guildId) => {
     return _a.withCache(`server:${guildId}`, async () => {
         try {
-            const result = await music_guild_1.default.aggregate([{ $match: { guildId } }, ..._a.serverInsightStages()]);
+            const result = await music_guild_1.default.aggregate([{ $match: { guildId } }, ..._a.serverInsightStages()]).allowDiskUse(true);
             if (!result || result.length === 0)
                 return null;
             return _a.toServerInsight(result[0]);
