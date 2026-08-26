@@ -4,7 +4,7 @@ import discord from 'discord.js';
 
 import { MusicDB, StatsDB } from '../../../music/repo';
 import { ConfigManager } from '../../../../utils/config';
-import { ISongs, StatsGuildMeta, StatsRealtime, StatsRealtimeTrack, StatsServerInsight } from '../../../../types';
+import { ISongs, StatsGuildMeta, StatsRealtime, StatsRealtimeTrack, StatsServerInsight, StatsTopRequester } from '../../../../types';
 
 const configManager = ConfigManager.getInstance();
 
@@ -194,16 +194,19 @@ export default class StatsAPIHandler {
 	private handleRequesters = async (req: express.Request, res: express.Response): Promise<void> => {
 		try {
 			const limit = this.parseLimit(req.query.limit, DEFAULT_LIMIT);
-			const cached = StatsDB.isCached(`requesters:${limit}`);
-			const requesters = await StatsDB.getTopRequesters(limit);
+			const poolSize = Math.min(limit * 2, MAX_LIMIT);
+			const cached = StatsDB.isCached(`requesters:${poolSize}`);
+			const requesters = await StatsDB.getTopRequesters(poolSize);
 			const resolved = await Promise.all(
 				requesters.map(async (requester) => {
 					const user = await this.client.users.fetch(requester.userId).catch(() => null);
 					if (!user) return requester;
+					if (user.bot) return null;
 					return { ...requester, username: user.username, avatar: user.displayAvatarURL() };
 				}),
 			);
-			this.send(res, { limit, requesters: resolved }, cached);
+			const people = resolved.filter((requester): requester is StatsTopRequester => requester !== null).slice(0, limit).map((requester, index) => ({ ...requester, rank: index + 1 }));
+			this.send(res, { limit, requesters: people }, cached);
 		} catch (error) {
 			this.fail(res, error, 'requesters');
 		}

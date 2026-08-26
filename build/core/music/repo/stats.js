@@ -33,6 +33,7 @@ StatsDB.withCache = async (key, producer) => {
     _a.inFlight.set(key, promise);
     return promise;
 };
+StatsDB.excludedUserIds = () => (pepper_1.default.user?.id ? [pepper_1.default.user.id] : []);
 StatsDB.isCached = (key) => {
     const cached = _a.cache.get(key);
     return !!cached && cached.expiresAt > Date.now();
@@ -71,7 +72,7 @@ StatsDB.getOverview = async () => {
                 ])
                     .allowDiskUse(true),
                 music_guild_1.default.countDocuments({ 'songs.0': { $exists: true } }),
-                music_user_1.default.countDocuments({ 'songs.0': { $exists: true } }),
+                music_user_1.default.countDocuments({ 'songs.0': { $exists: true }, userId: { $nin: _a.excludedUserIds() } }),
             ]);
             if (!aggregate || aggregate.length === 0)
                 return { ...empty, activeGuilds, trackedListeners };
@@ -88,6 +89,7 @@ StatsDB.getTopRequesters = async (limit = 10) => {
         try {
             const result = await music_user_1.default
                 .aggregate([
+                { $match: { userId: { $nin: _a.excludedUserIds() } } },
                 { $unwind: '$songs' },
                 { $match: { 'songs.played_number': { $gt: 0 } } },
                 {

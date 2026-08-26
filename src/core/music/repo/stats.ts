@@ -33,6 +33,8 @@ export class StatsDB {
 		return promise;
 	};
 
+	private static excludedUserIds = (): string[] => (client.user?.id ? [client.user.id] : []);
+
 	public static isCached = (key: string): boolean => {
 		const cached = this.cache.get(key);
 		return !!cached && cached.expiresAt > Date.now();
@@ -72,7 +74,7 @@ export class StatsDB {
 						])
 						.allowDiskUse(true),
 					music_guild.countDocuments({ 'songs.0': { $exists: true } }),
-					music_user.countDocuments({ 'songs.0': { $exists: true } }),
+					music_user.countDocuments({ 'songs.0': { $exists: true }, userId: { $nin: this.excludedUserIds() } }),
 				]);
 
 				if (!aggregate || aggregate.length === 0) return { ...empty, activeGuilds, trackedListeners };
@@ -89,6 +91,7 @@ export class StatsDB {
 			try {
 				const result = await music_user
 					.aggregate([
+						{ $match: { userId: { $nin: this.excludedUserIds() } } },
 						{ $unwind: '$songs' },
 						{ $match: { 'songs.played_number': { $gt: 0 } } },
 						{
