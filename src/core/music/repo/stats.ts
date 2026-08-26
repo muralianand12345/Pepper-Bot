@@ -148,7 +148,6 @@ export class StatsDB {
 	private static serverInsightStages = (limit?: number): PipelineStage[] => [
 		{ $unwind: '$songs' },
 		{ $match: { 'songs.played_number': { $gt: 0 } } },
-		{ $sort: { 'songs.played_number': -1 } },
 		{
 			$group: {
 				_id: '$guildId',
@@ -158,10 +157,15 @@ export class StatsDB {
 				sources: { $addToSet: '$songs.sourceName' },
 				estimatedPlaytimeMs: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } },
 				lastPlayedAt: { $max: '$songs.timestamp' },
-				topSong: { $first: { title: '$songs.title', author: '$songs.author', uri: '$songs.uri', artworkUrl: '$songs.artworkUrl', plays: '$songs.played_number' } },
+				topSong: {
+					$top: {
+						sortBy: { 'songs.played_number': -1 },
+						output: { title: '$songs.title', author: '$songs.author', uri: '$songs.uri', artworkUrl: '$songs.artworkUrl', plays: '$songs.played_number' },
+					},
+				},
 			},
 		},
-		{ $sort: { totalPlays: -1 } },
+		{ $sort: { totalPlays: -1, _id: 1 } },
 		...(limit ? [{ $limit: limit }] : []),
 		{
 			$project: {
@@ -210,7 +214,7 @@ export class StatsDB {
 	public static getServerInsight = async (guildId: string): Promise<StatsServerInsight | null> => {
 		return this.withCache(`server:${guildId}`, async () => {
 			try {
-				const result = await music_guild.aggregate([{ $match: { guildId } }, ...this.serverInsightStages()]);
+				const result = await music_guild.aggregate([{ $match: { guildId } }, ...this.serverInsightStages()]).allowDiskUse(true);
 				if (!result || result.length === 0) return null;
 				return this.toServerInsight(result[0]);
 			} catch (err) {
