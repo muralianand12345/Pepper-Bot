@@ -1,8 +1,8 @@
 lavalink:
     plugins:
-        - dependency: com.github.topi314.lavasrc:lavasrc-plugin:4.7.3
+        - dependency: com.github.topi314.lavasrc:lavasrc-plugin:4.8.3
           snapshot: false
-        - dependency: dev.lavalink.youtube:youtube-plugin:1.13.3
+        - dependency: dev.lavalink.youtube:youtube-plugin:1.18.2
           snapshot: false
     server:
         bufferDurationMs: 400
@@ -35,18 +35,21 @@ lavalink:
             vimeo: true
             youtube: false
         timeouts:
-            connectTimeoutMs: 15000
-            connectionRequestTimeoutMs: 15000
+            connectTimeoutMs: 5000
+            connectionRequestTimeoutMs: 5000
             socketTimeoutMs: 15000
         trackStuckThresholdMs: 10000
         useSeekGhosting: true
+        youtubeConfig:
+            email: ${YOUTUBE_EMAIL}
+            password: ${YOUTUBE_PASSWORD}
         youtubePlaylistLoadLimit: 6
         youtubeSearchEnabled: true
 logging:
     file:
         path: ./logs/
     level:
-        lavalink: DEBUG
+        lavalink: INFO
         root: INFO
     logback:
         rollingpolicy:
@@ -69,7 +72,7 @@ plugins:
             albumLoadLimit: 6
             countryCode: IN
             keyID: your key id
-            mediaAPIToken: ''
+            mediaAPIToken: ${APPLE_MUSIC_KEY}
             musicKitKey: |
                 -----BEGIN PRIVATE KEY-----
                 your key
@@ -77,7 +80,7 @@ plugins:
             playlistLoadLimit: 6
             teamID: your team id
         deezer:
-            arl: your deezer arl
+            arl: ${DEEZER_ARL}
             formats:
                 - FLAC
                 - MP3_320
@@ -85,30 +88,36 @@ plugins:
                 - MP3_128
                 - MP3_64
                 - AAC_64
-            masterDecryptionKey: your master decryption key
+            masterDecryptionKey: ${DEEZER_MASTER_DECRYPTION_KEY}
         flowerytts:
             audioFormat: mp3
             silence: 0
             speed: 1
             translate: false
             voice: default voice
+        jiosaavn:
+            decryption:
+                secretKey: ??
         lyrics-sources:
-            deezer: false
+            deezer: true
             spotify: true
             vkmusic: false
             yandexmusic: true
             youtube: true
         providers:
-            - ytsearch:"%ISRC%"
-            - ytsearch:%QUERY%
-            - scsearch:%QUERY%
-            - amsearch:%QUERY%
+            - "dzisrc:%ISRC%" # If ISRC available, search on deezer
+            - "ytsearch:\"%ISRC%\"" # If ISRC available, search on youtube
+            - "dzsearch:%QUERY%" # Search on deezer, if no results found use the next provider
+            - "ytmsearch:%QUERY%" # If you want music.youtube results first
+            - "ytsearch:%QUERY%" # If no result found on music.youtube, search on www.youtube
+            - "scsearch:%QUERY%" # Last try to search on soundcloud.
         qobuz:
             userOauthToken: your user oauth token
         sources:
             applemusic: true
-            deezer: false
+            deezer: true
             flowerytts: true
+            jiosaavn: false
             qobuz: false
             spotify: true
             tidal: false
@@ -118,15 +127,15 @@ plugins:
             ytdlp: false
         spotify:
             albumLoadLimit: 6
-            clientId: ''
-            clientSecret: ''
+            clientId: ${SPOTIFY_CLIENT_ID}
+            clientSecret: ${SPOTIFY_CLIENT_SECRET}
             countryCode: IN
             customTokenEndpoint: http://localhost:8080/api/token
             localFiles: false
             playlistLoadLimit: 6
             preferAnonymousToken: false
             resolveArtistsInSearch: true
-            spDc: ''
+            spDc: null
         tidal:
             countryCode: US
             searchLimit: 6
@@ -137,7 +146,7 @@ plugins:
             recommendationsLoadLimit: 10
             userToken: your user token
         yandexmusic:
-            accessToken: ''
+            accessToken: ${YANDEX_ACCESS_TOKEN}
             albumLoadLimit: 1
             artistLoadLimit: 1
             playlistLoadLimit: 1
@@ -156,12 +165,20 @@ plugins:
             - ANDROID_VR
             - WEB
             - WEBEMBEDDED
+            - TV
         enabled: true
+        oauth:
+            enabled: true
+            refreshToken: ${YOUTUBE_OAUTH_REFRESH_TOKEN}
+            skipInitialization: true
+        remoteCipher:
+            url: "https://cipher.kikkia.dev/"
+            userAgent: "your_service_name" # Optional
 sentry:
-    dsn: ''
+    dsn: ${SENTRY_DSN}
     environment: production
 server:
     address: 0.0.0.0
     http2:
-        enabled: false
+        enabled: true
     port: 25704
