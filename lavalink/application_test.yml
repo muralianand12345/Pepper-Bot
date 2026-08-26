@@ -80,7 +80,7 @@ plugins:
             playlistLoadLimit: 6
             teamID: your team id
         deezer:
-            arl: your arl
+            arl: ${DEEZER_ARL}
             formats:
                 - FLAC
                 - MP3_320
@@ -88,7 +88,7 @@ plugins:
                 - MP3_128
                 - MP3_64
                 - AAC_64
-            masterDecryptionKey: your master decryption key
+            masterDecryptionKey: ${DEEZER_MASTER_DECRYPTION_KEY}
         flowerytts:
             audioFormat: mp3
             silence: 0
@@ -99,21 +99,23 @@ plugins:
             decryption:
                 secretKey: ??
         lyrics-sources:
-            deezer: false
+            deezer: true
             spotify: true
             vkmusic: false
             yandexmusic: true
             youtube: true
         providers:
-            - scsearch:%QUERY%
-            - ytsearch:"%ISRC%"
-            - ytsearch:%QUERY%
-            - amsearch:%QUERY%
+            - "dzisrc:%ISRC%" # If ISRC available, search on deezer
+            - "ytsearch:\"%ISRC%\"" # If ISRC available, search on youtube
+            - "dzsearch:%QUERY%" # Search on deezer, if no results found use the next provider
+            - "ytmsearch:%QUERY%" # If you want music.youtube results first
+            - "ytsearch:%QUERY%" # If no result found on music.youtube, search on www.youtube
+            - "scsearch:%QUERY%" # Last try to search on soundcloud.
         qobuz:
             userOauthToken: your user oauth token
         sources:
             applemusic: true
-            deezer: false
+            deezer: true
             flowerytts: true
             jiosaavn: false
             qobuz: false
@@ -163,6 +165,7 @@ plugins:
             - ANDROID_VR
             - WEB
             - WEBEMBEDDED
+            - TV
         enabled: true
         oauth:
             enabled: true

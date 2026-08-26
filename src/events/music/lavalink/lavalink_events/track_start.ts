@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import magmastream, { ManagerEventTypes } from 'magmastream';
+import magmastream, { LoadTypes, ManagerEventTypes } from 'magmastream';
 
 import { send } from '../../../../utils/msg';
 import Formatter from '../../../../utils/format';
@@ -9,14 +9,36 @@ import { LocaleDetector } from '../../../../core/locales';
 import { wait, MusicDB, NowPlayingManager, ActivityCheckManager, getRequester, VoiceChannelStatus, MusicResponseHandler } from '../../../../core/music';
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
+const MIRRORED_SOURCES = new Set(['spotify', 'applemusic', 'tidal', 'qobuz', 'yandexmusic', 'vkmusic']);
+const MIRROR_PROVIDERS = ['dzisrc:%ISRC%', 'ytsearch:"%ISRC%"', 'dzsearch:%QUERY%', 'ytmsearch:%QUERY%', 'ytsearch:%QUERY%', 'scsearch:%QUERY%'];
 const localeDetector = new LocaleDetector();
 const configManager = ConfigManager.getInstance();
 
-const logTrackStart = (track: magmastream.Track, player: magmastream.Player, client: discord.Client): void => {
+const resolvePlaybackSource = async (track: magmastream.Track, player: magmastream.Player, client: discord.Client): Promise<string> => {
+	const metaSource = (track.sourceName || 'unknown').toLowerCase();
+	if (!MIRRORED_SOURCES.has(metaSource)) return metaSource;
+
+	const query = `${track.title ?? ''} ${track.author ?? ''}`.trim();
+	for (const provider of MIRROR_PROVIDERS) {
+		if (provider.includes('%ISRC%') && !track.isrc) continue;
+		const identifier = provider.replace('%ISRC%', track.isrc ?? '').replace('%QUERY%', query);
+		try {
+			const response = await player.node.rest.get<magmastream.LavalinkResponse>(`/v4/loadtracks?identifier=${encodeURIComponent(identifier)}`);
+			const resolved = response?.loadType === LoadTypes.Track ? (response.data as unknown as magmastream.TrackData) : response?.loadType === LoadTypes.Search ? (response.data as magmastream.TrackData[])?.[0] : null;
+			if (resolved?.info?.sourceName) return `${resolved.info.sourceName} via ${identifier.split(':')[0]} (mirrored from ${metaSource})`;
+		} catch (error) {
+			client.logger.debug(`[LAVALINK] Mirror lookup failed for ${identifier}: ${error}`);
+		}
+	}
+	return `${metaSource} (mirror unresolved)`;
+};
+
+const logTrackStart = async (track: magmastream.Track, player: magmastream.Player, client: discord.Client): Promise<void> => {
 	const guildName = client.guilds.cache.get(player.guildId)?.name;
 	const requesterData = track.requester ? getRequester(client, track.requester) : null;
-	if (!requesterData) return client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId})`);
-	client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` + `By ${requesterData.username} (${requesterData.id})`);
+	const playbackSource = await resolvePlaybackSource(track, player, client);
+	if (!requesterData) return client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) [source: ${playbackSource}]`);
+	client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` + `By ${requesterData.username} (${requesterData.id}) [source: ${playbackSource}]`);
 	client.logger.info(`[LAVALINK] User: ${requesterData.username} (${requesterData.id}) requested song uri ${track.uri} ` + `in ${guildName} (${player.guildId}) using Node ${player.node.options.identifier} (${player.node.options.host}:${player.node.options.port || ''})`);
 };
 
@@ -121,7 +143,7 @@ const lavalinkEvent: LavalinkEvent = {
 			await MusicDB.addMusicUserData(requesterData?.id || null, songData);
 			await MusicDB.addMusicGuildData(player.guildId, songData);
 
-			logTrackStart(track, player, client);
+			await logTrackStart(track, player, client);
 
 			try {
 				NowPlayingManager.removeInstance(player.guildId);

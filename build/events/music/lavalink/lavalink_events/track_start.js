@@ -11,14 +11,38 @@ const config_1 = require("../../../../utils/config");
 const locales_1 = require("../../../../core/locales");
 const music_1 = require("../../../../core/music");
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
+const MIRRORED_SOURCES = new Set(['spotify', 'applemusic', 'tidal', 'qobuz', 'yandexmusic', 'vkmusic']);
+const MIRROR_PROVIDERS = ['dzisrc:%ISRC%', 'ytsearch:"%ISRC%"', 'dzsearch:%QUERY%', 'ytmsearch:%QUERY%', 'ytsearch:%QUERY%', 'scsearch:%QUERY%'];
 const localeDetector = new locales_1.LocaleDetector();
 const configManager = config_1.ConfigManager.getInstance();
-const logTrackStart = (track, player, client) => {
+const resolvePlaybackSource = async (track, player, client) => {
+    const metaSource = (track.sourceName || 'unknown').toLowerCase();
+    if (!MIRRORED_SOURCES.has(metaSource))
+        return metaSource;
+    const query = `${track.title ?? ''} ${track.author ?? ''}`.trim();
+    for (const provider of MIRROR_PROVIDERS) {
+        if (provider.includes('%ISRC%') && !track.isrc)
+            continue;
+        const identifier = provider.replace('%ISRC%', track.isrc ?? '').replace('%QUERY%', query);
+        try {
+            const response = await player.node.rest.get(`/v4/loadtracks?identifier=${encodeURIComponent(identifier)}`);
+            const resolved = response?.loadType === magmastream_1.LoadTypes.Track ? response.data : response?.loadType === magmastream_1.LoadTypes.Search ? response.data?.[0] : null;
+            if (resolved?.info?.sourceName)
+                return `${resolved.info.sourceName} via ${identifier.split(':')[0]} (mirrored from ${metaSource})`;
+        }
+        catch (error) {
+            client.logger.debug(`[LAVALINK] Mirror lookup failed for ${identifier}: ${error}`);
+        }
+    }
+    return `${metaSource} (mirror unresolved)`;
+};
+const logTrackStart = async (track, player, client) => {
     const guildName = client.guilds.cache.get(player.guildId)?.name;
     const requesterData = track.requester ? (0, music_1.getRequester)(client, track.requester) : null;
+    const playbackSource = await resolvePlaybackSource(track, player, client);
     if (!requesterData)
-        return client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId})`);
-    client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` + `By ${requesterData.username} (${requesterData.id})`);
+        return client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) [source: ${playbackSource}]`);
+    client.logger.info(`[LAVALINK] Track ${track.title} started playing in ${guildName} (${player.guildId}) ` + `By ${requesterData.username} (${requesterData.id}) [source: ${playbackSource}]`);
     client.logger.info(`[LAVALINK] User: ${requesterData.username} (${requesterData.id}) requested song uri ${track.uri} ` + `in ${guildName} (${player.guildId}) using Node ${player.node.options.identifier} (${player.node.options.host}:${player.node.options.port || ''})`);
 };
 const webhookLiveSongs = async (client, track, player) => {
@@ -114,7 +138,7 @@ const lavalinkEvent = {
             };
             await music_1.MusicDB.addMusicUserData(requesterData?.id || null, songData);
             await music_1.MusicDB.addMusicGuildData(player.guildId, songData);
-            logTrackStart(track, player, client);
+            await logTrackStart(track, player, client);
             try {
                 music_1.NowPlayingManager.removeInstance(player.guildId);
                 const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, player, client);
