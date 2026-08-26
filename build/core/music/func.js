@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRequester = exports.wait = exports.sendTempMessage = void 0;
+exports.getRequester = exports.isBotRequester = exports.wait = exports.sendTempMessage = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const promises_1 = __importDefault(require("timers/promises"));
 const msg_1 = require("../../utils/msg");
@@ -22,6 +22,15 @@ const wait = async (ms) => {
     await promises_1.default.setTimeout(ms);
 };
 exports.wait = wait;
+const isBotRequester = (client, requester) => {
+    const id = typeof requester === 'string' ? requester : requester?.id;
+    if (!id)
+        return false;
+    if (client.user?.id === id)
+        return true;
+    return client.users.cache.get(id)?.bot ?? false;
+};
+exports.isBotRequester = isBotRequester;
 const getRequester = (client, user) => {
     if (!user)
         return null;

@@ -136,7 +136,8 @@ const lavalinkEvent = {
                 played_number: 1,
                 timestamp: new Date(),
             };
-            await music_1.MusicDB.addMusicUserData(requesterData?.id || null, songData);
+            if (requesterData?.id && !(0, music_1.isBotRequester)(client, requesterData))
+                await music_1.MusicDB.addMusicUserData(requesterData.id, songData);
             await music_1.MusicDB.addMusicGuildData(player.guildId, songData);
             await logTrackStart(track, player, client);
             try {

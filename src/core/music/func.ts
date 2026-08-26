@@ -21,6 +21,13 @@ export const wait = async (ms: number): Promise<void> => {
 	await timers.setTimeout(ms);
 };
 
+export const isBotRequester = (client: discord.Client, requester: ISongsUser | string | null): boolean => {
+	const id = typeof requester === 'string' ? requester : requester?.id;
+	if (!id) return false;
+	if (client.user?.id === id) return true;
+	return client.users.cache.get(id)?.bot ?? false;
+};
+
 export const getRequester = (client: discord.Client, user: magmastream.AnyUser | string | null): ISongsUser | null => {
 	if (!user) return null;
 

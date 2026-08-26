@@ -6,7 +6,7 @@ import Formatter from '../../../../utils/format';
 import { LavalinkEvent } from '../../../../types';
 import { ConfigManager } from '../../../../utils/config';
 import { LocaleDetector } from '../../../../core/locales';
-import { wait, MusicDB, NowPlayingManager, ActivityCheckManager, getRequester, VoiceChannelStatus, MusicResponseHandler } from '../../../../core/music';
+import { wait, MusicDB, NowPlayingManager, ActivityCheckManager, getRequester, isBotRequester, VoiceChannelStatus, MusicResponseHandler } from '../../../../core/music';
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 const MIRRORED_SOURCES = new Set(['spotify', 'applemusic', 'tidal', 'qobuz', 'yandexmusic', 'vkmusic']);
@@ -140,7 +140,7 @@ const lavalinkEvent: LavalinkEvent = {
 				timestamp: new Date(),
 			};
 
-			await MusicDB.addMusicUserData(requesterData?.id || null, songData);
+			if (requesterData?.id && !isBotRequester(client, requesterData)) await MusicDB.addMusicUserData(requesterData.id, songData);
 			await MusicDB.addMusicGuildData(player.guildId, songData);
 
 			await logTrackStart(track, player, client);

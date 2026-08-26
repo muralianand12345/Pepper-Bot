@@ -171,15 +171,19 @@ class StatsAPIHandler {
         this.handleRequesters = async (req, res) => {
             try {
                 const limit = this.parseLimit(req.query.limit, DEFAULT_LIMIT);
-                const cached = repo_1.StatsDB.isCached(`requesters:${limit}`);
-                const requesters = await repo_1.StatsDB.getTopRequesters(limit);
+                const poolSize = Math.min(limit * 2, MAX_LIMIT);
+                const cached = repo_1.StatsDB.isCached(`requesters:${poolSize}`);
+                const requesters = await repo_1.StatsDB.getTopRequesters(poolSize);
                 const resolved = await Promise.all(requesters.map(async (requester) => {
                     const user = await this.client.users.fetch(requester.userId).catch(() => null);
                     if (!user)
                         return requester;
+                    if (user.bot)
+                        return null;
                     return { ...requester, username: user.username, avatar: user.displayAvatarURL() };
                 }));
-                this.send(res, { limit, requesters: resolved }, cached);
+                const people = resolved.filter((requester) => requester !== null).slice(0, limit).map((requester, index) => ({ ...requester, rank: index + 1 }));
+                this.send(res, { limit, requesters: people }, cached);
             }
             catch (error) {
                 this.fail(res, error, 'requesters');
