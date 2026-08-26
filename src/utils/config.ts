@@ -17,6 +17,7 @@ const EnvSchema = z.object({
 		.union([z.number(), z.string()])
 		.optional()
 		.transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val)),
+	STATS_API_KEY: z.string().optional(),
 	LASTFM_API_KEY: z.string(),
 	SPOTIFY_CLIENT_ID: z.string(),
 	SPOTIFY_CLIENT_SECRET: z.string(),
@@ -49,6 +50,7 @@ export class ConfigManager {
 				MONGO_URI: process.env.MONGO_URI,
 				DEBUG_MODE: process.env.DEBUG_MODE || false,
 				API_PORT: process.env.API_PORT,
+				STATS_API_KEY: process.env.STATS_API_KEY,
 				LASTFM_API_KEY: process.env.LASTFM_API_KEY,
 				SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
 				SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
@@ -96,6 +98,11 @@ export class ConfigManager {
 
 	public getApiPort = (): number | undefined => {
 		return this.config.API_PORT;
+	};
+
+	public getStatsApiKey = (): string | undefined => {
+		const key = this.config.STATS_API_KEY?.trim();
+		return key ? key : undefined;
 	};
 
 	public getLastFmApiKey = (): string => {

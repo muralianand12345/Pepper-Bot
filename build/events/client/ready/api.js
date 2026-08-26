@@ -9,6 +9,7 @@ const package_json_1 = require("../../../../package.json");
 const shard_1 = require("../../../utils/shard");
 const config_1 = require("../../../utils/config");
 const spotify_1 = __importDefault(require("../../../core/api/music/accounts/spotify"));
+const stats_1 = __importDefault(require("../../../core/api/music/stats"));
 const configManager = config_1.ConfigManager.getInstance();
 class APIServer {
     constructor(client) {
@@ -19,6 +20,14 @@ class APIServer {
         this.setupRoutes = () => {
             const spotifyHandler = new spotify_1.default(this.client);
             this.app.use('/api/v1/accounts/spotify', spotifyHandler.getRouter());
+            const statsApiKey = configManager.getStatsApiKey();
+            if (statsApiKey) {
+                const statsHandler = new stats_1.default(this.client, statsApiKey);
+                this.app.use('/api/v1/stats', statsHandler.getRouter());
+            }
+            else {
+                this.client.logger.warn('[API] STATS_API_KEY not set, music stats routes not mounted');
+            }
             this.app.get('/', (req, res) => res.json({ message: 'Pepper API', version: package_json_1.version }));
         };
         this.start = () => {
