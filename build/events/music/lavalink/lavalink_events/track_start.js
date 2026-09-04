@@ -10,6 +10,7 @@ const format_1 = __importDefault(require("../../../../utils/format"));
 const config_1 = require("../../../../utils/config");
 const locales_1 = require("../../../../core/locales");
 const music_1 = require("../../../../core/music");
+const v2_1 = require("../../../../utils/v2");
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
 const MIRRORED_SOURCES = new Set(['spotify', 'applemusic', 'tidal', 'qobuz', 'yandexmusic', 'vkmusic']);
 const MIRROR_PROVIDERS = ['dzisrc:%ISRC%', 'ytsearch:"%ISRC%"', 'dzsearch:%QUERY%', 'ytmsearch:%QUERY%', 'ytsearch:%QUERY%', 'scsearch:%QUERY%'];
@@ -59,27 +60,22 @@ const webhookLiveSongs = async (client, track, player) => {
         const voiceMembers = voiceChannel?.members.filter((member) => !member.user.bot).size || 0;
         const voiceStatus = new music_1.VoiceChannelStatus(client);
         await voiceStatus.setPlaying(player, track);
-        const embed = new discord_js_1.default.EmbedBuilder()
-            .setColor('#FF0000')
-            .setTitle('🎵 Now Playing Live')
-            .setDescription(`**${track.title || 'Unknown Track'}**\nby **${track.author || 'Unknown Artist'}**`)
-            .setThumbnail(track.artworkUrl || track.thumbnail || null)
-            .addFields([
-            { name: '⏱️ Duration', value: duration, inline: true },
-            { name: '📻 Source', value: track.sourceName || 'Unknown', inline: true },
-            { name: '🔊 Listening', value: `${voiceMembers}`, inline: true },
-            { name: '🌐 Node', value: player.node.options.identifier || 'Unknown Node', inline: true },
-            { name: '🆔 Track ID', value: track.identifier || 'Unknown', inline: true },
-        ])
-            .setFooter({ text: `${client.user?.username || 'Music Bot'} • Live Song Activity`, iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp();
-        if (track.uri && !track.uri.includes('youtube'))
-            embed.setURL(track.uri);
-        await webhookClient.send({
-            username: `${client.user?.username || 'Music Bot'} Live Songs`,
-            avatarURL: client.user?.displayAvatarURL(),
-            embeds: [embed],
+        const trackHeading = track.uri && !track.uri.includes('youtube') ? `**[${track.title || 'Unknown Track'}](${track.uri})**` : `**${track.title || 'Unknown Track'}**`;
+        const details = (0, v2_1.fields)([
+            ['⏱️ Duration', `\`${duration}\``],
+            ['📻 Source', `\`${track.sourceName || 'Unknown'}\``],
+            ['🔊 Listening', `${voiceMembers}`],
+            ['🌐 Node', `\`${player.node.options.identifier || 'Unknown Node'}\``],
+            ['🆔 Track ID', `\`${track.identifier || 'Unknown'}\``],
+        ]);
+        const container = (0, v2_1.panel)(0xff0000, {
+            title: '🎵 Now Playing Live',
+            body: `${trackHeading}\nby **${track.author || 'Unknown Artist'}**\n\n${details}`,
+            thumbnail: track.artworkUrl || track.thumbnail || null,
+            footer: `${client.user?.username || 'Music Bot'} • Live Song Activity`,
+            timestamp: true,
         });
+        await webhookClient.send({ ...(0, v2_1.v2Webhook)(container), username: `${client.user?.username || 'Music Bot'} Live Songs`, avatarURL: client.user?.displayAvatarURL() });
         client.logger.debug(`[LAVALINK] Live song activity sent for ${track.title} in ${guild?.name}`);
     }
     catch (error) {
@@ -112,8 +108,8 @@ const lavalinkEvent = {
                     player.stop(1);
                     client.logger.warn(`[LAVALINK] Skipping YouTube track: ${track.uri}`);
                     const responseHandler = new music_1.MusicResponseHandler(client);
-                    const embed = responseHandler.createWarningEmbed(client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || '⚠️ Skipping song! Youtube source detected.').setFooter({ text: client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.", iconURL: client.user?.displayAvatarURL() || '' });
-                    return await (0, msg_1.send)(client, channel.id, { embeds: [embed] }).then((msg) => (0, music_1.wait)(5000).then(() => msg?.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));
+                    const container = responseHandler.createWarningContainer(client.localizationManager?.translate('responses.music.youtube_blocked', guildLocale) || '⚠️ Skipping song! Youtube source detected.', client.localizationManager?.translate('responses.music.youtube_footer', guildLocale) || "We do not support Youtube links due to YouTube's TOS.");
+                    return await (0, msg_1.send)(client, channel.id, (0, v2_1.v2)(container)).then((msg) => (0, music_1.wait)(5000).then(() => msg?.delete().catch((err) => client.logger.error(`[LAVALINK] Failed to delete message: ${err}`))));
                 }
                 else {
                     client.logger.info(`[LAVALINK] Playing YouTube track from playlist: ${track.title}`);

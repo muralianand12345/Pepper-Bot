@@ -8,6 +8,7 @@ const commands_1 = require("../core/commands");
 const types_1 = require("../types");
 const music_1 = require("../core/music");
 const locales_1 = require("../core/locales");
+const v2_1 = require("../utils/v2");
 const localeDetector = new locales_1.LocaleDetector();
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const langCommand = {
@@ -46,73 +47,73 @@ const langCommand = {
                 else {
                     await localeDetector.setUserLanguage(interaction.user.id, null);
                 }
-                const embed = responseHandler.createSuccessEmbed(t('responses.language.reset'));
-                await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                const container = responseHandler.createSuccessContainer(t('responses.language.reset'));
+                await interaction.reply((0, v2_1.v2Ephemeral)(container));
                 return;
             }
             if (!language) {
-                const embed = responseHandler.createErrorEmbed('Please provide a language when not using reset option.', currentLocale);
-                return await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                const container = responseHandler.createErrorContainer('Please provide a language when not using reset option.', currentLocale);
+                return await interaction.reply((0, v2_1.v2Ephemeral)(container));
             }
             if (!localeDetector.isLanguageSupported(language)) {
                 const supportedLanguages = localeDetector.getSupportedLanguages();
                 const languageList = supportedLanguages.map((lang) => `${lang.name} (${lang.code})`).join(', ');
-                const embed = responseHandler.createErrorEmbed(t('responses.language.unsupported', { language, languages: languageList }), currentLocale);
-                return await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                const container = responseHandler.createErrorContainer(t('responses.language.unsupported', { language, languages: languageList }), currentLocale);
+                return await interaction.reply((0, v2_1.v2Ephemeral)(container));
             }
             if (scope === 'user') {
                 const currentUserLang = await localeDetector.getUserLanguage(interaction.user.id);
                 if (currentUserLang === language) {
                     const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-                    const embed = responseHandler.createInfoEmbed(t('responses.language.same_language', { language: languageName }));
-                    return await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                    const container = responseHandler.createInfoContainer(t('responses.language.same_language', { language: languageName }));
+                    return await interaction.reply((0, v2_1.v2Ephemeral)(container));
                 }
                 const success = await localeDetector.setUserLanguage(interaction.user.id, language);
                 if (success) {
                     const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-                    const embed = responseHandler.createSuccessEmbed(localizationManager.translate('responses.language.user_set', language, { language: languageName }));
-                    await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                    const container = responseHandler.createSuccessContainer(localizationManager.translate('responses.language.user_set', language, { language: languageName }));
+                    await interaction.reply((0, v2_1.v2Ephemeral)(container));
                 }
                 else {
-                    const embed = responseHandler.createErrorEmbed('Failed to set user language preference.', currentLocale);
-                    await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                    const container = responseHandler.createErrorContainer('Failed to set user language preference.', currentLocale);
+                    await interaction.reply((0, v2_1.v2Ephemeral)(container));
                 }
             }
             else if (scope === 'server') {
                 if (!interaction.inGuild()) {
-                    const embed = responseHandler.createErrorEmbed(t('responses.errors.server_only'), currentLocale);
-                    return await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                    const container = responseHandler.createErrorContainer(t('responses.errors.server_only'), currentLocale);
+                    return await interaction.reply((0, v2_1.v2Ephemeral)(container));
                 }
                 if (!interaction.memberPermissions?.has(discord_js_1.default.PermissionsBitField.Flags.ManageGuild)) {
-                    const embed = responseHandler.createErrorEmbed(t('responses.language.no_permission'), currentLocale);
-                    return await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                    const container = responseHandler.createErrorContainer(t('responses.language.no_permission'), currentLocale);
+                    return await interaction.reply((0, v2_1.v2Ephemeral)(container));
                 }
                 const currentGuildLang = await localeDetector.getGuildLanguage(interaction.guildId);
                 if (currentGuildLang === language) {
                     const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-                    const embed = responseHandler.createInfoEmbed(t('responses.language.same_language', { language: languageName }));
-                    return await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                    const container = responseHandler.createInfoContainer(t('responses.language.same_language', { language: languageName }));
+                    return await interaction.reply((0, v2_1.v2Ephemeral)(container));
                 }
                 const success = await localeDetector.setGuildLanguage(interaction.guildId, language);
                 if (success) {
                     const languageName = localeDetector.getSupportedLanguages().find((l) => l.code === language)?.name || language;
-                    const embed = responseHandler.createSuccessEmbed(localizationManager.translate('responses.language.server_set', language, { language: languageName }));
-                    await interaction.reply({ embeds: [embed] });
+                    const container = responseHandler.createSuccessContainer(localizationManager.translate('responses.language.server_set', language, { language: languageName }));
+                    await interaction.reply((0, v2_1.v2)(container));
                 }
                 else {
-                    const embed = responseHandler.createErrorEmbed('Failed to set server language preference.', currentLocale);
-                    await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                    const container = responseHandler.createErrorContainer('Failed to set server language preference.', currentLocale);
+                    await interaction.reply((0, v2_1.v2Ephemeral)(container));
                 }
             }
         }
         catch (error) {
             client.logger.error(`[LANGUAGE_COMMAND] Error: ${error}`);
-            const embed = responseHandler.createErrorEmbed(t('responses.errors.general_error'), currentLocale, true);
+            const container = responseHandler.createErrorContainer(t('responses.errors.general_error'), currentLocale, true);
             if (!interaction.replied) {
-                await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                await interaction.reply((0, v2_1.v2Ephemeral)(container));
             }
             else {
-                await interaction.followUp({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                await interaction.followUp((0, v2_1.v2Ephemeral)(container));
             }
         }
     },

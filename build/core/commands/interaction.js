@@ -10,6 +10,7 @@ const locales_1 = require("../locales");
 const premium_1 = require("./premium");
 const music_1 = require("../music");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
+const v2_1 = require("../../utils/v2");
 class CommandInteractionHandler {
     constructor(client, interaction) {
         this.handle = async () => {
@@ -81,7 +82,7 @@ class CommandInteractionHandler {
                     const t = await this.localeDetector.getTranslator(this.interaction);
                     const message = t(messageKey, data);
                     if (this.interaction.isRepliable() && !this.interaction.replied && !this.interaction.deferred)
-                        await this.interaction.reply({ embeds: [new music_1.MusicResponseHandler(this.client).createErrorEmbed(message, locale)], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                        await this.interaction.reply((0, v2_1.v2Ephemeral)(new music_1.MusicResponseHandler(this.client).createErrorContainer(message, locale)));
                 })();
                 await Promise.race([replyPromise, timeoutPromise]);
             }
@@ -179,9 +180,9 @@ class CommandInteractionHandler {
                         const locale = await this.localeDetector.detectLocale(this.interaction);
                         const t = await this.localeDetector.getTranslator(this.interaction);
                         const message = t('responses.errors.general_error');
-                        const embed = new music_1.MusicResponseHandler(this.client).createErrorEmbed(message, locale, true);
+                        const container = new music_1.MusicResponseHandler(this.client).createErrorContainer(message, locale, true);
                         if (this.interaction.isRepliable()) {
-                            await this.interaction.editReply({ embeds: [embed] }).catch((editError) => {
+                            await this.interaction.editReply((0, v2_1.v2)(container)).catch((editError) => {
                                 if (!(editError instanceof discord_js_1.default.DiscordAPIError && editError.code === 10062))
                                     this.client.logger.error(`[INTERACTION_CREATE] Failed to edit reply: ${editError}`);
                             });
@@ -221,7 +222,7 @@ class CommandInteractionHandler {
                         const t = await this.localeDetector.getTranslator(this.interaction);
                         const message = t('responses.errors.general_error');
                         if (this.interaction.isRepliable()) {
-                            await this.interaction.reply({ content: `❌ ${message}`, flags: discord_js_1.default.MessageFlags.Ephemeral }).catch((replyError) => {
+                            await this.interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)(`❌ ${message}`))).catch((replyError) => {
                                 if (!(replyError instanceof discord_js_1.default.DiscordAPIError && replyError.code === 10062))
                                     this.client.logger.error(`[INTERACTION_CREATE] Modal reply failed: ${replyError}`);
                             });
@@ -229,7 +230,7 @@ class CommandInteractionHandler {
                     }
                     catch (localeError) {
                         if (this.interaction.isRepliable()) {
-                            await this.interaction.reply({ content: '❌ An error occurred while processing your request.', flags: discord_js_1.default.MessageFlags.Ephemeral }).catch((replyError) => {
+                            await this.interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)('❌ An error occurred while processing your request.'))).catch((replyError) => {
                                 if (!(replyError instanceof discord_js_1.default.DiscordAPIError && replyError.code === 10062))
                                     this.client.logger.error(`[INTERACTION_CREATE] Modal fallback reply failed: ${replyError}`);
                             });

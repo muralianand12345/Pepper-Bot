@@ -1,8 +1,10 @@
 import discord from 'discord.js';
 
 import { send } from '../../../utils/msg';
+import { sendChannelWebhook } from '../../../utils/webhook';
 import { getGlobalGuildCount, invalidateStatsCache } from '../../../utils/shard';
 import { BotEvent } from '../../../types';
+import { v2, v2Text, v2Webhook, withRows, panel, fields } from '../../../utils/v2';
 
 const event: BotEvent = {
 	name: discord.Events.GuildDelete,
@@ -28,18 +30,21 @@ const sendLogMessage = async (guild: discord.Guild, client: discord.Client): Pro
 		invalidateStatsCache();
 		const totalGuilds = await getGlobalGuildCount(client);
 
-		const leaveEmbed = new discord.EmbedBuilder()
-			.setTitle('Server Left')
-			.setDescription(`I have left **${guild.name || 'Unknown Guild'}** (${guild.id}). Now in **${totalGuilds.toLocaleString()}** servers.`)
-			.addFields({ name: 'Members', value: guild.memberCount?.toString() || 'Unknown', inline: true }, { name: 'Owner', value: guild.ownerId ? `<@${guild.ownerId}>` : 'Unknown Owner', inline: true }, { name: 'Created', value: guild.createdAt ? `<t:${Math.floor(guild.createdAt.getTime() / 1000)}:D>` : 'Unknown Date', inline: true })
-			.setColor('#ff0000')
-			.setFooter({ text: `Now in ${totalGuilds.toLocaleString()} servers` })
-			.setTimestamp();
+		const details = fields([
+			['Members', guild.memberCount?.toString() || 'Unknown'],
+			['Owner', guild.ownerId ? `<@${guild.ownerId}>` : 'Unknown Owner'],
+			['Created', guild.createdAt ? `<t:${Math.floor(guild.createdAt.getTime() / 1000)}:D>` : 'Unknown Date'],
+		]);
 
-		if (guild.name) leaveEmbed.setAuthor({ name: guild.name.slice(0, 256), iconURL: guild.iconURL({ size: 128 }) || undefined });
-		if (guild.iconURL()) leaveEmbed.setThumbnail(guild.iconURL({ size: 256 }));
+		const leaveContainer = panel(0xff0000, {
+			title: 'Server Left',
+			body: `I have left **${guild.name || 'Unknown Guild'}** (${guild.id}).\n\n${details}`,
+			thumbnail: guild.iconURL({ size: 256 }),
+			footer: `Now in ${totalGuilds.toLocaleString()} servers`,
+			timestamp: true,
+		});
 
-		await send(client, logChannelId.toString(), { embeds: [leaveEmbed] });
+		await sendChannelWebhook(client, logChannelId.toString(), { ...v2Webhook(leaveContainer), username: `${client.user?.username || 'Pepper'} Logs`, avatarURL: client.user?.displayAvatarURL() });
 		client.logger.debug(`[SERVER_LEAVE] Log message sent successfully`);
 	} catch (error) {
 		client.logger.error(`[SERVER_LEAVE] Failed to send log message: ${error}`);
@@ -56,13 +61,12 @@ const sendFeedbackRequestDM = async (guild: discord.Guild, client: discord.Clien
 		const dmChannel = await owner.createDM().catch(() => null);
 		if (!dmChannel) return client.logger.warn(`[FEEDBACK] Cannot create DM channel with owner ${guild.ownerId}`);
 
-		const feedbackEmbed = new discord.EmbedBuilder()
-			.setColor('#5865F2')
-			.setTitle('Your Feedback Matters!')
-			.setDescription(`Thank you for trying ${client.user?.username || 'Music Bot'}! We noticed the bot is no longer in your server.\n\n` + "We'd love to hear your feedback to improve our service. Your insights are valuable to us!")
-			.setFooter({ text: `${client.user?.username || 'Music Bot'}`, iconURL: client.user?.displayAvatarURL() || undefined });
-
-		if (client.user?.displayAvatarURL()) feedbackEmbed.setThumbnail(client.user.displayAvatarURL({ size: 128 }));
+		const feedbackContainer = panel(0x5865f2, {
+			title: 'Your Feedback Matters!',
+			body: `Thank you for trying ${client.user?.username || 'Music Bot'}! We noticed the bot is no longer in your server.\n\n` + "We'd love to hear your feedback to improve our service. Your insights are valuable to us!",
+			thumbnail: client.user?.displayAvatarURL({ size: 128 }),
+			footer: `${client.user?.username || 'Music Bot'}`,
+		});
 
 		const actionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
 			new discord.ButtonBuilder().setCustomId(`feedback_request_${guild.id}`).setLabel('Share Feedback').setStyle(discord.ButtonStyle.Primary).setEmoji('📝'),
@@ -74,7 +78,7 @@ const sendFeedbackRequestDM = async (guild: discord.Guild, client: discord.Clien
 			new discord.ButtonBuilder().setLabel('Support Server').setStyle(discord.ButtonStyle.Link).setURL(client.config.bot.support_server.invite).setEmoji('🔧'),
 		);
 
-		await send(client, dmChannel.id, { content: `Hello! This is **${client.user?.username || 'Music Bot'}**, the music bot that was recently removed from **${guild.name || 'your server'}**.`, embeds: [feedbackEmbed], components: [actionRow] });
+		await send(client, dmChannel.id, v2(v2Text(`Hello! This is **${client.user?.username || 'Music Bot'}**, the music bot that was recently removed from **${guild.name || 'your server'}**.`), withRows(feedbackContainer, actionRow)));
 		client.logger.info(`[FEEDBACK] Sent feedback request DM to ${owner.tag} (${owner.id}) for guild ${guild.name || guild.id}`);
 	} catch (error) {
 		if (error instanceof discord.DiscordAPIError) {

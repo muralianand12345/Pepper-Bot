@@ -8,6 +8,7 @@ const config_1 = require("../utils/config");
 const types_1 = require("../types");
 const music_1 = require("../core/music");
 const locales_1 = require("../core/locales");
+const v2_1 = require("../utils/v2");
 const configManager = config_1.ConfigManager.getInstance();
 const localeDetector = new locales_1.LocaleDetector();
 const localizationManager = locales_1.LocalizationManager.getInstance();
@@ -24,30 +25,31 @@ const feedbackCommand = {
             const feedbackType = interaction.fields.getTextInputValue('feedback_type');
             const webhookUrl = configManager.getFeedbackWebhook();
             const webhook = new discord_js_1.default.WebhookClient({ url: webhookUrl });
-            const embed = new discord_js_1.default.EmbedBuilder()
-                .setColor('#5865f2')
-                .setTitle('📝 New Feedback Received')
-                .setDescription(`**Type:** ${feedbackType}\n**Feedback:**\n${feedbackText}`)
-                .addFields([
-                { name: 'User', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
-                { name: 'Guild', value: interaction.guild ? `${interaction.guild.name} (${interaction.guild.id})` : 'Direct Message', inline: true },
-                { name: 'Timestamp', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: false },
-            ])
-                .setThumbnail(interaction.user.displayAvatarURL())
-                .setFooter({ text: 'Feedback System', iconURL: interaction.client.user?.displayAvatarURL() })
-                .setTimestamp();
-            await webhook.send({ content: `Feedback from ${interaction.user.tag} (${interaction.user.id})`, embeds: [embed], username: 'Feedback Bot', avatarURL: interaction.client.user?.displayAvatarURL() });
-            const successEmbed = responseHandler.createSuccessEmbed(t('responses.feedback.sent'));
-            await interaction.reply({ embeds: [successEmbed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+            const details = (0, v2_1.fields)([
+                ['Type', feedbackType],
+                ['User', `${interaction.user.tag} (${interaction.user.id})`],
+                ['Guild', interaction.guild ? `${interaction.guild.name} (${interaction.guild.id})` : 'Direct Message'],
+                ['Timestamp', `<t:${Math.floor(Date.now() / 1000)}:F>`],
+            ]);
+            const container = (0, v2_1.panel)(0x5865f2, {
+                title: '📝 New Feedback Received',
+                body: `${details}\n\n**Feedback:**\n${feedbackText}`,
+                thumbnail: interaction.user.displayAvatarURL(),
+                footer: 'Feedback System',
+                timestamp: true,
+            });
+            await webhook.send({ ...(0, v2_1.v2Webhook)((0, v2_1.v2Text)(`Feedback from ${interaction.user.tag} (${interaction.user.id})`), container), username: 'Feedback Bot', avatarURL: interaction.client.user?.displayAvatarURL() });
+            const successContainer = responseHandler.createSuccessContainer(t('responses.feedback.sent'));
+            await interaction.reply((0, v2_1.v2Ephemeral)(successContainer));
         }
         catch (error) {
             interaction.client.logger.error(`[FEEDBACK] Error sending feedback: ${error}`);
-            const errorEmbed = responseHandler.createErrorEmbed(t('responses.errors.feedback_failed'), locale, true);
+            const errorContainer = responseHandler.createErrorContainer(t('responses.errors.feedback_failed'), locale, true);
             if (!interaction.replied) {
-                await interaction.reply({ embeds: [errorEmbed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                await interaction.reply((0, v2_1.v2Ephemeral)(errorContainer));
             }
             else {
-                await interaction.followUp({ embeds: [errorEmbed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                await interaction.followUp((0, v2_1.v2Ephemeral)(errorContainer));
             }
         }
     },

@@ -4,6 +4,7 @@ import magmastream from 'magmastream';
 import { send } from '../../utils/msg';
 import { LocaleDetector } from '../locales';
 import { MusicResponseHandler } from './handlers';
+import { v2, withRows } from '../../utils/v2';
 
 const ACTIVITY_CHECK_INTERVAL = 6 * 60 * 60 * 1000; // 6 hours
 const RESPONSE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
@@ -62,9 +63,8 @@ export class ActivityCheckManager {
 			try {
 				const locale = await this.getGuildLocale();
 				const responseHandler = new MusicResponseHandler(this.client);
-				const embed = responseHandler.createActivityCheckConfirmedEmbed(locale);
-				const disabledButton = responseHandler.getActivityCheckButton(true, locale);
-				await this.activeMessage.edit({ embeds: [embed], components: [disabledButton] });
+				const container = responseHandler.createActivityCheckConfirmedContainer(locale);
+				await this.activeMessage.edit(v2(withRows(container, responseHandler.getActivityCheckButton(true, locale))));
 			} catch (error) {
 				this.client.logger?.warn(`[ActivityCheckManager] Failed to update confirmed message: ${error}`);
 			}
@@ -150,10 +150,9 @@ export class ActivityCheckManager {
 
 			const locale = await this.getGuildLocale();
 			const responseHandler = new MusicResponseHandler(this.client);
-			const embed = responseHandler.createActivityCheckEmbed(locale);
-			const button = responseHandler.getActivityCheckButton(false, locale);
+			const container = responseHandler.createActivityCheckContainer(locale);
 
-			const message = await send(this.client, channel.id, { embeds: [embed], components: [button] });
+			const message = await send(this.client, channel.id, v2(withRows(container, responseHandler.getActivityCheckButton(false, locale))));
 			if (message) {
 				this.activeMessage = message;
 				this.isPendingResponse = true;
@@ -186,9 +185,8 @@ export class ActivityCheckManager {
 		if (this.activeMessage) {
 			try {
 				const responseHandler = new MusicResponseHandler(this.client);
-				const embed = responseHandler.createActivityCheckTimeoutEmbed(locale);
-				const disabledButton = responseHandler.getActivityCheckButton(true, locale);
-				await this.activeMessage.edit({ embeds: [embed], components: [disabledButton] });
+				const container = responseHandler.createActivityCheckTimeoutContainer(locale);
+				await this.activeMessage.edit(v2(withRows(container, responseHandler.getActivityCheckButton(true, locale))));
 			} catch (error) {
 				this.client.logger?.warn(`[ActivityCheckManager] Failed to update timeout message: ${error}`);
 			}
@@ -201,8 +199,8 @@ export class ActivityCheckManager {
 				const channel = await this.client.channels.fetch(textChannelId);
 				if (channel?.isTextBased()) {
 					const responseHandler = new MusicResponseHandler(this.client);
-					const embed = responseHandler.createInfoEmbed(this.client.localizationManager?.translate('responses.activity_check.disconnected', locale) || '🔌 Disconnected due to inactivity (no response to activity check)');
-					await send(this.client, channel.id, { embeds: [embed] });
+					const container = responseHandler.createInfoContainer(this.client.localizationManager?.translate('responses.activity_check.disconnected', locale) || '🔌 Disconnected due to inactivity (no response to activity check)');
+					await send(this.client, channel.id, v2(container));
 				}
 			} catch (error) {
 				this.client.logger?.warn(`[ActivityCheckManager] Failed to send disconnect message: ${error}`);

@@ -7,9 +7,9 @@ exports.CommandLogger = exports.Logger = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const chalk_1 = __importDefault(require("chalk"));
-const discord_js_1 = __importDefault(require("discord.js"));
-const msg_1 = require("./msg");
+const webhook_1 = require("./webhook");
 const config_1 = require("./config");
+const v2_1 = require("./v2");
 const configManager = config_1.ConfigManager.getInstance();
 class Logger {
     constructor(baseDirPath = '../../logs') {
@@ -99,15 +99,14 @@ class CommandLogger {
         const logWithoutColor = logMessage.replace(/\x1b\[[0-9;]*m/g, '');
         fs_1.default.appendFileSync(this.logFilePath, logWithoutColor + '\n', 'utf8');
     }
-    async createLogEmbed(options) {
+    async createLogContainer(options) {
         const { client, user, commandName, guild, channel, locale } = options;
-        const embed = new discord_js_1.default.EmbedBuilder()
-            .setColor('Green')
-            .setAuthor({ name: 'Command Log' })
-            .setTimestamp()
-            .addFields({ name: 'User', value: user ? `${user.tag} (<@${user.id}>)` : 'N/A' }, { name: 'Command', value: commandName || 'N/A' });
+        const entries = [
+            ['User', user ? `${user.tag} (<@${user.id}>)` : 'N/A'],
+            ['Command', commandName || 'N/A'],
+        ];
         if (!guild) {
-            embed.addFields({ name: 'Guild', value: 'DM' });
+            entries.push(['Guild', 'DM']);
         }
         else {
             const botGuildNickname = (await client.guilds.cache
@@ -115,18 +114,10 @@ class CommandLogger {
                 ?.members.fetch(client.user.id)
                 .then((member) => member.displayName)
                 .catch(() => 'N/A')) ?? 'N/A';
-            embed.addFields({ name: 'Guild', value: `${guild.name} (${guild.id})` }, { name: 'Bot Nickname', value: `${botGuildNickname}` });
+            entries.push(['Guild', `${guild.name} (${guild.id})`], ['Bot Nickname', `${botGuildNickname}`]);
         }
-        if (!channel) {
-            embed.addFields({ name: 'Channel', value: 'DM' });
-        }
-        else {
-            embed.addFields({ name: 'Channel', value: `${channel.name} (<#${channel.id}>)` });
-        }
-        if (locale) {
-            embed.setFooter({ text: `Locale: ${locale}` });
-        }
-        return embed;
+        entries.push(['Channel', channel ? `${channel.name} (<#${channel.id}>)` : 'DM']);
+        return (0, v2_1.panel)(0x57f287, { title: 'Command Log', body: (0, v2_1.fields)(entries), footer: locale ? `Locale: ${locale}` : undefined, timestamp: true });
     }
     createLogMessage(options) {
         const { user, commandName, guild, channel, locale } = options;
@@ -141,8 +132,8 @@ class CommandLogger {
         const logChannelId = client.config.bot.log.command.toString();
         const logMessage = this.createLogMessage(options);
         this.writeToLogFile(logMessage);
-        const embed = await this.createLogEmbed(options);
-        await (0, msg_1.send)(client, logChannelId, { embeds: [embed] }).catch((error) => client.logger.error(`[COMMAND_LOG] Send error: ${error}`));
+        const container = await this.createLogContainer(options);
+        await (0, webhook_1.sendChannelWebhook)(client, logChannelId, { ...(0, v2_1.v2Webhook)(container), username: `${client.user?.username || 'Pepper'} Logs`, avatarURL: client.user?.displayAvatarURL() }).catch((error) => client.logger.error(`[COMMAND_LOG] Send error: ${error}`));
     }
 }
 exports.CommandLogger = CommandLogger;

@@ -5,12 +5,13 @@ import { send } from '../../../../utils/msg';
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
 import { wait, NowPlayingManager, MusicResponseHandler, VoiceChannelStatus } from '../../../../core/music';
+import { v2 } from '../../../../utils/v2';
 
 const localeDetector = new LocaleDetector();
 
-const createQueueEndEmbed = (client: discord.Client, locale: string = 'en'): discord.EmbedBuilder => {
+const createQueueEndContainer = (client: discord.Client, locale: string = 'en'): discord.ContainerBuilder => {
 	const responseHandler = new MusicResponseHandler(client);
-	return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue');
+	return responseHandler.createPlayerStateContainer('idle', client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue');
 };
 
 const validateChannelAccess = async (client: discord.Client, channelId: string): Promise<discord.TextChannel | null> => {
@@ -66,8 +67,8 @@ const validateChannelAccess = async (client: discord.Client, channelId: string):
 
 const sendQueueEndMessage = async (client: discord.Client, channel: discord.TextChannel, locale: string): Promise<void> => {
 	try {
-		const queueEndEmbed = createQueueEndEmbed(client, locale);
-		await send(client, channel.id, { embeds: [queueEndEmbed] });
+		const queueEndContainer = createQueueEndContainer(client, locale);
+		await send(client, channel.id, v2(queueEndContainer));
 		client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${channel.guild.id}`);
 	} catch (error) {
 		if (error instanceof discord.DiscordAPIError) {

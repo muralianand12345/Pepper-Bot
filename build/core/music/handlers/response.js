@@ -3,168 +3,185 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MusicResponseHandler = void 0;
+exports.MusicResponseHandler = exports.NOW_PLAYING_COMPONENT_ID = exports.PLAYER_STATE = exports.ACCENT = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const func_1 = require("../func");
 const utils_1 = require("../utils");
+const v2_1 = require("../../../utils/v2");
 const format_1 = __importDefault(require("../../../utils/format"));
 const locales_1 = require("../../locales");
+/** Accent colours for the container's left edge — the Components V2 stand-in for an embed colour. */
+exports.ACCENT = {
+    success: 0x43b581,
+    error: 0xf04747,
+    info: 0x5865f2,
+    warning: 0xfaa61a,
+    neutral: 0x2b2d31,
+    spotify: 0x1db954,
+};
+/**
+ * Accent colour and glyph per player action, so a card reads as the state it represents
+ * before a word of it is read: green while playing, amber paused, red stopped.
+ */
+exports.PLAYER_STATE = {
+    playing: { accent: 0x1db954, emoji: '▶️' },
+    paused: { accent: 0xfaa61a, emoji: '⏸️' },
+    stopped: { accent: 0xed4245, emoji: '⏹️' },
+    skipped: { accent: 0x5865f2, emoji: '⏭️' },
+    loop: { accent: 0x9b59b6, emoji: '🔁' },
+    autoplay: { accent: 0x1abc9c, emoji: '♾️' },
+    shuffle: { accent: 0x3498db, emoji: '🔀' },
+    filter: { accent: 0xe91e63, emoji: '🎛️' },
+    volume: { accent: 0x00b0f4, emoji: '🔊' },
+    connected: { accent: 0x1db954, emoji: '🔊' },
+    queued: { accent: 0x43b581, emoji: '➕' },
+    cleared: { accent: 0xed4245, emoji: '🗑️' },
+    disconnected: { accent: 0x747f8d, emoji: '🔌' },
+    idle: { accent: 0x2b2d31, emoji: '⏹️' },
+};
+/** Several locale strings already lead with their own emoji; don't stack a second one on. */
+const LEADING_EMOJI = /^\p{Extended_Pictographic}/u;
+/**
+ * Explicit component id stamped on the now playing container so old now playing
+ * messages can still be found and cleaned up — Components V2 messages carry no
+ * embeds, so the previous "match the embed title" lookup no longer works.
+ */
+exports.NOW_PLAYING_COMPONENT_ID = 90;
 class MusicResponseHandler {
     constructor(client) {
-        this.createSuccessEmbed = (message) => {
-            return new discord_js_1.default.EmbedBuilder()
-                .setColor('#43b581')
-                .setDescription(`✓ ${message}`)
-                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
+        this.statusContainer = (accent, message, footer) => {
+            const container = new discord_js_1.default.ContainerBuilder().setAccentColor(accent).addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(message));
+            if (footer)
+                container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent((0, v2_1.subtext)(footer)));
+            return container;
         };
-        this.createErrorEmbed = (message, locale = 'en', contact_dev = false) => {
-            const embed = new discord_js_1.default.EmbedBuilder()
-                .setColor('#f04747')
-                .setDescription(`❌ ${message}`)
-                .setFooter({
-                text: contact_dev ? this.localizationManager.translate('responses.errors.contact_dev', locale) : this.client.user?.username || 'Music Bot',
-                iconURL: this.client.user?.displayAvatarURL(),
-            });
-            return embed;
+        this.createSuccessContainer = (message, footer) => {
+            return this.statusContainer(exports.ACCENT.success, `✓ ${message}`, footer);
         };
-        this.createInfoEmbed = (message) => {
-            return new discord_js_1.default.EmbedBuilder()
-                .setColor('#5865f2')
-                .setDescription(`ℹ️ ${message}`)
-                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
+        /** A confirmation coloured and badged by the player action it reports. */
+        this.createPlayerStateContainer = (state, message, footer) => {
+            const { accent, emoji } = exports.PLAYER_STATE[state];
+            return this.statusContainer(accent, LEADING_EMOJI.test(message) ? message : `${emoji} ${message}`, footer);
         };
-        this.createWarningEmbed = (message) => {
-            return new discord_js_1.default.EmbedBuilder()
-                .setColor('#faa61a')
-                .setDescription(`⚠️ ${message}`)
-                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
+        this.createErrorContainer = (message, locale = 'en', contact_dev = false, footer) => {
+            return this.statusContainer(exports.ACCENT.error, `❌ ${message}`, footer ?? (contact_dev ? this.localizationManager.translate('responses.errors.contact_dev', locale) : undefined));
         };
-        this.createActivityCheckEmbed = (locale = 'en') => {
+        this.createInfoContainer = (message, footer) => {
+            return this.statusContainer(exports.ACCENT.info, `ℹ️ ${message}`, footer);
+        };
+        this.createWarningContainer = (message, footer) => {
+            return this.statusContainer(exports.ACCENT.warning, `⚠️ ${message}`, footer);
+        };
+        this.createActivityCheckContainer = (locale = 'en') => {
             const title = this.localizationManager.translate('responses.activity_check.title', locale) || '⏰ Are you still listening?';
             const description = this.localizationManager.translate('responses.activity_check.description', locale) || 'Music has been playing for over 6 hours.\n\nClick the button below to continue listening, or the player will be disconnected in 5 minutes.';
-            return new discord_js_1.default.EmbedBuilder()
-                .setColor('#faa61a')
-                .setTitle(title)
-                .setDescription(description)
-                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
-                .setTimestamp();
+            return new discord_js_1.default.ContainerBuilder()
+                .setAccentColor(exports.ACCENT.warning)
+                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${title}`))
+                .addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small))
+                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`${description}\n${(0, v2_1.subtext)(`<t:${Math.floor(Date.now() / 1000)}:R>`)}`));
         };
-        this.createActivityCheckConfirmedEmbed = (locale = 'en') => {
+        this.createActivityCheckConfirmedContainer = (locale = 'en') => {
             const message = this.localizationManager.translate('responses.activity_check.confirmed', locale) || '✅ Great! Music will continue playing. See you in another 6 hours!';
-            return new discord_js_1.default.EmbedBuilder()
-                .setColor('#43b581')
-                .setDescription(message)
-                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
-                .setTimestamp();
+            return this.statusContainer(exports.ACCENT.success, message, `<t:${Math.floor(Date.now() / 1000)}:R>`);
         };
-        this.createActivityCheckTimeoutEmbed = (locale = 'en') => {
+        this.createActivityCheckTimeoutContainer = (locale = 'en') => {
             const message = this.localizationManager.translate('responses.activity_check.timeout', locale) || '⏱️ No response received. The activity check has expired.';
-            return new discord_js_1.default.EmbedBuilder()
-                .setColor('#f04747')
-                .setDescription(message)
-                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() })
-                .setTimestamp();
+            return this.statusContainer(exports.ACCENT.error, message, `<t:${Math.floor(Date.now() / 1000)}:R>`);
         };
         this.getActivityCheckButton = (disabled = false, locale = 'en') => {
             const label = this.localizationManager.translate('responses.buttons.continue_listening', locale) || 'Continue Listening';
             return new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('activity-check-continue').setLabel(label).setStyle(discord_js_1.default.ButtonStyle.Success).setEmoji('✅').setDisabled(disabled));
         };
-        this.createMusicEmbed = async (track, player, locale = 'en') => {
-            if (!track)
-                return new discord_js_1.default.EmbedBuilder()
-                    .setColor('#2b2d31')
-                    .setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
-                    .setDescription('**No track available**')
-                    .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
-            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
-            const trackImg = track.thumbnail || track.artworkUrl;
+        /**
+         * Renders track metadata the way the old embed's inline fields did. Components V2
+         * has no column layout, so the labelled values are stacked one per line instead.
+         */
+        this.detailLines = (entries) => entries.map(([label, value]) => `**${label}:** ${value}`).join('\n');
+        this.trackBody = (track, locale) => {
             const trackTitle = format_1.default.truncateText(track.title || 'Unknown Title', 60);
             const trackAuthor = track.author || 'Unknown Artist';
             const trackUri = track.uri || 'https://google.com';
+            return `**[${trackTitle}](${trackUri})**\nby ${trackAuthor}`;
+        };
+        this.addBody = (container, body, thumbnail) => {
+            if (thumbnail) {
+                container.addSectionComponents(new discord_js_1.default.SectionBuilder().addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(body)).setThumbnailAccessory(new discord_js_1.default.ThumbnailBuilder().setURL(thumbnail)));
+                return;
+            }
+            container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(body));
+        };
+        this.createMusicContainer = async (track, player, locale = 'en', state) => {
+            const resolvedState = state ?? (!player ? 'idle' : player.paused ? 'paused' : player.playing ? 'playing' : 'idle');
+            const container = new discord_js_1.default.ContainerBuilder()
+                .setId(exports.NOW_PLAYING_COMPONENT_ID)
+                .setAccentColor(exports.PLAYER_STATE[resolvedState].accent)
+                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.localizationManager.translate('responses.music.now_playing', locale)}`))
+                .addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
+            if (!track) {
+                container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent('**No track available**'));
+                return container;
+            }
+            const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
+            const trackImg = track.thumbnail || track.artworkUrl;
             const trackDuration = track.isStream ? this.localizationManager.translate('responses.queue.live', locale) : format_1.default.msToTime(track.duration);
-            const embed = new discord_js_1.default.EmbedBuilder()
-                .setColor('#2b2d31')
-                .setTitle(this.localizationManager.translate('responses.music.now_playing', locale))
-                .setDescription(`**[${trackTitle}](${trackUri})**\nby ${trackAuthor}`)
-                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
-            if (trackImg)
-                embed.setThumbnail(trackImg);
-            const fields = [{ name: this.localizationManager.translate('responses.fields.duration', locale), value: trackDuration, inline: true }];
+            const details = [[this.localizationManager.translate('responses.fields.duration', locale), `\`${trackDuration}\``]];
             if (track.sourceName)
-                fields.push({ name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName, inline: true });
+                details.push([this.localizationManager.translate('responses.fields.source', locale), `\`${track.sourceName}\``]);
             if (requesterData)
-                fields.push({ name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData.username, inline: true });
+                details.push([this.localizationManager.translate('responses.fields.requested_by', locale), requesterData.username]);
+            this.addBody(container, `${this.trackBody(track, locale)}\n\n${this.detailLines(details)}`, trackImg);
             if (player && !track.isStream) {
                 const progress = utils_1.ProgressBarUtils.createBarFromPlayer(player, track.duration);
-                if (progress)
-                    fields.push({ name: this.localizationManager.translate('responses.fields.progress', locale), value: `${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``, inline: false });
+                if (progress) {
+                    container.addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(false).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
+                    container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`${progress.bar}\n\`${progress.formattedPosition} / ${progress.formattedDuration}\``));
+                }
             }
-            embed.addFields(fields);
-            return embed;
+            return container;
         };
-        this.createTrackEmbed = (track, position, locale = 'en') => {
+        this.createTrackContainer = (track, position, locale = 'en') => {
             const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
             const trackImg = track.thumbnail || track.artworkUrl;
-            const trackTitle = format_1.default.truncateText(track.title || 'Unknown Title', 60);
-            const trackAuthor = track.author || 'Unknown Artist';
-            const trackUri = track.uri || 'https://google.com';
             const trackDuration = track.isStream ? this.localizationManager.translate('responses.queue.live', locale) : format_1.default.msToTime(track.duration);
-            const embed = new discord_js_1.default.EmbedBuilder()
-                .setColor('#43b581')
-                .setTitle(this.localizationManager.translate('responses.music.track_added', locale))
-                .setDescription(`**[${trackTitle}](${trackUri})**\nby ${trackAuthor}`)
-                .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
-            if (trackImg)
-                embed.setThumbnail(trackImg);
-            const fields = [{ name: this.localizationManager.translate('responses.fields.duration', locale), value: trackDuration, inline: true }];
+            const container = new discord_js_1.default.ContainerBuilder()
+                .setAccentColor(exports.PLAYER_STATE.queued.accent)
+                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.localizationManager.translate('responses.music.track_added', locale)}`))
+                .addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
+            const details = [[this.localizationManager.translate('responses.fields.duration', locale), `\`${trackDuration}\``]];
             if (track.sourceName)
-                fields.push({ name: this.localizationManager.translate('responses.fields.source', locale), value: track.sourceName, inline: true });
-            if (position > 0) {
-                fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: this.localizationManager.translate('responses.fields.position', locale, { position: position + 1 }), inline: true });
-            }
-            else {
-                fields.push({ name: this.localizationManager.translate('responses.fields.queue_info', locale), value: this.localizationManager.translate('responses.fields.playing_next', locale), inline: true });
-            }
+                details.push([this.localizationManager.translate('responses.fields.source', locale), `\`${track.sourceName}\``]);
+            details.push([this.localizationManager.translate('responses.fields.queue_info', locale), position > 0 ? this.localizationManager.translate('responses.fields.position', locale, { position: position + 1 }) : this.localizationManager.translate('responses.fields.playing_next', locale)]);
             if (requesterData)
-                fields.push({ name: this.localizationManager.translate('responses.fields.requested_by', locale), value: requesterData.username, inline: true });
-            embed.addFields(fields);
-            return embed;
+                details.push([this.localizationManager.translate('responses.fields.requested_by', locale), requesterData.username]);
+            this.addBody(container, `${this.trackBody(track, locale)}\n\n${this.detailLines(details)}`, trackImg);
+            return container;
         };
-        this.createPlaylistEmbed = (playlist, requester, locale = 'en') => {
-            if (!playlist) {
-                return new discord_js_1.default.EmbedBuilder()
-                    .setColor('#f04747')
-                    .setDescription('Failed to load playlist')
-                    .setFooter({ text: this.client.user?.username || 'Music Bot', iconURL: this.client.user?.displayAvatarURL() });
-            }
+        this.createPlaylistContainer = (playlist, requester, locale = 'en') => {
+            if (!playlist)
+                return this.statusContainer(exports.ACCENT.error, '❌ Failed to load playlist');
             const playlistName = format_1.default.truncateText(playlist.name || 'Unknown Playlist', 60);
             const trackPreview = playlist.tracks
                 .slice(0, 5)
-                .map((track, index) => {
-                const title = format_1.default.truncateText(track.title || 'Unknown', 40);
-                return `**${index + 1}.** ${title}`;
-            })
+                .map((track, index) => `**${index + 1}.** ${format_1.default.truncateText(track.title || 'Unknown', 40)}`)
                 .join('\n');
             const moreTracksText = playlist.tracks.length > 5 ? `\n*...and ${playlist.tracks.length - 5} more tracks*` : '';
             const totalDuration = format_1.default.msToTime(playlist.duration || 0);
-            let avgDuration = '0:00:00';
-            if (playlist.tracks.length > 0) {
-                const avgMs = Math.floor((playlist.duration || 0) / playlist.tracks.length);
-                avgDuration = format_1.default.msToTime(avgMs);
-            }
-            return new discord_js_1.default.EmbedBuilder()
-                .setColor('#43b581')
-                .setTitle(this.localizationManager.translate('responses.music.playlist_added', locale))
-                .setDescription(`**${playlistName}**\n\n**Preview:**\n${trackPreview}${moreTracksText}`)
-                .setThumbnail(playlist.tracks[0]?.artworkUrl || playlist.tracks[0]?.thumbnail || null)
-                .addFields([
-                { name: this.localizationManager.translate('responses.fields.tracks', locale), value: `${playlist.tracks.length}`, inline: true },
-                { name: this.localizationManager.translate('responses.fields.total_duration', locale), value: totalDuration, inline: true },
-                { name: this.localizationManager.translate('responses.fields.avg_duration', locale), value: avgDuration, inline: true },
-                { name: this.localizationManager.translate('responses.fields.added_by', locale), value: requester.tag || 'Unknown', inline: false },
-            ])
-                .setFooter({ text: `Playlist loaded successfully`, iconURL: this.client.user?.displayAvatarURL() })
-                .setTimestamp();
+            const avgDuration = playlist.tracks.length > 0 ? format_1.default.msToTime(Math.floor((playlist.duration || 0) / playlist.tracks.length)) : '0:00:00';
+            const container = new discord_js_1.default.ContainerBuilder()
+                .setAccentColor(exports.PLAYER_STATE.queued.accent)
+                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.localizationManager.translate('responses.music.playlist_added', locale)}`))
+                .addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
+            const details = [
+                [this.localizationManager.translate('responses.fields.tracks', locale), `\`${playlist.tracks.length}\``],
+                [this.localizationManager.translate('responses.fields.total_duration', locale), `\`${totalDuration}\``],
+                [this.localizationManager.translate('responses.fields.avg_duration', locale), `\`${avgDuration}\``],
+                [this.localizationManager.translate('responses.fields.added_by', locale), requester.tag || 'Unknown'],
+            ];
+            this.addBody(container, `**${playlistName}**\n\n${this.detailLines(details)}`, playlist.tracks[0]?.artworkUrl || playlist.tracks[0]?.thumbnail || null);
+            container.addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(false).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
+            container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`**Preview:**\n${trackPreview}${moreTracksText}`));
+            return container;
         };
         this.getSupportButton = (locale = 'en') => {
             return new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setLabel(this.localizationManager.translate('responses.buttons.support_server', locale)).setStyle(discord_js_1.default.ButtonStyle.Link).setURL(this.client.config.bot.support_server.invite).setEmoji('🔧'));

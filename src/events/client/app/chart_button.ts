@@ -5,40 +5,27 @@ import Formatter from '../../../utils/format';
 import { LocaleDetector } from '../../../core/locales';
 import { MusicResponseHandler } from '../../../core/music';
 import { BotEvent, ISongs, ChartAnalytics } from '../../../types';
+import { createChartButtons, createChartContainer } from '../../../commands/chart';
+import { v2, v2Ephemeral, v2Text, withRows } from '../../../utils/v2';
 
 const CHART_BUTTON_IDS = ['chart_refresh', 'chart_export'];
+const CHART_SCOPES = ['user', 'guild', 'global'];
 
 const localeDetector = new LocaleDetector();
 
 const validateChartButtonInteraction = (interaction: discord.Interaction): interaction is discord.ButtonInteraction => {
-	return interaction.isButton() && CHART_BUTTON_IDS.includes(interaction.customId);
+	return interaction.isButton() && CHART_BUTTON_IDS.includes(interaction.customId.split(':')[0]);
 };
 
-const extractChartDataFromEmbed = (embed: discord.Embed): { scope: string; limit: number } | null => {
-	try {
-		const title = embed.title || '';
-		let scope = 'user';
-
-		if (title.includes('Global')) {
-			scope = 'global';
-		} else if (title.includes('Server')) {
-			scope = 'guild';
-		}
-
-		const description = embed.description || '';
-		const lines = description.split('\n');
-		const totalTracksLine = lines.find((line) => line.includes('total tracks'));
-
-		let limit = 10;
-		if (totalTracksLine) {
-			const match = totalTracksLine.match(/\*\*(\d+)\*\*/);
-			if (match) limit = Math.min(parseInt(match[1]), 20);
-		}
-
-		return { scope, limit };
-	} catch (error) {
-		return null;
-	}
+/**
+ * Chart state lives in the custom id (`chart_refresh:<scope>:<limit>`) because a
+ * Components V2 message has no embeds to read it back out of.
+ */
+const parseChartCustomId = (customId: string): { scope: string; limit: number } | null => {
+	const [, scope, rawLimit] = customId.split(':');
+	if (!scope || !CHART_SCOPES.includes(scope)) return null;
+	const limit = Number.parseInt(rawLimit, 10);
+	return { scope, limit: Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 20) : 10 };
 };
 
 const generateChartData = async (scope: string, userId: string, guildId: string | null, limit: number): Promise<{ chartData: ISongs[]; analytics: ChartAnalytics | null }> => {
@@ -76,16 +63,13 @@ const createExportData = (chartData: ISongs[]): string => {
 	return csvContent;
 };
 
-const refreshChartEmbed = async (interaction: discord.ButtonInteraction, originalEmbed: discord.Embed, client: discord.Client): Promise<void | discord.InteractionResponse> => {
+const refreshChart = async (interaction: discord.ButtonInteraction, client: discord.Client): Promise<void | discord.InteractionResponse> => {
 	const locale = await localeDetector.detectLocale(interaction);
 	const t = await localeDetector.getTranslator(interaction);
 	const responseHandler = new MusicResponseHandler(client);
 
-	const chartInfo = extractChartDataFromEmbed(originalEmbed);
-	if (!chartInfo) {
-		const embed = responseHandler.createErrorEmbed(t('responses.errors.general_error'), locale);
-		return await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
-	}
+	const chartInfo = parseChartCustomId(interaction.customId);
+	if (!chartInfo) return await interaction.reply(v2Ephemeral(responseHandler.createErrorContainer(t('responses.errors.general_error'), locale)));
 
 	await interaction.deferUpdate();
 
@@ -93,86 +77,46 @@ const refreshChartEmbed = async (interaction: discord.ButtonInteraction, origina
 		const { chartData, analytics } = await generateChartData(chartInfo.scope, interaction.user.id, interaction.guildId, chartInfo.limit);
 
 		if (!chartData.length || !analytics) {
-			const embed = responseHandler.createInfoEmbed(t('responses.chart.no_data'));
-			await interaction.editReply({ embeds: [embed] });
+			await interaction.editReply(v2(responseHandler.createInfoContainer(t('responses.chart.no_data'))));
 			return;
 		}
 
-		let embedTitle: string;
-		let embedColor: discord.ColorResolvable;
+		let chartTitle: string;
+		let chartColor: number;
 
 		switch (chartInfo.scope) {
 			case 'user':
-				embedTitle = t('responses.chart.user_title', { user: interaction.user.displayName });
-				embedColor = '#43b581';
+				chartTitle = t('responses.chart.user_title', { user: interaction.user.displayName });
+				chartColor = 0x43b581;
 				break;
 			case 'guild':
-				embedTitle = t('responses.chart.guild_title', { guild: interaction.guild?.name || 'Server' });
-				embedColor = '#f1c40f';
+				chartTitle = t('responses.chart.guild_title', { guild: interaction.guild?.name || 'Server' });
+				chartColor = 0xf1c40f;
 				break;
 			case 'global':
-				embedTitle = t('responses.chart.global_title');
-				embedColor = '#e74c3c';
+				chartTitle = t('responses.chart.global_title');
+				chartColor = 0xe74c3c;
 				break;
 			default:
-				embedTitle = 'Music Chart';
-				embedColor = '#5865f2';
+				chartTitle = 'Music Chart';
+				chartColor = 0x5865f2;
 		}
 
-		const totalTimeFormatted = Formatter.formatListeningTime(analytics.totalPlaytime / 1000);
-		const avgPlayCount = Math.round(analytics.averagePlayCount * 10) / 10;
-
-		const description = [`🎵 **${analytics.totalSongs}** ${t('responses.chart.total_tracks')}`, `🎤 **${analytics.uniqueArtists}** ${t('responses.chart.unique_artists')}`, `⏱️ **${totalTimeFormatted}** ${t('responses.chart.total_listening_time')}`, `📈 **${avgPlayCount}** ${t('responses.chart.average_plays')}`, `🔥 **${analytics.recentActivity}** ${t('responses.chart.recent_activity')}`].join('\n');
-
-		const tracksList = chartData
-			.slice(0, 10)
-			.map((song, index) => {
-				const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `**${index + 1}.**`;
-				const title = Formatter.truncateText(song.title, 35);
-				const artist = Formatter.truncateText(song.author, 25);
-				const plays = song.played_number;
-				const duration = Formatter.msToTime(song.duration);
-
-				return `${medal} **${title}** - ${artist}\n└ ${plays} ${t('responses.chart.plays')} • ${duration}`;
-			})
-			.join('\n\n');
-
-		const totalHours = Math.round((analytics.totalPlaytime / (1000 * 60 * 60)) * 10) / 10;
-		const avgSongLength = analytics.totalSongs > 0 ? Formatter.msToTime(analytics.totalPlaytime / analytics.totalSongs) : '0:00:00';
-
-		const embed = new discord.EmbedBuilder()
-			.setColor(embedColor)
-			.setTitle(`📊 ${embedTitle} 🔄`)
-			.setDescription(description)
-			.addFields([
-				{ name: `🎶 ${t('responses.chart.top_tracks')}`, value: tracksList.length > 1024 ? tracksList.substring(0, 1021) + '...' : tracksList, inline: false },
-				{ name: `⏰ ${t('responses.chart.listening_stats')}`, value: [`${t('responses.chart.total_hours')}: **${totalHours}h**`, `${t('responses.chart.avg_song_length')}: **${avgSongLength}**`, `${t('responses.chart.this_week')}: **${analytics.recentActivity}** ${t('responses.chart.tracks')}`].join('\n'), inline: true },
-			])
-			.setTimestamp()
-			.setFooter({ text: `${t('responses.chart.footer')} • ${t('responses.chart.buttons.refresh')}ed`, iconURL: client.user?.displayAvatarURL() });
-
-		if (chartData[0]?.artworkUrl || chartData[0]?.thumbnail) embed.setThumbnail(chartData[0].artworkUrl || chartData[0].thumbnail);
-
-		const actionRow = new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setCustomId('chart_refresh').setLabel(t('responses.chart.buttons.refresh')).setStyle(discord.ButtonStyle.Primary).setEmoji('🔄').setDisabled(true), new discord.ButtonBuilder().setCustomId('chart_export').setLabel(t('responses.chart.buttons.export')).setStyle(discord.ButtonStyle.Secondary).setEmoji('📊'), new discord.ButtonBuilder().setLabel(t('responses.buttons.support_server')).setStyle(discord.ButtonStyle.Link).setURL(client.config.bot.support_server.invite).setEmoji('🔧'));
-
-		await interaction.editReply({ embeds: [embed], components: [actionRow] });
+		const container = createChartContainer(chartData.slice(0, 10), analytics, `${chartTitle} 🔄`, chartColor, t);
+		await interaction.editReply(v2(withRows(container, createChartButtons(client, t, chartInfo.scope, chartInfo.limit, true))));
 	} catch (error) {
 		client.logger.error(`[CHART_REFRESH] Error: ${error}`);
-		const embed = responseHandler.createErrorEmbed(t('responses.errors.general_error'), locale, true);
-		await interaction.editReply({ embeds: [embed] });
+		await interaction.editReply(v2(responseHandler.createErrorContainer(t('responses.errors.general_error'), locale, true)));
 	}
 };
 
-const exportChartData = async (interaction: discord.ButtonInteraction, originalEmbed: discord.Embed, client: discord.Client): Promise<void | discord.InteractionResponse> => {
+const exportChartData = async (interaction: discord.ButtonInteraction, client: discord.Client): Promise<void | discord.InteractionResponse> => {
 	const locale = await localeDetector.detectLocale(interaction);
 	const t = await localeDetector.getTranslator(interaction);
 	const responseHandler = new MusicResponseHandler(client);
 
-	const chartInfo = extractChartDataFromEmbed(originalEmbed);
-	if (!chartInfo) {
-		const embed = responseHandler.createErrorEmbed(t('responses.errors.general_error'), locale);
-		return await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
-	}
+	const chartInfo = parseChartCustomId(interaction.customId);
+	if (!chartInfo) return await interaction.reply(v2Ephemeral(responseHandler.createErrorContainer(t('responses.errors.general_error'), locale)));
 
 	await interaction.deferReply({ flags: discord.MessageFlags.Ephemeral });
 
@@ -180,8 +124,8 @@ const exportChartData = async (interaction: discord.ButtonInteraction, originalE
 		const { chartData } = await generateChartData(chartInfo.scope, interaction.user.id, interaction.guildId, 50);
 
 		if (!chartData.length) {
-			const embed = responseHandler.createInfoEmbed(t('responses.chart.no_data'));
-			await interaction.editReply({ embeds: [embed] });
+			const container = responseHandler.createInfoContainer(t('responses.chart.no_data'));
+			await interaction.editReply(v2(container));
 			return;
 		}
 
@@ -189,35 +133,23 @@ const exportChartData = async (interaction: discord.ButtonInteraction, originalE
 		const buffer = Buffer.from(csvData, 'utf-8');
 		const filename = `music-chart-${chartInfo.scope}-${Date.now()}.csv`;
 		const attachment = new discord.AttachmentBuilder(buffer, { name: filename });
-		const embed = responseHandler.createSuccessEmbed(`📊 ${t('responses.chart.export_success', { scope: chartInfo.scope, count: chartData.length })}`);
-		await interaction.editReply({ embeds: [embed], files: [attachment] });
+		const container = responseHandler.createSuccessContainer(`📊 ${t('responses.chart.export_success', { scope: chartInfo.scope, count: chartData.length })}`);
+		await interaction.editReply({ ...v2(container), files: [attachment] });
 	} catch (error) {
 		client.logger.error(`[CHART_EXPORT] Error: ${error}`);
-		const embed = responseHandler.createErrorEmbed(t('responses.errors.general_error'), locale, true);
-		await interaction.editReply({ embeds: [embed] });
+		const container = responseHandler.createErrorContainer(t('responses.errors.general_error'), locale, true);
+		await interaction.editReply(v2(container));
 	}
 };
 
 const handleChartButtonAction = async (interaction: discord.ButtonInteraction, client: discord.Client): Promise<void> => {
 	try {
-		const originalMessage = interaction.message;
-		const originalEmbed = originalMessage.embeds[0];
-
-		if (!originalEmbed) {
-			const locale = await localeDetector.detectLocale(interaction);
-			const t = await localeDetector.getTranslator(interaction);
-			const responseHandler = new MusicResponseHandler(client);
-			const embed = responseHandler.createErrorEmbed(t('responses.errors.general_error'), locale);
-			await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
-			return;
-		}
-
-		switch (interaction.customId) {
+		switch (interaction.customId.split(':')[0]) {
 			case 'chart_refresh':
-				await refreshChartEmbed(interaction, originalEmbed, client);
+				await refreshChart(interaction, client);
 				break;
 			case 'chart_export':
-				await exportChartData(interaction, originalEmbed, client);
+				await exportChartData(interaction, client);
 				break;
 			default:
 				client.logger.warn(`[CHART_BUTTON] Unknown button interaction: ${interaction.customId}`);
@@ -229,11 +161,9 @@ const handleChartButtonAction = async (interaction: discord.ButtonInteraction, c
 		if (!interaction.replied && !interaction.deferred) {
 			try {
 				const t = await localeDetector.getTranslator(interaction);
-				const message = t('responses.errors.general_error');
-
-				await interaction.reply({ content: `❌ ${message}`, flags: discord.MessageFlags.Ephemeral }).catch(() => {});
+				await interaction.reply(v2Ephemeral(v2Text(`❌ ${t('responses.errors.general_error')}`))).catch(() => {});
 			} catch (localeError) {
-				await interaction.reply({ content: '❌ An error occurred while processing your request.', flags: discord.MessageFlags.Ephemeral }).catch(() => {});
+				await interaction.reply(v2Ephemeral(v2Text('❌ An error occurred while processing your request.'))).catch(() => {});
 			}
 		}
 	}

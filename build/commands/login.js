@@ -8,9 +8,10 @@ const music_1 = require("../core/music");
 const types_1 = require("../types");
 const locales_1 = require("../core/locales");
 const authEmitter_1 = require("../utils/authEmitter");
+const v2_1 = require("../utils/v2");
 const localeDetector = new locales_1.LocaleDetector();
 const localizationManager = locales_1.LocalizationManager.getInstance();
-const buildResultEmbed = (result, t) => {
+const buildResultContainer = (result, t) => {
     const configs = {
         success: {
             color: 0x1db954,
@@ -29,7 +30,7 @@ const buildResultEmbed = (result, t) => {
         },
     };
     const config = configs[result];
-    return new discord_js_1.default.EmbedBuilder().setColor(config.color).setTitle(t(config.titleKey)).setDescription(t(config.descriptionKey)).setTimestamp();
+    return (0, v2_1.panel)(config.color, { title: t(config.titleKey), body: t(config.descriptionKey), timestamp: true });
 };
 const loginCommand = {
     cooldown: 15,
@@ -47,26 +48,18 @@ const loginCommand = {
         const account = interaction.options.getString('account', true);
         if (account === 'spotify') {
             const existingAccount = await new music_1.SpotifyManager(interaction.client).getAccount(interaction.user.id);
-            if (existingAccount) {
-                const embed = new discord_js_1.default.EmbedBuilder().setColor('#FF4444').setTitle(t('responses.login.already_logged_in.title')).setDescription(t('responses.login.already_logged_in.description')).setTimestamp();
-                return await interaction.editReply({ embeds: [embed] });
-            }
+            if (existingAccount)
+                return await interaction.editReply((0, v2_1.v2)((0, v2_1.panel)(0xff4444, { title: t('responses.login.already_logged_in.title'), body: t('responses.login.already_logged_in.description'), timestamp: true })));
             const authUrl = music_1.SpotifyManager.generateAuthUrl(interaction.user.id);
-            const embed = new discord_js_1.default.EmbedBuilder()
-                .setColor('#1DB954')
-                .setTitle(t('responses.login.connect_title'))
-                .setDescription(t('responses.login.connect_description'))
-                .setFooter({ text: t('responses.login.auth_footer') })
-                .setTimestamp();
+            const container = (0, v2_1.panel)(0x1db954, { title: t('responses.login.connect_title'), body: t('responses.login.connect_description'), footer: t('responses.login.auth_footer'), timestamp: true });
             const row = new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setLabel('Connect Spotify').setStyle(discord_js_1.default.ButtonStyle.Link).setURL(authUrl).setEmoji('🎵'));
-            await interaction.editReply({ embeds: [embed], components: [row] });
+            await interaction.editReply((0, v2_1.v2)((0, v2_1.withRows)(container, row)));
             (0, authEmitter_1.waitForAuth)(interaction.user.id, 5 * 60 * 1000).then(async (result) => {
                 try {
-                    const resultEmbed = buildResultEmbed(result, t);
-                    await interaction.editReply({ embeds: [resultEmbed], components: [] });
+                    await interaction.editReply((0, v2_1.v2)(buildResultContainer(result, t)));
                 }
                 catch (err) {
-                    console.error('[LOGIN] Failed to update embed after auth:', err);
+                    console.error('[LOGIN] Failed to update message after auth:', err);
                 }
             });
             return;

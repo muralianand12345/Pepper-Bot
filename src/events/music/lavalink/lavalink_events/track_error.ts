@@ -21,7 +21,7 @@ const lavalinkEvent: LavalinkEvent = {
 
 			const locale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
 			const message = client.localizationManager?.translate('responses.errors.play_error', locale) || 'An error occurred while processing the song';
-			await sendTempMessage(textChannel, new MusicResponseHandler(client).createErrorEmbed(message, locale), 15000);
+			await sendTempMessage(textChannel, new MusicResponseHandler(client).createErrorContainer(message, locale), 15000);
 		} catch (error) {
 			client.logger.error(`[LAVALINK] Error in trackError event: ${error}`);
 		}
