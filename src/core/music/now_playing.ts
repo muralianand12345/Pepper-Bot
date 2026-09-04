@@ -81,8 +81,6 @@ export class NowPlayingManager {
 			const currentTrack = await this.player?.queue?.getCurrent();
 			const container = await responseHandler.createMusicContainer(currentTrack ?? null, undefined, locale, 'stopped');
 
-			// Editing a Components V2 message replaces every component, so the card has to be
-			// rebuilt here rather than swapping the button row on its own.
 			await currentMessage.edit(v2(withRows(container, responseHandler.getMusicButton(true, locale))));
 			this.client.logger?.debug(`[NowPlayingManager] Disabled buttons on now playing message`);
 			return true;
@@ -137,8 +135,7 @@ export class NowPlayingManager {
 
 		return playerProxy;
 	};
-
-	/** The state the card should paint itself with — stop wins over the player's own flags. */
+	
 	private currentState = (): PlayerState => {
 		if (this.stopped || this.player?.state === 'DISCONNECTED') return 'stopped';
 		if (this.player?.paused) return 'paused';
@@ -282,8 +279,6 @@ export class NowPlayingManager {
 			const container = await new MusicResponseHandler(this.client).createMusicContainer(track, this.player, locale, this.currentState());
 			const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
 			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
-			// Built once and reused: withRows appends to the container, so calling it again for
-			// the fallback send would stack a second button row onto the same card.
 			const nowPlayingPayload = v2(withRows(container, musicButton));
 			const currentMessage = this.message;
 
@@ -307,8 +302,6 @@ export class NowPlayingManager {
 			if (!this.message) {
 				try {
 					const messages = await channel.messages.fetch({ limit: 10 }).catch(() => new discord.Collection<string, discord.Message>());
-					// The now playing container carries an explicit component id; a Components V2
-					// message has no embed title left to match on.
 					const botMessages = messages.filter((m: discord.Message) => {
 						return m.author.id === this.client.user?.id && m.components.some((component) => component.id === NOW_PLAYING_COMPONENT_ID);
 					});

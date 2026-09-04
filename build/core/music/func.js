@@ -45,9 +45,6 @@ const getRequester = (client, user) => {
         return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
     if (user instanceof discord_js_1.default.User)
         return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
-    // A restored player deserialises its requester from session data, so this is a plain
-    // object rather than a real PortableUser and the id can be missing despite the type.
-    // Persisting `{ id: undefined }` fails the schema's required id, so drop it instead.
     const { id, username } = (user ?? {});
     if (typeof id !== 'string' || id.length === 0)
         return null;

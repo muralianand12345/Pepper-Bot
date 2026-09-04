@@ -160,11 +160,6 @@ export const createStatsSection = (analytics: ChartAnalytics, t: TranslatorFunct
 	return `**⏰ ${t('responses.chart.listening_stats')}**\n${[`${t('responses.chart.total_hours')}: **${totalHours}h**`, `${t('responses.chart.avg_song_length')}: **${avgSongLength}**`, `${t('responses.chart.this_week')}: **${analytics.recentActivity}** ${t('responses.chart.tracks')}`].join('\n')}`;
 };
 
-/**
- * Scope and limit ride along in the custom id. A Components V2 message carries no
- * embeds, so the chart button handler can no longer read that state back off the
- * message it is attached to.
- */
 export const createChartButtons = (client: discord.Client, t: TranslatorFunction, scope: string, limit: number, refreshDisabled: boolean = false): discord.ActionRowBuilder<discord.ButtonBuilder> => {
 	return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(
 		new discord.ButtonBuilder()

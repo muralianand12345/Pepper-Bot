@@ -17,10 +17,6 @@ const validateChartButtonInteraction = (interaction: discord.Interaction): inter
 	return interaction.isButton() && CHART_BUTTON_IDS.includes(interaction.customId.split(':')[0]);
 };
 
-/**
- * Chart state lives in the custom id (`chart_refresh:<scope>:<limit>`) because a
- * Components V2 message has no embeds to read it back out of.
- */
 const parseChartCustomId = (customId: string): { scope: string; limit: number } | null => {
 	const [, scope, rawLimit] = customId.split(':');
 	if (!scope || !CHART_SCOPES.includes(scope)) return null;

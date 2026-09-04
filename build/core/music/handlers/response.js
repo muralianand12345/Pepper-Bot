@@ -10,7 +10,6 @@ const utils_1 = require("../utils");
 const v2_1 = require("../../../utils/v2");
 const format_1 = __importDefault(require("../../../utils/format"));
 const locales_1 = require("../../locales");
-/** Accent colours for the container's left edge — the Components V2 stand-in for an embed colour. */
 exports.ACCENT = {
     success: 0x43b581,
     error: 0xf04747,
@@ -19,36 +18,30 @@ exports.ACCENT = {
     neutral: 0x2b2d31,
     spotify: 0x1db954,
 };
-/**
- * Accent colour and glyph per player action, so a card reads as the state it represents
- * before a word of it is read: green while playing, amber paused, red stopped.
- */
 exports.PLAYER_STATE = {
-    playing: { accent: 0x1db954, emoji: '▶️' },
-    paused: { accent: 0xfaa61a, emoji: '⏸️' },
-    stopped: { accent: 0xed4245, emoji: '⏹️' },
-    skipped: { accent: 0x5865f2, emoji: '⏭️' },
-    loop: { accent: 0x9b59b6, emoji: '🔁' },
-    autoplay: { accent: 0x1abc9c, emoji: '♾️' },
-    shuffle: { accent: 0x3498db, emoji: '🔀' },
-    filter: { accent: 0xe91e63, emoji: '🎛️' },
-    volume: { accent: 0x00b0f4, emoji: '🔊' },
-    connected: { accent: 0x1db954, emoji: '🔊' },
-    queued: { accent: 0x43b581, emoji: '➕' },
-    cleared: { accent: 0xed4245, emoji: '🗑️' },
-    disconnected: { accent: 0x747f8d, emoji: '🔌' },
-    idle: { accent: 0x2b2d31, emoji: '⏹️' },
+    playing: { accent: 0x1db954, emoji: '▶️', badge: '💿' },
+    paused: { accent: 0xfaa61a, emoji: '⏸️', badge: '⏸️' },
+    stopped: { accent: 0xed4245, emoji: '⏹️', badge: '⏹️' },
+    skipped: { accent: 0x5865f2, emoji: '⏭️', badge: '⏭️' },
+    loop: { accent: 0x9b59b6, emoji: '🔁', badge: '🔁' },
+    autoplay: { accent: 0x1abc9c, emoji: '♾️', badge: '♾️' },
+    shuffle: { accent: 0x3498db, emoji: '🔀', badge: '🔀' },
+    filter: { accent: 0xe91e63, emoji: '🎛️', badge: '🎛️' },
+    volume: { accent: 0x00b0f4, emoji: '🔊', badge: '🔊' },
+    connected: { accent: 0x1db954, emoji: '🔊', badge: '🔊' },
+    queued: { accent: 0x43b581, emoji: '➕', badge: '➕' },
+    cleared: { accent: 0xed4245, emoji: '🗑️', badge: '🗑️' },
+    disconnected: { accent: 0x747f8d, emoji: '🔌', badge: '🔌' },
+    idle: { accent: 0x2b2d31, emoji: '⏹️', badge: '💤' },
 };
-/** Several locale strings already lead with their own emoji; don't stack a second one on. */
 const LEADING_EMOJI = /^\p{Extended_Pictographic}/u;
-/**
- * Explicit component id stamped on the now playing container so old now playing
- * messages can still be found and cleaned up — Components V2 messages carry no
- * embeds, so the previous "match the embed title" lookup no longer works.
- */
 exports.NOW_PLAYING_COMPONENT_ID = 90;
 class MusicResponseHandler {
     constructor(client) {
+        this.badge = (state) => {
+            const override = this.client.config?.bot?.emoji?.[state];
+            return override?.trim() || exports.PLAYER_STATE[state].badge;
+        };
         this.statusContainer = (accent, message, footer) => {
             const container = new discord_js_1.default.ContainerBuilder().setAccentColor(accent).addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(message));
             if (footer)
@@ -58,7 +51,6 @@ class MusicResponseHandler {
         this.createSuccessContainer = (message, footer) => {
             return this.statusContainer(exports.ACCENT.success, `✓ ${message}`, footer);
         };
-        /** A confirmation coloured and badged by the player action it reports. */
         this.createPlayerStateContainer = (state, message, footer) => {
             const { accent, emoji } = exports.PLAYER_STATE[state];
             return this.statusContainer(accent, LEADING_EMOJI.test(message) ? message : `${emoji} ${message}`, footer);
@@ -93,10 +85,6 @@ class MusicResponseHandler {
             const label = this.localizationManager.translate('responses.buttons.continue_listening', locale) || 'Continue Listening';
             return new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setCustomId('activity-check-continue').setLabel(label).setStyle(discord_js_1.default.ButtonStyle.Success).setEmoji('✅').setDisabled(disabled));
         };
-        /**
-         * Renders track metadata the way the old embed's inline fields did. Components V2
-         * has no column layout, so the labelled values are stacked one per line instead.
-         */
         this.detailLines = (entries) => entries.map(([label, value]) => `**${label}:** ${value}`).join('\n');
         this.trackBody = (track, locale) => {
             const trackTitle = format_1.default.truncateText(track.title || 'Unknown Title', 60);
@@ -116,7 +104,7 @@ class MusicResponseHandler {
             const container = new discord_js_1.default.ContainerBuilder()
                 .setId(exports.NOW_PLAYING_COMPONENT_ID)
                 .setAccentColor(exports.PLAYER_STATE[resolvedState].accent)
-                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.localizationManager.translate('responses.music.now_playing', locale)}`))
+                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.badge(resolvedState)} ${this.localizationManager.translate('responses.music.now_playing', locale)}`))
                 .addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
             if (!track) {
                 container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent('**No track available**'));
@@ -146,7 +134,7 @@ class MusicResponseHandler {
             const trackDuration = track.isStream ? this.localizationManager.translate('responses.queue.live', locale) : format_1.default.msToTime(track.duration);
             const container = new discord_js_1.default.ContainerBuilder()
                 .setAccentColor(exports.PLAYER_STATE.queued.accent)
-                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.localizationManager.translate('responses.music.track_added', locale)}`))
+                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.badge('queued')} ${this.localizationManager.translate('responses.music.track_added', locale)}`))
                 .addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
             const details = [[this.localizationManager.translate('responses.fields.duration', locale), `\`${trackDuration}\``]];
             if (track.sourceName)
@@ -170,7 +158,7 @@ class MusicResponseHandler {
             const avgDuration = playlist.tracks.length > 0 ? format_1.default.msToTime(Math.floor((playlist.duration || 0) / playlist.tracks.length)) : '0:00:00';
             const container = new discord_js_1.default.ContainerBuilder()
                 .setAccentColor(exports.PLAYER_STATE.queued.accent)
-                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.localizationManager.translate('responses.music.playlist_added', locale)}`))
+                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.badge('queued')} ${this.localizationManager.translate('responses.music.playlist_added', locale)}`))
                 .addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
             const details = [
                 [this.localizationManager.translate('responses.fields.tracks', locale), `\`${playlist.tracks.length}\``],

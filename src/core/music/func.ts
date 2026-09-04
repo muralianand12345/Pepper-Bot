@@ -41,9 +41,6 @@ export const getRequester = (client: discord.Client, user: magmastream.AnyUser |
 	if (user instanceof discord.ClientUser) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
 	if (user instanceof discord.User) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
 
-	// A restored player deserialises its requester from session data, so this is a plain
-	// object rather than a real PortableUser and the id can be missing despite the type.
-	// Persisting `{ id: undefined }` fails the schema's required id, so drop it instead.
 	const { id, username } = (user ?? {}) as Partial<magmastream.PortableUser>;
 	if (typeof id !== 'string' || id.length === 0) return null;
 	return { id, username: username ?? 'Unknown', discriminator: '0000', avatar: undefined };

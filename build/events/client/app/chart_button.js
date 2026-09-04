@@ -16,10 +16,6 @@ const localeDetector = new locales_1.LocaleDetector();
 const validateChartButtonInteraction = (interaction) => {
     return interaction.isButton() && CHART_BUTTON_IDS.includes(interaction.customId.split(':')[0]);
 };
-/**
- * Chart state lives in the custom id (`chart_refresh:<scope>:<limit>`) because a
- * Components V2 message has no embeds to read it back out of.
- */
 const parseChartCustomId = (customId) => {
     const [, scope, rawLimit] = customId.split(':');
     if (!scope || !CHART_SCOPES.includes(scope))

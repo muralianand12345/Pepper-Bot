@@ -669,9 +669,6 @@ export class Music {
 
 					await i.update(v2(withRows(buildPage(currentPage), buildPageButtons(currentPage))));
 				});
-
-				// A Components V2 edit replaces the whole message, so the container has to be
-				// resent alongside the disabled buttons or the lyrics would vanish.
 				collector.on('end', async () => {
 					await this.interaction.editReply(v2(withRows(buildPage(currentPage), buildPageButtons(currentPage, true)))).catch(() => {});
 				});
@@ -848,9 +845,6 @@ export class Music {
 						if (!i.replied && !i.deferred) await i.reply(v2Ephemeral(responseHandler.createErrorContainer(this.t('responses.errors.general_error'), this.locale))).catch(() => {});
 					}
 				});
-
-				// A Components V2 edit replaces the whole message, so the queue itself has to be
-				// resent alongside the disabled buttons rather than only swapping the rows.
 				collector.on('end', async () => {
 					await this.interaction.editReply(v2(withRows(createQueueContainer(currentPage), ...createQueueButtons(currentPage, totalPages, true)))).catch(() => {});
 				});

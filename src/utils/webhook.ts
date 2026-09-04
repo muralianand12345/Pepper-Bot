@@ -2,15 +2,6 @@ import discord from 'discord.js';
 
 import { send } from './msg';
 
-/**
- * Delivers log messages through a webhook belonging to the target channel.
- *
- * The bot is sharded, so only the shard owning the log channel can resolve it from
- * cache — `send` has to broadcast across shards to find it. A webhook is just an id
- * and a token, so once resolved it can be executed over plain HTTP from any shard.
- * Discovery goes through the REST route rather than the channel cache for the same
- * reason: `GET /channels/:id/webhooks` works regardless of which shard owns the guild.
- */
 
 const NEGATIVE_TTL = 10 * 60 * 1000;
 
@@ -36,7 +27,6 @@ const discover = async (client: discord.Client, channelId: string): Promise<disc
 	return new discord.WebhookClient({ id: created.id, token: created.token });
 };
 
-/** Resolves a bot-owned webhook for a channel, creating one if the bot may. */
 export const getChannelWebhook = async (client: discord.Client, channelId: string): Promise<discord.WebhookClient | null> => {
 	const cached = resolved.get(channelId);
 	if (cached) return cached;
@@ -44,7 +34,6 @@ export const getChannelWebhook = async (client: discord.Client, channelId: strin
 	const failedAt = failed.get(channelId);
 	if (failedAt && Date.now() - failedAt < NEGATIVE_TTL) return null;
 
-	// Concurrent log lines would otherwise each create their own webhook for the channel.
 	const pending = inflight.get(channelId);
 	if (pending) return pending;
 
@@ -69,16 +58,11 @@ export const getChannelWebhook = async (client: discord.Client, channelId: strin
 	return attempt;
 };
 
-/**
- * Sends through the channel's webhook, falling back to a normal channel message when the
- * bot cannot manage webhooks there. Returns whether the message was delivered.
- */
 export const sendChannelWebhook = async (client: discord.Client, channelId: string, payload: discord.WebhookMessageCreateOptions): Promise<boolean> => {
 	const webhook = await getChannelWebhook(client, channelId);
 
 	if (webhook) {
 		const sent = await webhook.send(payload).then(() => true, (error: unknown) => {
-			// A webhook deleted from Discord's side returns 10015; drop it and fall through.
 			if (error instanceof discord.DiscordAPIError && error.code === 10015) resolved.delete(channelId);
 			client.logger?.warn(`[WEBHOOK] Failed to send via webhook for channel ${channelId}: ${error}`);
 			return false;

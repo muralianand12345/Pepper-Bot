@@ -20,19 +20,10 @@ const waitForAuth = (state, timeout) => {
 exports.waitForAuth = waitForAuth;
 const emitAuthResult = (state, status) => exports.authEmitter.emit(`auth:${state}`, { status });
 exports.emitAuthResult = emitAuthResult;
-/**
- * Bridges the cross-shard client event back onto the local emitter. Must be
- * called once per shard while the client is being built.
- */
 const registerAuthBridge = (client) => {
     client.on(exports.AUTH_RESULT_EVENT, (state, status) => (0, exports.emitAuthResult)(state, status));
 };
 exports.registerAuthBridge = registerAuthBridge;
-/**
- * Delivers an auth result to every shard. The OAuth callback lands on whichever
- * shard hosts the API server, but the /login listener lives on the shard that
- * handled the interaction, so the result has to be fanned out.
- */
 const broadcastAuthResult = async (client, state, status) => {
     if (!client.shard)
         return void (0, exports.emitAuthResult)(state, status);

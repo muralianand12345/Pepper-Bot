@@ -1,6 +1,6 @@
 # Pepper Bot 🎵
 
-![Version](https://img.shields.io/badge/version-5.11.1-blue)
+![Version](https://img.shields.io/badge/version-5.12.0-blue)
 ![Discord.js](https://img.shields.io/badge/discord.js-v14.27.0-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-blue)
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)

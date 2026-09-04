@@ -655,8 +655,6 @@ class Music {
                         }
                         await i.update((0, v2_1.v2)((0, v2_1.withRows)(buildPage(currentPage), buildPageButtons(currentPage))));
                     });
-                    // A Components V2 edit replaces the whole message, so the container has to be
-                    // resent alongside the disabled buttons or the lyrics would vanish.
                     collector.on('end', async () => {
                         await this.interaction.editReply((0, v2_1.v2)((0, v2_1.withRows)(buildPage(currentPage), buildPageButtons(currentPage, true)))).catch(() => { });
                     });
@@ -815,8 +813,6 @@ class Music {
                                 await i.reply((0, v2_1.v2Ephemeral)(responseHandler.createErrorContainer(this.t('responses.errors.general_error'), this.locale))).catch(() => { });
                         }
                     });
-                    // A Components V2 edit replaces the whole message, so the queue itself has to be
-                    // resent alongside the disabled buttons rather than only swapping the rows.
                     collector.on('end', async () => {
                         await this.interaction.editReply((0, v2_1.v2)((0, v2_1.withRows)(createQueueContainer(currentPage), ...createQueueButtons(currentPage, totalPages, true)))).catch(() => { });
                     });

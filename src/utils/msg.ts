@@ -38,13 +38,6 @@ const sendRemote = async (client: discord.Client, channelId: string, message: st
 	return { messageId: success.messageId, channelId: success.channelId, local: false };
 };
 
-/**
- * Sends a message to a channel, resolving it on whichever shard owns it.
- * Returns a live Message only when the channel belongs to the current shard;
- * for a channel owned by a sibling shard the message is still delivered but
- * null is returned, since a Message cannot cross the process boundary.
- * Use sendRef/editMessage/deleteMessage when the result must be acted on.
- */
 export const send = async (client: discord.Client, channelId: string, message: string | discord.MessageCreateOptions): Promise<discord.Message | null> => {
 	const local = await sendLocal(client, channelId, message);
 	if (local) return local;
@@ -53,7 +46,6 @@ export const send = async (client: discord.Client, channelId: string, message: s
 	return null;
 };
 
-/** Sends a message and returns a shard-agnostic reference usable with editMessage/deleteMessage. */
 export const sendRef = async (client: discord.Client, channelId: string, message: string | discord.MessageCreateOptions): Promise<MessageRef | null> => {
 	const local = await sendLocal(client, channelId, message);
 	if (local) return { messageId: local.id, channelId: local.channelId, local: true };

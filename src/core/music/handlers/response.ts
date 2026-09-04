@@ -7,7 +7,6 @@ import { subtext } from '../../../utils/v2';
 import Formatter from '../../../utils/format';
 import { LocalizationManager } from '../../locales';
 
-/** Accent colours for the container's left edge — the Components V2 stand-in for an embed colour. */
 export const ACCENT = {
 	success: 0x43b581,
 	error: 0xf04747,
@@ -17,37 +16,27 @@ export const ACCENT = {
 	spotify: 0x1db954,
 } as const;
 
-/**
- * Accent colour and glyph per player action, so a card reads as the state it represents
- * before a word of it is read: green while playing, amber paused, red stopped.
- */
 export const PLAYER_STATE = {
-	playing: { accent: 0x1db954, emoji: '▶️' },
-	paused: { accent: 0xfaa61a, emoji: '⏸️' },
-	stopped: { accent: 0xed4245, emoji: '⏹️' },
-	skipped: { accent: 0x5865f2, emoji: '⏭️' },
-	loop: { accent: 0x9b59b6, emoji: '🔁' },
-	autoplay: { accent: 0x1abc9c, emoji: '♾️' },
-	shuffle: { accent: 0x3498db, emoji: '🔀' },
-	filter: { accent: 0xe91e63, emoji: '🎛️' },
-	volume: { accent: 0x00b0f4, emoji: '🔊' },
-	connected: { accent: 0x1db954, emoji: '🔊' },
-	queued: { accent: 0x43b581, emoji: '➕' },
-	cleared: { accent: 0xed4245, emoji: '🗑️' },
-	disconnected: { accent: 0x747f8d, emoji: '🔌' },
-	idle: { accent: 0x2b2d31, emoji: '⏹️' },
+	playing: { accent: 0x1db954, emoji: '▶️', badge: '💿' },
+	paused: { accent: 0xfaa61a, emoji: '⏸️', badge: '⏸️' },
+	stopped: { accent: 0xed4245, emoji: '⏹️', badge: '⏹️' },
+	skipped: { accent: 0x5865f2, emoji: '⏭️', badge: '⏭️' },
+	loop: { accent: 0x9b59b6, emoji: '🔁', badge: '🔁' },
+	autoplay: { accent: 0x1abc9c, emoji: '♾️', badge: '♾️' },
+	shuffle: { accent: 0x3498db, emoji: '🔀', badge: '🔀' },
+	filter: { accent: 0xe91e63, emoji: '🎛️', badge: '🎛️' },
+	volume: { accent: 0x00b0f4, emoji: '🔊', badge: '🔊' },
+	connected: { accent: 0x1db954, emoji: '🔊', badge: '🔊' },
+	queued: { accent: 0x43b581, emoji: '➕', badge: '➕' },
+	cleared: { accent: 0xed4245, emoji: '🗑️', badge: '🗑️' },
+	disconnected: { accent: 0x747f8d, emoji: '🔌', badge: '🔌' },
+	idle: { accent: 0x2b2d31, emoji: '⏹️', badge: '💤' },
 } as const;
 
 export type PlayerState = keyof typeof PLAYER_STATE;
 
-/** Several locale strings already lead with their own emoji; don't stack a second one on. */
 const LEADING_EMOJI = /^\p{Extended_Pictographic}/u;
 
-/**
- * Explicit component id stamped on the now playing container so old now playing
- * messages can still be found and cleaned up — Components V2 messages carry no
- * embeds, so the previous "match the embed title" lookup no longer works.
- */
 export const NOW_PLAYING_COMPONENT_ID = 90;
 
 export class MusicResponseHandler {
@@ -59,6 +48,11 @@ export class MusicResponseHandler {
 		this.localizationManager = LocalizationManager.getInstance();
 	}
 
+	private badge = (state: PlayerState): string => {
+		const override = this.client.config?.bot?.emoji?.[state];
+		return override?.trim() || PLAYER_STATE[state].badge;
+	};
+
 	private statusContainer = (accent: number, message: string, footer?: string): discord.ContainerBuilder => {
 		const container = new discord.ContainerBuilder().setAccentColor(accent).addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(message));
 		if (footer) container.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(subtext(footer)));
@@ -69,7 +63,6 @@ export class MusicResponseHandler {
 		return this.statusContainer(ACCENT.success, `✓ ${message}`, footer);
 	};
 
-	/** A confirmation coloured and badged by the player action it reports. */
 	public createPlayerStateContainer = (state: PlayerState, message: string, footer?: string): discord.ContainerBuilder => {
 		const { accent, emoji } = PLAYER_STATE[state];
 		return this.statusContainer(accent, LEADING_EMOJI.test(message) ? message : `${emoji} ${message}`, footer);
@@ -114,10 +107,6 @@ export class MusicResponseHandler {
 		return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setCustomId('activity-check-continue').setLabel(label).setStyle(discord.ButtonStyle.Success).setEmoji('✅').setDisabled(disabled));
 	};
 
-	/**
-	 * Renders track metadata the way the old embed's inline fields did. Components V2
-	 * has no column layout, so the labelled values are stacked one per line instead.
-	 */
 	private detailLines = (entries: [string, string][]): string => entries.map(([label, value]) => `**${label}:** ${value}`).join('\n');
 
 	private trackBody = (track: magmastream.Track, locale: string): string => {
@@ -141,7 +130,7 @@ export class MusicResponseHandler {
 		const container = new discord.ContainerBuilder()
 			.setId(NOW_PLAYING_COMPONENT_ID)
 			.setAccentColor(PLAYER_STATE[resolvedState].accent)
-			.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(`### ${this.localizationManager.translate('responses.music.now_playing', locale)}`))
+			.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(`### ${this.badge(resolvedState)} ${this.localizationManager.translate('responses.music.now_playing', locale)}`))
 			.addSeparatorComponents(new discord.SeparatorBuilder().setDivider(true).setSpacing(discord.SeparatorSpacingSize.Small));
 
 		if (!track) {
@@ -177,7 +166,7 @@ export class MusicResponseHandler {
 
 		const container = new discord.ContainerBuilder()
 			.setAccentColor(PLAYER_STATE.queued.accent)
-			.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(`### ${this.localizationManager.translate('responses.music.track_added', locale)}`))
+			.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(`### ${this.badge('queued')} ${this.localizationManager.translate('responses.music.track_added', locale)}`))
 			.addSeparatorComponents(new discord.SeparatorBuilder().setDivider(true).setSpacing(discord.SeparatorSpacingSize.Small));
 
 		const details: [string, string][] = [[this.localizationManager.translate('responses.fields.duration', locale), `\`${trackDuration}\``]];
@@ -203,7 +192,7 @@ export class MusicResponseHandler {
 
 		const container = new discord.ContainerBuilder()
 			.setAccentColor(PLAYER_STATE.queued.accent)
-			.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(`### ${this.localizationManager.translate('responses.music.playlist_added', locale)}`))
+			.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(`### ${this.badge('queued')} ${this.localizationManager.translate('responses.music.playlist_added', locale)}`))
 			.addSeparatorComponents(new discord.SeparatorBuilder().setDivider(true).setSpacing(discord.SeparatorSpacingSize.Small));
 
 		const details: [string, string][] = [

@@ -23,6 +23,7 @@ export interface IConfig {
 			command: string;
 			server: string;
 		};
+		emoji?: Partial<Record<string, string>> | null;
 	};
 	premium: {
 		tiers: Array<{
