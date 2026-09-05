@@ -27,12 +27,15 @@ const locales_1 = require("../locales");
 const premium_1 = require("../commands/premium");
 const utils_1 = require("./utils");
 const failure_guard_1 = require("./failure_guard");
+const stream_refresh_1 = require("./stream_refresh");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
+const now_playing_1 = require("./now_playing");
 const handlers_1 = require("./handlers");
 const v2_1 = require("../../utils/v2");
 __exportStar(require("./func"), exports);
 __exportStar(require("./patches"), exports);
 __exportStar(require("./failure_guard"), exports);
+__exportStar(require("./stream_refresh"), exports);
 __exportStar(require("./repo"), exports);
 __exportStar(require("./utils"), exports);
 __exportStar(require("./search"), exports);
@@ -342,7 +345,9 @@ class Music {
                 return await this.interaction.editReply((0, v2_1.v2)(errorContainer));
             const voiceStatus = new utils_1.VoiceChannelStatus(this.client);
             try {
-                player.pause(true);
+                await player.pause(true);
+                (0, stream_refresh_1.markPaused)(player.guildId);
+                now_playing_1.NowPlayingManager.getInstance(player.guildId, player, this.client).onPause();
                 const currentTrack = await player.queue.getCurrent();
                 if (currentTrack)
                     await voiceStatus.setPaused(player, currentTrack);
@@ -375,7 +380,12 @@ class Music {
                 return await this.interaction.editReply((0, v2_1.v2)(errorContainer));
             const voiceStatus = new utils_1.VoiceChannelStatus(this.client);
             try {
-                player.pause(false);
+                const streamWentStale = (0, stream_refresh_1.isStreamStale)(player.guildId);
+                await player.pause(false);
+                (0, stream_refresh_1.clearPaused)(player.guildId);
+                if (streamWentStale)
+                    await (0, stream_refresh_1.refreshStream)(player, this.client, 'resumed after a long pause');
+                now_playing_1.NowPlayingManager.getInstance(player.guildId, player, this.client).onResume();
                 const currentTrack = await player.queue.getCurrent();
                 if (currentTrack)
                     await voiceStatus.setPlaying(player, currentTrack);

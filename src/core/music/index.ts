@@ -8,13 +8,16 @@ import { LocaleDetector } from '../locales';
 import { checkUserPremium } from '../commands/premium';
 import { ProgressBarUtils, VoiceChannelStatus } from './utils';
 import { clearFailures } from './failure_guard';
+import { markPaused, clearPaused, isStreamStale, refreshStream } from './stream_refresh';
 import music_guild from '../../events/database/schema/music_guild';
+import { NowPlayingManager } from './now_playing';
 import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator } from './handlers';
 import { v2, v2Ephemeral, withRows, subtext, panel } from '../../utils/v2';
 
 export * from './func';
 export * from './patches';
 export * from './failure_guard';
+export * from './stream_refresh';
 export * from './repo';
 export * from './utils';
 export * from './search';
@@ -349,7 +352,9 @@ export class Music {
 		const voiceStatus = new VoiceChannelStatus(this.client);
 
 		try {
-			player.pause(true);
+			await player.pause(true);
+			markPaused(player.guildId);
+			NowPlayingManager.getInstance(player.guildId, player, this.client).onPause();
 			const currentTrack = await player.queue.getCurrent();
 			if (currentTrack) await voiceStatus.setPaused(player, currentTrack);
 			await this.interaction.editReply(v2(responseHandler.createPlayerStateContainer('paused', this.t('responses.music.paused'))));
@@ -384,7 +389,11 @@ export class Music {
 		const voiceStatus = new VoiceChannelStatus(this.client);
 
 		try {
-			player.pause(false);
+			const streamWentStale = isStreamStale(player.guildId);
+			await player.pause(false);
+			clearPaused(player.guildId);
+			if (streamWentStale) await refreshStream(player, this.client, 'resumed after a long pause');
+			NowPlayingManager.getInstance(player.guildId, player, this.client).onResume();
 			const currentTrack = await player.queue.getCurrent();
 			if (currentTrack) await voiceStatus.setPlaying(player, currentTrack);
 			await this.interaction.editReply(v2(responseHandler.createPlayerStateContainer('playing', this.t('responses.music.resumed'))));

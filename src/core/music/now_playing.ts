@@ -15,6 +15,8 @@ export class NowPlayingManager {
 	private lastUpdateTime: number = 0;
 	private readonly UPDATE_INTERVAL = 10000; // refresh every 10s to avoid rate limits
 	private readonly MIN_UPDATE_INTERVAL = 8000; // throttle edits to at least 8s apart
+	private readonly MIN_STATE_UPDATE_INTERVAL = 2000; // state changes only coalesce rapid clicks
+	private trailingUpdate: NodeJS.Timeout | null = null;
 	private paused: boolean = false;
 	private destroyed: boolean = false;
 	private stopped: boolean = false;
@@ -44,22 +46,22 @@ export class NowPlayingManager {
 	public setMessage = (message: discord.Message, forceUpdate: boolean = false): void => {
 		if (message.author.id !== this.client.user?.id) return this.client.logger?.warn(`[NowPlayingManager] Attempted to set message not authored by bot`);
 		this.message = message;
-		if (forceUpdate) this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update now playing message: ${err}`));
+		if (forceUpdate) this.updateNowPlaying(true).catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update now playing message: ${err}`));
 	};
 
 	public onPause = (): void => {
 		this.paused = true;
-		this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after pause: ${err}`));
+		this.updateNowPlaying(true).catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after pause: ${err}`));
 	};
 
 	public onResume = (): void => {
 		this.paused = false;
-		this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after resume: ${err}`));
+		this.updateNowPlaying(true).catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after resume: ${err}`));
 	};
 
 	public onStop = (): void => {
 		this.stopped = true;
-		this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after stop: ${err}`));
+		this.updateNowPlaying(true).catch((err) => this.client.logger?.error(`[NowPlayingManager] Failed to update after stop: ${err}`));
 	};
 
 	public disableButtons = async (): Promise<boolean> => {
@@ -142,6 +144,14 @@ export class NowPlayingManager {
 		return this.player?.playing ? 'playing' : 'idle';
 	};
 
+	private scheduleTrailingUpdate = (delay: number): void => {
+		if (this.destroyed || this.trailingUpdate) return;
+		this.trailingUpdate = setTimeout(() => {
+			this.trailingUpdate = null;
+			this.updateNowPlaying(true).catch((err) => this.client.logger?.error(`[NowPlayingManager] Trailing update failed: ${err}`));
+		}, Math.max(delay, 0));
+	};
+
 	private getGuildLocale = async (): Promise<string> => {
 		try {
 			return (await this.localeDetector.getGuildLanguage(this.player.guildId)) || 'en';
@@ -187,11 +197,18 @@ export class NowPlayingManager {
 		}
 	};
 
-	private updateNowPlaying = async (): Promise<void> => {
-		if (this.isUpdating) return;
+	private updateNowPlaying = async (force: boolean = false): Promise<void> => {
+		if (this.isUpdating) {
+			if (force) this.scheduleTrailingUpdate(this.MIN_STATE_UPDATE_INTERVAL);
+			return;
+		}
 
-		const now = Date.now();
-		if (now - this.lastUpdateTime < this.MIN_UPDATE_INTERVAL) return;
+		const elapsed = Date.now() - this.lastUpdateTime;
+		const minInterval = force ? this.MIN_STATE_UPDATE_INTERVAL : this.MIN_UPDATE_INTERVAL;
+		if (elapsed < minInterval) {
+			if (force) this.scheduleTrailingUpdate(minInterval - elapsed);
+			return;
+		}
 
 		const currentMessage = this.message;
 		if (!currentMessage || !this.player) return;
@@ -335,6 +352,10 @@ export class NowPlayingManager {
 	public destroy = (): void => {
 		this.destroyed = true;
 		this.isUpdating = false;
+		if (this.trailingUpdate) {
+			clearTimeout(this.trailingUpdate);
+			this.trailingUpdate = null;
+		}
 		if (this.updateInterval) {
 			clearInterval(this.updateInterval);
 			this.updateInterval = null;
@@ -347,7 +368,7 @@ export class NowPlayingManager {
 	};
 
 	public forceUpdate = async (): Promise<void> => {
-		if (!this.isUpdating && (await this.player?.queue?.getCurrent())) this.updateNowPlaying().catch((err) => this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`));
+		if (!this.isUpdating && (await this.player?.queue?.getCurrent())) this.updateNowPlaying(true).catch((err) => this.client.logger?.error(`[NowPlayingManager] Force update failed: ${err}`));
 	};
 
 	public getPlaybackStatus = async (): Promise<{ position: number; duration: number; isPlaying: boolean; isPaused: boolean; track: magmastream.Track | null }> => {

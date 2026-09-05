@@ -3,7 +3,7 @@ import discord from 'discord.js';
 import { send } from '../../../utils/msg';
 import { BotEvent } from '../../../types';
 import { LocaleDetector } from '../../../core/locales';
-import { NowPlayingManager, MusicResponseHandler, sendTempMessage, VoiceChannelStatus } from '../../../core/music';
+import { NowPlayingManager, MusicResponseHandler, sendTempMessage, VoiceChannelStatus, markPaused, clearPaused, isStreamStale, refreshStream } from '../../../core/music';
 import { v2 } from '../../../utils/v2';
 
 const localeDetector = new LocaleDetector();
@@ -60,7 +60,10 @@ const event: BotEvent = {
 		const nowPlayingManager = NowPlayingManager.getInstance(player.guildId, player, client);
 
 		if (memberCount === 1 && player.paused) {
-			player.pause(false);
+			const streamWentStale = isStreamStale(player.guildId);
+			await player.pause(false);
+			clearPaused(player.guildId);
+			if (streamWentStale) await refreshStream(player, client, 'resumed when a listener rejoined');
 			if (currentTrack) await new VoiceChannelStatus(client).setPlaying(player, currentTrack);
 			nowPlayingManager.onResume();
 			const responseHandler = new MusicResponseHandler(client);
@@ -70,7 +73,8 @@ const event: BotEvent = {
 
 		if (memberCount === 0) {
 			if (!player.paused && player.playing) {
-				player.pause(true);
+				await player.pause(true);
+				markPaused(player.guildId);
 				if (currentTrack) await new VoiceChannelStatus(client).setPaused(player, currentTrack);
 				nowPlayingManager.onPause();
 				const responseHandler = new MusicResponseHandler(client);
