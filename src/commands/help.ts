@@ -4,6 +4,7 @@ import { AutoComplete } from '../core/commands';
 import { MusicResponseHandler } from '../core/music';
 import { Command, CommandCategory, COMMAND_CATEGORY_MAP } from '../types';
 import { LocalizationManager, LocaleDetector, TranslatorFunction } from '../core/locales';
+import { v2, v2Ephemeral, withRows, subtext, panel, fields } from '../utils/v2';
 
 const localeDetector = new LocaleDetector();
 const localizationManager = LocalizationManager.getInstance();
@@ -31,55 +32,49 @@ const helpCommand: Command = {
 		if (specificCommand) {
 			const command = client.commands.get(specificCommand);
 			if (!command) {
-				const embed = responseHandler.createErrorEmbed(t('responses.help.command_not_found', { command: specificCommand }), locale);
-				return await interaction.reply({ embeds: [embed], flags: discord.MessageFlags.Ephemeral });
+				const container = responseHandler.createErrorContainer(t('responses.help.command_not_found', { command: specificCommand }), locale);
+				return await interaction.reply(v2Ephemeral(container));
 			}
 
-			const commandEmbed = new discord.EmbedBuilder()
-				.setColor('#5865f2')
-				.setTitle(`📖 /${command.data.name}`)
-				.setDescription(command.data.description)
-				.addFields([
-					{ name: t('responses.help.cooldown'), value: command.cooldown ? `${command.cooldown}s` : t('responses.help.no_cooldown'), inline: true },
-					{ name: t('responses.help.permissions'), value: command.owner ? t('responses.help.owner_only') : command.userPerms ? command.userPerms.join(', ') : t('responses.help.none'), inline: true },
-				])
-				.setFooter({ text: t('responses.help.command_footer'), iconURL: client.user?.displayAvatarURL() })
-				.setTimestamp();
+			const categoryInfo = command.category ? COMMAND_CATEGORY_MAP[command.category] : null;
+			const categoryName = command.category ? (t(`responses.help.categories.${command.category}`) !== `responses.help.categories.${command.category}` ? t(`responses.help.categories.${command.category}`) : categoryInfo!.name) : null;
 
-			if (command.category) {
-				const categoryInfo = COMMAND_CATEGORY_MAP[command.category];
-				const categoryName = t(`responses.help.categories.${command.category}`) !== `responses.help.categories.${command.category}` ? t(`responses.help.categories.${command.category}`) : categoryInfo.name;
-				commandEmbed.addFields([{ name: t('responses.help.category'), value: `${categoryInfo.emoji} ${categoryName}`, inline: true }]);
-			}
+			const details = fields([
+				[t('responses.help.cooldown'), command.cooldown ? `${command.cooldown}s` : t('responses.help.no_cooldown')],
+				[t('responses.help.permissions'), command.owner ? t('responses.help.owner_only') : command.userPerms ? command.userPerms.join(', ') : t('responses.help.none')],
+				categoryInfo && categoryName ? [t('responses.help.category'), `${categoryInfo.emoji} ${categoryName}`] : null,
+			]);
 
 			const apiData = command.data.toJSON();
-			if (apiData.options && apiData.options.length > 0) {
-				const optionsText = apiData.options.map((option) => `\`${option.name}\` - ${option.description}`).join('\n');
-				commandEmbed.addFields([{ name: t('responses.help.options'), value: optionsText.length > 1024 ? optionsText.substring(0, 1021) + '...' : optionsText, inline: false }]);
-			}
-			return await interaction.reply({ embeds: [commandEmbed] });
+			const optionsText = apiData.options?.length ? apiData.options.map((option) => `\`${option.name}\` - ${option.description}`).join('\n') : '';
+
+			const commandContainer = panel(0x5865f2, {
+				title: `📖 /${command.data.name}`,
+				body: [command.data.description, details, optionsText ? `**${t('responses.help.options')}**\n${optionsText}` : ''].filter(Boolean).join('\n\n'),
+				footer: t('responses.help.command_footer'),
+				timestamp: true,
+			});
+			return await interaction.reply(v2(commandContainer));
 		}
 
 		const commands = Array.from(client.commands.values());
 		const categorizedCommands = categorizeCommandsByCategory(commands);
 
-		const embed = new discord.EmbedBuilder()
-			.setColor('#5865f2')
-			.setTitle(t('responses.help.title'))
-			.setDescription(t('responses.help.description', { total: commands.length, prefix: '/' }))
-			.setThumbnail(client.user?.displayAvatarURL() || '')
-			.setFooter({ text: t('responses.help.footer'), iconURL: client.user?.displayAvatarURL() })
-			.setTimestamp();
+		const container = panel(0x5865f2, {
+			title: t('responses.help.title'),
+			body: t('responses.help.description', { total: commands.length, prefix: '/' }),
+			thumbnail: client.user?.displayAvatarURL() || null,
+		});
 
 		const categoryOrder = [CommandCategory.MUSIC, CommandCategory.UTILITY, CommandCategory.OTHER];
+		const sections: string[] = [];
 
 		categoryOrder.forEach((category) => {
 			const categoryCommands = categorizedCommands[category];
 			if (categoryCommands && categoryCommands.length > 0) {
 				const categoryInfo = COMMAND_CATEGORY_MAP[category];
 				const categoryName = t(`responses.help.categories.${category}`) !== `responses.help.categories.${category}` ? t(`responses.help.categories.${category}`) : categoryInfo.name;
-				const commandList = formatCommands(categoryCommands, t);
-				embed.addFields([{ name: `${categoryInfo.emoji} ${categoryName} (${categoryCommands.length})`, value: commandList, inline: false }]);
+				sections.push(`**${categoryInfo.emoji} ${categoryName} (${categoryCommands.length})**\n${formatCommands(categoryCommands, t)}`);
 			}
 		});
 
@@ -88,14 +83,16 @@ const helpCommand: Command = {
 				const categoryCommands = categorizedCommands[categoryKey as CommandCategory];
 				if (categoryCommands && categoryCommands.length > 0) {
 					const categoryName = categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1);
-					const commandList = formatCommands(categoryCommands, t);
-					embed.addFields([{ name: `📋 ${categoryName} (${categoryCommands.length})`, value: commandList, inline: false }]);
+					sections.push(`**📋 ${categoryName} (${categoryCommands.length})**\n${formatCommands(categoryCommands, t)}`);
 				}
 			}
 		});
 
-		const supportButton = responseHandler.getSupportButton(locale);
-		await interaction.reply({ embeds: [embed], components: [supportButton] });
+		container.addSeparatorComponents(new discord.SeparatorBuilder().setDivider(true).setSpacing(discord.SeparatorSpacingSize.Small));
+		container.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(sections.join('\n\n')));
+		container.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(subtext(t('responses.help.footer'))));
+
+		await interaction.reply(v2(withRows(container, responseHandler.getSupportButton(locale))));
 	},
 };
 

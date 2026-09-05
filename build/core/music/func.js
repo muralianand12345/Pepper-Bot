@@ -7,10 +7,11 @@ exports.getRequester = exports.isBotRequester = exports.wait = exports.sendTempM
 const discord_js_1 = __importDefault(require("discord.js"));
 const promises_1 = __importDefault(require("timers/promises"));
 const msg_1 = require("../../utils/msg");
-const sendTempMessage = async (channel, embed, duration = 10000) => {
+const v2_1 = require("../../utils/v2");
+const sendTempMessage = async (channel, container, duration = 10000) => {
     if (!channel.isTextBased())
         throw new Error('Channel is not text-based');
-    const ref = await (0, msg_1.sendRef)(channel.client, channel.id, { embeds: [embed] }).catch(() => null);
+    const ref = await (0, msg_1.sendRef)(channel.client, channel.id, (0, v2_1.v2)(container)).catch(() => null);
     if (!ref)
         return;
     setTimeout(() => {
@@ -44,7 +45,9 @@ const getRequester = (client, user) => {
         return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
     if (user instanceof discord_js_1.default.User)
         return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
-    const { id, username } = user;
+    const { id, username } = (user ?? {});
+    if (typeof id !== 'string' || id.length === 0)
+        return null;
     return { id, username: username ?? 'Unknown', discriminator: '0000', avatar: undefined };
 };
 exports.getRequester = getRequester;

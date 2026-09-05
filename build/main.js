@@ -7,6 +7,7 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const pepper_1 = __importDefault(require("./pepper"));
 const config_1 = require("./utils/config");
+const patches_1 = require("./core/music/patches");
 const configManager = config_1.ConfigManager.getInstance();
 const loadHandlers = async (client, handlersPath) => {
     try {
@@ -89,6 +90,7 @@ const initializeBot = async (client) => {
     const handlersPath = path_1.default.join(__dirname, 'handlers');
     const eventsPath = path_1.default.join(__dirname, 'events');
     try {
+        (0, patches_1.applyMagmastreamPatches)(client);
         await loadHandlers(client, handlersPath);
         await loadEvents(client, eventsPath);
         setupErrorHandlers(client);

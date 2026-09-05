@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const config_1 = require("../../../utils/config");
+const v2_1 = require("../../../utils/v2");
 const configManager = config_1.ConfigManager.getInstance();
 const event = {
     name: discord_js_1.default.Events.InteractionCreate,
@@ -26,7 +27,7 @@ const event = {
                 client.logger.error(`[FEEDBACK] Error showing feedback modal: ${error}`);
                 try {
                     if (interaction.isRepliable())
-                        await interaction.reply({ content: 'Sorry, there was an error displaying the feedback form. Please try again later or join our support server.', flags: discord_js_1.default.MessageFlags.Ephemeral });
+                        await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)('Sorry, there was an error displaying the feedback form. Please try again later or join our support server.')));
                 }
                 catch (replyError) {
                     client.logger.error(`[FEEDBACK] Failed to send error reply: ${replyError}`);
@@ -42,23 +43,30 @@ const event = {
                 const features = interaction.fields.getTextInputValue('feedback_features');
                 const issues = interaction.fields.getTextInputValue('feedback_issues');
                 const reason = interaction.fields.getTextInputValue('feedback_reason');
-                const embed = new discord_js_1.default.EmbedBuilder()
-                    .setColor('#ED4245')
-                    .setTitle('📝 Server Leave Feedback')
-                    .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL({ size: 128 }) })
-                    .setDescription(`Feedback from **${interaction.user.tag}** after removing the bot from a server.\n\nServer ID: \`${guildId}\``)
-                    .addFields({ name: '🎵 Audio Quality Rating', value: `**${audioQuality}/5**`, inline: true }, { name: '🔧 Usability Rating', value: `**${usability}/5**`, inline: true }, { name: '🧩 Features Feedback', value: features || 'No feedback provided', inline: false }, { name: '⚠️ Issues Experienced', value: issues || 'No issues reported', inline: false }, { name: '❌ Removal Reason', value: reason, inline: false }, { name: '💡 User Information', value: `• ID: \`${interaction.user.id}\`\n• Created: <t:${Math.floor(interaction.user.createdTimestamp / 1000)}:R>`, inline: false })
-                    .setFooter({ text: `Server Leave Feedback | ${new Date().toLocaleDateString()}`, iconURL: client.user?.displayAvatarURL() })
-                    .setTimestamp();
-                await webhookClient.send({ embeds: [embed] });
-                await interaction.reply({ content: `Thank you for your valuable feedback! We'll use it to improve ${client.user?.username} Music Bot for everyone.`, flags: discord_js_1.default.MessageFlags.Ephemeral });
+                const details = (0, v2_1.fields)([
+                    ['🎵 Audio Quality Rating', `**${audioQuality}/5**`],
+                    ['🔧 Usability Rating', `**${usability}/5**`],
+                    ['🧩 Features Feedback', features || 'No feedback provided'],
+                    ['⚠️ Issues Experienced', issues || 'No issues reported'],
+                    ['❌ Removal Reason', reason],
+                    ['💡 User Information', `\`${interaction.user.id}\` • created <t:${Math.floor(interaction.user.createdTimestamp / 1000)}:R>`],
+                ]);
+                const container = (0, v2_1.panel)(0xed4245, {
+                    title: '📝 Server Leave Feedback',
+                    body: `Feedback from **${interaction.user.tag}** after removing the bot from a server.\n\nServer ID: \`${guildId}\`\n\n${details}`,
+                    thumbnail: interaction.user.displayAvatarURL({ size: 128 }),
+                    footer: `Server Leave Feedback | ${new Date().toLocaleDateString()}`,
+                    timestamp: true,
+                });
+                await webhookClient.send((0, v2_1.v2Webhook)(container));
+                await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)(`Thank you for your valuable feedback! We'll use it to improve ${client.user?.username} Music Bot for everyone.`)));
                 client.logger.info(`[FEEDBACK] Received server leave feedback from ${interaction.user.tag} (${interaction.user.id}) for guild ${guildId}`);
             }
             catch (error) {
                 client.logger.error(`[FEEDBACK] Error processing feedback modal submission: ${error}`);
                 try {
                     if (interaction.isRepliable())
-                        await interaction.reply({ content: 'Sorry, there was an error processing your feedback. Please try again later or join our support server.', flags: discord_js_1.default.MessageFlags.Ephemeral });
+                        await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)('Sorry, there was an error processing your feedback. Please try again later or join our support server.')));
                 }
                 catch (replyError) {
                     client.logger.error(`[FEEDBACK] Failed to send error reply: ${replyError}`);

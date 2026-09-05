@@ -5,6 +5,7 @@ exports.ActivityCheckManager = void 0;
 const msg_1 = require("../../utils/msg");
 const locales_1 = require("../locales");
 const handlers_1 = require("./handlers");
+const v2_1 = require("../../utils/v2");
 const ACTIVITY_CHECK_INTERVAL = 6 * 60 * 60 * 1000; // 6 hours
 const RESPONSE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 class ActivityCheckManager {
@@ -29,9 +30,8 @@ class ActivityCheckManager {
                 try {
                     const locale = await this.getGuildLocale();
                     const responseHandler = new handlers_1.MusicResponseHandler(this.client);
-                    const embed = responseHandler.createActivityCheckConfirmedEmbed(locale);
-                    const disabledButton = responseHandler.getActivityCheckButton(true, locale);
-                    await this.activeMessage.edit({ embeds: [embed], components: [disabledButton] });
+                    const container = responseHandler.createActivityCheckConfirmedContainer(locale);
+                    await this.activeMessage.edit((0, v2_1.v2)((0, v2_1.withRows)(container, responseHandler.getActivityCheckButton(true, locale))));
                 }
                 catch (error) {
                     this.client.logger?.warn(`[ActivityCheckManager] Failed to update confirmed message: ${error}`);
@@ -107,9 +107,8 @@ class ActivityCheckManager {
                 }
                 const locale = await this.getGuildLocale();
                 const responseHandler = new handlers_1.MusicResponseHandler(this.client);
-                const embed = responseHandler.createActivityCheckEmbed(locale);
-                const button = responseHandler.getActivityCheckButton(false, locale);
-                const message = await (0, msg_1.send)(this.client, channel.id, { embeds: [embed], components: [button] });
+                const container = responseHandler.createActivityCheckContainer(locale);
+                const message = await (0, msg_1.send)(this.client, channel.id, (0, v2_1.v2)((0, v2_1.withRows)(container, responseHandler.getActivityCheckButton(false, locale))));
                 if (message) {
                     this.activeMessage = message;
                     this.isPendingResponse = true;
@@ -139,9 +138,8 @@ class ActivityCheckManager {
             if (this.activeMessage) {
                 try {
                     const responseHandler = new handlers_1.MusicResponseHandler(this.client);
-                    const embed = responseHandler.createActivityCheckTimeoutEmbed(locale);
-                    const disabledButton = responseHandler.getActivityCheckButton(true, locale);
-                    await this.activeMessage.edit({ embeds: [embed], components: [disabledButton] });
+                    const container = responseHandler.createActivityCheckTimeoutContainer(locale);
+                    await this.activeMessage.edit((0, v2_1.v2)((0, v2_1.withRows)(container, responseHandler.getActivityCheckButton(true, locale))));
                 }
                 catch (error) {
                     this.client.logger?.warn(`[ActivityCheckManager] Failed to update timeout message: ${error}`);
@@ -153,8 +151,8 @@ class ActivityCheckManager {
                     const channel = await this.client.channels.fetch(textChannelId);
                     if (channel?.isTextBased()) {
                         const responseHandler = new handlers_1.MusicResponseHandler(this.client);
-                        const embed = responseHandler.createInfoEmbed(this.client.localizationManager?.translate('responses.activity_check.disconnected', locale) || '🔌 Disconnected due to inactivity (no response to activity check)');
-                        await (0, msg_1.send)(this.client, channel.id, { embeds: [embed] });
+                        const container = responseHandler.createInfoContainer(this.client.localizationManager?.translate('responses.activity_check.disconnected', locale) || '🔌 Disconnected due to inactivity (no response to activity check)');
+                        await (0, msg_1.send)(this.client, channel.id, (0, v2_1.v2)(container));
                     }
                 }
                 catch (error) {

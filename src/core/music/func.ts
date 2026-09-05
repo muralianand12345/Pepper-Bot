@@ -4,11 +4,12 @@ import magmastream from 'magmastream';
 
 import { sendRef, deleteMessage } from '../../utils/msg';
 import { ISongsUser } from '../../types';
+import { v2 } from '../../utils/v2';
 
-export const sendTempMessage = async (channel: discord.TextChannel, embed: discord.EmbedBuilder, duration: number = 10000): Promise<void> => {
+export const sendTempMessage = async (channel: discord.TextChannel, container: discord.ContainerBuilder, duration: number = 10000): Promise<void> => {
 	if (!channel.isTextBased()) throw new Error('Channel is not text-based');
 
-	const ref = await sendRef(channel.client, channel.id, { embeds: [embed] }).catch(() => null);
+	const ref = await sendRef(channel.client, channel.id, v2(container)).catch(() => null);
 
 	if (!ref) return;
 
@@ -40,6 +41,7 @@ export const getRequester = (client: discord.Client, user: magmastream.AnyUser |
 	if (user instanceof discord.ClientUser) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatar || undefined };
 	if (user instanceof discord.User) return { id: user.id, username: user.username, discriminator: user.discriminator, avatar: user.avatarURL() || undefined };
 
-	const { id, username } = user as magmastream.PortableUser;
+	const { id, username } = (user ?? {}) as Partial<magmastream.PortableUser>;
+	if (typeof id !== 'string' || id.length === 0) return null;
 	return { id, username: username ?? 'Unknown', discriminator: '0000', avatar: undefined };
 };

@@ -21,19 +21,10 @@ export const waitForAuth = (state: string, timeout: number): Promise<'success' |
 
 export const emitAuthResult = (state: string, status: 'success' | 'failed') => authEmitter.emit(`auth:${state}`, { status });
 
-/**
- * Bridges the cross-shard client event back onto the local emitter. Must be
- * called once per shard while the client is being built.
- */
 export const registerAuthBridge = (client: discord.Client): void => {
 	(client as unknown as EventEmitter).on(AUTH_RESULT_EVENT, (state: string, status: 'success' | 'failed') => emitAuthResult(state, status));
 };
 
-/**
- * Delivers an auth result to every shard. The OAuth callback lands on whichever
- * shard hosts the API server, but the /login listener lives on the shard that
- * handled the interaction, so the result has to be fanned out.
- */
 export const broadcastAuthResult = async (client: discord.Client, state: string, status: 'success' | 'failed'): Promise<void> => {
 	if (!client.shard) return void emitAuthResult(state, status);
 

@@ -2,6 +2,7 @@ import discord from 'discord.js';
 
 import { BotEvent } from '../../../types';
 import { ConfigManager } from '../../../utils/config';
+import { v2Ephemeral, v2Text, v2Webhook, panel, fields } from '../../../utils/v2';
 
 const configManager = ConfigManager.getInstance();
 
@@ -25,7 +26,7 @@ const event: BotEvent = {
 			} catch (error) {
 				client.logger.error(`[FEEDBACK] Error showing feedback modal: ${error}`);
 				try {
-					if (interaction.isRepliable()) await interaction.reply({ content: 'Sorry, there was an error displaying the feedback form. Please try again later or join our support server.', flags: discord.MessageFlags.Ephemeral });
+					if (interaction.isRepliable()) await interaction.reply(v2Ephemeral(v2Text('Sorry, there was an error displaying the feedback form. Please try again later or join our support server.')));
 				} catch (replyError) {
 					client.logger.error(`[FEEDBACK] Failed to send error reply: ${replyError}`);
 				}
@@ -43,22 +44,30 @@ const event: BotEvent = {
 				const issues = interaction.fields.getTextInputValue('feedback_issues');
 				const reason = interaction.fields.getTextInputValue('feedback_reason');
 
-				const embed = new discord.EmbedBuilder()
-					.setColor('#ED4245')
-					.setTitle('📝 Server Leave Feedback')
-					.setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL({ size: 128 }) })
-					.setDescription(`Feedback from **${interaction.user.tag}** after removing the bot from a server.\n\nServer ID: \`${guildId}\``)
-					.addFields({ name: '🎵 Audio Quality Rating', value: `**${audioQuality}/5**`, inline: true }, { name: '🔧 Usability Rating', value: `**${usability}/5**`, inline: true }, { name: '🧩 Features Feedback', value: features || 'No feedback provided', inline: false }, { name: '⚠️ Issues Experienced', value: issues || 'No issues reported', inline: false }, { name: '❌ Removal Reason', value: reason, inline: false }, { name: '💡 User Information', value: `• ID: \`${interaction.user.id}\`\n• Created: <t:${Math.floor(interaction.user.createdTimestamp / 1000)}:R>`, inline: false })
-					.setFooter({ text: `Server Leave Feedback | ${new Date().toLocaleDateString()}`, iconURL: client.user?.displayAvatarURL() })
-					.setTimestamp();
+				const details = fields([
+					['🎵 Audio Quality Rating', `**${audioQuality}/5**`],
+					['🔧 Usability Rating', `**${usability}/5**`],
+					['🧩 Features Feedback', features || 'No feedback provided'],
+					['⚠️ Issues Experienced', issues || 'No issues reported'],
+					['❌ Removal Reason', reason],
+					['💡 User Information', `\`${interaction.user.id}\` • created <t:${Math.floor(interaction.user.createdTimestamp / 1000)}:R>`],
+				]);
 
-				await webhookClient.send({ embeds: [embed] });
-				await interaction.reply({ content: `Thank you for your valuable feedback! We'll use it to improve ${client.user?.username} Music Bot for everyone.`, flags: discord.MessageFlags.Ephemeral });
+				const container = panel(0xed4245, {
+					title: '📝 Server Leave Feedback',
+					body: `Feedback from **${interaction.user.tag}** after removing the bot from a server.\n\nServer ID: \`${guildId}\`\n\n${details}`,
+					thumbnail: interaction.user.displayAvatarURL({ size: 128 }),
+					footer: `Server Leave Feedback | ${new Date().toLocaleDateString()}`,
+					timestamp: true,
+				});
+
+				await webhookClient.send(v2Webhook(container));
+				await interaction.reply(v2Ephemeral(v2Text(`Thank you for your valuable feedback! We'll use it to improve ${client.user?.username} Music Bot for everyone.`)));
 				client.logger.info(`[FEEDBACK] Received server leave feedback from ${interaction.user.tag} (${interaction.user.id}) for guild ${guildId}`);
 			} catch (error) {
 				client.logger.error(`[FEEDBACK] Error processing feedback modal submission: ${error}`);
 				try {
-					if (interaction.isRepliable()) await interaction.reply({ content: 'Sorry, there was an error processing your feedback. Please try again later or join our support server.', flags: discord.MessageFlags.Ephemeral });
+					if (interaction.isRepliable()) await interaction.reply(v2Ephemeral(v2Text('Sorry, there was an error processing your feedback. Please try again later or join our support server.')));
 				} catch (replyError) {
 					client.logger.error(`[FEEDBACK] Failed to send error reply: ${replyError}`);
 				}

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const music_1 = require("../../../core/music");
 const locales_1 = require("../../../core/locales");
+const v2_1 = require("../../../utils/v2");
 const MUSIC_BUTTON_IDS = ['pause-music', 'resume-music', 'skip-music', 'stop-music', 'loop-music', 'activity-check-continue'];
 const localeDetector = new locales_1.LocaleDetector();
 const validateButtonInteraction = (interaction) => {
@@ -52,10 +53,10 @@ const handleMusicButtonAction = async (interaction, client) => {
             try {
                 const t = await localeDetector.getTranslator(interaction);
                 const message = t('responses.errors.general_error');
-                await interaction.reply({ content: `❌ ${message}`, flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
+                await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)(`❌ ${message}`))).catch(() => { });
             }
             catch (localeError) {
-                await interaction.reply({ content: '❌ An error occurred while processing your request.', flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
+                await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)('❌ An error occurred while processing your request.'))).catch(() => { });
             }
         }
     }
@@ -63,21 +64,21 @@ const handleMusicButtonAction = async (interaction, client) => {
 const handleActivityCheckContinue = async (interaction, client) => {
     const guildId = interaction.guildId;
     if (!guildId) {
-        await interaction.reply({ content: '❌ This button can only be used in a server.', flags: discord_js_1.default.MessageFlags.Ephemeral });
+        await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)('❌ This button can only be used in a server.')));
         return;
     }
     const player = client.manager.getPlayer(guildId);
     if (!player) {
-        await interaction.reply({ content: '❌ No active music player found.', flags: discord_js_1.default.MessageFlags.Ephemeral });
+        await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)('❌ No active music player found.')));
         return;
     }
     if (!music_1.ActivityCheckManager.hasInstance(guildId)) {
-        await interaction.reply({ content: '❌ No activity check is pending.', flags: discord_js_1.default.MessageFlags.Ephemeral });
+        await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)('❌ No activity check is pending.')));
         return;
     }
     const activityCheckManager = music_1.ActivityCheckManager.getInstance(guildId, player, client);
     if (!activityCheckManager.isPending()) {
-        await interaction.reply({ content: '❌ This activity check has already been handled.', flags: discord_js_1.default.MessageFlags.Ephemeral });
+        await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)('❌ This activity check has already been handled.')));
         return;
     }
     await interaction.deferUpdate();
@@ -93,10 +94,10 @@ const event = {
             try {
                 const t = await localeDetector.getTranslator(interaction);
                 const message = t('responses.errors.music_disabled');
-                await interaction.reply({ content: `❌ ${message}`, flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
+                await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)(`❌ ${message}`))).catch(() => { });
             }
             catch (localeError) {
-                await interaction.reply({ content: '❌ Music is currently disabled.', flags: discord_js_1.default.MessageFlags.Ephemeral }).catch(() => { });
+                await interaction.reply((0, v2_1.v2Ephemeral)((0, v2_1.v2Text)('❌ Music is currently disabled.'))).catch(() => { });
             }
             return;
         }

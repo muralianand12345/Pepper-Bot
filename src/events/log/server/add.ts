@@ -1,8 +1,9 @@
 import discord from 'discord.js';
 
 import { BotEvent } from '../../../types';
-import { send } from '../../../utils/msg';
+import { sendChannelWebhook } from '../../../utils/webhook';
 import { getGlobalGuildCount, invalidateStatsCache } from '../../../utils/shard';
+import { v2Webhook, panel, fields } from '../../../utils/v2';
 
 const truncateText = (text: string, maxLength: number = 100): string => {
 	if (!text) return 'Unknown';
@@ -21,28 +22,25 @@ const event: BotEvent = {
 			invalidateStatsCache();
 			const totalGuilds = await getGlobalGuildCount(client);
 
-			const embed = new discord.EmbedBuilder()
-				.setTitle('New Server Joined')
-				.setDescription(`I have joined **${guildName}** (${guildId}). Now in **${totalGuilds.toLocaleString()}** servers.`)
-				.setColor('#00ff00')
-				.setFooter({ text: `Now in ${totalGuilds.toLocaleString()} servers` })
-				.setTimestamp();
+			const details = fields([
+				guild.memberCount !== undefined && guild.memberCount !== null ? ['Members', guild.memberCount.toString()] : null,
+				guild.ownerId ? ['Owner', `<@${guild.ownerId}>`] : null,
+				guild.createdAt ? ['Created', `<t:${Math.floor(guild.createdAt.getTime() / 1000)}:D>`] : null,
+			]);
 
-			if (guild.name) embed.setAuthor({ name: truncateText(guild.name, 256), iconURL: guild.iconURL({ size: 128 }) || undefined });
-			if (guild.iconURL()) embed.setThumbnail(guild.iconURL({ size: 256 }));
-
-			const fields: discord.APIEmbedField[] = [];
-
-			if (guild.memberCount !== undefined && guild.memberCount !== null) fields.push({ name: 'Members', value: guild.memberCount.toString(), inline: true });
-			if (guild.ownerId) fields.push({ name: 'Owner', value: `<@${guild.ownerId}>`, inline: true });
-			if (guild.createdAt) fields.push({ name: 'Created', value: `<t:${Math.floor(guild.createdAt.getTime() / 1000)}:D>`, inline: true });
-			if (fields.length > 0) embed.addFields(fields);
+			const container = panel(0x00ff00, {
+				title: 'New Server Joined',
+				body: [`I have joined **${guildName}** (${guildId}).`, details].filter(Boolean).join('\n\n'),
+				thumbnail: guild.iconURL({ size: 256 }),
+				footer: `Now in ${totalGuilds.toLocaleString()} servers`,
+				timestamp: true,
+			});
 
 			try {
 				const logChannelId = client.config?.bot?.log?.server;
 				if (!logChannelId) return client.logger.warn(`[SERVER_JOIN] No log channel configured`);
 
-				await send(client, logChannelId.toString(), { embeds: [embed] });
+				await sendChannelWebhook(client, logChannelId.toString(), { ...v2Webhook(container), username: `${client.user?.username || 'Pepper'} Logs`, avatarURL: client.user?.displayAvatarURL() });
 				client.logger.debug(`[SERVER_JOIN] Log message sent successfully`);
 			} catch (logError) {
 				if (logError instanceof discord.DiscordAPIError) {

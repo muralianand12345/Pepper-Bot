@@ -7,6 +7,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const discord_js_1 = __importDefault(require("discord.js"));
 const types_1 = require("../types");
 const locales_1 = require("../core/locales");
+const v2_1 = require("../utils/v2");
 const localeDetector = new locales_1.LocaleDetector();
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const pingCommand = {
@@ -113,28 +114,32 @@ const pingCommand = {
             }));
             return `**Players on this shard${shardLabel ? ` #${client.shard?.ids[0] ?? 0}` : ''}:**\n\n` + playerInfos.join('\n\n');
         };
-        const embed = new discord_js_1.default.EmbedBuilder()
-            .setColor('#5865f2')
-            .setTitle(t('responses.ping.title'))
-            .setDescription(t('responses.ping.description'))
-            .addFields([
-            { name: t('responses.ping.api_latency'), value: `${getLatencyEmoji(apiLatency)} ${apiLatency}ms`, inline: true },
-            { name: t('responses.ping.websocket_latency'), value: `${getLatencyEmoji(wsLatency)} ${wsLatency}ms`, inline: true },
-            { name: t('responses.ping.database_latency'), value: dbLatency === -1 ? '❌ Connection failed' : `${getLatencyEmoji(dbLatency)} ${dbLatency}ms`, inline: true },
-            { name: t('responses.ping.music_nodes'), value: getNodeStatus(), inline: false },
-            { name: t('responses.ping.uptime'), value: `<t:${Math.floor((Date.now() - (client.uptime || 0)) / 1000)}:R>`, inline: true },
-            { name: t('responses.ping.memory_usage'), value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`, inline: true },
-        ])
-            .setFooter({ text: t('responses.ping.footer'), iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp();
+        const container = (0, v2_1.panel)(0x5865f2, {
+            title: t('responses.ping.title'),
+            body: [
+                t('responses.ping.description'),
+                (0, v2_1.fields)([
+                    [t('responses.ping.api_latency'), `${getLatencyEmoji(apiLatency)} ${apiLatency}ms`],
+                    [t('responses.ping.websocket_latency'), `${getLatencyEmoji(wsLatency)} ${wsLatency}ms`],
+                    [t('responses.ping.database_latency'), dbLatency === -1 ? '❌ Connection failed' : `${getLatencyEmoji(dbLatency)} ${dbLatency}ms`],
+                    [t('responses.ping.music_nodes'), getNodeStatus()],
+                    [t('responses.ping.uptime'), `<t:${Math.floor((Date.now() - (client.uptime || 0)) / 1000)}:R>`],
+                    [t('responses.ping.memory_usage'), `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`],
+                ]),
+            ].join('\n\n'),
+            footer: t('responses.ping.footer'),
+            timestamp: true,
+        });
         if (isOwner) {
             const playerInfo = await getPlayerInfo();
             const shardStats = await getShardStats();
-            embed.addFields([{ name: t('responses.ping.active_players'), value: playerInfo.length > 1024 ? playerInfo.substring(0, 1021) + '...' : playerInfo || 'No active players', inline: false }]);
+            const ownerSections = [`**${t('responses.ping.active_players')}**\n${playerInfo.length > 1024 ? playerInfo.substring(0, 1021) + '...' : playerInfo || 'No active players'}`];
             if (shardStats)
-                embed.addFields([{ name: t('responses.ping.shard_stats'), value: formatShardStats(shardStats), inline: false }]);
+                ownerSections.push(`**${t('responses.ping.shard_stats')}**\n${formatShardStats(shardStats)}`);
+            container.addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
+            container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(ownerSections.join('\n\n')));
         }
-        await interaction.editReply({ embeds: [embed] });
+        await interaction.editReply((0, v2_1.v2)(container));
     },
 };
 exports.default = pingCommand;

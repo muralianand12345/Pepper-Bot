@@ -4,6 +4,7 @@ import discord from 'discord.js';
 
 import client from './pepper';
 import { ConfigManager } from './utils/config';
+import { applyMagmastreamPatches } from './core/music/patches';
 
 const configManager = ConfigManager.getInstance();
 
@@ -95,6 +96,7 @@ const initializeBot = async (client: discord.Client): Promise<void> => {
 	const eventsPath = path.join(__dirname, 'events');
 
 	try {
+		applyMagmastreamPatches(client);
 		await loadHandlers(client, handlersPath);
 		await loadEvents(client, eventsPath);
 		setupErrorHandlers(client);

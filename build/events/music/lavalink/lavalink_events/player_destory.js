@@ -4,6 +4,7 @@ const magmastream_1 = require("magmastream");
 const msg_1 = require("../../../../utils/msg");
 const locales_1 = require("../../../../core/locales");
 const music_1 = require("../../../../core/music");
+const v2_1 = require("../../../../utils/v2");
 const localeDetector = new locales_1.LocaleDetector();
 const lavalinkEvent = {
     name: magmastream_1.ManagerEventTypes.PlayerDestroy,
@@ -23,8 +24,8 @@ const lavalinkEvent = {
                     }
                     catch (error) { }
                     const responseHandler = new music_1.MusicResponseHandler(client);
-                    const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
-                    await (0, msg_1.send)(client, channel.id, { embeds: [disconnectEmbed] });
+                    const disconnectContainer = responseHandler.createPlayerStateContainer('disconnected', client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
+                    await (0, msg_1.send)(client, channel.id, (0, v2_1.v2)(disconnectContainer));
                     await new music_1.VoiceChannelStatus(client).clear(player.voiceChannelId || '');
                     client.logger.debug(`[PLAYER_DESTROY] Disconnect message sent for guild ${player.guildId}`);
                 }

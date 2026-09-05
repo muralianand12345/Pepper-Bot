@@ -7,6 +7,7 @@ const discord_js_1 = __importDefault(require("discord.js"));
 const msg_1 = require("../../../utils/msg");
 const locales_1 = require("../../../core/locales");
 const music_1 = require("../../../core/music");
+const v2_1 = require("../../../utils/v2");
 const localeDetector = new locales_1.LocaleDetector();
 const event = {
     name: discord_js_1.default.Events.VoiceStateUpdate,
@@ -31,8 +32,8 @@ const event = {
                 }
                 catch (error) { }
                 const responseHandler = new music_1.MusicResponseHandler(client);
-                const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
-                await (0, music_1.sendTempMessage)(textChannel, embed, 10000);
+                const container = responseHandler.createPlayerStateContainer('disconnected', client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
+                await (0, music_1.sendTempMessage)(textChannel, container, 10000);
             }
             return;
         }
@@ -63,8 +64,8 @@ const event = {
                 await new music_1.VoiceChannelStatus(client).setPlaying(player, currentTrack);
             nowPlayingManager.onResume();
             const responseHandler = new music_1.MusicResponseHandler(client);
-            const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback');
-            await (0, music_1.sendTempMessage)(textChannel, embed);
+            const container = responseHandler.createPlayerStateContainer('playing', client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback');
+            await (0, music_1.sendTempMessage)(textChannel, container);
         }
         if (memberCount === 0) {
             if (!player.paused && player.playing) {
@@ -73,8 +74,8 @@ const event = {
                     await new music_1.VoiceChannelStatus(client).setPaused(player, currentTrack);
                 nowPlayingManager.onPause();
                 const responseHandler = new music_1.MusicResponseHandler(client);
-                const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
-                await (0, music_1.sendTempMessage)(textChannel, embed);
+                const container = responseHandler.createPlayerStateContainer('paused', client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
+                await (0, music_1.sendTempMessage)(textChannel, container);
             }
             const DISCONNECT_DELAY = 300000;
             const scheduledAt = Date.now();
@@ -96,8 +97,8 @@ const event = {
                         const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, currentPlayer, client);
                         await nowPlayingManager.disableButtons();
                         const responseHandler = new music_1.MusicResponseHandler(client);
-                        const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || '🔌 Disconnecting due to inactivity (5 minutes with no listeners)');
-                        await (0, msg_1.send)(client, textChannel.id, { embeds: [disconnectEmbed] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
+                        const disconnectContainer = responseHandler.createPlayerStateContainer('disconnected', client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || '🔌 Disconnecting due to inactivity (5 minutes with no listeners)');
+                        await (0, msg_1.send)(client, textChannel.id, (0, v2_1.v2)(disconnectContainer)).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
                         music_1.NowPlayingManager.removeInstance(player.guildId);
                         currentPlayer.destroy();
                         if (currentTrack)

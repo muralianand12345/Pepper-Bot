@@ -8,6 +8,7 @@ const commands_1 = require("../core/commands");
 const music_1 = require("../core/music");
 const types_1 = require("../types");
 const locales_1 = require("../core/locales");
+const v2_1 = require("../utils/v2");
 const localeDetector = new locales_1.LocaleDetector();
 const localizationManager = locales_1.LocalizationManager.getInstance();
 const helpCommand = {
@@ -31,48 +32,41 @@ const helpCommand = {
         if (specificCommand) {
             const command = client.commands.get(specificCommand);
             if (!command) {
-                const embed = responseHandler.createErrorEmbed(t('responses.help.command_not_found', { command: specificCommand }), locale);
-                return await interaction.reply({ embeds: [embed], flags: discord_js_1.default.MessageFlags.Ephemeral });
+                const container = responseHandler.createErrorContainer(t('responses.help.command_not_found', { command: specificCommand }), locale);
+                return await interaction.reply((0, v2_1.v2Ephemeral)(container));
             }
-            const commandEmbed = new discord_js_1.default.EmbedBuilder()
-                .setColor('#5865f2')
-                .setTitle(`📖 /${command.data.name}`)
-                .setDescription(command.data.description)
-                .addFields([
-                { name: t('responses.help.cooldown'), value: command.cooldown ? `${command.cooldown}s` : t('responses.help.no_cooldown'), inline: true },
-                { name: t('responses.help.permissions'), value: command.owner ? t('responses.help.owner_only') : command.userPerms ? command.userPerms.join(', ') : t('responses.help.none'), inline: true },
-            ])
-                .setFooter({ text: t('responses.help.command_footer'), iconURL: client.user?.displayAvatarURL() })
-                .setTimestamp();
-            if (command.category) {
-                const categoryInfo = types_1.COMMAND_CATEGORY_MAP[command.category];
-                const categoryName = t(`responses.help.categories.${command.category}`) !== `responses.help.categories.${command.category}` ? t(`responses.help.categories.${command.category}`) : categoryInfo.name;
-                commandEmbed.addFields([{ name: t('responses.help.category'), value: `${categoryInfo.emoji} ${categoryName}`, inline: true }]);
-            }
+            const categoryInfo = command.category ? types_1.COMMAND_CATEGORY_MAP[command.category] : null;
+            const categoryName = command.category ? (t(`responses.help.categories.${command.category}`) !== `responses.help.categories.${command.category}` ? t(`responses.help.categories.${command.category}`) : categoryInfo.name) : null;
+            const details = (0, v2_1.fields)([
+                [t('responses.help.cooldown'), command.cooldown ? `${command.cooldown}s` : t('responses.help.no_cooldown')],
+                [t('responses.help.permissions'), command.owner ? t('responses.help.owner_only') : command.userPerms ? command.userPerms.join(', ') : t('responses.help.none')],
+                categoryInfo && categoryName ? [t('responses.help.category'), `${categoryInfo.emoji} ${categoryName}`] : null,
+            ]);
             const apiData = command.data.toJSON();
-            if (apiData.options && apiData.options.length > 0) {
-                const optionsText = apiData.options.map((option) => `\`${option.name}\` - ${option.description}`).join('\n');
-                commandEmbed.addFields([{ name: t('responses.help.options'), value: optionsText.length > 1024 ? optionsText.substring(0, 1021) + '...' : optionsText, inline: false }]);
-            }
-            return await interaction.reply({ embeds: [commandEmbed] });
+            const optionsText = apiData.options?.length ? apiData.options.map((option) => `\`${option.name}\` - ${option.description}`).join('\n') : '';
+            const commandContainer = (0, v2_1.panel)(0x5865f2, {
+                title: `📖 /${command.data.name}`,
+                body: [command.data.description, details, optionsText ? `**${t('responses.help.options')}**\n${optionsText}` : ''].filter(Boolean).join('\n\n'),
+                footer: t('responses.help.command_footer'),
+                timestamp: true,
+            });
+            return await interaction.reply((0, v2_1.v2)(commandContainer));
         }
         const commands = Array.from(client.commands.values());
         const categorizedCommands = categorizeCommandsByCategory(commands);
-        const embed = new discord_js_1.default.EmbedBuilder()
-            .setColor('#5865f2')
-            .setTitle(t('responses.help.title'))
-            .setDescription(t('responses.help.description', { total: commands.length, prefix: '/' }))
-            .setThumbnail(client.user?.displayAvatarURL() || '')
-            .setFooter({ text: t('responses.help.footer'), iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp();
+        const container = (0, v2_1.panel)(0x5865f2, {
+            title: t('responses.help.title'),
+            body: t('responses.help.description', { total: commands.length, prefix: '/' }),
+            thumbnail: client.user?.displayAvatarURL() || null,
+        });
         const categoryOrder = [types_1.CommandCategory.MUSIC, types_1.CommandCategory.UTILITY, types_1.CommandCategory.OTHER];
+        const sections = [];
         categoryOrder.forEach((category) => {
             const categoryCommands = categorizedCommands[category];
             if (categoryCommands && categoryCommands.length > 0) {
                 const categoryInfo = types_1.COMMAND_CATEGORY_MAP[category];
                 const categoryName = t(`responses.help.categories.${category}`) !== `responses.help.categories.${category}` ? t(`responses.help.categories.${category}`) : categoryInfo.name;
-                const commandList = formatCommands(categoryCommands, t);
-                embed.addFields([{ name: `${categoryInfo.emoji} ${categoryName} (${categoryCommands.length})`, value: commandList, inline: false }]);
+                sections.push(`**${categoryInfo.emoji} ${categoryName} (${categoryCommands.length})**\n${formatCommands(categoryCommands, t)}`);
             }
         });
         Object.keys(categorizedCommands).forEach((categoryKey) => {
@@ -80,13 +74,14 @@ const helpCommand = {
                 const categoryCommands = categorizedCommands[categoryKey];
                 if (categoryCommands && categoryCommands.length > 0) {
                     const categoryName = categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1);
-                    const commandList = formatCommands(categoryCommands, t);
-                    embed.addFields([{ name: `📋 ${categoryName} (${categoryCommands.length})`, value: commandList, inline: false }]);
+                    sections.push(`**📋 ${categoryName} (${categoryCommands.length})**\n${formatCommands(categoryCommands, t)}`);
                 }
             }
         });
-        const supportButton = responseHandler.getSupportButton(locale);
-        await interaction.reply({ embeds: [embed], components: [supportButton] });
+        container.addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
+        container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(sections.join('\n\n')));
+        container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent((0, v2_1.subtext)(t('responses.help.footer'))));
+        await interaction.reply((0, v2_1.v2)((0, v2_1.withRows)(container, responseHandler.getSupportButton(locale))));
     },
 };
 const categorizeCommandsByCategory = (commands) => {

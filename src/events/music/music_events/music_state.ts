@@ -4,6 +4,7 @@ import { send } from '../../../utils/msg';
 import { BotEvent } from '../../../types';
 import { LocaleDetector } from '../../../core/locales';
 import { NowPlayingManager, MusicResponseHandler, sendTempMessage, VoiceChannelStatus } from '../../../core/music';
+import { v2 } from '../../../utils/v2';
 
 const localeDetector = new LocaleDetector();
 
@@ -30,8 +31,8 @@ const event: BotEvent = {
 				} catch (error) {}
 
 				const responseHandler = new MusicResponseHandler(client);
-				const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
-				await sendTempMessage(textChannel, embed, 10000);
+				const container = responseHandler.createPlayerStateContainer('disconnected', client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
+				await sendTempMessage(textChannel, container, 10000);
 			}
 			return;
 		}
@@ -63,8 +64,8 @@ const event: BotEvent = {
 			if (currentTrack) await new VoiceChannelStatus(client).setPlaying(player, currentTrack);
 			nowPlayingManager.onResume();
 			const responseHandler = new MusicResponseHandler(client);
-			const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback');
-			await sendTempMessage(textChannel, embed);
+			const container = responseHandler.createPlayerStateContainer('playing', client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback');
+			await sendTempMessage(textChannel, container);
 		}
 
 		if (memberCount === 0) {
@@ -73,8 +74,8 @@ const event: BotEvent = {
 				if (currentTrack) await new VoiceChannelStatus(client).setPaused(player, currentTrack);
 				nowPlayingManager.onPause();
 				const responseHandler = new MusicResponseHandler(client);
-				const embed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
-				await sendTempMessage(textChannel, embed);
+				const container = responseHandler.createPlayerStateContainer('paused', client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
+				await sendTempMessage(textChannel, container);
 			}
 
 			const DISCONNECT_DELAY = 300000;
@@ -100,9 +101,9 @@ const event: BotEvent = {
 						await nowPlayingManager.disableButtons();
 
 						const responseHandler = new MusicResponseHandler(client);
-						const disconnectEmbed = responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || '🔌 Disconnecting due to inactivity (5 minutes with no listeners)');
+						const disconnectContainer = responseHandler.createPlayerStateContainer('disconnected', client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || '🔌 Disconnecting due to inactivity (5 minutes with no listeners)');
 
-						await send(client, textChannel.id, { embeds: [disconnectEmbed] }).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
+						await send(client, textChannel.id, v2(disconnectContainer)).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
 						NowPlayingManager.removeInstance(player.guildId);
 
 						currentPlayer.destroy();

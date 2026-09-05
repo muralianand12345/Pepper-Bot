@@ -3,6 +3,7 @@ import discord from 'discord.js';
 import { SpotifyManager } from '../core/music';
 import { Command, CommandCategory } from '../types';
 import { LocalizationManager, LocaleDetector } from '../core/locales';
+import { v2, panel } from '../utils/v2';
 
 const localeDetector = new LocaleDetector();
 const localizationManager = LocalizationManager.getInstance();
@@ -25,17 +26,12 @@ export const logoutCommand: Command = {
 
 		if (account === 'spotify') {
 			const existingAccount = await new SpotifyManager(interaction.client).getAccount(interaction.user.id);
-			if (!existingAccount) {
-				const embed = new discord.EmbedBuilder().setColor('#FF4444').setTitle(t('responses.logout.not_logged_in.title')).setDescription(t('responses.logout.not_logged_in.description')).setTimestamp();
-				return await interaction.editReply({ embeds: [embed] });
-			}
+			if (!existingAccount) return await interaction.editReply(v2(panel(0xff4444, { title: t('responses.logout.not_logged_in.title'), body: t('responses.logout.not_logged_in.description'), timestamp: true })));
+
 			const removed = await new SpotifyManager(interaction.client).removeAccount(interaction.user.id);
-			if (!removed) {
-				const embed = new discord.EmbedBuilder().setColor('#FF4444').setTitle(t('responses.logout.disconnect_error.title')).setDescription(t('responses.logout.disconnect_error.description')).setTimestamp();
-				return await interaction.editReply({ embeds: [embed] });
-			}
-			const embed = new discord.EmbedBuilder().setColor('#1DB954').setTitle(t('responses.logout.disconnected.title')).setDescription(t('responses.logout.disconnected.description')).setTimestamp();
-			return await interaction.editReply({ embeds: [embed] });
+			if (!removed) return await interaction.editReply(v2(panel(0xff4444, { title: t('responses.logout.disconnect_error.title'), body: t('responses.logout.disconnect_error.description'), timestamp: true })));
+
+			return await interaction.editReply(v2(panel(0x1db954, { title: t('responses.logout.disconnected.title'), body: t('responses.logout.disconnected.description'), timestamp: true })));
 		}
 	},
 };

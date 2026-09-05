@@ -3,7 +3,8 @@ import magmastream from 'magmastream';
 
 import { send } from '../../utils/msg';
 import { LocaleDetector } from '../locales';
-import { MusicResponseHandler } from './handlers';
+import { MusicResponseHandler, NOW_PLAYING_COMPONENT_ID, PlayerState } from './handlers';
+import { v2, withRows } from '../../utils/v2';
 
 export class NowPlayingManager {
 	private static instances: Map<string, NowPlayingManager> = new Map();
@@ -76,9 +77,11 @@ export class NowPlayingManager {
 			}
 
 			const locale = await this.getGuildLocale();
-			const disabledButtons = new MusicResponseHandler(this.client).getMusicButton(true, locale);
+			const responseHandler = new MusicResponseHandler(this.client);
+			const currentTrack = await this.player?.queue?.getCurrent();
+			const container = await responseHandler.createMusicContainer(currentTrack ?? null, undefined, locale, 'stopped');
 
-			await currentMessage.edit({ components: [disabledButtons] });
+			await currentMessage.edit(v2(withRows(container, responseHandler.getMusicButton(true, locale))));
 			this.client.logger?.debug(`[NowPlayingManager] Disabled buttons on now playing message`);
 			return true;
 		} catch (error) {
@@ -131,6 +134,12 @@ export class NowPlayingManager {
 		});
 
 		return playerProxy;
+	};
+	
+	private currentState = (): PlayerState => {
+		if (this.stopped || this.player?.state === 'DISCONNECTED') return 'stopped';
+		if (this.player?.paused) return 'paused';
+		return this.player?.playing ? 'playing' : 'idle';
 	};
 
 	private getGuildLocale = async (): Promise<string> => {
@@ -207,13 +216,13 @@ export class NowPlayingManager {
 
 			const locale = await this.getGuildLocale();
 			const adjustedPlayer = await this.getAdjustedPlayer();
-			const embed = await new MusicResponseHandler(this.client).createMusicEmbed(currentTrack, adjustedPlayer, locale);
+			const container = await new MusicResponseHandler(this.client).createMusicContainer(currentTrack, adjustedPlayer, locale, this.currentState());
 
 			const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
 			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
 
 			if (this.message === currentMessage && currentMessage.editable) {
-				await currentMessage.edit({ embeds: [embed], components: [musicButton] });
+				await currentMessage.edit(v2(withRows(container, musicButton)));
 				this.lastUpdateTime = Date.now();
 			}
 		} catch (error) {
@@ -267,21 +276,22 @@ export class NowPlayingManager {
 			if (!channelAccessible) return this.client.logger?.warn(`[NowPlayingManager] Channel ${channel.id} not accessible, skipping update`);
 
 			const locale = await this.getGuildLocale();
-			const embed = await new MusicResponseHandler(this.client).createMusicEmbed(track, this.player, locale);
+			const container = await new MusicResponseHandler(this.client).createMusicContainer(track, this.player, locale, this.currentState());
 			const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
 			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
+			const nowPlayingPayload = v2(withRows(container, musicButton));
 			const currentMessage = this.message;
 
 			if (currentMessage) {
 				const isValid = await this.validateMessageAccess(currentMessage);
 				if (isValid && currentMessage.editable) {
 					await currentMessage
-						.edit({ embeds: [embed], components: [musicButton] })
+						.edit(nowPlayingPayload)
 						.then(() => this.client.logger?.debug(`[NowPlayingManager] Updated existing message in ${channel.name}`))
 						.catch(async (error) => {
 							this.client.logger?.warn(`[NowPlayingManager] Failed to edit message: ${error}, creating new one`);
 							this.message = null;
-							const newMessage = await send(channel.client, channel.id, { embeds: [embed], components: [musicButton] });
+							const newMessage = await send(channel.client, channel.id, nowPlayingPayload);
 							if (newMessage) this.setMessage(newMessage, false);
 						});
 				} else {
@@ -292,9 +302,8 @@ export class NowPlayingManager {
 			if (!this.message) {
 				try {
 					const messages = await channel.messages.fetch({ limit: 10 }).catch(() => new discord.Collection<string, discord.Message>());
-					const nowPlayingTranslation = this.client.localizationManager?.translate('responses.music.now_playing', locale) || 'Now Playing';
 					const botMessages = messages.filter((m: discord.Message) => {
-						return m.author.id === this.client.user?.id && m.embeds.length > 0 && (m.embeds[0].title === 'Now Playing' || m.embeds[0].title === nowPlayingTranslation);
+						return m.author.id === this.client.user?.id && m.components.some((component) => component.id === NOW_PLAYING_COMPONENT_ID);
 					});
 					const deletePromises: Promise<void>[] = [];
 					for (const [_, msg] of botMessages) {
@@ -311,7 +320,7 @@ export class NowPlayingManager {
 				}
 
 				try {
-					const newMessage = await send(channel.client, channel.id, { embeds: [embed], components: [musicButton] });
+					const newMessage = await send(channel.client, channel.id, nowPlayingPayload);
 					if (newMessage) this.setMessage(newMessage, false);
 					this.client.logger?.debug(`[NowPlayingManager] Created new message in ${channel.name}`);
 				} catch (error) {

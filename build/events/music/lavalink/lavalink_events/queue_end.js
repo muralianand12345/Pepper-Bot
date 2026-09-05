@@ -8,10 +8,11 @@ const magmastream_1 = require("magmastream");
 const msg_1 = require("../../../../utils/msg");
 const locales_1 = require("../../../../core/locales");
 const music_1 = require("../../../../core/music");
+const v2_1 = require("../../../../utils/v2");
 const localeDetector = new locales_1.LocaleDetector();
-const createQueueEndEmbed = (client, locale = 'en') => {
+const createQueueEndContainer = (client, locale = 'en') => {
     const responseHandler = new music_1.MusicResponseHandler(client);
-    return responseHandler.createInfoEmbed(client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue');
+    return responseHandler.createPlayerStateContainer('idle', client.localizationManager?.translate('responses.music.queue_empty', locale) || '🎵 Played all music in queue');
 };
 const validateChannelAccess = async (client, channelId) => {
     try {
@@ -62,8 +63,8 @@ const validateChannelAccess = async (client, channelId) => {
 };
 const sendQueueEndMessage = async (client, channel, locale) => {
     try {
-        const queueEndEmbed = createQueueEndEmbed(client, locale);
-        await (0, msg_1.send)(client, channel.id, { embeds: [queueEndEmbed] });
+        const queueEndContainer = createQueueEndContainer(client, locale);
+        await (0, msg_1.send)(client, channel.id, (0, v2_1.v2)(queueEndContainer));
         client.logger.debug(`[QUEUE_END] Queue end message sent for guild ${channel.guild.id}`);
     }
     catch (error) {

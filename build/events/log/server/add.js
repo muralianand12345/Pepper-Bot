@@ -4,8 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
-const msg_1 = require("../../../utils/msg");
+const webhook_1 = require("../../../utils/webhook");
 const shard_1 = require("../../../utils/shard");
+const v2_1 = require("../../../utils/v2");
 const truncateText = (text, maxLength = 100) => {
     if (!text)
         return 'Unknown';
@@ -20,30 +21,23 @@ const event = {
             client.logger.info(`[SERVER_JOIN] Joined ${guildName} (${guildId})`);
             (0, shard_1.invalidateStatsCache)();
             const totalGuilds = await (0, shard_1.getGlobalGuildCount)(client);
-            const embed = new discord_js_1.default.EmbedBuilder()
-                .setTitle('New Server Joined')
-                .setDescription(`I have joined **${guildName}** (${guildId}). Now in **${totalGuilds.toLocaleString()}** servers.`)
-                .setColor('#00ff00')
-                .setFooter({ text: `Now in ${totalGuilds.toLocaleString()} servers` })
-                .setTimestamp();
-            if (guild.name)
-                embed.setAuthor({ name: truncateText(guild.name, 256), iconURL: guild.iconURL({ size: 128 }) || undefined });
-            if (guild.iconURL())
-                embed.setThumbnail(guild.iconURL({ size: 256 }));
-            const fields = [];
-            if (guild.memberCount !== undefined && guild.memberCount !== null)
-                fields.push({ name: 'Members', value: guild.memberCount.toString(), inline: true });
-            if (guild.ownerId)
-                fields.push({ name: 'Owner', value: `<@${guild.ownerId}>`, inline: true });
-            if (guild.createdAt)
-                fields.push({ name: 'Created', value: `<t:${Math.floor(guild.createdAt.getTime() / 1000)}:D>`, inline: true });
-            if (fields.length > 0)
-                embed.addFields(fields);
+            const details = (0, v2_1.fields)([
+                guild.memberCount !== undefined && guild.memberCount !== null ? ['Members', guild.memberCount.toString()] : null,
+                guild.ownerId ? ['Owner', `<@${guild.ownerId}>`] : null,
+                guild.createdAt ? ['Created', `<t:${Math.floor(guild.createdAt.getTime() / 1000)}:D>`] : null,
+            ]);
+            const container = (0, v2_1.panel)(0x00ff00, {
+                title: 'New Server Joined',
+                body: [`I have joined **${guildName}** (${guildId}).`, details].filter(Boolean).join('\n\n'),
+                thumbnail: guild.iconURL({ size: 256 }),
+                footer: `Now in ${totalGuilds.toLocaleString()} servers`,
+                timestamp: true,
+            });
             try {
                 const logChannelId = client.config?.bot?.log?.server;
                 if (!logChannelId)
                     return client.logger.warn(`[SERVER_JOIN] No log channel configured`);
-                await (0, msg_1.send)(client, logChannelId.toString(), { embeds: [embed] });
+                await (0, webhook_1.sendChannelWebhook)(client, logChannelId.toString(), { ...(0, v2_1.v2Webhook)(container), username: `${client.user?.username || 'Pepper'} Logs`, avatarURL: client.user?.displayAvatarURL() });
                 client.logger.debug(`[SERVER_JOIN] Log message sent successfully`);
             }
             catch (logError) {
