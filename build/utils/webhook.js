@@ -60,8 +60,9 @@ const getChannelWebhook = async (client, channelId) => {
 exports.getChannelWebhook = getChannelWebhook;
 const sendChannelWebhook = async (client, channelId, payload) => {
     const webhook = await (0, exports.getChannelWebhook)(client, channelId);
+    const silent = { allowedMentions: { parse: [] }, ...payload };
     if (webhook) {
-        const sent = await webhook.send(payload).then(() => true, (error) => {
+        const sent = await webhook.send(silent).then(() => true, (error) => {
             if (error instanceof discord_js_1.default.DiscordAPIError && error.code === 10015)
                 resolved.delete(channelId);
             client.logger?.warn(`[WEBHOOK] Failed to send via webhook for channel ${channelId}: ${error}`);
@@ -70,7 +71,7 @@ const sendChannelWebhook = async (client, channelId, payload) => {
         if (sent)
             return true;
     }
-    const { username: _username, avatarURL: _avatarURL, threadName: _threadName, withComponents: _withComponents, ...message } = payload;
+    const { username: _username, avatarURL: _avatarURL, threadName: _threadName, withComponents: _withComponents, ...message } = silent;
     return (0, msg_1.send)(client, channelId, message).then((sent) => sent !== null);
 };
 exports.sendChannelWebhook = sendChannelWebhook;

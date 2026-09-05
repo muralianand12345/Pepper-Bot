@@ -2,11 +2,13 @@ import discord from 'discord.js';
 import magmastream, { Node, Player } from 'magmastream';
 
 import { remainingCooldown } from './failure_guard';
+import { canRetryStuck, refreshStream } from './stream_refresh';
 
 let applied = false;
 
 type TrackStart = (player: magmastream.Player, track: magmastream.Track | null, payload: magmastream.TrackStartEvent) => void;
 type Play = (...args: unknown[]) => Promise<unknown>;
+type TrackStuck = (player: magmastream.Player, track: magmastream.Track | null, payload: magmastream.TrackStuckEvent) => Promise<void>;
 
 const patchTrackStart = (client: discord.Client): boolean => {
 	const proto = (Node as unknown as { prototype?: Record<string, unknown> })?.prototype;
@@ -20,6 +22,23 @@ const patchTrackStart = (client: discord.Client): boolean => {
 		}
 		return original.call(this, player, track, payload);
 	} as TrackStart;
+
+	return true;
+};
+
+const patchTrackStuck = (client: discord.Client): boolean => {
+	const proto = (Node as unknown as { prototype?: Record<string, unknown> })?.prototype;
+	const original = proto?.trackStuck as TrackStuck | undefined;
+	if (typeof original !== 'function') return false;
+
+	proto!.trackStuck = async function (this: unknown, player: magmastream.Player, track: magmastream.Track | null, payload: magmastream.TrackStuckEvent) {
+		if (track && player?.guildId && canRetryStuck(player.guildId, track)) {
+			client.logger?.warn(`[PATCH] Track ${track.title ?? 'Unknown'} stalled for ${payload?.thresholdMs ?? 'unknown'}ms in guild ${player.guildId}; retrying it on a fresh stream before skipping`);
+			const refreshed = await refreshStream(player, client, 'recovering from a stalled stream');
+			if (refreshed) return;
+		}
+		return original.call(this, player, track, payload);
+	} as TrackStuck;
 
 	return true;
 };
@@ -47,6 +66,7 @@ export const applyMagmastreamPatches = (client: discord.Client): void => {
 
 	const results = [
 		['trackStart null-track guard', patchTrackStart(client)],
+		['trackStuck stream refresh', patchTrackStuck(client)],
 		['play failure cooldown', patchPlayCooldown(client)],
 	] as const;
 

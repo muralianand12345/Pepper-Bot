@@ -6,7 +6,7 @@ import Formatter from '../../../../utils/format';
 import { LavalinkEvent } from '../../../../types';
 import { ConfigManager } from '../../../../utils/config';
 import { LocaleDetector } from '../../../../core/locales';
-import { wait, MusicDB, NowPlayingManager, ActivityCheckManager, getRequester, isBotRequester, VoiceChannelStatus, MusicResponseHandler, clearFailures } from '../../../../core/music';
+import { wait, MusicDB, NowPlayingManager, ActivityCheckManager, getRequester, isBotRequester, VoiceChannelStatus, MusicResponseHandler, clearFailures, consumeStreamRefresh } from '../../../../core/music';
 import { v2, v2Webhook, panel, fields } from '../../../../utils/v2';
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
@@ -89,6 +89,11 @@ const lavalinkEvent: LavalinkEvent = {
 	execute: async (player: magmastream.Player, track: magmastream.Track, payload: magmastream.TrackStartEvent, client: discord.Client) => {
 		try {
 			if (!player?.guildId || !track) return client.logger.warn('[TRACK_START] Missing player or track');
+			if (consumeStreamRefresh(player.guildId, track)) {
+				clearFailures(player.guildId);
+				await new VoiceChannelStatus(client).setPlaying(player, track);
+				return client.logger.info(`[TRACK_START] Stream refreshed in place for ${track.title} in guild ${player.guildId}`);
+			}
 
 			const channel = client.channels.cache.get(String(player.textChannelId)) as discord.TextChannel;
 			if (!channel) return client.logger.warn(`[TRACK_START] Text channel not found for guild ${player.guildId}`);

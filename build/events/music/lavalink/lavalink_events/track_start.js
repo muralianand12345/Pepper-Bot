@@ -88,6 +88,11 @@ const lavalinkEvent = {
         try {
             if (!player?.guildId || !track)
                 return client.logger.warn('[TRACK_START] Missing player or track');
+            if ((0, music_1.consumeStreamRefresh)(player.guildId, track)) {
+                (0, music_1.clearFailures)(player.guildId);
+                await new music_1.VoiceChannelStatus(client).setPlaying(player, track);
+                return client.logger.info(`[TRACK_START] Stream refreshed in place for ${track.title} in guild ${player.guildId}`);
+            }
             const channel = client.channels.cache.get(String(player.textChannelId));
             if (!channel)
                 return client.logger.warn(`[TRACK_START] Text channel not found for guild ${player.guildId}`);

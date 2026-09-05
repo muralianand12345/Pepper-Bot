@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.applyMagmastreamPatches = void 0;
 const magmastream_1 = require("magmastream");
 const failure_guard_1 = require("./failure_guard");
+const stream_refresh_1 = require("./stream_refresh");
 let applied = false;
 const patchTrackStart = (client) => {
     const proto = magmastream_1.Node?.prototype;
@@ -13,6 +14,22 @@ const patchTrackStart = (client) => {
         if (!track) {
             client.logger?.debug(`[PATCH] Dropped TrackStartEvent with no current track for guild ${player?.guildId ?? 'unknown'} (player torn down mid-event)`);
             return;
+        }
+        return original.call(this, player, track, payload);
+    };
+    return true;
+};
+const patchTrackStuck = (client) => {
+    const proto = magmastream_1.Node?.prototype;
+    const original = proto?.trackStuck;
+    if (typeof original !== 'function')
+        return false;
+    proto.trackStuck = async function (player, track, payload) {
+        if (track && player?.guildId && (0, stream_refresh_1.canRetryStuck)(player.guildId, track)) {
+            client.logger?.warn(`[PATCH] Track ${track.title ?? 'Unknown'} stalled for ${payload?.thresholdMs ?? 'unknown'}ms in guild ${player.guildId}; retrying it on a fresh stream before skipping`);
+            const refreshed = await (0, stream_refresh_1.refreshStream)(player, client, 'recovering from a stalled stream');
+            if (refreshed)
+                return;
         }
         return original.call(this, player, track, payload);
     };
@@ -39,6 +56,7 @@ const applyMagmastreamPatches = (client) => {
     applied = true;
     const results = [
         ['trackStart null-track guard', patchTrackStart(client)],
+        ['trackStuck stream refresh', patchTrackStuck(client)],
         ['play failure cooldown', patchPlayCooldown(client)],
     ];
     for (const [name, ok] of results) {

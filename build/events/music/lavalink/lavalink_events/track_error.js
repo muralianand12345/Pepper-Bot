@@ -17,8 +17,6 @@ const lavalinkEvent = {
             const textChannel = client.channels.cache.get(String(player.textChannelId));
             const locale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
             if (failure.tripped) {
-                // The source is refusing everything; walking the rest of the queue would just
-                // burn requests to reach the same result.
                 client.logger.warn(`[LAVALINK] Abandoning queue for guild ${player.guildId} after ${failure.count} consecutive failures`);
                 if (textChannel?.isTextBased()) {
                     const message = client.localizationManager?.translate('responses.errors.play_error', locale) || 'An error occurred while processing the song';

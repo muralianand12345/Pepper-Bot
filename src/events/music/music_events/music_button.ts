@@ -26,11 +26,9 @@ const handleMusicButtonAction = async (interaction: discord.ButtonInteraction, c
 		switch (interaction.customId) {
 			case 'pause-music':
 				await music.pause();
-				if (nowPlayingManager) nowPlayingManager.onPause();
 				break;
 			case 'resume-music':
 				await music.resume();
-				if (nowPlayingManager) nowPlayingManager.onResume();
 				break;
 			case 'skip-music':
 				await music.skip();

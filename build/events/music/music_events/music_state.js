@@ -59,7 +59,11 @@ const event = {
         catch (error) { }
         const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, player, client);
         if (memberCount === 1 && player.paused) {
-            player.pause(false);
+            const streamWentStale = (0, music_1.isStreamStale)(player.guildId);
+            await player.pause(false);
+            (0, music_1.clearPaused)(player.guildId);
+            if (streamWentStale)
+                await (0, music_1.refreshStream)(player, client, 'resumed when a listener rejoined');
             if (currentTrack)
                 await new music_1.VoiceChannelStatus(client).setPlaying(player, currentTrack);
             nowPlayingManager.onResume();
@@ -69,7 +73,8 @@ const event = {
         }
         if (memberCount === 0) {
             if (!player.paused && player.playing) {
-                player.pause(true);
+                await player.pause(true);
+                (0, music_1.markPaused)(player.guildId);
                 if (currentTrack)
                     await new music_1.VoiceChannelStatus(client).setPaused(player, currentTrack);
                 nowPlayingManager.onPause();
