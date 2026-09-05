@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import magmastream, { TrackUtils } from 'magmastream';
+import magmastream, { Filters, TrackUtils } from 'magmastream';
 
 import { Lyrics } from './lyrics';
 import { getRequester } from './func';
@@ -7,11 +7,14 @@ import Formatter from '../../utils/format';
 import { LocaleDetector } from '../locales';
 import { checkUserPremium } from '../commands/premium';
 import { ProgressBarUtils, VoiceChannelStatus } from './utils';
+import { clearFailures } from './failure_guard';
 import music_guild from '../../events/database/schema/music_guild';
 import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator } from './handlers';
 import { v2, v2Ephemeral, withRows, subtext, panel } from '../../utils/v2';
 
 export * from './func';
+export * from './patches';
+export * from './failure_guard';
 export * from './repo';
 export * from './utils';
 export * from './search';
@@ -109,6 +112,9 @@ export class Music {
 	};
 
 	private startPlayback = async (player: magmastream.Player): Promise<void> => {
+		// An explicit request is a fresh start; don't make the user sit out a backoff
+		// earned by whatever failed before it.
+		clearFailures(player.guildId);
 		if (player.paused) await player.pause(false);
 		await player.play();
 	};
@@ -138,6 +144,26 @@ export class Music {
 		}
 	};
 
+	/**
+	 * Waits for Discord to acknowledge the voice state we just sent.
+	 *
+	 * `player.connect()` only pushes a voice state update onto the shard socket; nothing
+	 * confirms it landed. If it never does, Lavalink accepts the track but has no voice
+	 * connection to play it over, and emits neither TrackStart nor an error — the queue
+	 * fills up and the bot sits silent. Better to fail loudly here.
+	 */
+	private awaitVoiceConnection = async (player: magmastream.Player, voiceChannelId: string, timeoutMs: number = 8000): Promise<boolean> => {
+		const deadline = Date.now() + timeoutMs;
+
+		while (Date.now() < deadline) {
+			const botVoiceChannelId = this.client.guilds.cache.get(player.guildId)?.members?.me?.voice?.channelId;
+			if (botVoiceChannelId === voiceChannelId && player.state === 'CONNECTED') return true;
+			await new Promise((resolve) => setTimeout(resolve, 250));
+		}
+
+		return false;
+	};
+
 	private ensureVoiceConnection = async (player: magmastream.Player, voiceChannelId: string): Promise<boolean> => {
 		try {
 			if (player.voiceChannelId !== voiceChannelId) {
@@ -146,6 +172,14 @@ export class Music {
 			}
 			player.connect();
 			if (player.paused) await player.pause(false);
+
+			const connected = await this.awaitVoiceConnection(player, voiceChannelId);
+			if (!connected) {
+				this.client.logger.error(`[MUSIC] Voice connection for guild ${player.guildId} never reached CONNECTED (player state: ${player.state}, bot channel: ${this.client.guilds.cache.get(player.guildId)?.members?.me?.voice?.channelId ?? 'none'})`);
+				return false;
+			}
+
+			this.client.logger.debug(`[MUSIC] Voice connection established for guild ${player.guildId} in channel ${voiceChannelId}`);
 			return true;
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Failed to connect player for guild ${player.guildId}: ${error}`);
@@ -169,7 +203,9 @@ export class Music {
 				const wasIdle = !player.playing && !(await player.queue.getCurrent());
 				await player.queue.add(track);
 				const queueSize = await player.queue.size();
+				this.client.logger.info(`[MUSIC] Queued "${track.title}" for guild ${player.guildId} (idle: ${wasIdle}, playing: ${player.playing}, state: ${player.state})`);
 				if (wasIdle) await this.startPlayback(player);
+				else this.client.logger.warn(`[MUSIC] Not starting playback for guild ${player.guildId} — player reports it is already active`);
 				await this.interaction.editReply(v2(responseHandler.createTrackContainer(track, queueSize, this.locale)));
 				break;
 			}
@@ -183,7 +219,9 @@ export class Music {
 				const wasIdle = !player.playing && !(await player.queue.getCurrent());
 				await player.queue.add(limitedPlaylist.tracks);
 
+				this.client.logger.info(`[MUSIC] Queued ${limitedPlaylist.tracks.length} playlist tracks for guild ${player.guildId} (idle: ${wasIdle}, playing: ${player.playing}, state: ${player.state})`);
 				if (wasIdle) await this.startPlayback(player);
+				else this.client.logger.warn(`[MUSIC] Not starting playback for guild ${player.guildId} — player reports it is already active`);
 
 				const container = responseHandler.createPlaylistContainer(limitedPlaylist, this.interaction.user, this.locale);
 				if (wasTruncated) {
@@ -487,7 +525,7 @@ export class Music {
 			let success = false;
 
 			if (!player.filters) {
-				player.filters = new magmastream.Filters(player, this.client.manager);
+				player.filters = new Filters(player, this.client.manager);
 			}
 
 			switch (filterName) {

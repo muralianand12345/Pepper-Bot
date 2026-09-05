@@ -6,7 +6,7 @@ import Formatter from '../../../../utils/format';
 import { LavalinkEvent } from '../../../../types';
 import { ConfigManager } from '../../../../utils/config';
 import { LocaleDetector } from '../../../../core/locales';
-import { wait, MusicDB, NowPlayingManager, ActivityCheckManager, getRequester, isBotRequester, VoiceChannelStatus, MusicResponseHandler } from '../../../../core/music';
+import { wait, MusicDB, NowPlayingManager, ActivityCheckManager, getRequester, isBotRequester, VoiceChannelStatus, MusicResponseHandler, clearFailures } from '../../../../core/music';
 import { v2, v2Webhook, panel, fields } from '../../../../utils/v2';
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
@@ -102,6 +102,8 @@ const lavalinkEvent: LavalinkEvent = {
 
 			const voiceStatus = new VoiceChannelStatus(client);
 			await voiceStatus.setPlaying(player, track);
+
+			clearFailures(player.guildId);
 
 			const requesterData = track.requester ? getRequester(client, track.requester) : null;
 			if (YTREGEX.test(track.uri)) {

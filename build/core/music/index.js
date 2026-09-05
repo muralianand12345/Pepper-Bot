@@ -10,28 +10,6 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
 }));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
@@ -41,17 +19,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Music = exports.MUSIC_CONFIG = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
-const magmastream_1 = __importStar(require("magmastream"));
+const magmastream_1 = require("magmastream");
 const lyrics_1 = require("./lyrics");
 const func_1 = require("./func");
 const format_1 = __importDefault(require("../../utils/format"));
 const locales_1 = require("../locales");
 const premium_1 = require("../commands/premium");
 const utils_1 = require("./utils");
+const failure_guard_1 = require("./failure_guard");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
 const handlers_1 = require("./handlers");
 const v2_1 = require("../../utils/v2");
 __exportStar(require("./func"), exports);
+__exportStar(require("./patches"), exports);
+__exportStar(require("./failure_guard"), exports);
 __exportStar(require("./repo"), exports);
 __exportStar(require("./utils"), exports);
 __exportStar(require("./search"), exports);
@@ -134,6 +115,9 @@ class Music {
             };
         };
         this.startPlayback = async (player) => {
+            // An explicit request is a fresh start; don't make the user sit out a backoff
+            // earned by whatever failed before it.
+            (0, failure_guard_1.clearFailures)(player.guildId);
             if (player.paused)
                 await player.pause(false);
             await player.play();
@@ -163,6 +147,24 @@ class Music {
                 this.client.logger.warn(`[MUSIC] Failed to clear orphaned queue state for guild ${player.guildId}: ${error}`);
             }
         };
+        /**
+         * Waits for Discord to acknowledge the voice state we just sent.
+         *
+         * `player.connect()` only pushes a voice state update onto the shard socket; nothing
+         * confirms it landed. If it never does, Lavalink accepts the track but has no voice
+         * connection to play it over, and emits neither TrackStart nor an error — the queue
+         * fills up and the bot sits silent. Better to fail loudly here.
+         */
+        this.awaitVoiceConnection = async (player, voiceChannelId, timeoutMs = 8000) => {
+            const deadline = Date.now() + timeoutMs;
+            while (Date.now() < deadline) {
+                const botVoiceChannelId = this.client.guilds.cache.get(player.guildId)?.members?.me?.voice?.channelId;
+                if (botVoiceChannelId === voiceChannelId && player.state === 'CONNECTED')
+                    return true;
+                await new Promise((resolve) => setTimeout(resolve, 250));
+            }
+            return false;
+        };
         this.ensureVoiceConnection = async (player, voiceChannelId) => {
             try {
                 if (player.voiceChannelId !== voiceChannelId) {
@@ -172,6 +174,12 @@ class Music {
                 player.connect();
                 if (player.paused)
                     await player.pause(false);
+                const connected = await this.awaitVoiceConnection(player, voiceChannelId);
+                if (!connected) {
+                    this.client.logger.error(`[MUSIC] Voice connection for guild ${player.guildId} never reached CONNECTED (player state: ${player.state}, bot channel: ${this.client.guilds.cache.get(player.guildId)?.members?.me?.voice?.channelId ?? 'none'})`);
+                    return false;
+                }
+                this.client.logger.debug(`[MUSIC] Voice connection established for guild ${player.guildId} in channel ${voiceChannelId}`);
                 return true;
             }
             catch (error) {
@@ -195,8 +203,11 @@ class Music {
                     const wasIdle = !player.playing && !(await player.queue.getCurrent());
                     await player.queue.add(track);
                     const queueSize = await player.queue.size();
+                    this.client.logger.info(`[MUSIC] Queued "${track.title}" for guild ${player.guildId} (idle: ${wasIdle}, playing: ${player.playing}, state: ${player.state})`);
                     if (wasIdle)
                         await this.startPlayback(player);
+                    else
+                        this.client.logger.warn(`[MUSIC] Not starting playback for guild ${player.guildId} — player reports it is already active`);
                     await this.interaction.editReply((0, v2_1.v2)(responseHandler.createTrackContainer(track, queueSize, this.locale)));
                     break;
                 }
@@ -209,8 +220,11 @@ class Music {
                     const wasTruncated = limitedPlaylist.tracks.length < originalLength;
                     const wasIdle = !player.playing && !(await player.queue.getCurrent());
                     await player.queue.add(limitedPlaylist.tracks);
+                    this.client.logger.info(`[MUSIC] Queued ${limitedPlaylist.tracks.length} playlist tracks for guild ${player.guildId} (idle: ${wasIdle}, playing: ${player.playing}, state: ${player.state})`);
                     if (wasIdle)
                         await this.startPlayback(player);
+                    else
+                        this.client.logger.warn(`[MUSIC] Not starting playback for guild ${player.guildId} — player reports it is already active`);
                     const container = responseHandler.createPlaylistContainer(limitedPlaylist, this.interaction.user, this.locale);
                     if (wasTruncated) {
                         container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent((0, v2_1.subtext)(this.t('responses.music.playlist_truncated', { added: limitedPlaylist.tracks.length, total: originalLength }))));
@@ -492,7 +506,7 @@ class Music {
                 }
                 let success = false;
                 if (!player.filters) {
-                    player.filters = new magmastream_1.default.Filters(player, this.client.manager);
+                    player.filters = new magmastream_1.Filters(player, this.client.manager);
                 }
                 switch (filterName) {
                     case 'clear':

@@ -100,6 +100,7 @@ const lavalinkEvent = {
             }
             const voiceStatus = new music_1.VoiceChannelStatus(client);
             await voiceStatus.setPlaying(player, track);
+            (0, music_1.clearFailures)(player.guildId);
             const requesterData = track.requester ? (0, music_1.getRequester)(client, track.requester) : null;
             if (YTREGEX.test(track.uri)) {
                 const queueSize = await player.queue.size();

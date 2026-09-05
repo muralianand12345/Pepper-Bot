@@ -12,10 +12,23 @@ const lavalinkEvent = {
                 return;
             const exception = payload?.exception;
             client.logger.error(`[LAVALINK] Track ${track?.title || 'Unknown'} (${track?.uri || 'no uri'}) failed on node ${player.node.options.identifier} in guild ${player.guildId}: ${exception?.message || 'no message'} | severity: ${exception?.severity || 'unknown'} | cause: ${exception?.cause || 'unknown'}`);
+            const failure = (0, music_1.recordFailure)(player.guildId);
+            client.logger.warn(`[LAVALINK] Playback failure ${failure.count}/${music_1.FAILURE_LIMIT} for guild ${player.guildId}; next attempt held for ${failure.backoffMs}ms`);
             const textChannel = client.channels.cache.get(String(player.textChannelId));
+            const locale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
+            if (failure.tripped) {
+                // The source is refusing everything; walking the rest of the queue would just
+                // burn requests to reach the same result.
+                client.logger.warn(`[LAVALINK] Abandoning queue for guild ${player.guildId} after ${failure.count} consecutive failures`);
+                if (textChannel?.isTextBased()) {
+                    const message = client.localizationManager?.translate('responses.errors.play_error', locale) || 'An error occurred while processing the song';
+                    await (0, music_1.sendTempMessage)(textChannel, new music_1.MusicResponseHandler(client).createPlayerStateContainer('stopped', message, `Stopped after ${failure.count} tracks failed in a row.`), 30000);
+                }
+                await (0, music_1.abandonQueue)(player, client);
+                return;
+            }
             if (!textChannel?.isTextBased())
                 return;
-            const locale = (await localeDetector.getGuildLanguage(player.guildId)) || 'en';
             const message = client.localizationManager?.translate('responses.errors.play_error', locale) || 'An error occurred while processing the song';
             await (0, music_1.sendTempMessage)(textChannel, new music_1.MusicResponseHandler(client).createErrorContainer(message, locale), 15000);
         }
