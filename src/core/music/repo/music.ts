@@ -2,6 +2,7 @@ import client from '../../../pepper';
 import music_user from '../../../events/database/schema/music_user';
 import music_guild from '../../../events/database/schema/music_guild';
 import { IMusicUser, IMusicGuild, ISongs, ChartAnalytics } from '../../../types';
+import { playtimeSum } from './playtime';
 
 export class MusicDB {
 	private static isGuildData = (data: IMusicUser | IMusicGuild): data is IMusicGuild => {
@@ -124,7 +125,7 @@ export class MusicDB {
 						_id: null,
 						totalSongs: { $sum: 1 },
 						uniqueArtists: { $addToSet: { $toLower: '$songs.author' } },
-						totalPlaytime: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } },
+						totalPlaytime: playtimeSum('$songs.duration', '$songs.played_number'),
 						totalPlays: { $sum: '$songs.played_number' },
 						recentActivity: { $sum: { $cond: [{ $gte: ['$songs.timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] }, 1, 0] } },
 					},
@@ -162,7 +163,7 @@ export class MusicDB {
 						_id: null,
 						totalSongs: { $sum: 1 },
 						uniqueArtists: { $addToSet: { $toLower: '$songs.author' } },
-						totalPlaytime: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } },
+						totalPlaytime: playtimeSum('$songs.duration', '$songs.played_number'),
 						totalPlays: { $sum: '$songs.played_number' },
 						recentActivity: { $sum: { $cond: [{ $gte: ['$songs.timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] }, 1, 0] } },
 					},
@@ -209,7 +210,7 @@ export class MusicDB {
 						_id: null,
 						totalSongs: { $sum: 1 },
 						uniqueArtists: { $addToSet: { $toLower: '$author' } },
-						totalPlaytime: { $sum: { $multiply: ['$duration', '$played_number'] } },
+						totalPlaytime: playtimeSum('$duration', '$played_number'),
 						totalPlays: { $sum: '$played_number' },
 						recentActivity: { $sum: { $cond: [{ $gte: ['$timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] }, 1, 0] } },
 					},

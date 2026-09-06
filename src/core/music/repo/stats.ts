@@ -4,6 +4,7 @@ import client from '../../../pepper';
 import music_user from '../../../events/database/schema/music_user';
 import music_guild from '../../../events/database/schema/music_guild';
 import { StatsOverview, StatsPlaytime, StatsServerInsight, StatsTopRequester } from '../../../types';
+import { playtimeSum } from './playtime';
 
 const CACHE_TTL = 60 * 1000;
 
@@ -64,7 +65,7 @@ export class StatsDB {
 									uniqueSongs: { $sum: 1 },
 									totalPlays: { $sum: '$plays' },
 									uniqueArtists: { $addToSet: { $toLower: '$author' } },
-									estimatedPlaytimeMs: { $sum: { $multiply: ['$duration', '$plays'] } },
+									estimatedPlaytimeMs: playtimeSum('$duration', '$plays'),
 									songsLastPlayed24h: { $sum: { $cond: [{ $gte: ['$lastPlayedAt', day] }, 1, 0] } },
 									songsLastPlayed7d: { $sum: { $cond: [{ $gte: ['$lastPlayedAt', week] }, 1, 0] } },
 									lastPlayedAt: { $max: '$lastPlayedAt' },
@@ -102,7 +103,7 @@ export class StatsDB {
 								totalPlays: { $sum: '$songs.played_number' },
 								uniqueSongs: { $sum: 1 },
 								uniqueArtists: { $addToSet: { $toLower: '$songs.author' } },
-								estimatedPlaytimeMs: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } },
+								estimatedPlaytimeMs: playtimeSum('$songs.duration', '$songs.played_number'),
 								lastPlayedAt: { $max: '$songs.timestamp' },
 							},
 						},
@@ -128,7 +129,7 @@ export class StatsDB {
 					.aggregate([
 						{ $unwind: '$songs' },
 						{ $match: { 'songs.played_number': { $gt: 0 } } },
-						{ $group: { _id: '$guildId', estimatedPlaytimeMs: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } }, totalPlays: { $sum: '$songs.played_number' }, uniqueSongs: { $sum: 1 } } },
+						{ $group: { _id: '$guildId', estimatedPlaytimeMs: playtimeSum('$songs.duration', '$songs.played_number'), totalPlays: { $sum: '$songs.played_number' }, uniqueSongs: { $sum: 1 } } },
 						{
 							$facet: {
 								totals: [{ $group: { _id: null, estimatedPlaytimeMs: { $sum: '$estimatedPlaytimeMs' }, totalPlays: { $sum: '$totalPlays' }, trackedGuilds: { $sum: 1 } } }],
@@ -158,7 +159,7 @@ export class StatsDB {
 				uniqueSongs: { $sum: 1 },
 				uniqueArtists: { $addToSet: { $toLower: '$songs.author' } },
 				sources: { $addToSet: '$songs.sourceName' },
-				estimatedPlaytimeMs: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } },
+				estimatedPlaytimeMs: playtimeSum('$songs.duration', '$songs.played_number'),
 				lastPlayedAt: { $max: '$songs.timestamp' },
 				topSong: {
 					$top: {

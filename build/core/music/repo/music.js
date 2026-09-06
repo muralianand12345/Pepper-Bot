@@ -8,6 +8,7 @@ exports.MusicDB = void 0;
 const pepper_1 = __importDefault(require("../../../pepper"));
 const music_user_1 = __importDefault(require("../../../events/database/schema/music_user"));
 const music_guild_1 = __importDefault(require("../../../events/database/schema/music_guild"));
+const playtime_1 = require("./playtime");
 class MusicDB {
 }
 exports.MusicDB = MusicDB;
@@ -139,7 +140,7 @@ MusicDB.getUserMusicAnalytics = async (userId) => {
                     _id: null,
                     totalSongs: { $sum: 1 },
                     uniqueArtists: { $addToSet: { $toLower: '$songs.author' } },
-                    totalPlaytime: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } },
+                    totalPlaytime: (0, playtime_1.playtimeSum)('$songs.duration', '$songs.played_number'),
                     totalPlays: { $sum: '$songs.played_number' },
                     recentActivity: { $sum: { $cond: [{ $gte: ['$songs.timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] }, 1, 0] } },
                 },
@@ -178,7 +179,7 @@ MusicDB.getGuildMusicAnalytics = async (guildId) => {
                     _id: null,
                     totalSongs: { $sum: 1 },
                     uniqueArtists: { $addToSet: { $toLower: '$songs.author' } },
-                    totalPlaytime: { $sum: { $multiply: ['$songs.duration', '$songs.played_number'] } },
+                    totalPlaytime: (0, playtime_1.playtimeSum)('$songs.duration', '$songs.played_number'),
                     totalPlays: { $sum: '$songs.played_number' },
                     recentActivity: { $sum: { $cond: [{ $gte: ['$songs.timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] }, 1, 0] } },
                 },
@@ -224,7 +225,7 @@ MusicDB.getGlobalMusicAnalytics = async () => {
                     _id: null,
                     totalSongs: { $sum: 1 },
                     uniqueArtists: { $addToSet: { $toLower: '$author' } },
-                    totalPlaytime: { $sum: { $multiply: ['$duration', '$played_number'] } },
+                    totalPlaytime: (0, playtime_1.playtimeSum)('$duration', '$played_number'),
                     totalPlays: { $sum: '$played_number' },
                     recentActivity: { $sum: { $cond: [{ $gte: ['$timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] }, 1, 0] } },
                 },
