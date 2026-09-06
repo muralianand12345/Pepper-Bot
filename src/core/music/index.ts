@@ -115,8 +115,6 @@ export class Music {
 	};
 
 	private startPlayback = async (player: magmastream.Player): Promise<void> => {
-		// An explicit request is a fresh start; don't make the user sit out a backoff
-		// earned by whatever failed before it.
 		clearFailures(player.guildId);
 		if (player.paused) await player.pause(false);
 		await player.play();
@@ -147,14 +145,6 @@ export class Music {
 		}
 	};
 
-	/**
-	 * Waits for Discord to acknowledge the voice state we just sent.
-	 *
-	 * `player.connect()` only pushes a voice state update onto the shard socket; nothing
-	 * confirms it landed. If it never does, Lavalink accepts the track but has no voice
-	 * connection to play it over, and emits neither TrackStart nor an error — the queue
-	 * fills up and the bot sits silent. Better to fail loudly here.
-	 */
 	private awaitVoiceConnection = async (player: magmastream.Player, voiceChannelId: string, timeoutMs: number = 8000): Promise<boolean> => {
 		const deadline = Date.now() + timeoutMs;
 

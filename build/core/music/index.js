@@ -118,8 +118,6 @@ class Music {
             };
         };
         this.startPlayback = async (player) => {
-            // An explicit request is a fresh start; don't make the user sit out a backoff
-            // earned by whatever failed before it.
             (0, failure_guard_1.clearFailures)(player.guildId);
             if (player.paused)
                 await player.pause(false);
@@ -150,14 +148,6 @@ class Music {
                 this.client.logger.warn(`[MUSIC] Failed to clear orphaned queue state for guild ${player.guildId}: ${error}`);
             }
         };
-        /**
-         * Waits for Discord to acknowledge the voice state we just sent.
-         *
-         * `player.connect()` only pushes a voice state update onto the shard socket; nothing
-         * confirms it landed. If it never does, Lavalink accepts the track but has no voice
-         * connection to play it over, and emits neither TrackStart nor an error — the queue
-         * fills up and the bot sits silent. Better to fail loudly here.
-         */
         this.awaitVoiceConnection = async (player, voiceChannelId, timeoutMs = 8000) => {
             const deadline = Date.now() + timeoutMs;
             while (Date.now() < deadline) {
