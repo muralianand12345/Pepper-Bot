@@ -90,7 +90,25 @@ export default class SpotifyAPIHandler {
 			return;
 		}
 
-		const username = await spotifyManager.getSpotifyUsername({ access: tokens.access, refresh: tokens.refresh }, userId);
+		const profile = await spotifyManager.getProfile({ access: tokens.access, refresh: tokens.refresh }, userId);
+		if (!profile.ok) {
+			await broadcastAuthResult(this.client, userId, 'failed');
+			const notRegistered = profile.reason === 'not_registered';
+			res.status(notRegistered ? 403 : 502).send(
+				generateHTML({
+					title: notRegistered ? 'Not Approved Yet' : 'Connection Error',
+					icon: notRegistered ? '⚠' : '✕',
+					iconColor: notRegistered ? 'warning' : 'error',
+					heading: notRegistered ? 'Access Not Approved Yet' : 'Connection Failed',
+					message: notRegistered ? "Spotify hasn't approved Pepper for your account yet, so we couldn't link it. This is a limit on Pepper's Spotify access, not a problem with your account or playlists." : "We couldn't verify your Spotify account. Please try again in a few moments.",
+					submessage: notRegistered ? 'Nothing was saved. You can safely close this tab.' : 'You can safely close this tab.',
+					platformLogo: this.spotifyLogo,
+				}),
+			);
+			return;
+		}
+
+		const username = profile.username;
 		const saved = await spotifyManager.saveAccount(userId, tokens, username || undefined);
 		if (!saved) {
 			await broadcastAuthResult(this.client, userId, 'failed');

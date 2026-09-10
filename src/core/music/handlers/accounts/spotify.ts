@@ -8,18 +8,25 @@ import UserAccount from '../../../../events/database/schema/account_user';
 
 const configManager = ConfigManager.getInstance();
 
+type SpotifyErrorBody = string | { error?: { status?: number; message?: string } | string; error_description?: string };
+
+export type SpotifyProfileResult = { ok: true; username: string | null } | { ok: false; reason: 'not_registered' | 'error' };
+
 const formatSpotifyError = (error: unknown): string => {
-	const axiosError = error as AxiosError<{ error?: { status?: number; message?: string } | string; error_description?: string }>;
+	const axiosError = error as AxiosError<SpotifyErrorBody>;
 	if (!axiosError?.isAxiosError) return `${error}`;
-	const status = axiosError.response?.status;
+
+	const status = axiosError.response?.status ?? 'no response';
 	const body = axiosError.response?.data;
-	const reason = typeof body?.error === 'string' ? body.error_description || body.error : body?.error?.message;
+	if (typeof body === 'string' && body.trim()) return `${status} - ${body.trim().slice(0, 300)}`;
+
+	const fields = typeof body === 'object' && body !== null ? body : undefined;
+	const reason = typeof fields?.error === 'string' ? fields.error_description || fields.error : fields?.error?.message;
 	if (reason) return `${status} - ${reason}`;
 
-	const rawBody = body as unknown;
-	const raw = rawBody === undefined || rawBody === null || rawBody === '' ? '<empty body>' : JSON.stringify(rawBody).slice(0, 300);
+	const raw = body === undefined || body === null || body === '' ? '<empty body>' : JSON.stringify(body).slice(0, 300);
 	const challenge = axiosError.response?.headers?.['www-authenticate'];
-	return `${status ?? 'no response'} - ${axiosError.message} | body: ${raw}${challenge ? ` | www-authenticate: ${challenge}` : ''}`;
+	return `${status} - ${axiosError.message} | body: ${raw}${challenge ? ` | www-authenticate: ${challenge}` : ''}`;
 };
 
 export class SpotifyManager {
@@ -131,13 +138,17 @@ export class SpotifyManager {
 		}
 	};
 
-	getSpotifyUsername = async (tokens: SpotifyTokens, userId: string): Promise<string | null> => {
+	getProfile = async (tokens: SpotifyTokens, userId: string): Promise<SpotifyProfileResult> => {
 		try {
 			const data = await this.makeRequest<{ display_name?: string; id?: string }>('https://api.spotify.com/v1/me', tokens, userId);
-			return data.display_name || data.id || null;
+			return { ok: true, username: data.display_name || data.id || null };
 		} catch (error) {
-			this.client.logger.error(`Error getting Spotify username: ${formatSpotifyError(error)}`);
-			return null;
+			this.client.logger.error(`Error getting Spotify profile: ${formatSpotifyError(error)}`);
+			const axiosError = error as AxiosError<SpotifyErrorBody>;
+			const body = axiosError.response?.data;
+			const text = typeof body === 'string' ? body : JSON.stringify(body ?? '');
+			if (axiosError.response?.status === 403 && /not registered/i.test(text)) return { ok: false, reason: 'not_registered' };
+			return { ok: false, reason: 'error' };
 		}
 	};
 
