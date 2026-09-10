@@ -17,7 +17,12 @@ const formatSpotifyError = (error) => {
     const status = axiosError.response?.status;
     const body = axiosError.response?.data;
     const reason = typeof body?.error === 'string' ? body.error_description || body.error : body?.error?.message;
-    return `${status ?? 'no response'}${reason ? ` - ${reason}` : ` - ${axiosError.message}`}`;
+    if (reason)
+        return `${status} - ${reason}`;
+    const rawBody = body;
+    const raw = rawBody === undefined || rawBody === null || rawBody === '' ? '<empty body>' : JSON.stringify(rawBody).slice(0, 300);
+    const challenge = axiosError.response?.headers?.['www-authenticate'];
+    return `${status ?? 'no response'} - ${axiosError.message} | body: ${raw}${challenge ? ` | www-authenticate: ${challenge}` : ''}`;
 };
 class SpotifyManager {
     constructor(client) {
