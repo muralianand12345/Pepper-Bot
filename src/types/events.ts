@@ -55,3 +55,55 @@ export interface BotPresence {
 	name: string;
 	type: discord.ActivityType;
 }
+
+export interface CommandApiChoice {
+	name: string;
+	value: string | number;
+}
+
+export interface CommandApiOption {
+	name: string;
+	description: string;
+	type: number;
+	typeName: string;
+	required: boolean;
+	autocomplete: boolean;
+	choices: CommandApiChoice[];
+}
+
+export interface CommandApiSubcommand {
+	name: string;
+	description: string;
+	group: string | null;
+	options: CommandApiOption[];
+}
+
+export interface CommandApiEntry {
+	name: string;
+	description: string;
+	category: CommandCategory;
+	categoryName: string;
+	categoryEmoji: string;
+	cooldown: number;
+	dj: boolean;
+	premium: boolean;
+	ownerOnly: boolean;
+	userPermissions: string[];
+	botPermissions: string[];
+	options: CommandApiOption[];
+	subcommands: CommandApiSubcommand[];
+}
+
+export interface CommandApiCategory {
+	id: CommandCategory;
+	name: string;
+	emoji: string;
+	count: number;
+}
+
+export interface CommandApiPayload {
+	locale: string;
+	total: number;
+	categories: CommandApiCategory[];
+	commands: CommandApiEntry[];
+}

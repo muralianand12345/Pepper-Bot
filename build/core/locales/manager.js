@@ -83,6 +83,9 @@ class LocalizationManager {
             this.loadAllLocales();
             this.validateAllLocales();
         };
+        this.getDefaultLocale = () => {
+            return this.defaultLocale;
+        };
         this.getSupportedLocales = () => {
             return Array.from(this.locales.keys());
         };
@@ -240,7 +243,7 @@ class LocalizationManager {
                     continue;
                 }
                 const validation = this.validateLocaleCompleteness(locale);
-                const completeness = Math.round(((totalEnglishKeys - validation.missingKeys.length) / totalEnglishKeys) * 100);
+                const completeness = Math.floor(((totalEnglishKeys - validation.missingKeys.length) / totalEnglishKeys) * 100);
                 stats[locale] = { totalKeys: totalEnglishKeys, missingKeys: validation.missingKeys.length, completeness };
             }
             return stats;
