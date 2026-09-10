@@ -98,6 +98,10 @@ export class LocalizationManager {
 		this.validateAllLocales();
 	};
 
+	public getDefaultLocale = (): string => {
+		return this.defaultLocale;
+	};
+
 	public getSupportedLocales = (): string[] => {
 		return Array.from(this.locales.keys());
 	};
@@ -166,7 +170,7 @@ export class LocalizationManager {
 		return localizations;
 	};
 
-	private mapToDiscordLocale = (locale: string): discord.Locale | null => {
+	public mapToDiscordLocale = (locale: string): discord.Locale | null => {
 		const mapping: Record<string, discord.Locale> = {
 			en: discord.Locale.EnglishUS,
 			es: discord.Locale.SpanishES,
@@ -267,7 +271,7 @@ export class LocalizationManager {
 				continue;
 			}
 			const validation = this.validateLocaleCompleteness(locale);
-			const completeness = Math.round(((totalEnglishKeys - validation.missingKeys.length) / totalEnglishKeys) * 100);
+			const completeness = Math.floor(((totalEnglishKeys - validation.missingKeys.length) / totalEnglishKeys) * 100);
 			stats[locale] = { totalKeys: totalEnglishKeys, missingKeys: validation.missingKeys.length, completeness };
 		}
 		return stats;
