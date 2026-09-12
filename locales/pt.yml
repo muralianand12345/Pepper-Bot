@@ -98,6 +98,9 @@ commands:
                 description: 'O serviço de música a conectar'
                 choices:
                     spotify: 'Spotify'
+            profile:
+                name: 'perfil'
+                description: "O link do seu perfil do Spotify (app do Spotify > Perfil > Compartilhar > Copiar link)"
     logout:
         name: 'logout'
         description: 'Desconectar sua conta de música do Pepper'
@@ -263,6 +266,13 @@ responses:
         connect_title: '🎵 Conectar conta do Spotify'
         connect_description: "Clique no botão abaixo para autorizar o Pepper a acessar sua conta do Spotify.\n\n**Permissões solicitadas:**\n• Ler suas playlists"
         auth_footer: 'O link de autorização expira em 10 minutos'
+        linked_description: "O Pepper agora está vinculado a **{username}**.\n\nSuas playlists **públicas** aparecerão em `/play` quando você deixar o campo de busca vazio.\n\nEstá faltando alguma? No Spotify, abra a playlist → **…** → **Adicionar ao perfil**."
+        invalid_profile:
+            title: "❌ Isso não parece certo"
+            description: "Isso não é um link de perfil do Spotify.\n\nNo Spotify: **Perfil** → **Compartilhar** → **Copiar link do perfil**, e cole aqui.\n\nDeve se parecer com `https://open.spotify.com/user/seu-id`."
+        profile_not_found:
+            title: "❌ Perfil não encontrado"
+            description: "O Spotify não reconhece esse perfil.\n\nConfira o link e tente novamente."
         success:
             title: '✅ Conectado com sucesso'
             description: "Sua conta do Spotify foi vinculada ao Pepper!\n\nAgora você pode usar os comandos de música com suas preferências do Spotify."
