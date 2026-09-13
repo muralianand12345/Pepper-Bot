@@ -98,6 +98,9 @@ commands:
                 description: 'Dịch vụ nhạc để kết nối'
                 choices:
                     spotify: 'Spotify'
+            profile:
+                name: 'profile'
+                description: "Liên kết hồ sơ Spotify của bạn (ứng dụng Spotify > Hồ sơ > Chia sẻ > Sao chép)"
     logout:
         name: 'logout'
         description: 'Ngắt kết nối tài khoản nhạc của bạn khỏi Pepper'
@@ -252,6 +255,13 @@ responses:
         connect_title: '🎵 Kết nối tài khoản Spotify'
         connect_description: "Nhấp vào nút bên dưới để ủy quyền cho Pepper truy cập tài khoản Spotify của bạn.\n\n**Quyền được yêu cầu:**\n• Đọc danh sách phát của bạn"
         auth_footer: 'Liên kết ủy quyền hết hạn sau 10 phút'
+        linked_description: "Pepper hiện đã được liên kết với **{username}**.\n\nCác danh sách phát **công khai** của bạn sẽ hiện trong `/play` khi bạn để trống ô tìm kiếm.\n\nThiếu một danh sách? Trong Spotify, mở nó → **…** → **Thêm vào hồ sơ**."
+        invalid_profile:
+            title: "❌ Có vẻ không đúng"
+            description: "Đó không phải là liên kết hồ sơ Spotify.\n\nTrong Spotify: **Hồ sơ** → **Chia sẻ** → **Sao chép liên kết hồ sơ**, rồi dán vào đây.\n\nNó trông giống như `https://open.spotify.com/user/id-cua-ban`."
+        profile_not_found:
+            title: "❌ Không tìm thấy hồ sơ"
+            description: "Spotify không nhận ra hồ sơ đó.\n\nKiểm tra lại liên kết và thử lại."
         success:
             title: '✅ Kết nối thành công'
             description: "Tài khoản Spotify của bạn đã được liên kết với Pepper!\n\nBây giờ bạn có thể sử dụng các lệnh nhạc với tùy chọn Spotify của mình."

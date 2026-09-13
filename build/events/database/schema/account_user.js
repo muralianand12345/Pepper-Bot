@@ -9,7 +9,8 @@ const userAccountSchema = new mongoose_1.default.Schema({
     accounts: [
         {
             type: { type: String, required: true, enum: ['spotify'] },
-            token: { access: { type: String, required: true }, refresh: { type: String, required: true } },
+            spotifyId: { type: String, required: false },
+            token: { access: { type: String, required: false }, refresh: { type: String, required: false } },
             username: { type: String, required: false },
         },
     ],

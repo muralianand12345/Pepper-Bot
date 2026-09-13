@@ -25,7 +25,7 @@ export const logoutCommand: Command = {
 		const account = interaction.options.getString('account', true);
 
 		if (account === 'spotify') {
-			const existingAccount = await new SpotifyManager(interaction.client).getAccount(interaction.user.id);
+			const existingAccount = await new SpotifyManager(interaction.client).getLinkedAccount(interaction.user.id);
 			if (!existingAccount) return await interaction.editReply(v2(panel(0xff4444, { title: t('responses.logout.not_logged_in.title'), body: t('responses.logout.not_logged_in.description'), timestamp: true })));
 
 			const removed = await new SpotifyManager(interaction.client).removeAccount(interaction.user.id);

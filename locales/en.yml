@@ -100,6 +100,9 @@ commands:
                 description: 'The music service to connect'
                 choices:
                     spotify: 'Spotify'
+            profile:
+                name: 'profile'
+                description: 'Your Spotify profile link (Spotify app > Profile > Share > Copy link)'
 
     logout:
         name: 'logout'
@@ -267,6 +270,13 @@ responses:
         connect_title: '🎵 Connect Spotify Account'
         connect_description: "Click the button below to authorize Pepper to access your Spotify account.\n\n**Permissions requested:**\n• Read your playlists"
         auth_footer: 'The authorization link expires in 10 minutes'
+        linked_description: "Pepper is now linked to **{username}**.\n\nYour **public** playlists will show up in `/play` when you leave the search box empty.\n\nDon't see one? On Spotify, open the playlist → **…** → **Add to Profile**."
+        invalid_profile:
+            title: "❌ That Doesn't Look Right"
+            description: "That isn't a Spotify profile link.\n\nOn Spotify: **Profile** → **Share** → **Copy link to profile**, then paste it here.\n\nIt should look like `https://open.spotify.com/user/your-id`."
+        profile_not_found:
+            title: '❌ Profile Not Found'
+            description: "Spotify doesn't recognise that profile.\n\nDouble-check the link and try again."
         success:
             title: '✅ Successfully Connected'
             description: "Your Spotify account has been linked to Pepper!\n\nYou can now use music commands with your Spotify preferences."
