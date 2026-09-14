@@ -122,6 +122,89 @@ commands:
                 name: 'volume'
                 description: 'Volume level (1-100)'
 
+    playlist:
+        name: 'playlist'
+        description: 'Create and manage your own playlists'
+        subcommands:
+            create:
+                name: 'create'
+                description: 'Create a new playlist'
+            delete:
+                name: 'delete'
+                description: 'Delete one of your playlists'
+            rename:
+                name: 'rename'
+                description: 'Rename one of your playlists'
+            list:
+                name: 'list'
+                description: 'Show all of your playlists'
+            view:
+                name: 'view'
+                description: 'Show the songs in a playlist'
+            share:
+                name: 'share'
+                description: 'Share a playlist code in this channel'
+            visibility:
+                name: 'visibility'
+                description: 'Make a playlist public or private'
+            transfer:
+                name: 'transfer'
+                description: 'Transfer a playlist to another user'
+        groups:
+            song:
+                name: 'song'
+                description: 'Manage the songs in a playlist'
+                subcommands:
+                    add:
+                        name: 'add'
+                        description: 'Search for a song and add it to a playlist'
+                    current:
+                        name: 'current'
+                        description: 'Add the song that is playing now to a playlist'
+                    remove:
+                        name: 'remove'
+                        description: 'Remove a song from a playlist'
+                    move:
+                        name: 'move'
+                        description: 'Move a song to a different position'
+        options:
+            playlist:
+                name: 'playlist'
+                description: 'One of your playlists'
+            playlist_or_code:
+                name: 'playlist'
+                description: 'One of your playlists, or a public share code'
+            name:
+                name: 'name'
+                description: 'Playlist name (up to 50 characters)'
+            new_name:
+                name: 'name'
+                description: 'New playlist name (up to 50 characters)'
+            visibility:
+                name: 'visibility'
+                description: 'Who can play the playlist (default: private)'
+            state:
+                name: 'state'
+                description: 'Public playlists can be played by anyone with the code'
+            song:
+                name: 'song'
+                description: 'Song name or URL to search for'
+            position:
+                name: 'position'
+                description: 'Position of the song to remove'
+            from:
+                name: 'from'
+                description: 'Current position of the song'
+            to:
+                name: 'to'
+                description: 'New position for the song'
+            user:
+                name: 'user'
+                description: 'The user who should become the new owner'
+        choices:
+            public: 'Public'
+            private: 'Private'
+
 responses:
     music:
         connected: 'Connected to {channelName}'
@@ -378,6 +461,92 @@ responses:
 
     feedback:
         sent: 'Thank you for your feedback! It has been sent to the developers.'
+
+    playlist:
+        created: "Created playlist **{name}** ({visibility}).\nShare code: `{code}` • Add songs with `/playlist song add`."
+        deleted: 'Deleted playlist **{name}**.'
+        delete_confirm: 'Delete **{name}** and its {count} song(s)? This cannot be undone.'
+        renamed: 'Renamed **{old}** to **{name}**.'
+        visibility_set: '**{name}** is now {visibility}.'
+        cancelled: 'Cancelled.'
+        not_found: 'Playlist not found. Pick one from the list or check the share code.'
+        not_owner: 'Only the owner of this playlist can do that.'
+        private: 'That playlist is private.'
+        empty: '**{name}** has no songs yet. Add some with `/playlist song add`.'
+        name_invalid: 'Playlist names must be between 1 and {max} characters.'
+        name_taken: 'You already have a playlist named **{name}**.'
+        limit_playlists: "You've reached your limit of {max} playlist(s)."
+        premium_hint: 'Join our support server to get up to {playlists} playlists with {songs} songs each!'
+        list_title: 'Your Playlists'
+        list_empty: "You don't have any playlists yet. Create one with `/playlist create`."
+        list_limits: 'Playlists: {count}/{max} • Songs per playlist: {songs}'
+        song_count: '{count}/{max} songs'
+        view_empty: 'No songs yet. Add some with `/playlist song add`.'
+        page: 'Page {page}/{total}'
+        share_title: 'Shared Playlist'
+        share_public: "**{name}** by {owner} • {count} song(s)\n\nPaste this code into `/play` to listen:\n`{code}`"
+        share_private: "**{name}** is private, so only you can play it. Make it public with `/playlist visibility` before sharing.\n\nCode: `{code}`"
+        share_posted: 'Posted **{name}** in this channel.'
+        visibility:
+            public: 'Public'
+            private: 'Private'
+        fields:
+            owner: 'Owner'
+            code: 'Code'
+            visibility: 'Visibility'
+            songs: 'Songs'
+            duration: 'Duration'
+        locked:
+            too_many_playlists: 'Locked: the owner has {count} playlists but their plan allows {max}. Delete playlists to unlock.'
+            too_many_songs: "Locked: this playlist has {count} songs but the owner's plan allows {max}. Remove songs to unlock."
+        add:
+            added: 'Added **{title}** to **{name}** ({count}/{max}).'
+            full: '**{name}** is full ({max} songs).'
+            duplicate: '**{title}** is already in **{name}**. Add it again?'
+            unsupported: "This song can't be saved to a playlist."
+        search:
+            title: 'Add a song to {name}'
+            description: 'Pick one of these results:'
+            placeholder: 'Choose a song to add'
+            no_results: 'No songs found for that search.'
+            collection: 'That link is a playlist or album. Search for a single song instead.'
+            expired: 'This selection has expired. Run the command again.'
+        song:
+            removed: 'Removed **{title}** from **{name}**.'
+            moved: 'Moved **{title}** from position {from} to {to} in **{name}**.'
+            invalid_position: 'Position must be between 1 and {max}.'
+            same_position: 'The song is already at that position.'
+            changed: 'The playlist changed while you were editing it. Please try again.'
+        transfer:
+            self: 'You already own this playlist.'
+            bot: "Playlists can't be transferred to bots."
+            target_playlist_limit: '{user} has reached their limit of {max} playlist(s).'
+            target_song_limit: '**{name}** has {count} songs, but {user} can only have {max} songs per playlist.'
+            target_name_taken: '{user} already has a playlist named **{name}**.'
+            dm_failed: "I couldn't DM {user}. They need to allow direct messages from server members."
+            sent: 'Sent {user} a request to take over **{name}**. It expires <t:{expires}:R>.'
+            request_title: 'Playlist Transfer Request'
+            request_body: "**{from}** wants to transfer the playlist **{name}** ({count} songs) to you.\n\nThis request expires <t:{expires}:R>."
+            accept_playlist_limit: "You've reached your limit of {max} playlist(s). Delete one, then accept again."
+            accept_song_limit: '**{name}** has {count} songs, but you can only have {max} songs per playlist.'
+            accept_name_taken: 'You already have a playlist named **{name}**. Rename it, then accept again.'
+            accepted: 'You are now the owner of **{name}**.'
+            accepted_owner: '{user} accepted your transfer. **{name}** now belongs to them.'
+            declined: 'You declined the transfer of **{name}**.'
+            declined_owner: '{user} declined your transfer of **{name}**.'
+            expired: 'This transfer request has expired or was cancelled.'
+        play:
+            not_found: 'Playlist not found.'
+            private: 'That playlist is private.'
+            locked: "**{name}** is locked because its owner is over their plan limits, so it can't be played right now."
+        buttons:
+            previous: 'Previous'
+            next: 'Next'
+            delete: 'Delete'
+            cancel: 'Cancel'
+            add_anyway: 'Add Anyway'
+            accept: 'Accept'
+            decline: 'Decline'
 
     default_search: 'Please enter a song name or url'
 

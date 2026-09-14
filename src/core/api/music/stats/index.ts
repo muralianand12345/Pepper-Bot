@@ -33,6 +33,7 @@ export default class StatsAPIHandler {
 		this.router.get('/playtime', this.handlePlaytime);
 		this.router.get('/servers', this.handleServers);
 		this.router.get('/servers/:guildId', this.handleServer);
+		this.router.get('/playlists', this.handlePlaylists);
 		this.router.use((_req: express.Request, res: express.Response) => res.status(404).json({ success: false, error: 'Unknown stats endpoint' }));
 	};
 
@@ -221,6 +222,23 @@ export default class StatsAPIHandler {
 			this.send(res, { ...playtime, limit, servers: playtime.servers.map((server) => ({ ...server, guildName: meta.get(server.guildId)?.name ?? null })) }, cached);
 		} catch (error) {
 			this.fail(res, error, 'playtime');
+		}
+	};
+
+	private handlePlaylists = async (req: express.Request, res: express.Response): Promise<void> => {
+		try {
+			const limit = this.parseLimit(req.query.limit, DEFAULT_LIMIT);
+			const cached = StatsDB.isCached(`playlists:${limit}`);
+			const stats = await StatsDB.getPlaylistStats(limit);
+			const playlists = await Promise.all(
+				stats.playlists.map(async (playlist) => {
+					const owner = await this.client.users.fetch(playlist.ownerId).catch(() => null);
+					return owner ? { ...playlist, ownerUsername: owner.username, ownerAvatar: owner.displayAvatarURL() } : playlist;
+				}),
+			);
+			this.send(res, { ...stats, limit, playlists }, cached);
+		} catch (error) {
+			this.fail(res, error, 'playlists');
 		}
 	};
 

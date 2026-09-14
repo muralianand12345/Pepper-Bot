@@ -3,7 +3,8 @@ import { PipelineStage } from 'mongoose';
 import client from '../../../pepper';
 import music_user from '../../../events/database/schema/music_user';
 import music_guild from '../../../events/database/schema/music_guild';
-import { StatsOverview, StatsPlaytime, StatsServerInsight, StatsTopRequester } from '../../../types';
+import music_playlist from '../../../events/database/schema/music_playlist';
+import { StatsOverview, StatsPlaylists, StatsPlaytime, StatsPublicPlaylist, StatsServerInsight, StatsTopRequester } from '../../../types';
 import { playtimeSum } from './playtime';
 
 const CACHE_TTL = 60 * 1000;
@@ -224,6 +225,32 @@ export class StatsDB {
 			} catch (err) {
 				client.logger.error(`[STATS] Error in getServerInsight: ${err}`);
 				return null;
+			}
+		});
+	};
+
+	/** Playlist counts by visibility plus the most played public playlists. Nothing beyond the count is exposed for private playlists. */
+	public static getPlaylistStats = async (limit: number = 10): Promise<StatsPlaylists> => {
+		return this.withCache(`playlists:${limit}`, async () => {
+			const empty: StatsPlaylists = { totalPlaylists: 0, publicPlaylists: 0, privatePlaylists: 0, publicPlays: 0, playlists: [] };
+			try {
+				const [publicPlaylists, privatePlaylists, plays, top] = await Promise.all([
+					music_playlist.countDocuments({ visibility: 'public' }),
+					music_playlist.countDocuments({ visibility: 'private' }),
+					music_playlist.aggregate([{ $match: { visibility: 'public' } }, { $group: { _id: null, publicPlays: { $sum: { $ifNull: ['$playCount', 0] } } } }]),
+					music_playlist.aggregate([
+						{ $match: { visibility: 'public', playCount: { $gt: 0 } } },
+						{ $sort: { playCount: -1, lastPlayedAt: -1 } },
+						{ $limit: limit },
+						{ $project: { _id: 0, code: 1, name: 1, ownerId: 1, trackCount: { $size: '$tracks' }, playCount: 1, lastPlayedAt: { $ifNull: ['$lastPlayedAt', null] }, createdAt: 1 } },
+					]),
+				]);
+
+				const playlists: StatsPublicPlaylist[] = (top || []).map((playlist: Omit<StatsPublicPlaylist, 'rank' | 'ownerUsername' | 'ownerAvatar'>, index: number) => ({ rank: index + 1, ...playlist, ownerUsername: null, ownerAvatar: null }));
+				return { totalPlaylists: publicPlaylists + privatePlaylists, publicPlaylists, privatePlaylists, publicPlays: plays?.[0]?.publicPlays ?? 0, playlists };
+			} catch (err) {
+				client.logger.error(`[STATS] Error in getPlaylistStats: ${err}`);
+				return empty;
 			}
 		});
 	};

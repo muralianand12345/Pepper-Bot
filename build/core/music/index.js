@@ -32,6 +32,8 @@ const music_guild_1 = __importDefault(require("../../events/database/schema/musi
 const now_playing_1 = require("./now_playing");
 const handlers_1 = require("./handlers");
 const v2_1 = require("../../utils/v2");
+const repo_1 = require("./repo");
+const playlist_1 = require("./playlist");
 __exportStar(require("./func"), exports);
 __exportStar(require("./patches"), exports);
 __exportStar(require("./failure_guard"), exports);
@@ -43,6 +45,7 @@ __exportStar(require("./lyrics"), exports);
 __exportStar(require("./handlers"), exports);
 __exportStar(require("./now_playing"), exports);
 __exportStar(require("./activity_check"), exports);
+__exportStar(require("./playlist"), exports);
 exports.MUSIC_CONFIG = {
     ERROR_SEARCH_TEXT: 'Unable To Fetch Results',
     DEFAULT_SEARCH_TEXT: 'Please enter a song name or url',
@@ -103,6 +106,20 @@ class Music {
                 return null;
             }
             return query;
+        };
+        this.getCustomPlaylistError = (result) => {
+            switch (result.status) {
+                case 'not_found':
+                    return this.t('responses.playlist.play.not_found');
+                case 'private':
+                    return this.t('responses.playlist.play.private');
+                case 'empty':
+                    return this.t('responses.playlist.empty', { name: (0, playlist_1.displayPlaylistName)(result.name) });
+                case 'locked':
+                    return this.t('responses.playlist.play.locked', { name: (0, playlist_1.displayPlaylistName)(result.name) });
+                default:
+                    return null;
+            }
         };
         this.getPlaylistLimit = async (userId, playlist) => {
             const { isPremium, tier } = await (0, premium_1.checkUserPremium)(this.client, userId);
@@ -237,7 +254,12 @@ class Music {
             const musicCheck = this.validateMusicEnabled();
             if (musicCheck)
                 return await this.interaction.editReply((0, v2_1.v2)(musicCheck));
-            const query = (await this.ytToSpotifyQuery(this.interaction.options.getString('song'))) || this.t('responses.default_search');
+            const songInput = this.interaction.options.getString('song');
+            const customPlaylist = await playlist_1.PlaylistService.resolvePlayable(this.client, songInput, this.interaction.user.id);
+            const customPlaylistError = this.getCustomPlaylistError(customPlaylist);
+            if (customPlaylistError)
+                return await this.interaction.editReply((0, v2_1.v2)(responseHandler.createErrorContainer(customPlaylistError, this.locale)));
+            const query = customPlaylist.status === 'ok' ? songInput : (await this.ytToSpotifyQuery(songInput)) || this.t('responses.default_search');
             if (!query || query === this.t('responses.default_search'))
                 return await this.interaction.editReply((0, v2_1.v2)(responseHandler.createErrorContainer(this.t('responses.default_search'), this.locale)));
             const validator = new handlers_1.VoiceChannelValidator(this.client, this.interaction);
@@ -278,10 +300,16 @@ class Music {
                 await this.interaction.editReply((0, v2_1.v2)(responseHandler.createPlayerStateContainer('connected', this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }))));
             }
             try {
-                const res = await this.lavaSearch(query);
-                if (res.loadType === 'error')
-                    throw new Error('No results found | loadType: error');
-                await this.searchResults(res, player);
+                if (customPlaylist.status === 'ok') {
+                    await this.searchResults({ loadType: magmastream_1.LoadTypes.Playlist, tracks: [], playlist: playlist_1.PlaylistService.toPlaylistData(customPlaylist.playlist, this.interaction.user) }, player);
+                    await repo_1.PlaylistDB.recordPlay(customPlaylist.playlist.code).catch((error) => this.client.logger.warn(`[MUSIC] Failed to record play for playlist ${customPlaylist.playlist.code}: ${error}`));
+                }
+                else {
+                    const res = await this.lavaSearch(query);
+                    if (res.loadType === 'error')
+                        throw new Error('No results found | loadType: error');
+                    await this.searchResults(res, player);
+                }
             }
             catch (error) {
                 this.client.logger.error(`[MUSIC] Play error: ${error}`);

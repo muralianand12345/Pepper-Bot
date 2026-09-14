@@ -118,6 +118,89 @@ commands:
                 name: 'lautstärke'
                 description: 'Lautstärkepegel (1-100)'
 
+    playlist:
+        name: 'playlist'
+        description: 'Erstelle und verwalte deine eigenen Playlists'
+        subcommands:
+            create:
+                name: 'create'
+                description: 'Erstelle eine neue Playlist'
+            delete:
+                name: 'delete'
+                description: 'Lösche eine deiner Playlists'
+            rename:
+                name: 'rename'
+                description: 'Benenne eine deiner Playlists um'
+            list:
+                name: 'list'
+                description: 'Zeige alle deine Playlists'
+            view:
+                name: 'view'
+                description: 'Zeige die Songs einer Playlist'
+            share:
+                name: 'share'
+                description: 'Teile einen Playlist-Code in diesem Kanal'
+            visibility:
+                name: 'visibility'
+                description: 'Mache eine Playlist öffentlich oder privat'
+            transfer:
+                name: 'transfer'
+                description: 'Übertrage eine Playlist an einen anderen Benutzer'
+        groups:
+            song:
+                name: 'song'
+                description: 'Verwalte die Songs einer Playlist'
+                subcommands:
+                    add:
+                        name: 'add'
+                        description: 'Suche einen Song und füge ihn einer Playlist hinzu'
+                    current:
+                        name: 'current'
+                        description: 'Füge den aktuell spielenden Song einer Playlist hinzu'
+                    remove:
+                        name: 'remove'
+                        description: 'Entferne einen Song aus einer Playlist'
+                    move:
+                        name: 'move'
+                        description: 'Verschiebe einen Song an eine andere Position'
+        options:
+            playlist:
+                name: 'playlist'
+                description: 'Eine deiner Playlists'
+            playlist_or_code:
+                name: 'playlist'
+                description: 'Eine deiner Playlists oder ein öffentlicher Teilen-Code'
+            name:
+                name: 'name'
+                description: 'Name der Playlist (bis zu 50 Zeichen)'
+            new_name:
+                name: 'name'
+                description: 'Neuer Name der Playlist (bis zu 50 Zeichen)'
+            visibility:
+                name: 'visibility'
+                description: 'Wer die Playlist abspielen kann (Standard: privat)'
+            state:
+                name: 'state'
+                description: 'Öffentliche Playlists kann jeder mit dem Code abspielen'
+            song:
+                name: 'song'
+                description: 'Songname oder URL für die Suche'
+            position:
+                name: 'position'
+                description: 'Position des zu entfernenden Songs'
+            from:
+                name: 'from'
+                description: 'Aktuelle Position des Songs'
+            to:
+                name: 'to'
+                description: 'Neue Position des Songs'
+            user:
+                name: 'user'
+                description: 'Der Benutzer, der neuer Besitzer werden soll'
+        choices:
+            public: 'Öffentlich'
+            private: 'Privat'
+
 responses:
     music:
         connected: 'Verbunden mit {channelName}'
@@ -374,6 +457,92 @@ responses:
 
     feedback:
         sent: 'Vielen Dank für dein Feedback! Es wurde an die Entwickler gesendet.'
+
+    playlist:
+        created: "Playlist **{name}** erstellt ({visibility}).\nTeilen-Code: `{code}` • Füge Songs mit `/playlist song add` hinzu."
+        deleted: 'Playlist **{name}** gelöscht.'
+        delete_confirm: '**{name}** und die {count} Song(s) darin löschen? Das kann nicht rückgängig gemacht werden.'
+        renamed: '**{old}** wurde in **{name}** umbenannt.'
+        visibility_set: '**{name}** ist jetzt {visibility}.'
+        cancelled: 'Abgebrochen.'
+        not_found: 'Playlist nicht gefunden. Wähle eine aus der Liste oder prüfe den Teilen-Code.'
+        not_owner: 'Nur der Besitzer dieser Playlist kann das tun.'
+        private: 'Diese Playlist ist privat.'
+        empty: '**{name}** enthält noch keine Songs. Füge welche mit `/playlist song add` hinzu.'
+        name_invalid: 'Playlist-Namen müssen zwischen 1 und {max} Zeichen lang sein.'
+        name_taken: 'Du hast bereits eine Playlist namens **{name}**.'
+        limit_playlists: 'Du hast dein Limit von {max} Playlist(s) erreicht.'
+        premium_hint: 'Tritt unserem Support-Server bei, um bis zu {playlists} Playlists mit je {songs} Songs zu erhalten!'
+        list_title: 'Deine Playlists'
+        list_empty: 'Du hast noch keine Playlists. Erstelle eine mit `/playlist create`.'
+        list_limits: 'Playlists: {count}/{max} • Songs pro Playlist: {songs}'
+        song_count: '{count}/{max} Songs'
+        view_empty: 'Noch keine Songs. Füge welche mit `/playlist song add` hinzu.'
+        page: 'Seite {page}/{total}'
+        share_title: 'Geteilte Playlist'
+        share_public: "**{name}** von {owner} • {count} Song(s)\n\nFüge diesen Code in `/play` ein, um zuzuhören:\n`{code}`"
+        share_private: "**{name}** ist privat, daher kannst nur du sie abspielen. Mache sie mit `/playlist visibility` öffentlich, bevor du sie teilst.\n\nCode: `{code}`"
+        share_posted: '**{name}** wurde in diesem Kanal gepostet.'
+        visibility:
+            public: 'Öffentlich'
+            private: 'Privat'
+        fields:
+            owner: 'Besitzer'
+            code: 'Code'
+            visibility: 'Sichtbarkeit'
+            songs: 'Songs'
+            duration: 'Dauer'
+        locked:
+            too_many_playlists: 'Gesperrt: Der Besitzer hat {count} Playlists, sein Plan erlaubt aber nur {max}. Lösche Playlists, um sie zu entsperren.'
+            too_many_songs: 'Gesperrt: Diese Playlist hat {count} Songs, der Plan des Besitzers erlaubt aber nur {max}. Entferne Songs, um sie zu entsperren.'
+        add:
+            added: '**{title}** wurde zu **{name}** hinzugefügt ({count}/{max}).'
+            full: '**{name}** ist voll ({max} Songs).'
+            duplicate: '**{title}** ist bereits in **{name}**. Trotzdem erneut hinzufügen?'
+            unsupported: 'Dieser Song kann nicht in einer Playlist gespeichert werden.'
+        search:
+            title: 'Song zu {name} hinzufügen'
+            description: 'Wähle eines dieser Ergebnisse:'
+            placeholder: 'Wähle einen Song zum Hinzufügen'
+            no_results: 'Für diese Suche wurden keine Songs gefunden.'
+            collection: 'Dieser Link ist eine Playlist oder ein Album. Suche stattdessen nach einem einzelnen Song.'
+            expired: 'Diese Auswahl ist abgelaufen. Führe den Befehl erneut aus.'
+        song:
+            removed: '**{title}** wurde aus **{name}** entfernt.'
+            moved: '**{title}** wurde in **{name}** von Position {from} auf {to} verschoben.'
+            invalid_position: 'Die Position muss zwischen 1 und {max} liegen.'
+            same_position: 'Der Song ist bereits an dieser Position.'
+            changed: 'Die Playlist wurde während deiner Bearbeitung geändert. Bitte versuche es erneut.'
+        transfer:
+            self: 'Diese Playlist gehört dir bereits.'
+            bot: 'Playlists können nicht an Bots übertragen werden.'
+            target_playlist_limit: '{user} hat das Limit von {max} Playlist(s) erreicht.'
+            target_song_limit: '**{name}** hat {count} Songs, aber {user} darf nur {max} Songs pro Playlist haben.'
+            target_name_taken: '{user} hat bereits eine Playlist namens **{name}**.'
+            dm_failed: 'Ich konnte {user} keine DM senden. Direktnachrichten von Servermitgliedern müssen erlaubt sein.'
+            sent: '{user} wurde eine Anfrage zur Übernahme von **{name}** gesendet. Sie läuft <t:{expires}:R> ab.'
+            request_title: 'Anfrage zur Playlist-Übertragung'
+            request_body: "**{from}** möchte dir die Playlist **{name}** ({count} Songs) übertragen.\n\nDiese Anfrage läuft <t:{expires}:R> ab."
+            accept_playlist_limit: 'Du hast dein Limit von {max} Playlist(s) erreicht. Lösche eine und nimm dann erneut an.'
+            accept_song_limit: '**{name}** hat {count} Songs, du darfst aber nur {max} Songs pro Playlist haben.'
+            accept_name_taken: 'Du hast bereits eine Playlist namens **{name}**. Benenne sie um und nimm dann erneut an.'
+            accepted: 'Du bist jetzt der Besitzer von **{name}**.'
+            accepted_owner: '{user} hat deine Übertragung angenommen. **{name}** gehört jetzt dieser Person.'
+            declined: 'Du hast die Übertragung von **{name}** abgelehnt.'
+            declined_owner: '{user} hat deine Übertragung von **{name}** abgelehnt.'
+            expired: 'Diese Übertragungsanfrage ist abgelaufen oder wurde abgebrochen.'
+        play:
+            not_found: 'Playlist nicht gefunden.'
+            private: 'Diese Playlist ist privat.'
+            locked: '**{name}** ist gesperrt, weil der Besitzer die Limits seines Plans überschreitet, und kann gerade nicht abgespielt werden.'
+        buttons:
+            previous: 'Zurück'
+            next: 'Weiter'
+            delete: 'Löschen'
+            cancel: 'Abbrechen'
+            add_anyway: 'Trotzdem hinzufügen'
+            accept: 'Annehmen'
+            decline: 'Ablehnen'
 
     default_search: 'Bitte gib einen Songnamen oder eine URL ein'
 

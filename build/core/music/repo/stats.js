@@ -8,6 +8,7 @@ exports.StatsDB = void 0;
 const pepper_1 = __importDefault(require("../../../pepper"));
 const music_user_1 = __importDefault(require("../../../events/database/schema/music_user"));
 const music_guild_1 = __importDefault(require("../../../events/database/schema/music_guild"));
+const music_playlist_1 = __importDefault(require("../../../events/database/schema/music_playlist"));
 const playtime_1 = require("./playtime");
 const CACHE_TTL = 60 * 1000;
 class StatsDB {
@@ -221,6 +222,31 @@ StatsDB.getServerInsight = async (guildId) => {
         catch (err) {
             pepper_1.default.logger.error(`[STATS] Error in getServerInsight: ${err}`);
             return null;
+        }
+    });
+};
+/** Playlist counts by visibility plus the most played public playlists. Nothing beyond the count is exposed for private playlists. */
+StatsDB.getPlaylistStats = async (limit = 10) => {
+    return _a.withCache(`playlists:${limit}`, async () => {
+        const empty = { totalPlaylists: 0, publicPlaylists: 0, privatePlaylists: 0, publicPlays: 0, playlists: [] };
+        try {
+            const [publicPlaylists, privatePlaylists, plays, top] = await Promise.all([
+                music_playlist_1.default.countDocuments({ visibility: 'public' }),
+                music_playlist_1.default.countDocuments({ visibility: 'private' }),
+                music_playlist_1.default.aggregate([{ $match: { visibility: 'public' } }, { $group: { _id: null, publicPlays: { $sum: { $ifNull: ['$playCount', 0] } } } }]),
+                music_playlist_1.default.aggregate([
+                    { $match: { visibility: 'public', playCount: { $gt: 0 } } },
+                    { $sort: { playCount: -1, lastPlayedAt: -1 } },
+                    { $limit: limit },
+                    { $project: { _id: 0, code: 1, name: 1, ownerId: 1, trackCount: { $size: '$tracks' }, playCount: 1, lastPlayedAt: { $ifNull: ['$lastPlayedAt', null] }, createdAt: 1 } },
+                ]),
+            ]);
+            const playlists = (top || []).map((playlist, index) => ({ rank: index + 1, ...playlist, ownerUsername: null, ownerAvatar: null }));
+            return { totalPlaylists: publicPlaylists + privatePlaylists, publicPlaylists, privatePlaylists, publicPlays: plays?.[0]?.publicPlays ?? 0, playlists };
+        }
+        catch (err) {
+            pepper_1.default.logger.error(`[STATS] Error in getPlaylistStats: ${err}`);
+            return empty;
         }
     });
 };

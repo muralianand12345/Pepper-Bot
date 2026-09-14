@@ -12,8 +12,10 @@ export const v2Ephemeral = (...components: V2Input[]): { components: V2Component
 
 export const v2Text = (content: string): discord.TextDisplayBuilder => new discord.TextDisplayBuilder().setContent(content);
 
-export const withRows = (container: discord.ContainerBuilder, ...rows: (discord.ActionRowBuilder<discord.ButtonBuilder> | null | undefined)[]): discord.ContainerBuilder => {
-	const present = rows.filter((row): row is discord.ActionRowBuilder<discord.ButtonBuilder> => Boolean(row));
+type V2ActionRow = discord.ActionRowBuilder<discord.MessageActionRowComponentBuilder>;
+
+export const withRows = (container: discord.ContainerBuilder, ...rows: (V2ActionRow | null | undefined)[]): discord.ContainerBuilder => {
+	const present = rows.filter((row): row is V2ActionRow => Boolean(row));
 	if (present.length === 0) return container;
 	container.addSeparatorComponents(new discord.SeparatorBuilder().setDivider(false).setSpacing(discord.SeparatorSpacingSize.Small));
 	present.forEach((row) => container.addActionRowComponents(row));

@@ -1,6 +1,6 @@
 # Pepper Bot 🎵
 
-![Version](https://img.shields.io/badge/version-5.13.2-blue)
+![Version](https://img.shields.io/badge/version-5.14.0-blue)
 ![Discord.js](https://img.shields.io/badge/discord.js-v14.27.0-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-blue)
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)
@@ -135,6 +135,21 @@ Required Discord permissions:
 - `/stop` - Stop playback and leave voice channel
 - `/loop` - Toggle loop mode for current track
 - `/autoplay <enabled>` - Toggle smart autoplay
+
+### Playlist Commands
+
+- `/playlist create <name> [visibility]` - Create a playlist (1 playlist / 10 songs, or 5 / 50 with support server membership)
+- `/playlist list` - Show your playlists and limits
+- `/playlist view <playlist or code>` - Show the songs in a playlist
+- `/playlist rename <playlist> <name>` - Rename a playlist
+- `/playlist delete <playlist>` - Delete a playlist
+- `/playlist visibility <playlist> <state>` - Make a playlist public or private
+- `/playlist share <playlist>` - Post the share code; anyone can play a public playlist by pasting it into `/play`
+- `/playlist transfer <playlist> <user>` - Send an ownership transfer request by DM
+- `/playlist song add <playlist> <song>` - Add a song (a picked suggestion or link is added directly; typed text shows the top 5 to choose from)
+- `/playlist song current <playlist>` - Add the song that is playing now
+- `/playlist song remove <playlist> <position>` - Remove a song
+- `/playlist song move <playlist> <from> <to>` - Change a song's position
 
 ### Utility Commands
 

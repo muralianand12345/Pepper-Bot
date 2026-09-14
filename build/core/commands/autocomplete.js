@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AutoComplete = void 0;
 const locales_1 = require("../locales");
+const format_1 = __importDefault(require("../../utils/format"));
 const config_1 = require("../../utils/config");
 const music_1 = require("../music");
 const configManager = config_1.ConfigManager.getInstance();
@@ -21,10 +25,41 @@ class AutoComplete {
                 return false;
             }
         };
+        this.withTimeout = (promise, ms, label) => {
+            let timer;
+            const timeout = new Promise((_, reject) => {
+                timer = setTimeout(() => reject(new Error(`${label} timeout`)), ms);
+            });
+            return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+        };
+        this.getPepperPlaylistChoices = async (userId) => {
+            const [summaries, limits] = await Promise.all([music_1.PlaylistDB.getSummaries({ ownerId: userId }), music_1.PlaylistService.getLimitsWithin(this.client, userId)]);
+            return summaries.map((summary) => ({ name: (0, music_1.formatPlaylistChoice)(summary.name, summary.trackCount, limits?.songs ?? null, limits ? music_1.PlaylistService.isSummaryLocked(summary, summaries.length, limits) : false, AutoComplete.PEPPER_PLAYLIST_SUFFIX), value: music_1.PlaylistService.toPlayValue(summary.code) }));
+        };
+        this.getPlaylistCodeChoice = async (value, asPlayValue) => {
+            const code = music_1.PlaylistService.normalizeCode(value);
+            if (!code)
+                return null;
+            const [summary] = await music_1.PlaylistDB.getSummaries({ code });
+            if (!summary || !music_1.PlaylistService.canView(summary, this.interaction.user.id))
+                return null;
+            return { name: (0, music_1.formatPlaylistChoice)(summary.name, summary.trackCount, null, false, AutoComplete.PEPPER_PLAYLIST_SUFFIX), value: asPlayValue ? music_1.PlaylistService.toPlayValue(summary.code) : summary.code };
+        };
         this.getUserPlaylists = async (defaultText) => {
-            const playlist = await this.manager.getPlaylists(this.interaction.user.id, 0, AutoComplete.MAX_CHOICES);
-            if (playlist?.playlists.length) {
-                const choices = playlist.playlists.slice(0, AutoComplete.MAX_CHOICES - 1).map((p) => ({ name: p.name.slice(0, AutoComplete.MAX_CHOICE_NAME_LENGTH), value: p.value }));
+            const userId = this.interaction.user.id;
+            const [pepperChoices, spotifyPlaylists] = await Promise.all([
+                this.getPepperPlaylistChoices(userId).catch((error) => {
+                    this.client.logger.warn(`[AUTO_COMPLETE] Failed to load Pepper playlists: ${error}`);
+                    return [];
+                }),
+                this.withTimeout(this.manager.getPlaylists(userId, 0, AutoComplete.MAX_CHOICES), AutoComplete.SPOTIFY_TIMEOUT_MS, 'Spotify playlists').catch((error) => {
+                    this.client.logger.warn(`[AUTO_COMPLETE] Failed to load Spotify playlists: ${error}`);
+                    return null;
+                }),
+            ]);
+            const spotifyChoices = (spotifyPlaylists?.playlists ?? []).map((p) => ({ name: p.name.slice(0, AutoComplete.MAX_CHOICE_NAME_LENGTH), value: p.value }));
+            const choices = [...pepperChoices, ...spotifyChoices].slice(0, AutoComplete.MAX_CHOICES);
+            if (choices.length) {
                 await this.safeRespond(choices);
                 return;
             }
@@ -39,6 +74,27 @@ class AutoComplete {
         this.cleanSearchValue = (value) => {
             return value.split('?')[0].split('#')[0].trim();
         };
+        this.respondSongSuggestions = async (value, pinned = null) => {
+            const respond = (choices) => this.safeRespond(pinned ? [pinned, ...choices].slice(0, AutoComplete.MAX_CHOICES) : choices);
+            const cleanValue = this.cleanSearchValue(value);
+            if (!cleanValue) {
+                await respond([]);
+                return;
+            }
+            const fallback = cleanValue.length <= AutoComplete.MAX_CHOICE_NAME_LENGTH ? [{ name: cleanValue, value: cleanValue }] : [];
+            const shouldSearchSpotify = AutoComplete.SPOTIFY_REGEX.test(cleanValue) || AutoComplete.STRING_WITHOUT_HTTP_REGEX.test(cleanValue);
+            if (!shouldSearchSpotify) {
+                await respond(fallback);
+                return;
+            }
+            try {
+                await respond(await this.getSpotifySuggestions(cleanValue, this.interaction.user.id));
+            }
+            catch (error) {
+                this.client.logger.warn(`[PLAY_AUTOCOMPLETE] Spotify error: ${error}`);
+                await respond(fallback);
+            }
+        };
         this.playAutocomplete = async () => {
             const focused = this.interaction.options.getFocused(true);
             if (focused.name !== 'song')
@@ -49,34 +105,66 @@ class AutoComplete {
                     await this.getUserPlaylists(t('responses.default_search'));
                     return;
                 }
-                const cleanValue = this.cleanSearchValue(focused.value);
-                const shouldSearchSpotify = AutoComplete.SPOTIFY_REGEX.test(cleanValue) || AutoComplete.STRING_WITHOUT_HTTP_REGEX.test(cleanValue);
-                if (shouldSearchSpotify) {
-                    try {
-                        const suggestions = await this.getSpotifySuggestions(cleanValue, this.interaction.user.id);
-                        await this.safeRespond(suggestions);
-                    }
-                    catch (error) {
-                        this.client.logger.warn(`[PLAY_AUTOCOMPLETE] Spotify error: ${error}`);
-                        if (cleanValue.length <= AutoComplete.MAX_CHOICE_NAME_LENGTH) {
-                            await this.safeRespond([{ name: cleanValue.slice(0, AutoComplete.MAX_CHOICE_NAME_LENGTH), value: cleanValue }]);
-                        }
-                        else {
-                            await this.safeRespond([]);
-                        }
-                    }
-                }
-                else {
-                    if (cleanValue.length <= AutoComplete.MAX_CHOICE_NAME_LENGTH) {
-                        await this.safeRespond([{ name: cleanValue.slice(0, AutoComplete.MAX_CHOICE_NAME_LENGTH), value: cleanValue }]);
-                    }
-                    else {
-                        await this.safeRespond([]);
-                    }
-                }
+                const pinned = await this.getPlaylistCodeChoice(focused.value, true).catch(() => null);
+                await this.respondSongSuggestions(focused.value, pinned);
             }
             catch (error) {
                 this.client.logger.error(`[PLAY_AUTOCOMPLETE] Error: ${error}`);
+                await this.safeRespond([]);
+            }
+        };
+        this.respondOwnedPlaylists = async (value) => {
+            const userId = this.interaction.user.id;
+            const query = value.trim().toLowerCase();
+            const [summaries, limits] = await Promise.all([music_1.PlaylistDB.getSummaries({ ownerId: userId }), music_1.PlaylistService.getLimitsWithin(this.client, userId)]);
+            const choices = summaries
+                .filter((summary) => !query || summary.name.toLowerCase().includes(query) || summary.code.toLowerCase().startsWith(query))
+                .map((summary) => ({ name: (0, music_1.formatPlaylistChoice)(summary.name, summary.trackCount, limits?.songs ?? null, limits ? music_1.PlaylistService.isSummaryLocked(summary, summaries.length, limits) : false), value: summary.code }));
+            // `/playlist view` also accepts someone else's public share code.
+            const isView = !this.interaction.options.getSubcommandGroup(false) && this.interaction.options.getSubcommand(false) === 'view';
+            if (isView) {
+                const shared = await this.getPlaylistCodeChoice(value, false);
+                if (shared && !choices.some((choice) => choice.value === shared.value))
+                    choices.unshift(shared);
+            }
+            await this.safeRespond(choices.slice(0, AutoComplete.MAX_CHOICES));
+        };
+        this.respondPlaylistPositions = async (value) => {
+            const input = this.interaction.options.getString('playlist');
+            const { playlist, owned } = input ? await music_1.PlaylistService.findForUser(this.interaction.user.id, input, false) : { playlist: null, owned: false };
+            if (!playlist || !owned) {
+                await this.safeRespond([]);
+                return;
+            }
+            const query = value.trim().toLowerCase();
+            const choices = playlist.tracks
+                .map((track, index) => ({ name: format_1.default.truncateText(`${index + 1}. ${track.title} - ${track.author}`, 97), value: index + 1 }))
+                .filter((choice) => !query || String(choice.value).startsWith(query) || choice.name.toLowerCase().includes(query))
+                .slice(0, AutoComplete.MAX_CHOICES);
+            await this.safeRespond(choices);
+        };
+        this.playlistAutocomplete = async () => {
+            const focused = this.interaction.options.getFocused(true);
+            const value = String(focused.value ?? '');
+            try {
+                switch (focused.name) {
+                    case 'playlist':
+                        await this.respondOwnedPlaylists(value);
+                        break;
+                    case 'song':
+                        await this.respondSongSuggestions(value);
+                        break;
+                    case 'position':
+                    case 'from':
+                    case 'to':
+                        await this.respondPlaylistPositions(value);
+                        break;
+                    default:
+                        await this.safeRespond([]);
+                }
+            }
+            catch (error) {
+                this.client.logger.error(`[PLAYLIST_AUTOCOMPLETE] Error: ${error}`);
                 await this.safeRespond([]);
             }
         };
@@ -123,5 +211,6 @@ AutoComplete.STRING_WITHOUT_HTTP_REGEX = /^(?!https?:\/\/)[\w\s]+$/;
 AutoComplete.SPOTIFY_TIMEOUT_MS = 2000;
 AutoComplete.MAX_CHOICE_NAME_LENGTH = 100;
 AutoComplete.MAX_CHOICES = 25;
+AutoComplete.PEPPER_PLAYLIST_SUFFIX = 'Pepper';
 AutoComplete.manager = null;
 AutoComplete.localeDetector = null;
