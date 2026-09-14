@@ -118,6 +118,89 @@ commands:
                 name: 'volume'
                 description: 'Mức âm lượng (1-100)'
 
+    playlist:
+        name: 'playlist'
+        description: 'Tạo và quản lý danh sách phát của riêng bạn'
+        subcommands:
+            create:
+                name: 'create'
+                description: 'Tạo danh sách phát mới'
+            delete:
+                name: 'delete'
+                description: 'Xóa một danh sách phát của bạn'
+            rename:
+                name: 'rename'
+                description: 'Đổi tên một danh sách phát của bạn'
+            list:
+                name: 'list'
+                description: 'Hiển thị tất cả danh sách phát của bạn'
+            view:
+                name: 'view'
+                description: 'Xem các bài hát trong danh sách phát'
+            share:
+                name: 'share'
+                description: 'Chia sẻ mã danh sách phát trong kênh này'
+            visibility:
+                name: 'visibility'
+                description: 'Đặt danh sách phát thành công khai hoặc riêng tư'
+            transfer:
+                name: 'transfer'
+                description: 'Chuyển danh sách phát cho người dùng khác'
+        groups:
+            song:
+                name: 'song'
+                description: 'Quản lý bài hát trong danh sách phát'
+                subcommands:
+                    add:
+                        name: 'add'
+                        description: 'Tìm bài hát và thêm vào danh sách phát'
+                    current:
+                        name: 'current'
+                        description: 'Thêm bài hát đang phát vào danh sách phát'
+                    remove:
+                        name: 'remove'
+                        description: 'Xóa một bài hát khỏi danh sách phát'
+                    move:
+                        name: 'move'
+                        description: 'Chuyển bài hát sang vị trí khác'
+        options:
+            playlist:
+                name: 'playlist'
+                description: 'Một danh sách phát của bạn'
+            playlist_or_code:
+                name: 'playlist'
+                description: 'Một danh sách phát của bạn hoặc mã chia sẻ công khai'
+            name:
+                name: 'name'
+                description: 'Tên danh sách phát (tối đa 50 ký tự)'
+            new_name:
+                name: 'name'
+                description: 'Tên mới cho danh sách phát (tối đa 50 ký tự)'
+            visibility:
+                name: 'visibility'
+                description: 'Ai có thể phát danh sách này (mặc định: riêng tư)'
+            state:
+                name: 'state'
+                description: 'Bất kỳ ai có mã đều có thể phát danh sách công khai'
+            song:
+                name: 'song'
+                description: 'Tên bài hát hoặc URL để tìm kiếm'
+            position:
+                name: 'position'
+                description: 'Vị trí của bài hát cần xóa'
+            from:
+                name: 'from'
+                description: 'Vị trí hiện tại của bài hát'
+            to:
+                name: 'to'
+                description: 'Vị trí mới của bài hát'
+            user:
+                name: 'user'
+                description: 'Người dùng sẽ trở thành chủ sở hữu mới'
+        choices:
+            public: 'Công khai'
+            private: 'Riêng tư'
+
 responses:
     music:
         connected: 'Đã kết nối đến {channelName}'
@@ -363,6 +446,92 @@ responses:
 
     feedback:
         sent: 'Cảm ơn bạn đã phản hồi! Phản hồi của bạn đã được gửi đến nhà phát triển.'
+
+    playlist:
+        created: "Đã tạo danh sách phát **{name}** ({visibility}).\nMã chia sẻ: `{code}` • Thêm bài hát bằng `/playlist song add`."
+        deleted: 'Đã xóa danh sách phát **{name}**.'
+        delete_confirm: 'Xóa **{name}** cùng {count} bài hát trong đó? Không thể hoàn tác thao tác này.'
+        renamed: 'Đã đổi tên **{old}** thành **{name}**.'
+        visibility_set: '**{name}** hiện là {visibility}.'
+        cancelled: 'Đã hủy.'
+        not_found: 'Không tìm thấy danh sách phát. Hãy chọn từ danh sách hoặc kiểm tra lại mã chia sẻ.'
+        not_owner: 'Chỉ chủ sở hữu danh sách phát này mới có thể làm điều đó.'
+        private: 'Danh sách phát đó là riêng tư.'
+        empty: '**{name}** chưa có bài hát nào. Thêm bài hát bằng `/playlist song add`.'
+        name_invalid: 'Tên danh sách phát phải có từ 1 đến {max} ký tự.'
+        name_taken: 'Bạn đã có danh sách phát tên **{name}**.'
+        limit_playlists: 'Bạn đã đạt giới hạn {max} danh sách phát.'
+        premium_hint: 'Tham gia máy chủ hỗ trợ của chúng tôi để có tối đa {playlists} danh sách phát, mỗi danh sách {songs} bài hát!'
+        list_title: 'Danh sách phát của bạn'
+        list_empty: 'Bạn chưa có danh sách phát nào. Tạo một danh sách bằng `/playlist create`.'
+        list_limits: 'Danh sách phát: {count}/{max} • Bài hát mỗi danh sách: {songs}'
+        song_count: '{count}/{max} bài hát'
+        view_empty: 'Chưa có bài hát nào. Thêm bài hát bằng `/playlist song add`.'
+        page: 'Trang {page}/{total}'
+        share_title: 'Danh sách phát được chia sẻ'
+        share_public: "**{name}** của {owner} • {count} bài hát\n\nDán mã này vào `/play` để nghe:\n`{code}`"
+        share_private: "**{name}** đang ở chế độ riêng tư nên chỉ bạn mới phát được. Hãy đặt công khai bằng `/playlist visibility` trước khi chia sẻ.\n\nMã: `{code}`"
+        share_posted: 'Đã đăng **{name}** trong kênh này.'
+        visibility:
+            public: 'Công khai'
+            private: 'Riêng tư'
+        fields:
+            owner: 'Chủ sở hữu'
+            code: 'Mã'
+            visibility: 'Chế độ hiển thị'
+            songs: 'Bài hát'
+            duration: 'Thời lượng'
+        locked:
+            too_many_playlists: 'Đã khóa: chủ sở hữu có {count} danh sách phát nhưng gói của họ chỉ cho phép {max}. Xóa bớt danh sách phát để mở khóa.'
+            too_many_songs: 'Đã khóa: danh sách phát này có {count} bài hát nhưng gói của chủ sở hữu chỉ cho phép {max}. Xóa bớt bài hát để mở khóa.'
+        add:
+            added: 'Đã thêm **{title}** vào **{name}** ({count}/{max}).'
+            full: '**{name}** đã đầy ({max} bài hát).'
+            duplicate: '**{title}** đã có trong **{name}**. Vẫn thêm lần nữa?'
+            unsupported: 'Không thể lưu bài hát này vào danh sách phát.'
+        search:
+            title: 'Thêm bài hát vào {name}'
+            description: 'Chọn một trong các kết quả sau:'
+            placeholder: 'Chọn bài hát để thêm'
+            no_results: 'Không tìm thấy bài hát nào cho tìm kiếm này.'
+            collection: 'Liên kết đó là danh sách phát hoặc album. Hãy tìm một bài hát riêng lẻ.'
+            expired: 'Lựa chọn này đã hết hạn. Hãy chạy lại lệnh.'
+        song:
+            removed: 'Đã xóa **{title}** khỏi **{name}**.'
+            moved: 'Đã chuyển **{title}** từ vị trí {from} sang {to} trong **{name}**.'
+            invalid_position: 'Vị trí phải nằm trong khoảng từ 1 đến {max}.'
+            same_position: 'Bài hát đã ở vị trí đó.'
+            changed: 'Danh sách phát đã thay đổi trong lúc bạn chỉnh sửa. Vui lòng thử lại.'
+        transfer:
+            self: 'Bạn đã là chủ sở hữu danh sách phát này.'
+            bot: 'Không thể chuyển danh sách phát cho bot.'
+            target_playlist_limit: '{user} đã đạt giới hạn {max} danh sách phát.'
+            target_song_limit: '**{name}** có {count} bài hát, nhưng {user} chỉ được có tối đa {max} bài hát mỗi danh sách.'
+            target_name_taken: '{user} đã có danh sách phát tên **{name}**.'
+            dm_failed: 'Không thể nhắn tin riêng cho {user}. Họ cần cho phép tin nhắn trực tiếp từ thành viên máy chủ.'
+            sent: 'Đã gửi yêu cầu nhận **{name}** tới {user}. Yêu cầu hết hạn <t:{expires}:R>.'
+            request_title: 'Yêu cầu chuyển danh sách phát'
+            request_body: "**{from}** muốn chuyển danh sách phát **{name}** ({count} bài hát) cho bạn.\n\nYêu cầu này hết hạn <t:{expires}:R>."
+            accept_playlist_limit: 'Bạn đã đạt giới hạn {max} danh sách phát. Hãy xóa bớt một danh sách rồi chấp nhận lại.'
+            accept_song_limit: '**{name}** có {count} bài hát, nhưng bạn chỉ được có tối đa {max} bài hát mỗi danh sách.'
+            accept_name_taken: 'Bạn đã có danh sách phát tên **{name}**. Hãy đổi tên nó rồi chấp nhận lại.'
+            accepted: 'Bạn hiện là chủ sở hữu của **{name}**.'
+            accepted_owner: '{user} đã chấp nhận yêu cầu chuyển. **{name}** giờ thuộc về họ.'
+            declined: 'Bạn đã từ chối nhận **{name}**.'
+            declined_owner: '{user} đã từ chối nhận **{name}**.'
+            expired: 'Yêu cầu chuyển này đã hết hạn hoặc đã bị hủy.'
+        play:
+            not_found: 'Không tìm thấy danh sách phát.'
+            private: 'Danh sách phát đó là riêng tư.'
+            locked: '**{name}** đang bị khóa vì chủ sở hữu vượt quá giới hạn gói, nên hiện không thể phát.'
+        buttons:
+            previous: 'Trước'
+            next: 'Tiếp'
+            delete: 'Xóa'
+            cancel: 'Hủy'
+            add_anyway: 'Vẫn thêm'
+            accept: 'Chấp nhận'
+            decline: 'Từ chối'
 
     default_search: 'Vui lòng nhập tên bài hát hoặc url'
 

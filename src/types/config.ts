@@ -31,6 +31,8 @@ export interface IConfig {
 			name: string;
 			feature: {
 				playlist_limit: number | null;
+				custom_playlists?: number;
+				custom_playlist_songs?: number;
 			};
 		}>;
 	};

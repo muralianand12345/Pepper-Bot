@@ -242,3 +242,24 @@ export interface StatsGuildMeta {
 	icon: string | null;
 	memberCount: number | null;
 }
+
+export interface StatsPublicPlaylist {
+	rank: number;
+	code: string;
+	name: string;
+	ownerId: string;
+	ownerUsername: string | null;
+	ownerAvatar: string | null;
+	trackCount: number;
+	playCount: number;
+	lastPlayedAt: Date | null;
+	createdAt: Date;
+}
+
+export interface StatsPlaylists {
+	totalPlaylists: number;
+	publicPlaylists: number;
+	privatePlaylists: number;
+	publicPlays: number;
+	playlists: StatsPublicPlaylist[];
+}

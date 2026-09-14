@@ -33,6 +33,22 @@ bot:
         command: '1234567890' # Channel ID for command usage logs
         server: '1234567890' # Channel ID for server join/leave logs
 
+# Premium tiers - tier 1 is granted to members of the support server
+premium:
+    tiers:
+        - id: 0
+          name: 'Basic'
+          feature:
+              playlist_limit: 20 # Max tracks queued from one playlist (null = unlimited)
+              custom_playlists: 1 # Custom playlists a user can own (/playlist)
+              custom_playlist_songs: 10 # Songs allowed per custom playlist
+        - id: 1
+          name: 'Premium'
+          feature:
+              playlist_limit: null
+              custom_playlists: 5
+              custom_playlist_songs: 50
+
 # Music playback configuration
 music:
     enabled: true # Whether music functionality is enabled

@@ -22,6 +22,7 @@ class StatsAPIHandler {
             this.router.get('/playtime', this.handlePlaytime);
             this.router.get('/servers', this.handleServers);
             this.router.get('/servers/:guildId', this.handleServer);
+            this.router.get('/playlists', this.handlePlaylists);
             this.router.use((_req, res) => res.status(404).json({ success: false, error: 'Unknown stats endpoint' }));
         };
         this.authenticate = (req, res, next) => {
@@ -199,6 +200,21 @@ class StatsAPIHandler {
             }
             catch (error) {
                 this.fail(res, error, 'playtime');
+            }
+        };
+        this.handlePlaylists = async (req, res) => {
+            try {
+                const limit = this.parseLimit(req.query.limit, DEFAULT_LIMIT);
+                const cached = repo_1.StatsDB.isCached(`playlists:${limit}`);
+                const stats = await repo_1.StatsDB.getPlaylistStats(limit);
+                const playlists = await Promise.all(stats.playlists.map(async (playlist) => {
+                    const owner = await this.client.users.fetch(playlist.ownerId).catch(() => null);
+                    return owner ? { ...playlist, ownerUsername: owner.username, ownerAvatar: owner.displayAvatarURL() } : playlist;
+                }));
+                this.send(res, { ...stats, limit, playlists }, cached);
+            }
+            catch (error) {
+                this.fail(res, error, 'playlists');
             }
         };
         this.handleServers = async (req, res) => {

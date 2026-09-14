@@ -118,6 +118,89 @@ commands:
                 name: 'volumen'
                 description: 'Nivel de volumen (1-100)'
 
+    playlist:
+        name: 'playlist'
+        description: 'Crea y gestiona tus propias playlists'
+        subcommands:
+            create:
+                name: 'create'
+                description: 'Crea una nueva playlist'
+            delete:
+                name: 'delete'
+                description: 'Elimina una de tus playlists'
+            rename:
+                name: 'rename'
+                description: 'Cambia el nombre de una de tus playlists'
+            list:
+                name: 'list'
+                description: 'Muestra todas tus playlists'
+            view:
+                name: 'view'
+                description: 'Muestra las canciones de una playlist'
+            share:
+                name: 'share'
+                description: 'Comparte el código de una playlist en este canal'
+            visibility:
+                name: 'visibility'
+                description: 'Haz que una playlist sea pública o privada'
+            transfer:
+                name: 'transfer'
+                description: 'Transfiere una playlist a otro usuario'
+        groups:
+            song:
+                name: 'song'
+                description: 'Gestiona las canciones de una playlist'
+                subcommands:
+                    add:
+                        name: 'add'
+                        description: 'Busca una canción y añádela a una playlist'
+                    current:
+                        name: 'current'
+                        description: 'Añade la canción que suena ahora a una playlist'
+                    remove:
+                        name: 'remove'
+                        description: 'Quita una canción de una playlist'
+                    move:
+                        name: 'move'
+                        description: 'Mueve una canción a otra posición'
+        options:
+            playlist:
+                name: 'playlist'
+                description: 'Una de tus playlists'
+            playlist_or_code:
+                name: 'playlist'
+                description: 'Una de tus playlists o un código público para compartir'
+            name:
+                name: 'name'
+                description: 'Nombre de la playlist (hasta 50 caracteres)'
+            new_name:
+                name: 'name'
+                description: 'Nuevo nombre de la playlist (hasta 50 caracteres)'
+            visibility:
+                name: 'visibility'
+                description: 'Quién puede reproducir la playlist (por defecto: privada)'
+            state:
+                name: 'state'
+                description: 'Cualquiera con el código puede reproducir las playlists públicas'
+            song:
+                name: 'song'
+                description: 'Nombre o URL de la canción a buscar'
+            position:
+                name: 'position'
+                description: 'Posición de la canción a quitar'
+            from:
+                name: 'from'
+                description: 'Posición actual de la canción'
+            to:
+                name: 'to'
+                description: 'Nueva posición de la canción'
+            user:
+                name: 'user'
+                description: 'El usuario que será el nuevo propietario'
+        choices:
+            public: 'Pública'
+            private: 'Privada'
+
 responses:
     music:
         connected: 'Conectado a {channelName}'
@@ -374,6 +457,92 @@ responses:
 
     feedback:
         sent: '¡Gracias por tus comentarios! Han sido enviados a los desarrolladores.'
+
+    playlist:
+        created: "Playlist **{name}** creada ({visibility}).\nCódigo para compartir: `{code}` • Añade canciones con `/playlist song add`."
+        deleted: 'Playlist **{name}** eliminada.'
+        delete_confirm: '¿Eliminar **{name}** y sus {count} canción(es)? Esta acción no se puede deshacer.'
+        renamed: '**{old}** ahora se llama **{name}**.'
+        visibility_set: '**{name}** ahora es {visibility}.'
+        cancelled: 'Cancelado.'
+        not_found: 'Playlist no encontrada. Elige una de la lista o revisa el código para compartir.'
+        not_owner: 'Solo el propietario de esta playlist puede hacer eso.'
+        private: 'Esa playlist es privada.'
+        empty: '**{name}** aún no tiene canciones. Añade algunas con `/playlist song add`.'
+        name_invalid: 'El nombre de la playlist debe tener entre 1 y {max} caracteres.'
+        name_taken: 'Ya tienes una playlist llamada **{name}**.'
+        limit_playlists: 'Has alcanzado tu límite de {max} playlist(s).'
+        premium_hint: '¡Únete a nuestro servidor de soporte para tener hasta {playlists} playlists con {songs} canciones cada una!'
+        list_title: 'Tus playlists'
+        list_empty: 'Aún no tienes playlists. Crea una con `/playlist create`.'
+        list_limits: 'Playlists: {count}/{max} • Canciones por playlist: {songs}'
+        song_count: '{count}/{max} canciones'
+        view_empty: 'Aún no hay canciones. Añade algunas con `/playlist song add`.'
+        page: 'Página {page}/{total}'
+        share_title: 'Playlist compartida'
+        share_public: "**{name}** de {owner} • {count} canción(es)\n\nPega este código en `/play` para escucharla:\n`{code}`"
+        share_private: "**{name}** es privada, así que solo tú puedes reproducirla. Hazla pública con `/playlist visibility` antes de compartirla.\n\nCódigo: `{code}`"
+        share_posted: '**{name}** se ha publicado en este canal.'
+        visibility:
+            public: 'Pública'
+            private: 'Privada'
+        fields:
+            owner: 'Propietario'
+            code: 'Código'
+            visibility: 'Visibilidad'
+            songs: 'Canciones'
+            duration: 'Duración'
+        locked:
+            too_many_playlists: 'Bloqueada: el propietario tiene {count} playlists, pero su plan permite {max}. Elimina playlists para desbloquearla.'
+            too_many_songs: 'Bloqueada: esta playlist tiene {count} canciones, pero el plan del propietario permite {max}. Quita canciones para desbloquearla.'
+        add:
+            added: '**{title}** se añadió a **{name}** ({count}/{max}).'
+            full: '**{name}** está llena ({max} canciones).'
+            duplicate: '**{title}** ya está en **{name}**. ¿Añadirla de nuevo?'
+            unsupported: 'Esta canción no se puede guardar en una playlist.'
+        search:
+            title: 'Añadir una canción a {name}'
+            description: 'Elige uno de estos resultados:'
+            placeholder: 'Elige una canción para añadir'
+            no_results: 'No se encontraron canciones para esa búsqueda.'
+            collection: 'Ese enlace es una playlist o un álbum. Busca una sola canción.'
+            expired: 'Esta selección ha caducado. Vuelve a ejecutar el comando.'
+        song:
+            removed: '**{title}** se quitó de **{name}**.'
+            moved: '**{title}** se movió de la posición {from} a la {to} en **{name}**.'
+            invalid_position: 'La posición debe estar entre 1 y {max}.'
+            same_position: 'La canción ya está en esa posición.'
+            changed: 'La playlist cambió mientras la editabas. Inténtalo de nuevo.'
+        transfer:
+            self: 'Ya eres el propietario de esta playlist.'
+            bot: 'Las playlists no se pueden transferir a bots.'
+            target_playlist_limit: '{user} ha alcanzado su límite de {max} playlist(s).'
+            target_song_limit: '**{name}** tiene {count} canciones, pero {user} solo puede tener {max} canciones por playlist.'
+            target_name_taken: '{user} ya tiene una playlist llamada **{name}**.'
+            dm_failed: 'No pude enviar un MD a {user}. Debe permitir mensajes directos de miembros del servidor.'
+            sent: 'Se envió a {user} una solicitud para quedarse con **{name}**. Caduca <t:{expires}:R>.'
+            request_title: 'Solicitud de transferencia de playlist'
+            request_body: "**{from}** quiere transferirte la playlist **{name}** ({count} canciones).\n\nEsta solicitud caduca <t:{expires}:R>."
+            accept_playlist_limit: 'Has alcanzado tu límite de {max} playlist(s). Elimina una y vuelve a aceptar.'
+            accept_song_limit: '**{name}** tiene {count} canciones, pero solo puedes tener {max} canciones por playlist.'
+            accept_name_taken: 'Ya tienes una playlist llamada **{name}**. Cámbiale el nombre y vuelve a aceptar.'
+            accepted: 'Ahora eres el propietario de **{name}**.'
+            accepted_owner: '{user} aceptó tu transferencia. **{name}** ahora le pertenece.'
+            declined: 'Rechazaste la transferencia de **{name}**.'
+            declined_owner: '{user} rechazó tu transferencia de **{name}**.'
+            expired: 'Esta solicitud de transferencia ha caducado o fue cancelada.'
+        play:
+            not_found: 'Playlist no encontrada.'
+            private: 'Esa playlist es privada.'
+            locked: '**{name}** está bloqueada porque su propietario supera los límites de su plan, así que no se puede reproducir ahora.'
+        buttons:
+            previous: 'Anterior'
+            next: 'Siguiente'
+            delete: 'Eliminar'
+            cancel: 'Cancelar'
+            add_anyway: 'Añadir igualmente'
+            accept: 'Aceptar'
+            decline: 'Rechazar'
 
     default_search: 'Por favor, ingresa un nombre de canción o URL'
 

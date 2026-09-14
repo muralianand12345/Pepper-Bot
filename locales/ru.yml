@@ -118,6 +118,89 @@ commands:
                 choices:
                     spotify: 'Spotify'
 
+    playlist:
+        name: 'playlist'
+        description: 'Создавать плейлисты и управлять ими'
+        subcommands:
+            create:
+                name: 'create'
+                description: 'Создать новый плейлист'
+            delete:
+                name: 'delete'
+                description: 'Удалить один из ваших плейлистов'
+            rename:
+                name: 'rename'
+                description: 'Переименовать один из ваших плейлистов'
+            list:
+                name: 'list'
+                description: 'Показать все ваши плейлисты'
+            view:
+                name: 'view'
+                description: 'Показать песни в плейлисте'
+            share:
+                name: 'share'
+                description: 'Поделиться кодом плейлиста в этом канале'
+            visibility:
+                name: 'visibility'
+                description: 'Сделать плейлист публичным или приватным'
+            transfer:
+                name: 'transfer'
+                description: 'Передать плейлист другому пользователю'
+        groups:
+            song:
+                name: 'song'
+                description: 'Управлять песнями в плейлисте'
+                subcommands:
+                    add:
+                        name: 'add'
+                        description: 'Найти песню и добавить её в плейлист'
+                    current:
+                        name: 'current'
+                        description: 'Добавить текущую песню в плейлист'
+                    remove:
+                        name: 'remove'
+                        description: 'Удалить песню из плейлиста'
+                    move:
+                        name: 'move'
+                        description: 'Переместить песню на другую позицию'
+        options:
+            playlist:
+                name: 'playlist'
+                description: 'Один из ваших плейлистов'
+            playlist_or_code:
+                name: 'playlist'
+                description: 'Один из ваших плейлистов или публичный код'
+            name:
+                name: 'name'
+                description: 'Название плейлиста (до 50 символов)'
+            new_name:
+                name: 'name'
+                description: 'Новое название плейлиста (до 50 символов)'
+            visibility:
+                name: 'visibility'
+                description: 'Кто может слушать плейлист (по умолчанию: приватный)'
+            state:
+                name: 'state'
+                description: 'Публичный плейлист может слушать любой, у кого есть код'
+            song:
+                name: 'song'
+                description: 'Название или URL песни для поиска'
+            position:
+                name: 'position'
+                description: 'Позиция песни для удаления'
+            from:
+                name: 'from'
+                description: 'Текущая позиция песни'
+            to:
+                name: 'to'
+                description: 'Новая позиция песни'
+            user:
+                name: 'user'
+                description: 'Пользователь, который станет новым владельцем'
+        choices:
+            public: 'Публичный'
+            private: 'Приватный'
+
 responses:
     music:
         connected: 'Подключено к {channelName}'
@@ -374,6 +457,92 @@ responses:
 
     feedback:
         sent: 'Спасибо за ваш отзыв! Он отправлен разработчикам.'
+
+    playlist:
+        created: "Плейлист **{name}** создан ({visibility}).\nКод: `{code}` • Добавляйте песни через `/playlist song add`."
+        deleted: 'Плейлист **{name}** удалён.'
+        delete_confirm: 'Удалить **{name}** вместе с песнями ({count})? Это действие нельзя отменить.'
+        renamed: 'Плейлист **{old}** переименован в **{name}**.'
+        visibility_set: '**{name}** теперь: {visibility}.'
+        cancelled: 'Отменено.'
+        not_found: 'Плейлист не найден. Выберите его из списка или проверьте код.'
+        not_owner: 'Это может сделать только владелец плейлиста.'
+        private: 'Этот плейлист приватный.'
+        empty: 'В **{name}** пока нет песен. Добавьте их через `/playlist song add`.'
+        name_invalid: 'Название плейлиста должно содержать от 1 до {max} символов.'
+        name_taken: 'У вас уже есть плейлист с названием **{name}**.'
+        limit_playlists: 'Вы достигли лимита плейлистов: {max}.'
+        premium_hint: 'Присоединяйтесь к нашему серверу поддержки, чтобы получить до {playlists} плейлистов по {songs} песен в каждом!'
+        list_title: 'Ваши плейлисты'
+        list_empty: 'У вас пока нет плейлистов. Создайте первый через `/playlist create`.'
+        list_limits: 'Плейлисты: {count}/{max} • Песен в плейлисте: {songs}'
+        song_count: 'Песен: {count}/{max}'
+        view_empty: 'Песен пока нет. Добавьте их через `/playlist song add`.'
+        page: 'Страница {page}/{total}'
+        share_title: 'Общий плейлист'
+        share_public: "**{name}** от {owner} • песен: {count}\n\nВставьте этот код в `/play`, чтобы послушать:\n`{code}`"
+        share_private: "**{name}** — приватный плейлист, слушать его можете только вы. Сделайте его публичным через `/playlist visibility`, прежде чем делиться.\n\nКод: `{code}`"
+        share_posted: 'Плейлист **{name}** опубликован в этом канале.'
+        visibility:
+            public: 'Публичный'
+            private: 'Приватный'
+        fields:
+            owner: 'Владелец'
+            code: 'Код'
+            visibility: 'Видимость'
+            songs: 'Песни'
+            duration: 'Длительность'
+        locked:
+            too_many_playlists: 'Заблокирован: у владельца {count} плейлистов, а его тариф позволяет {max}. Удалите лишние плейлисты, чтобы разблокировать.'
+            too_many_songs: 'Заблокирован: в плейлисте {count} песен, а тариф владельца позволяет {max}. Удалите песни, чтобы разблокировать.'
+        add:
+            added: '**{title}** добавлена в **{name}** ({count}/{max}).'
+            full: '**{name}** заполнен (максимум песен: {max}).'
+            duplicate: '**{title}** уже есть в **{name}**. Добавить ещё раз?'
+            unsupported: 'Эту песню нельзя сохранить в плейлист.'
+        search:
+            title: 'Добавить песню в {name}'
+            description: 'Выберите один из результатов:'
+            placeholder: 'Выберите песню для добавления'
+            no_results: 'По этому запросу песни не найдены.'
+            collection: 'Эта ссылка ведёт на плейлист или альбом. Найдите одну песню.'
+            expired: 'Срок выбора истёк. Запустите команду снова.'
+        song:
+            removed: '**{title}** удалена из **{name}**.'
+            moved: '**{title}** перемещена с позиции {from} на {to} в **{name}**.'
+            invalid_position: 'Позиция должна быть от 1 до {max}.'
+            same_position: 'Песня уже находится на этой позиции.'
+            changed: 'Плейлист изменился во время редактирования. Попробуйте ещё раз.'
+        transfer:
+            self: 'Вы уже владелец этого плейлиста.'
+            bot: 'Плейлисты нельзя передавать ботам.'
+            target_playlist_limit: '{user} достиг(ла) лимита плейлистов: {max}.'
+            target_song_limit: 'В **{name}** {count} песен, а {user} может иметь не больше {max} песен в плейлисте.'
+            target_name_taken: 'У {user} уже есть плейлист с названием **{name}**.'
+            dm_failed: 'Не удалось отправить ЛС пользователю {user}. Нужно разрешить личные сообщения от участников сервера.'
+            sent: 'Пользователю {user} отправлен запрос на передачу **{name}**. Срок действия истекает <t:{expires}:R>.'
+            request_title: 'Запрос на передачу плейлиста'
+            request_body: "**{from}** хочет передать вам плейлист **{name}** (песен: {count}).\n\nЗапрос истекает <t:{expires}:R>."
+            accept_playlist_limit: 'Вы достигли лимита плейлистов: {max}. Удалите один и примите запрос снова.'
+            accept_song_limit: 'В **{name}** {count} песен, а вы можете иметь не больше {max} песен в плейлисте.'
+            accept_name_taken: 'У вас уже есть плейлист с названием **{name}**. Переименуйте его и примите запрос снова.'
+            accepted: 'Теперь вы владелец **{name}**.'
+            accepted_owner: '{user} принял(а) передачу. **{name}** теперь принадлежит этому пользователю.'
+            declined: 'Вы отклонили передачу **{name}**.'
+            declined_owner: '{user} отклонил(а) передачу **{name}**.'
+            expired: 'Срок действия запроса на передачу истёк, или он был отменён.'
+        play:
+            not_found: 'Плейлист не найден.'
+            private: 'Этот плейлист приватный.'
+            locked: '**{name}** заблокирован: владелец превысил лимиты своего тарифа, поэтому сейчас его нельзя воспроизвести.'
+        buttons:
+            previous: 'Назад'
+            next: 'Далее'
+            delete: 'Удалить'
+            cancel: 'Отмена'
+            add_anyway: 'Всё равно добавить'
+            accept: 'Принять'
+            decline: 'Отклонить'
 
     default_search: 'Пожалуйста, введите название песни или URL'
 
