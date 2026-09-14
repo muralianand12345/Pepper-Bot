@@ -23,6 +23,7 @@ class StatsAPIHandler {
             this.router.get('/servers', this.handleServers);
             this.router.get('/servers/:guildId', this.handleServer);
             this.router.get('/playlists', this.handlePlaylists);
+            this.router.get('/playlists/:code', this.handlePlaylist);
             this.router.use((_req, res) => res.status(404).json({ success: false, error: 'Unknown stats endpoint' }));
         };
         this.authenticate = (req, res, next) => {
@@ -215,6 +216,26 @@ class StatsAPIHandler {
             }
             catch (error) {
                 this.fail(res, error, 'playlists');
+            }
+        };
+        this.handlePlaylist = async (req, res) => {
+            try {
+                const code = String(req.params.code).toUpperCase();
+                if (!repo_1.PlaylistDB.CODE_PATTERN.test(code)) {
+                    res.status(400).json({ success: false, error: 'Invalid playlist code' });
+                    return;
+                }
+                const cached = repo_1.StatsDB.isCached(`playlist:${code}`);
+                const playlist = await repo_1.StatsDB.getPublicPlaylist(code);
+                if (!playlist) {
+                    res.status(404).json({ success: false, error: 'No public playlist found for this code' });
+                    return;
+                }
+                const owner = await this.client.users.fetch(playlist.ownerId).catch(() => null);
+                this.send(res, owner ? { ...playlist, ownerUsername: owner.username, ownerAvatar: owner.displayAvatarURL() } : playlist, cached);
+            }
+            catch (error) {
+                this.fail(res, error, 'playlist');
             }
         };
         this.handleServers = async (req, res) => {

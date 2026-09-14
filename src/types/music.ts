@@ -263,3 +263,19 @@ export interface StatsPlaylists {
 	publicPlays: number;
 	playlists: StatsPublicPlaylist[];
 }
+
+export interface StatsPlaylistTrack {
+	position: number;
+	title: string;
+	author: string;
+	uri: string;
+	sourceName: string;
+	duration: number;
+	isStream: boolean;
+	artworkUrl: string | null;
+}
+
+export interface StatsPlaylistDetail extends Omit<StatsPublicPlaylist, 'rank'> {
+	totalDurationMs: number;
+	tracks: StatsPlaylistTrack[];
+}

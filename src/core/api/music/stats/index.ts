@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import express from 'express';
 import discord from 'discord.js';
 
-import { MusicDB, StatsDB } from '../../../music/repo';
+import { MusicDB, PlaylistDB, StatsDB } from '../../../music/repo';
 import { ConfigManager } from '../../../../utils/config';
 import { ISongs, StatsGuildMeta, StatsRealtime, StatsRealtimeTrack, StatsServerInsight, StatsTopRequester } from '../../../../types';
 
@@ -34,6 +34,7 @@ export default class StatsAPIHandler {
 		this.router.get('/servers', this.handleServers);
 		this.router.get('/servers/:guildId', this.handleServer);
 		this.router.get('/playlists', this.handlePlaylists);
+		this.router.get('/playlists/:code', this.handlePlaylist);
 		this.router.use((_req: express.Request, res: express.Response) => res.status(404).json({ success: false, error: 'Unknown stats endpoint' }));
 	};
 
@@ -239,6 +240,26 @@ export default class StatsAPIHandler {
 			this.send(res, { ...stats, limit, playlists }, cached);
 		} catch (error) {
 			this.fail(res, error, 'playlists');
+		}
+	};
+
+	private handlePlaylist = async (req: express.Request, res: express.Response): Promise<void> => {
+		try {
+			const code = String(req.params.code).toUpperCase();
+			if (!PlaylistDB.CODE_PATTERN.test(code)) {
+				res.status(400).json({ success: false, error: 'Invalid playlist code' });
+				return;
+			}
+			const cached = StatsDB.isCached(`playlist:${code}`);
+			const playlist = await StatsDB.getPublicPlaylist(code);
+			if (!playlist) {
+				res.status(404).json({ success: false, error: 'No public playlist found for this code' });
+				return;
+			}
+			const owner = await this.client.users.fetch(playlist.ownerId).catch(() => null);
+			this.send(res, owner ? { ...playlist, ownerUsername: owner.username, ownerAvatar: owner.displayAvatarURL() } : playlist, cached);
+		} catch (error) {
+			this.fail(res, error, 'playlist');
 		}
 	};
 

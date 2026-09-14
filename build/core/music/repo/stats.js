@@ -250,6 +250,31 @@ StatsDB.getPlaylistStats = async (limit = 10) => {
         }
     });
 };
+/** One public playlist with its songs. Private and unknown codes both resolve to null so they cannot be told apart. */
+StatsDB.getPublicPlaylist = async (code) => {
+    return _a.withCache(`playlist:${code}`, async () => {
+        const playlist = await music_playlist_1.default
+            .findOne({ code, visibility: 'public' }, { _id: 0, code: 1, name: 1, ownerId: 1, playCount: 1, lastPlayedAt: 1, createdAt: 1, 'tracks.title': 1, 'tracks.author': 1, 'tracks.uri': 1, 'tracks.sourceName': 1, 'tracks.duration': 1, 'tracks.isStream': 1, 'tracks.artworkUrl': 1 })
+            .lean()
+            .exec();
+        if (!playlist)
+            return null;
+        const tracks = (playlist.tracks || []).map((track, index) => ({ position: index + 1, title: track.title, author: track.author, uri: track.uri, sourceName: track.sourceName, duration: track.duration ?? 0, isStream: !!track.isStream, artworkUrl: track.artworkUrl ?? null }));
+        return {
+            code: playlist.code,
+            name: playlist.name,
+            ownerId: playlist.ownerId,
+            ownerUsername: null,
+            ownerAvatar: null,
+            trackCount: tracks.length,
+            playCount: playlist.playCount ?? 0,
+            lastPlayedAt: playlist.lastPlayedAt ?? null,
+            createdAt: playlist.createdAt,
+            totalDurationMs: tracks.reduce((acc, track) => acc + (track.isStream ? 0 : track.duration), 0),
+            tracks,
+        };
+    });
+};
 StatsDB.getSongTotals = async () => {
     const overview = await _a.getOverview();
     return { uniqueSongs: overview.uniqueSongs, totalPlays: overview.totalPlays };
