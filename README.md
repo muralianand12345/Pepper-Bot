@@ -1,6 +1,6 @@
 # Pepper Bot 🎵
 
-![Version](https://img.shields.io/badge/version-5.15.0-blue)
+![Version](https://img.shields.io/badge/version-5.15.1-blue)
 ![Discord.js](https://img.shields.io/badge/discord.js-v14.27.0-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-blue)
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)
@@ -15,6 +15,14 @@ A powerful Discord music bot with smart autoplay, multi-language support, and ad
 - **Multiple Sources**: Support for Spotify, SoundCloud, Bandcamp, and more
 - **Smart Queue Management**: Advanced queue system with position tracking
 - **Audio Filters**: 11+ audio filters including bassboost, nightcore, and 8D audio
+
+### 📻 Live Radio
+
+- **Live Internet Radio**: Stream live stations straight into your voice channel with `/radio`
+- **40 Verified Stations**: Hand-picked and tested — SomaFM, All India Radio, Bollywood, Tamil, lofi, jazz, classical, hip-hop, EDM, rock and more
+- **~50,000 More**: Search the Radio Browser directory by name, genre or country, or paste a stream URL directly
+- **Auto-Reconnect**: Dropped streams are restored automatically without losing the station
+- **Separate Statistics**: Radio listening is tracked apart from music, so it never affects your charts or recommendations
 
 ### 🤖 Smart Features
 
@@ -135,6 +143,11 @@ Required Discord permissions:
 - `/stop` - Stop playback and leave voice channel
 - `/loop` - Toggle loop mode for current track
 - `/autoplay <enabled>` - Toggle smart autoplay
+
+### Radio Commands
+
+- `/radio <station>` - Play a live radio station. Search by name, genre, country or frequency, or paste a stream URL; ⭐ marks verified stations
+- Radio clears the queue and disables autoplay while it runs — `/stop` ends it and `/play` switches back to music
 
 ### Playlist Commands
 

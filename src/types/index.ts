@@ -4,6 +4,7 @@ import magmastream from 'magmastream';
 import { IConfig } from './config';
 import { ILogger } from './logger';
 import { Command } from './events';
+import { RadioState } from './radio';
 import { CommandLogger } from '../utils/logger';
 import { LocalizationManager } from '../core/locales';
 
@@ -34,6 +35,8 @@ declare module 'discord.js' {
 		config: IConfig;
 		manager: magmastream.Manager;
 		localizationManager?: LocalizationManager;
+		/** Radio sessions on this shard. Hung off the client so `broadcastEval` callbacks, which cannot import modules, can read them. */
+		radio: { get: (guildId: string) => RadioState | null };
 	}
 }
 

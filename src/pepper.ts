@@ -5,6 +5,7 @@ import { Manager, UseNodeOptions, StateStorageType, AutoPlayPlatform, DiscordPac
 import { Command, IConfig } from './types';
 import { LocalizationManager } from './core/locales';
 import { registerAuthBridge } from './utils/authEmitter';
+import { getRadioState } from './core/music/radio/state';
 import { Logger, CommandLogger } from './utils/logger';
 import { ConfigManager, loadConfig } from './utils/config';
 
@@ -52,6 +53,7 @@ const createClient = (): discord.Client => {
 	client.config = loadConfig(client);
 	client.manager = initializeManager(client.config, client);
 	client.localizationManager = LocalizationManager.getInstance();
+	client.radio = { get: getRadioState };
 	client.on(discord.Events.Raw, (d) => client.manager.updateVoiceState(d));
 	registerAuthBridge(client);
 
