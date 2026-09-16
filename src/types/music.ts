@@ -1,5 +1,7 @@
 import magmastream from 'magmastream';
 
+import { RadioSource } from './radio';
+
 export interface ISongsUser {
 	id: string;
 	username: string;
@@ -141,6 +143,19 @@ export interface LyricsResponse {
 	lines: LyricLine[];
 }
 
+export interface StatsRealtimeRadio {
+	stationId: string;
+	name: string;
+	genre: string;
+	country: string | null;
+	artworkUrl: string | null;
+	homepage: string | null;
+	source: RadioSource;
+	codec: string;
+	bitrate: number;
+	onAirMs: number;
+}
+
 export interface StatsRealtimeTrack {
 	guildId: string;
 	guildName: string | null;
@@ -158,6 +173,7 @@ export interface StatsRealtimeTrack {
 	sourceName: string;
 	requester: ISongsUser | null;
 	shardId: number;
+	radio: StatsRealtimeRadio | null;
 }
 
 export interface StatsRealtime {

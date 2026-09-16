@@ -104,6 +104,7 @@ export default class StatsAPIHandler {
 					const voiceChannel = player.voiceChannelId ? c.channels.cache.get(player.voiceChannelId) : null;
 					const listeners = voiceChannel && voiceChannel.isVoiceBased() ? voiceChannel.members.filter((member) => !member.user.bot).size : 0;
 					const requester = track?.requester as { id?: string; username?: string; discriminator?: string; avatar?: string } | undefined;
+					const radio = c.radio?.get(player.guildId) ?? null;
 					return {
 						guildId: player.guildId,
 						guildName: c.guilds.cache.get(player.guildId)?.name ?? null,
@@ -121,6 +122,7 @@ export default class StatsAPIHandler {
 						sourceName: String(track?.sourceName ?? 'unknown'),
 						requester: requester?.id ? { id: requester.id, username: requester.username ?? 'Unknown', discriminator: requester.discriminator ?? '0', avatar: requester.avatar } : null,
 						shardId: c.shard?.ids[0] ?? 0,
+						radio: radio ? { stationId: radio.station.id, name: radio.station.name, genre: radio.station.genre, country: radio.station.country, artworkUrl: radio.station.artworkUrl, homepage: radio.station.homepage, source: radio.station.source, codec: radio.station.codec, bitrate: radio.station.bitrate, onAirMs: Math.max(0, Date.now() - radio.startedAt) } : null,
 						hasTrack: !!track,
 					};
 				}),
