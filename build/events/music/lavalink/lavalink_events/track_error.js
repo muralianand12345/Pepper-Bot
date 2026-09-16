@@ -12,6 +12,11 @@ const lavalinkEvent = {
                 return;
             const exception = payload?.exception;
             client.logger.error(`[LAVALINK] Track ${track?.title || 'Unknown'} (${track?.uri || 'no uri'}) failed on node ${player.node.options.identifier} in guild ${player.guildId}: ${exception?.message || 'no message'} | severity: ${exception?.severity || 'unknown'} | cause: ${exception?.cause || 'unknown'}`);
+            if ((0, music_1.isRadioActive)(player.guildId)) {
+                const result = await (0, music_1.reconnectRadio)(player, client, 'track error');
+                await (0, music_1.notifyRadioRecovery)(client, player, result);
+                return;
+            }
             const failure = (0, music_1.recordFailure)(player.guildId);
             client.logger.warn(`[LAVALINK] Playback failure ${failure.count}/${music_1.FAILURE_LIMIT} for guild ${player.guildId}; next attempt held for ${failure.backoffMs}ms`);
             const textChannel = client.channels.cache.get(String(player.textChannelId));

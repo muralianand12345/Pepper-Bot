@@ -88,6 +88,11 @@ const lavalinkEvent = {
         try {
             if (!player?.guildId || !track)
                 return client.logger.warn('[TRACK_START] Missing player or track');
+            if ((0, music_1.consumeRadioReconnect)(player.guildId)) {
+                (0, music_1.clearFailures)(player.guildId);
+                await new music_1.VoiceChannelStatus(client).setPlaying(player, track);
+                return client.logger.info(`[TRACK_START] Radio stream reconnected for guild ${player.guildId}`);
+            }
             if ((0, music_1.consumeStreamRefresh)(player.guildId, track)) {
                 (0, music_1.clearFailures)(player.guildId);
                 await new music_1.VoiceChannelStatus(client).setPlaying(player, track);
@@ -138,9 +143,14 @@ const lavalinkEvent = {
                 played_number: 1,
                 timestamp: new Date(),
             };
-            if (requesterData?.id && !(0, music_1.isBotRequester)(client, requesterData))
-                await music_1.MusicDB.addMusicUserData(requesterData.id, songData);
-            await music_1.MusicDB.addMusicGuildData(player.guildId, songData);
+            if ((0, music_1.isRadioActive)(player.guildId)) {
+                client.logger.debug(`[TRACK_START] Skipping chart write for radio station "${(0, music_1.getRadioStation)(player.guildId)?.name ?? 'unknown'}" in guild ${player.guildId}`);
+            }
+            else {
+                if (requesterData?.id && !(0, music_1.isBotRequester)(client, requesterData))
+                    await music_1.MusicDB.addMusicUserData(requesterData.id, songData);
+                await music_1.MusicDB.addMusicGuildData(player.guildId, songData);
+            }
             await logTrackStart(track, player, client);
             try {
                 music_1.NowPlayingManager.removeInstance(player.guildId);

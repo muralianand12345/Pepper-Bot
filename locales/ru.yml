@@ -6,6 +6,13 @@ commands:
             song:
                 name: 'песня'
                 description: 'Название песни/URL'
+    radio:
+        name: 'radio'
+        description: 'Воспроизвести прямой радиоэфир'
+        options:
+            station:
+                name: 'stanciya'
+                description: 'Название станции, жанр или частота'
     pause:
         name: 'pause'
         description: 'Поставить на паузу текущую музыку'
@@ -406,6 +413,22 @@ responses:
         buttons:
             previous: 'Назад'
             next: 'Далее'
+
+
+    radio:
+        now_streaming: 'Сейчас в эфире'
+        default_search: 'Укажите название станции, жанр или частоту'
+        not_found: 'Не найдено радиостанций по запросу **{query}**.'
+        frequency_unsupported: 'Не удалось найти прямой эфир для **{freq}** FM. Большинство FM-станций не вещают онлайн — попробуйте название станции или жанр.'
+        stream_failed: 'Не удалось запустить **{name}** прямо сейчас.'
+        stopped: '**{name}** остановлена'
+        reconnecting: '📻 Поток прерван — переподключение к **{name}**…'
+        reconnect_failed: '📻 **{name}** отключилась, восстановить не удалось.'
+        autoplay_blocked: 'Автовоспроизведение недоступно во время радио.'
+        fields:
+            genre: 'Жанр'
+            country: 'Страна'
+            quality: 'Качество'
 
     queue:
         title: 'Очередь воспроизведения'

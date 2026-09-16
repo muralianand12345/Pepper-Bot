@@ -17,3 +17,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./music"), exports);
 __exportStar(require("./stats"), exports);
 __exportStar(require("./playlist"), exports);
+__exportStar(require("./radio"), exports);

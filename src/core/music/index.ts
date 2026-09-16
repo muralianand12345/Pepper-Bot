@@ -15,6 +15,7 @@ import { MusicResponseHandler, VoiceChannelValidator, MusicPlayerValidator } fro
 import { v2, v2Ephemeral, withRows, subtext, panel } from '../../utils/v2';
 import { PlaylistDB } from './repo';
 import { PlaylistService, PlaylistPlayResult, displayPlaylistName } from './playlist';
+import { RadioService, beginRadioSession, endRadioSession, isRadioActive } from './radio';
 
 export * from './func';
 export * from './patches';
@@ -28,6 +29,7 @@ export * from './handlers';
 export * from './now_playing';
 export * from './activity_check';
 export * from './playlist';
+export * from './radio';
 
 export const MUSIC_CONFIG = {
 	ERROR_SEARCH_TEXT: 'Unable To Fetch Results',
@@ -245,40 +247,31 @@ export class Music {
 		}
 	};
 
-	play = async (): Promise<discord.Message<boolean> | void> => {
-		await this.interaction.deferReply();
-
-		if (!(this.interaction instanceof discord.ChatInputCommandInteraction)) return;
-
-		await this.initializeLocale();
-		const responseHandler = new MusicResponseHandler(this.client);
-
-		const musicCheck = this.validateMusicEnabled();
-		if (musicCheck) return await this.interaction.editReply(v2(musicCheck));
-
-		const songInput = this.interaction.options.getString('song');
-		const customPlaylist = await PlaylistService.resolvePlayable(this.client, songInput, this.interaction.user.id);
-		const customPlaylistError = this.getCustomPlaylistError(customPlaylist);
-		if (customPlaylistError) return await this.interaction.editReply(v2(responseHandler.createErrorContainer(customPlaylistError, this.locale)));
-
-		const query = customPlaylist.status === 'ok' ? songInput : (await this.ytToSpotifyQuery(songInput)) || this.t('responses.default_search');
-		if (!query || query === this.t('responses.default_search')) return await this.interaction.editReply(v2(responseHandler.createErrorContainer(this.t('responses.default_search'), this.locale)));
-
+	private preparePlayer = async (responseHandler: MusicResponseHandler): Promise<magmastream.Player | null> => {
 		const validator = new VoiceChannelValidator(this.client, this.interaction);
 		for (const check of [validator.validateGuildContext(), validator.validateVoiceConnection()]) {
 			const [isValid, container] = await check;
-			if (!isValid) return await this.interaction.editReply(v2(container));
+			if (!isValid) {
+				await this.interaction.editReply(v2(container));
+				return null;
+			}
 		}
 
 		const guildMember = this.interaction.guild?.members.cache.get(this.interaction.user.id);
 		const memberVoiceChannelId = guildMember?.voice.channelId;
-		if (!memberVoiceChannelId) return await this.interaction.editReply(v2(responseHandler.createErrorContainer(this.t('responses.errors.no_voice_channel'), this.locale)));
+		if (!memberVoiceChannelId) {
+			await this.interaction.editReply(v2(responseHandler.createErrorContainer(this.t('responses.errors.no_voice_channel'), this.locale)));
+			return null;
+		}
 
 		let player = this.client.manager.getPlayer(this.interaction.guildId || '');
 
 		if (player) {
 			const [playerValid, playerContainer] = await validator.validatePlayerConnection(player);
-			if (!playerValid) return await this.interaction.editReply(v2(playerContainer));
+			if (!playerValid) {
+				await this.interaction.editReply(v2(playerContainer));
+				return null;
+			}
 			if (!this.client.manager.getPlayer(this.interaction.guildId || '')) player = undefined;
 		}
 
@@ -299,9 +292,39 @@ export class Music {
 
 		if (needsConnection || player.voiceChannelId !== memberVoiceChannelId || !['CONNECTING', 'CONNECTED'].includes(player.state)) {
 			const connected = await this.ensureVoiceConnection(player, memberVoiceChannelId);
-			if (!connected) return await this.interaction.editReply(v2(withRows(responseHandler.createErrorContainer(this.t('responses.errors.play_error'), this.locale, true), responseHandler.getSupportButton(this.locale))));
+			if (!connected) {
+				await this.interaction.editReply(v2(withRows(responseHandler.createErrorContainer(this.t('responses.errors.play_error'), this.locale, true), responseHandler.getSupportButton(this.locale))));
+				return null;
+			}
 			await this.interaction.editReply(v2(responseHandler.createPlayerStateContainer('connected', this.t('responses.music.connected', { channelName: guildMember?.voice.channel?.name || 'Unknown' }))));
 		}
+
+		return player;
+	};
+
+	play = async (): Promise<discord.Message<boolean> | void> => {
+		await this.interaction.deferReply();
+
+		if (!(this.interaction instanceof discord.ChatInputCommandInteraction)) return;
+
+		await this.initializeLocale();
+		const responseHandler = new MusicResponseHandler(this.client);
+
+		const musicCheck = this.validateMusicEnabled();
+		if (musicCheck) return await this.interaction.editReply(v2(musicCheck));
+
+		const songInput = this.interaction.options.getString('song');
+		const customPlaylist = await PlaylistService.resolvePlayable(this.client, songInput, this.interaction.user.id);
+		const customPlaylistError = this.getCustomPlaylistError(customPlaylist);
+		if (customPlaylistError) return await this.interaction.editReply(v2(responseHandler.createErrorContainer(customPlaylistError, this.locale)));
+
+		const query = customPlaylist.status === 'ok' ? songInput : (await this.ytToSpotifyQuery(songInput)) || this.t('responses.default_search');
+		if (!query || query === this.t('responses.default_search')) return await this.interaction.editReply(v2(responseHandler.createErrorContainer(this.t('responses.default_search'), this.locale)));
+
+		const player = await this.preparePlayer(responseHandler);
+		if (!player) return;
+
+		await endRadioSession(player.guildId);
 
 		try {
 			if (customPlaylist.status === 'ok') {
@@ -315,6 +338,60 @@ export class Music {
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Play error: ${error}`);
 			await this.interaction.followUp(v2Ephemeral(withRows(responseHandler.createErrorContainer(this.t('responses.errors.play_error'), this.locale, true), responseHandler.getSupportButton(this.locale))));
+		}
+	};
+
+	private getCountryCode = (): string | null => {
+		const locale = this.interaction.guild?.preferredLocale || this.interaction.locale || '';
+		const region = locale.split('-')[1];
+		return region ? region.toUpperCase() : null;
+	};
+
+	radio = async (input: string): Promise<discord.Message<boolean> | void> => {
+		await this.interaction.deferReply();
+
+		if (!(this.interaction instanceof discord.ChatInputCommandInteraction)) return;
+
+		await this.initializeLocale();
+		const responseHandler = new MusicResponseHandler(this.client);
+
+		const musicCheck = this.validateMusicEnabled();
+		if (musicCheck) return await this.interaction.editReply(v2(musicCheck));
+
+		const query = (input || '').trim();
+		if (!query) return await this.interaction.editReply(v2(responseHandler.createErrorContainer(this.t('responses.radio.default_search'), this.locale)));
+
+		const radioService = new RadioService(this.client);
+		const result = await radioService.resolveInput(query, { countryCode: this.getCountryCode() });
+
+		if (result.status === 'frequency_empty') return await this.interaction.editReply(v2(responseHandler.createErrorContainer(this.t('responses.radio.frequency_unsupported', { freq: query }), this.locale)));
+		if (result.status === 'empty' || !result.stations.length) return await this.interaction.editReply(v2(responseHandler.createErrorContainer(this.t('responses.radio.not_found', { query }), this.locale)));
+
+		const station = result.stations[0];
+
+		const player = await this.preparePlayer(responseHandler);
+		if (!player) return;
+
+		try {
+			const res = await this.lavaSearch(station.url);
+			if (TrackUtils.isErrorOrEmptySearchResult(res) || !res.tracks.length) throw new Error(`Failed to resolve radio stream (loadType: ${res.loadType})`);
+
+			await player.queue.clear();
+			await player.queue.clearPrevious();
+			await player.queue.setCurrent(null);
+			player.setAutoplay(false, this.interaction.user, 5);
+
+			await player.queue.add(res.tracks[0]);
+			await beginRadioSession(this.client, player.guildId, station, getRequester(this.client, this.interaction.user));
+			await this.startPlayback(player);
+			radioService.reportPlay(station);
+
+			this.client.logger.info(`[RADIO] Streaming "${station.name}" (${station.source}) in guild ${player.guildId} requested by ${this.interaction.user.id}`);
+			await this.interaction.editReply(v2(responseHandler.createRadioContainer(station, this.locale)));
+		} catch (error) {
+			await endRadioSession(player.guildId);
+			this.client.logger.error(`[RADIO] Failed to stream "${station.name}" (${station.url}): ${error}`);
+			await this.interaction.followUp(v2Ephemeral(withRows(responseHandler.createErrorContainer(this.t('responses.radio.stream_failed', { name: station.name }), this.locale, true), responseHandler.getSupportButton(this.locale))));
 		}
 	};
 
@@ -337,8 +414,9 @@ export class Music {
 		}
 
 		try {
+			const radio = await endRadioSession(player.guildId);
 			player.destroy();
-			await this.interaction.editReply(v2(responseHandler.createPlayerStateContainer('stopped', this.t('responses.music.stopped'))));
+			await this.interaction.editReply(v2(responseHandler.createPlayerStateContainer('stopped', radio ? this.t('responses.radio.stopped', { name: radio.station.name }) : this.t('responses.music.stopped'))));
 		} catch (error) {
 			this.client.logger.error(`[MUSIC] Stop error: ${error}`);
 			await this.interaction.followUp(v2Ephemeral(withRows(responseHandler.createErrorContainer(this.t('responses.errors.stop_error'), this.locale, true), responseHandler.getSupportButton(this.locale))));
@@ -504,6 +582,8 @@ export class Music {
 			const [isValid, container] = await check;
 			if (!isValid) return await this.interaction.editReply(v2(container));
 		}
+
+		if (enable && isRadioActive(player.guildId)) return await this.interaction.editReply(v2(responseHandler.createErrorContainer(this.t('responses.radio.autoplay_blocked'), this.locale)));
 
 		if (!this.isDeferred && !this.interaction.deferred) {
 			await this.interaction.deferReply();

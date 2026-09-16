@@ -6,6 +6,13 @@ commands:
             song:
                 name: 'song'
                 description: 'Liedname/URL'
+    radio:
+        name: 'radio'
+        description: 'Einen Live-Radiosender abspielen'
+        options:
+            station:
+                name: 'sender'
+                description: 'Sendername, Genre oder Frequenz'
     pause:
         name: 'pause'
         description: 'Pausiere die aktuell spielende Musik'
@@ -406,6 +413,22 @@ responses:
         buttons:
             previous: 'Zurück'
             next: 'Weiter'
+
+
+    radio:
+        now_streaming: 'Jetzt im Stream'
+        default_search: 'Bitte gib einen Sendernamen, ein Genre oder eine Frequenz ein'
+        not_found: 'Kein Radiosender passt zu **{query}**.'
+        frequency_unsupported: 'Für **{freq}** FM wurde kein Live-Stream gefunden. Die meisten UKW-Sender senden nicht online — versuche stattdessen einen Sendernamen oder ein Genre.'
+        stream_failed: '**{name}** konnte gerade nicht gestreamt werden.'
+        stopped: '**{name}** gestoppt'
+        reconnecting: '📻 Stream unterbrochen — verbinde erneut mit **{name}**…'
+        reconnect_failed: '📻 **{name}** ist offline und konnte nicht wiederhergestellt werden.'
+        autoplay_blocked: 'Autoplay ist nicht verfügbar, während Radio läuft.'
+        fields:
+            genre: 'Genre'
+            country: 'Land'
+            quality: 'Qualität'
 
     queue:
         title: 'Musik-Warteschlange'

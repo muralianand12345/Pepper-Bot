@@ -6,6 +6,13 @@ commands:
             song:
                 name: 'música'
                 description: 'Nome da música/URL'
+    radio:
+        name: 'radio'
+        description: 'Toque uma estação de rádio ao vivo'
+        options:
+            station:
+                name: 'estacao'
+                description: 'Nome da estação, gênero ou frequência'
     pause:
         name: 'pause'
         description: 'Pausar a música que está tocando'
@@ -406,6 +413,22 @@ responses:
         buttons:
             previous: 'Anterior'
             next: 'Próximo'
+
+
+    radio:
+        now_streaming: 'Transmitindo agora'
+        default_search: 'Digite o nome de uma estação, gênero ou frequência'
+        not_found: 'Nenhuma estação corresponde a **{query}**.'
+        frequency_unsupported: 'Nenhuma transmissão ao vivo encontrada para **{freq}** FM. A maioria das estações FM não transmite online — tente um nome de estação ou gênero.'
+        stream_failed: 'Não foi possível transmitir **{name}** agora.'
+        stopped: '**{name}** parada'
+        reconnecting: '📻 Transmissão perdida — reconectando a **{name}**…'
+        reconnect_failed: '📻 **{name}** ficou offline e não pôde ser recuperada.'
+        autoplay_blocked: 'A reprodução automática não está disponível enquanto o rádio toca.'
+        fields:
+            genre: 'Gênero'
+            country: 'País'
+            quality: 'Qualidade'
 
     queue:
         title: 'Fila de músicas'

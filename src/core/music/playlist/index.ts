@@ -14,7 +14,6 @@ export * from './components';
 
 type TranslationData = Record<string, string | number>;
 
-/** Runs every `/playlist` subcommand. Replies are ephemeral; only a public share is posted to the channel. */
 export class Playlist {
 	private client: discord.Client;
 	private interaction: discord.ChatInputCommandInteraction;
@@ -99,7 +98,6 @@ export class Playlist {
 		const result = await PlaylistDB.create(this.userId, name, visibility);
 		if (result.status === 'name_taken') return await this.fail('responses.playlist.name_taken', { name: displayPlaylistName(name) });
 
-		// Two creates racing on different shards can both pass the count check; undo ours if we overshot.
 		if ((await PlaylistDB.countByOwner(this.userId)) > limits.playlists) {
 			await PlaylistDB.delete(result.playlist.code, this.userId);
 			return await this.fail('responses.playlist.limit_playlists', { max: limits.playlists }, hint);
@@ -150,7 +148,6 @@ export class Playlist {
 		const container = createPlaylistShareContainer(playlist, this.t);
 		if (playlist.visibility !== 'public') return await this.show(container);
 
-		// The deferred reply is ephemeral, so confirm there and post the share card as a separate public message.
 		await this.succeed('responses.playlist.share_posted', { name: displayPlaylistName(playlist.name) });
 		await this.interaction.followUp({ ...v2(container), allowedMentions: { parse: [] } });
 	};
@@ -210,7 +207,6 @@ export class Playlist {
 		const search = await PlaylistService.searchTracks(this.client, this.interaction.options.getString('song', true), this.userId);
 		if (search.status !== 'ok') return await this.fail(search.status === 'collection' ? 'responses.playlist.search.collection' : 'responses.playlist.search.no_results');
 
-		// A picked suggestion already showed the title and artist, so add it straight away; only typed searches get the picker.
 		if (search.exact) return await this.addEntry(playlist, search.tracks[0]);
 
 		const token = await PlaylistDB.createPending(this.userId, playlist.code, search.tracks, PLAYLIST_CONFIG.PENDING_TTL_MS);

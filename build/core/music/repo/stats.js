@@ -225,7 +225,6 @@ StatsDB.getServerInsight = async (guildId) => {
         }
     });
 };
-/** Playlist counts by visibility plus the most played public playlists. Nothing beyond the count is exposed for private playlists. */
 StatsDB.getPlaylistStats = async (limit = 10) => {
     return _a.withCache(`playlists:${limit}`, async () => {
         const empty = { totalPlaylists: 0, publicPlaylists: 0, privatePlaylists: 0, publicPlays: 0, playlists: [] };
@@ -250,7 +249,6 @@ StatsDB.getPlaylistStats = async (limit = 10) => {
         }
     });
 };
-/** One public playlist with its songs. Private and unknown codes both resolve to null so they cannot be told apart. */
 StatsDB.getPublicPlaylist = async (code) => {
     return _a.withCache(`playlist:${code}`, async () => {
         const playlist = await music_playlist_1.default

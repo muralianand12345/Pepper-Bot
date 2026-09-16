@@ -22,6 +22,9 @@ class StatsAPIHandler {
             this.router.get('/playtime', this.handlePlaytime);
             this.router.get('/servers', this.handleServers);
             this.router.get('/servers/:guildId', this.handleServer);
+            this.router.get('/radio', this.handleRadio);
+            this.router.get('/radio/servers/:guildId', this.handleRadioServer);
+            this.router.get('/radio/users/:userId', this.handleRadioUser);
             this.router.get('/playlists', this.handlePlaylists);
             this.router.get('/playlists/:code', this.handlePlaylist);
             this.router.use((_req, res) => res.status(404).json({ success: false, error: 'Unknown stats endpoint' }));
@@ -201,6 +204,56 @@ class StatsAPIHandler {
             }
             catch (error) {
                 this.fail(res, error, 'playtime');
+            }
+        };
+        this.handleRadio = async (req, res) => {
+            try {
+                const limit = this.parseLimit(req.query.limit, DEFAULT_LIMIT);
+                const [summary, topStations] = await Promise.all([repo_1.RadioDB.getGlobalSummary(), repo_1.RadioDB.getGlobalTopStations(limit)]);
+                this.send(res, { limit, summary, topStations });
+            }
+            catch (error) {
+                this.fail(res, error, 'radio');
+            }
+        };
+        this.handleRadioServer = async (req, res) => {
+            try {
+                const guildId = String(req.params.guildId);
+                if (!SNOWFLAKE.test(guildId)) {
+                    res.status(400).json({ success: false, error: 'Invalid guild id' });
+                    return;
+                }
+                const limit = this.parseLimit(req.query.limit, DEFAULT_LIMIT);
+                const [summary, topStations] = await Promise.all([repo_1.RadioDB.getGuildSummary(guildId), repo_1.RadioDB.getGuildTopStations(guildId, limit)]);
+                if (!summary || !topStations.length) {
+                    res.status(404).json({ success: false, error: 'No radio data found for this guild' });
+                    return;
+                }
+                const meta = await this.fetchGuildMeta([guildId]);
+                this.send(res, { guildId, guild: meta.get(guildId) ?? null, limit, summary, topStations });
+            }
+            catch (error) {
+                this.fail(res, error, 'radio server');
+            }
+        };
+        this.handleRadioUser = async (req, res) => {
+            try {
+                const userId = String(req.params.userId);
+                if (!SNOWFLAKE.test(userId)) {
+                    res.status(400).json({ success: false, error: 'Invalid user id' });
+                    return;
+                }
+                const limit = this.parseLimit(req.query.limit, DEFAULT_LIMIT);
+                const [summary, topStations] = await Promise.all([repo_1.RadioDB.getUserSummary(userId), repo_1.RadioDB.getUserTopStations(userId, limit)]);
+                if (!summary || !topStations.length) {
+                    res.status(404).json({ success: false, error: 'No radio data found for this user' });
+                    return;
+                }
+                const user = await this.client.users.fetch(userId).catch(() => null);
+                this.send(res, { userId, user: user ? { id: user.id, username: user.username, avatar: user.displayAvatarURL() } : null, limit, summary, topStations });
+            }
+            catch (error) {
+                this.fail(res, error, 'radio user');
             }
         };
         this.handlePlaylists = async (req, res) => {

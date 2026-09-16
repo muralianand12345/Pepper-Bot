@@ -68,7 +68,6 @@ PlaylistDB.rename = async (code, ownerId, name) => {
         throw error;
     }
 };
-/** Counts a play from `/play`. Tracked for every playlist; only public ones are exposed through the stats API. */
 PlaylistDB.recordPlay = async (code) => {
     await music_playlist_1.default.updateOne({ code }, { $inc: { playCount: 1 }, $set: { lastPlayedAt: new Date() } }).exec();
 };
@@ -76,7 +75,6 @@ PlaylistDB.setVisibility = async (code, ownerId, visibility) => {
     const result = await music_playlist_1.default.updateOne({ code, ownerId }, { $set: { visibility } }).exec();
     return result.matchedCount > 0;
 };
-/** Appends a track only while the playlist is below `limit`, so concurrent adds from other shards can't overfill it. */
 PlaylistDB.addTrack = async (code, ownerId, track, limit) => {
     const lastSlot = `tracks.${Math.max(1, limit) - 1}`;
     return music_playlist_1.default.findOneAndUpdate({ code, ownerId, [lastSlot]: { $exists: false } }, { $push: { tracks: track }, $inc: { revision: 1 } }, { returnDocument: 'after' }).lean().exec();
@@ -84,7 +82,6 @@ PlaylistDB.addTrack = async (code, ownerId, track, limit) => {
 PlaylistDB.findOwned = async (code, ownerId) => {
     return music_playlist_1.default.findOne({ code, ownerId }).lean().exec();
 };
-/** Rewrites the track list only if nobody changed the playlist since it was read. */
 PlaylistDB.replaceTracks = async (playlist, tracks) => {
     return music_playlist_1.default.findOneAndUpdate({ code: playlist.code, ownerId: playlist.ownerId, revision: playlist.revision }, { $set: { tracks }, $inc: { revision: 1 } }, { returnDocument: 'after' }).lean().exec();
 };

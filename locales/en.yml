@@ -6,6 +6,13 @@ commands:
             song:
                 name: 'song'
                 description: 'Song Name/URL'
+    radio:
+        name: 'radio'
+        description: 'Play a live radio station'
+        options:
+            station:
+                name: 'station'
+                description: 'Station name, genre or frequency'
     pause:
         name: 'pause'
         description: 'Pause the currently playing music'
@@ -410,6 +417,22 @@ responses:
         buttons:
             previous: 'Previous'
             next: 'Next'
+
+
+    radio:
+        now_streaming: 'Now Streaming'
+        default_search: 'Please enter a station name, genre or frequency'
+        not_found: 'No radio station matched **{query}**.'
+        frequency_unsupported: 'Couldn''t find a live stream for **{freq}** FM. Most terrestrial FM stations don''t broadcast online — try a station name or genre instead.'
+        stream_failed: '**{name}** could not be streamed right now.'
+        stopped: 'Stopped **{name}**'
+        reconnecting: '📻 Lost the stream — reconnecting to **{name}**…'
+        reconnect_failed: '📻 **{name}** went offline and could not be recovered.'
+        autoplay_blocked: 'Autoplay is unavailable while radio is playing.'
+        fields:
+            genre: 'Genre'
+            country: 'Country'
+            quality: 'Quality'
 
     queue:
         title: 'Music Queue'

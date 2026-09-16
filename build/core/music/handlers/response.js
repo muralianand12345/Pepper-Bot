@@ -10,6 +10,7 @@ const utils_1 = require("../utils");
 const v2_1 = require("../../../utils/v2");
 const format_1 = __importDefault(require("../../../utils/format"));
 const locales_1 = require("../../locales");
+const state_1 = require("../radio/state");
 exports.ACCENT = {
     success: 0x43b581,
     error: 0xf04747,
@@ -101,16 +102,21 @@ class MusicResponseHandler {
         };
         this.createMusicContainer = async (track, player, locale = 'en', state) => {
             const resolvedState = state ?? (!player ? 'idle' : player.paused ? 'paused' : player.playing ? 'playing' : 'idle');
+            const station = player ? (0, state_1.getRadioStation)(player.guildId) : null;
             const container = new discord_js_1.default.ContainerBuilder()
                 .setId(exports.NOW_PLAYING_COMPONENT_ID)
                 .setAccentColor(exports.PLAYER_STATE[resolvedState].accent)
-                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.badge(resolvedState)} ${this.localizationManager.translate('responses.music.now_playing', locale)}`))
+                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### ${this.badge(resolvedState)} ${this.localizationManager.translate(station ? 'responses.radio.now_streaming' : 'responses.music.now_playing', locale)}`))
                 .addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
             if (!track) {
                 container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent('**No track available**'));
                 return container;
             }
             const requesterData = track.requester ? (0, func_1.getRequester)(this.client, track.requester) : null;
+            if (station) {
+                this.addBody(container, this.radioBody(station, locale, requesterData), station.artworkUrl);
+                return container;
+            }
             const trackImg = track.thumbnail || track.artworkUrl;
             const trackDuration = track.isStream ? this.localizationManager.translate('responses.queue.live', locale) : format_1.default.msToTime(track.duration);
             const details = [[this.localizationManager.translate('responses.fields.duration', locale), `\`${trackDuration}\``]];
@@ -171,10 +177,31 @@ class MusicResponseHandler {
             container.addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`**Preview:**\n${trackPreview}${moreTracksText}`));
             return container;
         };
+        this.radioBody = (station, locale, requester) => {
+            const name = format_1.default.truncateText(station.name, 60);
+            const heading = station.homepage ? `**[${name}](${station.homepage})**` : `**${name}**`;
+            const details = [[this.localizationManager.translate('responses.fields.duration', locale), `\`${this.localizationManager.translate('responses.queue.live', locale)}\``]];
+            details.push([this.localizationManager.translate('responses.radio.fields.genre', locale), `\`${station.genre}\``]);
+            if (station.country)
+                details.push([this.localizationManager.translate('responses.radio.fields.country', locale), `\`${station.country}\``]);
+            if (station.bitrate > 0)
+                details.push([this.localizationManager.translate('responses.radio.fields.quality', locale), `\`${station.codec} ${station.bitrate}kbps\``]);
+            if (requester)
+                details.push([this.localizationManager.translate('responses.fields.requested_by', locale), requester.username]);
+            return `${heading}\n\n${this.detailLines(details)}`;
+        };
+        this.createRadioContainer = (station, locale = 'en') => {
+            const container = new discord_js_1.default.ContainerBuilder()
+                .setAccentColor(exports.PLAYER_STATE.playing.accent)
+                .addTextDisplayComponents(new discord_js_1.default.TextDisplayBuilder().setContent(`### 📻 ${this.localizationManager.translate('responses.radio.now_streaming', locale)}`))
+                .addSeparatorComponents(new discord_js_1.default.SeparatorBuilder().setDivider(true).setSpacing(discord_js_1.default.SeparatorSpacingSize.Small));
+            this.addBody(container, this.radioBody(station, locale), station.artworkUrl);
+            return container;
+        };
         this.getSupportButton = (locale = 'en') => {
             return new discord_js_1.default.ActionRowBuilder().addComponents(new discord_js_1.default.ButtonBuilder().setLabel(this.localizationManager.translate('responses.buttons.support_server', locale)).setStyle(discord_js_1.default.ButtonStyle.Link).setURL(this.client.config.bot.support_server.invite).setEmoji('🔧'));
         };
-        this.getMusicButton = (disabled = false, locale = 'en') => {
+        this.getMusicButton = (disabled = false, locale = 'en', radio = false) => {
             const row = new discord_js_1.default.ActionRowBuilder();
             const buttonConfig = [
                 { id: 'pause-music', labelKey: 'responses.buttons.pause', emoji: '⏸️' },
@@ -182,7 +209,7 @@ class MusicResponseHandler {
                 { id: 'skip-music', labelKey: 'responses.buttons.skip', emoji: '⏭️' },
                 { id: 'stop-music', labelKey: 'responses.buttons.stop', emoji: '⏹️' },
                 { id: 'loop-music', labelKey: 'responses.buttons.loop', emoji: '🔄' },
-            ];
+            ].filter(({ id }) => !radio || (id !== 'skip-music' && id !== 'loop-music'));
             buttonConfig.forEach(({ id, labelKey, emoji }) => {
                 row.addComponents(new discord_js_1.default.ButtonBuilder().setCustomId(id).setLabel(this.localizationManager.translate(labelKey, locale)).setStyle(discord_js_1.default.ButtonStyle.Secondary).setEmoji(emoji).setDisabled(disabled));
             });

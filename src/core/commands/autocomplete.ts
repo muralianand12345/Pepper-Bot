@@ -3,7 +3,7 @@ import discord from 'discord.js';
 import { LocaleDetector } from '../locales';
 import Formatter from '../../utils/format';
 import { ConfigManager } from '../../utils/config';
-import { SpotifyManager, SpotifyAutoComplete, PlaylistDB, PlaylistService, formatPlaylistChoice } from '../music';
+import { SpotifyManager, SpotifyAutoComplete, PlaylistDB, PlaylistService, formatPlaylistChoice, RadioService, searchCurated } from '../music';
 
 const configManager = ConfigManager.getInstance();
 
@@ -15,6 +15,7 @@ export class AutoComplete {
 	private static readonly SPOTIFY_REGEX = /^(https:\/\/open\.spotify\.com\/|spotify:)/i;
 	private static readonly STRING_WITHOUT_HTTP_REGEX = /^(?!https?:\/\/)[\w\s]+$/;
 	private static readonly SPOTIFY_TIMEOUT_MS = 2000;
+	private static readonly RADIO_TIMEOUT_MS = 2000;
 	private static readonly MAX_CHOICE_NAME_LENGTH = 100;
 	private static readonly MAX_CHOICES = 25;
 	private static readonly PEPPER_PLAYLIST_SUFFIX = 'Pepper';
@@ -155,7 +156,6 @@ export class AutoComplete {
 			.filter((summary) => !query || summary.name.toLowerCase().includes(query) || summary.code.toLowerCase().startsWith(query))
 			.map((summary) => ({ name: formatPlaylistChoice(summary.name, summary.trackCount, limits?.songs ?? null, limits ? PlaylistService.isSummaryLocked(summary, summaries.length, limits) : false), value: summary.code }));
 
-		// `/playlist view` also accepts someone else's public share code.
 		const isView = !this.interaction.options.getSubcommandGroup(false) && this.interaction.options.getSubcommand(false) === 'view';
 		if (isView) {
 			const shared = await this.getPlaylistCodeChoice(value, false);
@@ -179,6 +179,32 @@ export class AutoComplete {
 			.filter((choice) => !query || String(choice.value).startsWith(query) || choice.name.toLowerCase().includes(query))
 			.slice(0, AutoComplete.MAX_CHOICES);
 		await this.safeRespond(choices);
+	};
+
+	public radioAutocomplete = async (): Promise<void> => {
+		const focused = this.interaction.options.getFocused(true);
+		if (focused.name !== 'station') return;
+
+		const value = String(focused.value ?? '').trim();
+		const countryCode = this.interaction.guild?.preferredLocale?.split('-')[1]?.toUpperCase() ?? null;
+
+		try {
+			const service = new RadioService(this.client);
+			const result = await this.withTimeout(service.search(value, { countryCode }), AutoComplete.RADIO_TIMEOUT_MS, 'Radio search').catch((error) => {
+				this.client.logger.warn(`[RADIO_AUTOCOMPLETE] Search failed: ${error}`);
+				return { status: 'ok' as const, stations: searchCurated(value, countryCode) };
+			});
+
+			const choices = result.stations.slice(0, AutoComplete.MAX_CHOICES).map((station) => ({
+				name: Formatter.truncateText(`${station.source === 'curated' ? '⭐ ' : ''}${station.name} — ${station.genre}${station.country ? ` (${station.country})` : ''}`, AutoComplete.MAX_CHOICE_NAME_LENGTH - 3),
+				value: station.id,
+			}));
+
+			await this.safeRespond(choices);
+		} catch (error) {
+			this.client.logger.error(`[RADIO_AUTOCOMPLETE] Error: ${error}`);
+			await this.safeRespond([]);
+		}
 	};
 
 	public playlistAutocomplete = async (): Promise<void> => {

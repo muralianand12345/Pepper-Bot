@@ -8,6 +8,7 @@ exports.NowPlayingManager = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const msg_1 = require("../../utils/msg");
 const locales_1 = require("../locales");
+const state_1 = require("./radio/state");
 const handlers_1 = require("./handlers");
 const v2_1 = require("../../utils/v2");
 class NowPlayingManager {
@@ -207,7 +208,7 @@ class NowPlayingManager {
                 const adjustedPlayer = await this.getAdjustedPlayer();
                 const container = await new handlers_1.MusicResponseHandler(this.client).createMusicContainer(currentTrack, adjustedPlayer, locale, this.currentState());
                 const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
-                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
+                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale, (0, state_1.isRadioActive)(this.player.guildId));
                 if (this.message === currentMessage && currentMessage.editable) {
                     await currentMessage.edit((0, v2_1.v2)((0, v2_1.withRows)(container, musicButton)));
                     this.lastUpdateTime = Date.now();
@@ -271,7 +272,7 @@ class NowPlayingManager {
                 const locale = await this.getGuildLocale();
                 const container = await new handlers_1.MusicResponseHandler(this.client).createMusicContainer(track, this.player, locale, this.currentState());
                 const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
-                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
+                const musicButton = new handlers_1.MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale, (0, state_1.isRadioActive)(this.player.guildId));
                 const nowPlayingPayload = (0, v2_1.v2)((0, v2_1.withRows)(container, musicButton));
                 const currentMessage = this.message;
                 if (currentMessage) {
