@@ -73,7 +73,6 @@ export class PlaylistDB {
 		}
 	};
 
-	/** Counts a play from `/play`. Tracked for every playlist; only public ones are exposed through the stats API. */
 	public static recordPlay = async (code: string): Promise<void> => {
 		await music_playlist.updateOne({ code }, { $inc: { playCount: 1 }, $set: { lastPlayedAt: new Date() } }).exec();
 	};
@@ -83,7 +82,6 @@ export class PlaylistDB {
 		return result.matchedCount > 0;
 	};
 
-	/** Appends a track only while the playlist is below `limit`, so concurrent adds from other shards can't overfill it. */
 	public static addTrack = async (code: string, ownerId: string, track: IPlaylistTrack, limit: number): Promise<PlaylistRecord | null> => {
 		const lastSlot = `tracks.${Math.max(1, limit) - 1}`;
 		return music_playlist.findOneAndUpdate({ code, ownerId, [lastSlot]: { $exists: false } }, { $push: { tracks: track }, $inc: { revision: 1 } }, { returnDocument: 'after' }).lean<PlaylistRecord>().exec();
@@ -93,7 +91,6 @@ export class PlaylistDB {
 		return music_playlist.findOne({ code, ownerId }).lean<PlaylistRecord>().exec();
 	};
 
-	/** Rewrites the track list only if nobody changed the playlist since it was read. */
 	private static replaceTracks = async (playlist: PlaylistRecord, tracks: IPlaylistTrack[]): Promise<PlaylistRecord | null> => {
 		return music_playlist.findOneAndUpdate({ code: playlist.code, ownerId: playlist.ownerId, revision: playlist.revision }, { $set: { tracks }, $inc: { revision: 1 } }, { returnDocument: 'after' }).lean<PlaylistRecord>().exec();
 	};

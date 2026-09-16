@@ -6,6 +6,13 @@ commands:
             song:
                 name: 'canción'
                 description: 'Nombre de la canción/URL'
+    radio:
+        name: 'radio'
+        description: 'Reproduce una emisora de radio en directo'
+        options:
+            station:
+                name: 'emisora'
+                description: 'Nombre de la emisora, género o frecuencia'
     pause:
         name: 'pause'
         description: 'Pausa la música que se está reproduciendo'
@@ -406,6 +413,22 @@ responses:
         buttons:
             previous: 'Anterior'
             next: 'Siguiente'
+
+
+    radio:
+        now_streaming: 'Reproduciendo en directo'
+        default_search: 'Introduce el nombre de una emisora, un género o una frecuencia'
+        not_found: 'Ninguna emisora coincide con **{query}**.'
+        frequency_unsupported: 'No se encontró una emisión en directo para **{freq}** FM. La mayoría de las emisoras de FM no emiten por internet: prueba con un nombre o un género.'
+        stream_failed: 'No se pudo reproducir **{name}** en este momento.'
+        stopped: '**{name}** detenida'
+        reconnecting: '📻 Se perdió la emisión — reconectando a **{name}**…'
+        reconnect_failed: '📻 **{name}** se desconectó y no se pudo recuperar.'
+        autoplay_blocked: 'La reproducción automática no está disponible mientras suena la radio.'
+        fields:
+            genre: 'Género'
+            country: 'País'
+            quality: 'Calidad'
 
     queue:
         title: 'Cola de música'

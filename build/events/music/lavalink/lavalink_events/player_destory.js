@@ -34,6 +34,14 @@ const lavalinkEvent = {
         catch (messageError) {
             client.logger.warn(`[PLAYER_DESTROY] Failed to send disconnect message: ${messageError}`);
         }
+        try {
+            const radio = await (0, music_1.endRadioSession)(player.guildId);
+            if (radio)
+                client.logger.info(`[RADIO] Session ended for "${radio.station.name}" in guild ${player.guildId}`);
+        }
+        catch (radioError) {
+            client.logger.warn(`[PLAYER_DESTROY] Failed to close radio session: ${radioError}`);
+        }
         music_1.NowPlayingManager.removeInstance(player.guildId);
         music_1.ActivityCheckManager.removeInstance(player.guildId);
         client.logger.info(`[LAVALINK] Player for guild ${guild.name} (${guild.id}) destroyed`);

@@ -120,7 +120,6 @@ class AutoComplete {
             const choices = summaries
                 .filter((summary) => !query || summary.name.toLowerCase().includes(query) || summary.code.toLowerCase().startsWith(query))
                 .map((summary) => ({ name: (0, music_1.formatPlaylistChoice)(summary.name, summary.trackCount, limits?.songs ?? null, limits ? music_1.PlaylistService.isSummaryLocked(summary, summaries.length, limits) : false), value: summary.code }));
-            // `/playlist view` also accepts someone else's public share code.
             const isView = !this.interaction.options.getSubcommandGroup(false) && this.interaction.options.getSubcommand(false) === 'view';
             if (isView) {
                 const shared = await this.getPlaylistCodeChoice(value, false);
@@ -142,6 +141,29 @@ class AutoComplete {
                 .filter((choice) => !query || String(choice.value).startsWith(query) || choice.name.toLowerCase().includes(query))
                 .slice(0, AutoComplete.MAX_CHOICES);
             await this.safeRespond(choices);
+        };
+        this.radioAutocomplete = async () => {
+            const focused = this.interaction.options.getFocused(true);
+            if (focused.name !== 'station')
+                return;
+            const value = String(focused.value ?? '').trim();
+            const countryCode = this.interaction.guild?.preferredLocale?.split('-')[1]?.toUpperCase() ?? null;
+            try {
+                const service = new music_1.RadioService(this.client);
+                const result = await this.withTimeout(service.search(value, { countryCode }), AutoComplete.RADIO_TIMEOUT_MS, 'Radio search').catch((error) => {
+                    this.client.logger.warn(`[RADIO_AUTOCOMPLETE] Search failed: ${error}`);
+                    return { status: 'ok', stations: (0, music_1.searchCurated)(value, countryCode) };
+                });
+                const choices = result.stations.slice(0, AutoComplete.MAX_CHOICES).map((station) => ({
+                    name: format_1.default.truncateText(`${station.source === 'curated' ? '⭐ ' : ''}${station.name} — ${station.genre}${station.country ? ` (${station.country})` : ''}`, AutoComplete.MAX_CHOICE_NAME_LENGTH - 3),
+                    value: station.id,
+                }));
+                await this.safeRespond(choices);
+            }
+            catch (error) {
+                this.client.logger.error(`[RADIO_AUTOCOMPLETE] Error: ${error}`);
+                await this.safeRespond([]);
+            }
         };
         this.playlistAutocomplete = async () => {
             const focused = this.interaction.options.getFocused(true);
@@ -209,6 +231,7 @@ exports.AutoComplete = AutoComplete;
 AutoComplete.SPOTIFY_REGEX = /^(https:\/\/open\.spotify\.com\/|spotify:)/i;
 AutoComplete.STRING_WITHOUT_HTTP_REGEX = /^(?!https?:\/\/)[\w\s]+$/;
 AutoComplete.SPOTIFY_TIMEOUT_MS = 2000;
+AutoComplete.RADIO_TIMEOUT_MS = 2000;
 AutoComplete.MAX_CHOICE_NAME_LENGTH = 100;
 AutoComplete.MAX_CHOICES = 25;
 AutoComplete.PEPPER_PLAYLIST_SUFFIX = 'Pepper';

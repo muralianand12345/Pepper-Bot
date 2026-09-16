@@ -41,7 +41,6 @@ PlaylistService.getLimits = async (client, userId) => {
     const { isPremium, tier } = await (0, premium_1.checkUserPremium)(client, userId);
     return _a.getTierLimits(client, isPremium ? tier : 0);
 };
-/** Premium lookup capped by a timeout, for autocomplete where Discord only waits ~3s. Resolves null when unknown. */
 PlaylistService.getLimitsWithin = async (client, userId, timeoutMs = exports.PLAYLIST_CONFIG.PREMIUM_CHECK_TIMEOUT_MS) => {
     let timer;
     const timeout = new Promise((resolve) => {
@@ -57,7 +56,6 @@ PlaylistService.getLimitsWithin = async (client, userId, timeoutMs = exports.PLA
         clearTimeout(timer);
     }
 };
-/** Over the playlist-count limit locks every playlist the owner has; over the song limit locks just that playlist. */
 PlaylistService.getLockReason = (trackCount, ownedCount, limits) => {
     if (ownedCount > limits.playlists)
         return 'too_many_playlists';
@@ -70,7 +68,6 @@ PlaylistService.getLock = async (client, playlist) => {
     const [limits, ownedCount] = await Promise.all([_a.getLimits(client, playlist.ownerId), playlist_1.PlaylistDB.countByOwner(playlist.ownerId)]);
     return { reason: _a.getLockReason(playlist.tracks.length, ownedCount, limits), limits, ownedCount };
 };
-/** Resolves a `playlist` option that is either a share code (from autocomplete) or a name the user typed. */
 PlaylistService.findForUser = async (userId, input, withAudio = true) => {
     const code = _a.normalizeCode(input);
     const byCode = code ? await playlist_1.PlaylistDB.findByCode(code, withAudio) : null;
@@ -111,7 +108,6 @@ PlaylistService.toPlaylistData = (playlist, requester) => {
     return { name: playlist.name, requester: { id: requester.id, username: requester.username }, playlistInfo: [], duration, tracks };
 };
 PlaylistService.isSameTrack = (a, b) => a.uri === b.uri || (Boolean(a.identifier) && a.identifier === b.identifier && a.sourceName.toLowerCase() === b.sourceName.toLowerCase());
-/** Only `pepper-playlist:<code>` values are hard errors; a bare code that doesn't resolve falls through to a normal song search. */
 PlaylistService.resolvePlayable = async (client, value, userId) => {
     const raw = (value ?? '').trim();
     const explicit = raw.toLowerCase().startsWith(exports.PLAYLIST_CONFIG.PLAY_VALUE_PREFIX);

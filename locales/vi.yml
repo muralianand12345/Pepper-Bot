@@ -6,6 +6,13 @@ commands:
             song:
                 name: 'song'
                 description: 'Tên bài hát/URL'
+    radio:
+        name: 'radio'
+        description: 'Phát một đài phát thanh trực tiếp'
+        options:
+            station:
+                name: 'dai'
+                description: 'Tên đài, thể loại hoặc tần số'
     pause:
         name: 'pause'
         description: 'Tạm dừng nhạc đang phát'
@@ -395,6 +402,22 @@ responses:
         buttons:
             previous: 'Trước'
             next: 'Tiếp'
+
+
+    radio:
+        now_streaming: 'Đang phát trực tiếp'
+        default_search: 'Hãy nhập tên đài, thể loại hoặc tần số'
+        not_found: 'Không tìm thấy đài nào khớp với **{query}**.'
+        frequency_unsupported: 'Không tìm thấy luồng trực tiếp cho **{freq}** FM. Hầu hết các đài FM không phát trực tuyến — hãy thử tên đài hoặc thể loại.'
+        stream_failed: 'Hiện không thể phát **{name}**.'
+        stopped: 'Đã dừng **{name}**'
+        reconnecting: '📻 Mất luồng — đang kết nối lại **{name}**…'
+        reconnect_failed: '📻 **{name}** đã ngoại tuyến và không thể khôi phục.'
+        autoplay_blocked: 'Tự động phát không khả dụng khi đang nghe radio.'
+        fields:
+            genre: 'Thể loại'
+            country: 'Quốc gia'
+            quality: 'Chất lượng'
 
     queue:
         title: 'Hàng đợi nhạc'

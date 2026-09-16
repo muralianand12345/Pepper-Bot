@@ -50,4 +50,5 @@ export * from './music';
 export * from './logger';
 export * from './events';
 export * from './config';
+export * from './radio';
 export * from './locales';

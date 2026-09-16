@@ -28,7 +28,6 @@ const ui_1 = require("./ui");
 __exportStar(require("./service"), exports);
 __exportStar(require("./ui"), exports);
 __exportStar(require("./components"), exports);
-/** Runs every `/playlist` subcommand. Replies are ephemeral; only a public share is posted to the channel. */
 class Playlist {
     constructor(client, interaction) {
         this.locale = 'en';
@@ -87,7 +86,6 @@ class Playlist {
             const result = await playlist_1.PlaylistDB.create(this.userId, name, visibility);
             if (result.status === 'name_taken')
                 return await this.fail('responses.playlist.name_taken', { name: (0, ui_1.displayPlaylistName)(name) });
-            // Two creates racing on different shards can both pass the count check; undo ours if we overshot.
             if ((await playlist_1.PlaylistDB.countByOwner(this.userId)) > limits.playlists) {
                 await playlist_1.PlaylistDB.delete(result.playlist.code, this.userId);
                 return await this.fail('responses.playlist.limit_playlists', { max: limits.playlists }, hint);
@@ -136,7 +134,6 @@ class Playlist {
             const container = (0, ui_1.createPlaylistShareContainer)(playlist, this.t);
             if (playlist.visibility !== 'public')
                 return await this.show(container);
-            // The deferred reply is ephemeral, so confirm there and post the share card as a separate public message.
             await this.succeed('responses.playlist.share_posted', { name: (0, ui_1.displayPlaylistName)(playlist.name) });
             await this.interaction.followUp({ ...(0, v2_1.v2)(container), allowedMentions: { parse: [] } });
         };
@@ -196,7 +193,6 @@ class Playlist {
             const search = await service_1.PlaylistService.searchTracks(this.client, this.interaction.options.getString('song', true), this.userId);
             if (search.status !== 'ok')
                 return await this.fail(search.status === 'collection' ? 'responses.playlist.search.collection' : 'responses.playlist.search.no_results');
-            // A picked suggestion already showed the title and artist, so add it straight away; only typed searches get the picker.
             if (search.exact)
                 return await this.addEntry(playlist, search.tracks[0]);
             const token = await playlist_1.PlaylistDB.createPending(this.userId, playlist.code, search.tracks, service_1.PLAYLIST_CONFIG.PENDING_TTL_MS);

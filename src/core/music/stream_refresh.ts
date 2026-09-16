@@ -1,6 +1,8 @@
 import discord from 'discord.js';
 import magmastream from 'magmastream';
 
+import { isRadioActive } from './radio/state';
+
 const STALE_AFTER_MS = 2 * 60 * 1000;
 const STUCK_RETRY_WINDOW_MS = 60 * 1000;
 const SEEK_HEADROOM_MS = 500;
@@ -42,7 +44,7 @@ export const consumeStreamRefresh = (guildId: string, track: magmastream.Track |
 export const refreshStream = async (player: magmastream.Player, client: discord.Client, reason: string): Promise<boolean> => {
 	const current = await player.queue?.getCurrent();
 	if (!current) return false;
-	if (current.isStream) return false;
+	if (current.isStream || isRadioActive(player.guildId)) return false;
 
 	const duration = Number(current.duration || 0);
 	const rawPosition = Number(player.position || 0);
@@ -50,7 +52,7 @@ export const refreshStream = async (player: magmastream.Player, client: discord.
 
 	try {
 		refreshing.set(player.guildId, current.identifier || current.track);
-		if (player.paused) await player.pause(false); // a replaced track inherits the paused state
+		if (player.paused) await player.pause(false);
 		await player.play(current, { startTime: position });
 		client.logger?.info(`[STREAM_REFRESH] Re-resolved ${current.title} at ${position}ms for guild ${player.guildId} (${reason})`);
 		return true;

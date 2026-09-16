@@ -11,10 +11,6 @@ export type PlaylistComponentInteraction = discord.ButtonInteraction | discord.S
 
 export const isPlaylistComponent = (interaction: discord.Interaction): interaction is PlaylistComponentInteraction => (interaction.isButton() || interaction.isStringSelectMenu()) && interaction.customId.startsWith(`${PLAYLIST_CUSTOM_ID_PREFIX}:`);
 
-/**
- * Handles every `playlist:*` button and select menu. All state lives in the custom ID or MongoDB, because
- * DM interactions (transfer requests) arrive on shard 0 rather than the shard that sent them.
- */
 export class PlaylistComponentHandler {
 	private client: discord.Client;
 	private interaction: PlaylistComponentInteraction;

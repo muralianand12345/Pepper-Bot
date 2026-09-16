@@ -3,6 +3,7 @@ import magmastream from 'magmastream';
 
 import { send } from '../../utils/msg';
 import { LocaleDetector } from '../locales';
+import { isRadioActive } from './radio/state';
 import { MusicResponseHandler, NOW_PLAYING_COMPONENT_ID, PlayerState } from './handlers';
 import { v2, withRows } from '../../utils/v2';
 
@@ -236,7 +237,7 @@ export class NowPlayingManager {
 			const container = await new MusicResponseHandler(this.client).createMusicContainer(currentTrack, adjustedPlayer, locale, this.currentState());
 
 			const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
-			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
+			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale, isRadioActive(this.player.guildId));
 
 			if (this.message === currentMessage && currentMessage.editable) {
 				await currentMessage.edit(v2(withRows(container, musicButton)));
@@ -295,7 +296,7 @@ export class NowPlayingManager {
 			const locale = await this.getGuildLocale();
 			const container = await new MusicResponseHandler(this.client).createMusicContainer(track, this.player, locale, this.currentState());
 			const shouldDisableButtons = this.stopped || this.player.state === 'DISCONNECTED' || (!this.player.playing && !this.player.paused);
-			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale);
+			const musicButton = new MusicResponseHandler(this.client).getMusicButton(shouldDisableButtons, locale, isRadioActive(this.player.guildId));
 			const nowPlayingPayload = v2(withRows(container, musicButton));
 			const currentMessage = this.message;
 

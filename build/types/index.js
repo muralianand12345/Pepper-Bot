@@ -19,4 +19,5 @@ __exportStar(require("./music"), exports);
 __exportStar(require("./logger"), exports);
 __exportStar(require("./events"), exports);
 __exportStar(require("./config"), exports);
+__exportStar(require("./radio"), exports);
 __exportStar(require("./locales"), exports);

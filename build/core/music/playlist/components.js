@@ -13,10 +13,6 @@ const locales_1 = require("../../locales");
 const ui_1 = require("./ui");
 const isPlaylistComponent = (interaction) => (interaction.isButton() || interaction.isStringSelectMenu()) && interaction.customId.startsWith(`${ui_1.PLAYLIST_CUSTOM_ID_PREFIX}:`);
 exports.isPlaylistComponent = isPlaylistComponent;
-/**
- * Handles every `playlist:*` button and select menu. All state lives in the custom ID or MongoDB, because
- * DM interactions (transfer requests) arrive on shard 0 rather than the shard that sent them.
- */
 class PlaylistComponentHandler {
     constructor(client, interaction) {
         this.locale = 'en';

@@ -3,7 +3,7 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
-import { sendTempMessage, MusicResponseHandler, recordFailure, abandonQueue, FAILURE_LIMIT } from '../../../../core/music';
+import { sendTempMessage, MusicResponseHandler, recordFailure, abandonQueue, FAILURE_LIMIT, isRadioActive, reconnectRadio, notifyRadioRecovery } from '../../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
@@ -14,6 +14,12 @@ const lavalinkEvent: LavalinkEvent = {
 			if (!player?.guildId) return;
 
 			client.logger.warn(`[LAVALINK] Track ${track?.title || 'Unknown'} (${track?.uri || 'no uri'}) got stuck for ${payload?.thresholdMs ?? 'unknown'}ms on node ${player.node.options.identifier} in guild ${player.guildId}`);
+
+			if (isRadioActive(player.guildId)) {
+				const result = await reconnectRadio(player, client, 'track stuck');
+				await notifyRadioRecovery(client, player, result);
+				return;
+			}
 
 			const failure = recordFailure(player.guildId);
 			client.logger.warn(`[LAVALINK] Playback failure ${failure.count}/${FAILURE_LIMIT} for guild ${player.guildId}; next attempt held for ${failure.backoffMs}ms`);

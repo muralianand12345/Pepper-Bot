@@ -3,7 +3,7 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
-import { sendTempMessage, MusicResponseHandler, recordFailure, abandonQueue, FAILURE_LIMIT } from '../../../../core/music';
+import { sendTempMessage, MusicResponseHandler, recordFailure, abandonQueue, FAILURE_LIMIT, isRadioActive, reconnectRadio, notifyRadioRecovery } from '../../../../core/music';
 
 const localeDetector = new LocaleDetector();
 
@@ -15,6 +15,12 @@ const lavalinkEvent: LavalinkEvent = {
 
 			const exception = payload?.exception;
 			client.logger.error(`[LAVALINK] Track ${track?.title || 'Unknown'} (${track?.uri || 'no uri'}) failed on node ${player.node.options.identifier} in guild ${player.guildId}: ${exception?.message || 'no message'} | severity: ${exception?.severity || 'unknown'} | cause: ${exception?.cause || 'unknown'}`);
+
+			if (isRadioActive(player.guildId)) {
+				const result = await reconnectRadio(player, client, 'track error');
+				await notifyRadioRecovery(client, player, result);
+				return;
+			}
 
 			const failure = recordFailure(player.guildId);
 			client.logger.warn(`[LAVALINK] Playback failure ${failure.count}/${FAILURE_LIMIT} for guild ${player.guildId}; next attempt held for ${failure.backoffMs}ms`);

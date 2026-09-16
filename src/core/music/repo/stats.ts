@@ -229,7 +229,6 @@ export class StatsDB {
 		});
 	};
 
-	/** Playlist counts by visibility plus the most played public playlists. Nothing beyond the count is exposed for private playlists. */
 	public static getPlaylistStats = async (limit: number = 10): Promise<StatsPlaylists> => {
 		return this.withCache(`playlists:${limit}`, async () => {
 			const empty: StatsPlaylists = { totalPlaylists: 0, publicPlaylists: 0, privatePlaylists: 0, publicPlays: 0, playlists: [] };
@@ -255,7 +254,6 @@ export class StatsDB {
 		});
 	};
 
-	/** One public playlist with its songs. Private and unknown codes both resolve to null so they cannot be told apart. */
 	public static getPublicPlaylist = async (code: string): Promise<StatsPlaylistDetail | null> => {
 		return this.withCache(`playlist:${code}`, async () => {
 			const playlist = await music_playlist

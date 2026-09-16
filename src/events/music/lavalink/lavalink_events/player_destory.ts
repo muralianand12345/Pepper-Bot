@@ -4,7 +4,7 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 import { send } from '../../../../utils/msg';
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
-import { NowPlayingManager, ActivityCheckManager, MusicResponseHandler, VoiceChannelStatus } from '../../../../core/music';
+import { NowPlayingManager, ActivityCheckManager, MusicResponseHandler, VoiceChannelStatus, endRadioSession } from '../../../../core/music';
 import { v2 } from '../../../../utils/v2';
 
 const localeDetector = new LocaleDetector();
@@ -34,6 +34,13 @@ const lavalinkEvent: LavalinkEvent = {
 			}
 		} catch (messageError) {
 			client.logger.warn(`[PLAYER_DESTROY] Failed to send disconnect message: ${messageError}`);
+		}
+
+		try {
+			const radio = await endRadioSession(player.guildId);
+			if (radio) client.logger.info(`[RADIO] Session ended for "${radio.station.name}" in guild ${player.guildId}`);
+		} catch (radioError) {
+			client.logger.warn(`[PLAYER_DESTROY] Failed to close radio session: ${radioError}`);
 		}
 
 		NowPlayingManager.removeInstance(player.guildId);

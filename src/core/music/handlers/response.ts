@@ -2,10 +2,13 @@ import discord from 'discord.js';
 import magmastream from 'magmastream';
 
 import { getRequester } from '../func';
+import { ISongsUser } from '../../../types';
 import { ProgressBarUtils } from '../utils';
 import { subtext } from '../../../utils/v2';
 import Formatter from '../../../utils/format';
 import { LocalizationManager } from '../../locales';
+import { RadioStation } from '../../../types';
+import { getRadioStation } from '../radio/state';
 
 export const ACCENT = {
 	success: 0x43b581,
@@ -126,11 +129,12 @@ export class MusicResponseHandler {
 
 	public createMusicContainer = async (track: magmastream.Track | null, player?: magmastream.Player, locale: string = 'en', state?: PlayerState): Promise<discord.ContainerBuilder> => {
 		const resolvedState: PlayerState = state ?? (!player ? 'idle' : player.paused ? 'paused' : player.playing ? 'playing' : 'idle');
+		const station = player ? getRadioStation(player.guildId) : null;
 
 		const container = new discord.ContainerBuilder()
 			.setId(NOW_PLAYING_COMPONENT_ID)
 			.setAccentColor(PLAYER_STATE[resolvedState].accent)
-			.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(`### ${this.badge(resolvedState)} ${this.localizationManager.translate('responses.music.now_playing', locale)}`))
+			.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(`### ${this.badge(resolvedState)} ${this.localizationManager.translate(station ? 'responses.radio.now_streaming' : 'responses.music.now_playing', locale)}`))
 			.addSeparatorComponents(new discord.SeparatorBuilder().setDivider(true).setSpacing(discord.SeparatorSpacingSize.Small));
 
 		if (!track) {
@@ -139,6 +143,12 @@ export class MusicResponseHandler {
 		}
 
 		const requesterData = track.requester ? getRequester(this.client, track.requester) : null;
+
+		if (station) {
+			this.addBody(container, this.radioBody(station, locale, requesterData), station.artworkUrl);
+			return container;
+		}
+
 		const trackImg = track.thumbnail || track.artworkUrl;
 		const trackDuration = track.isStream ? this.localizationManager.translate('responses.queue.live', locale) : Formatter.msToTime(track.duration);
 
@@ -208,11 +218,34 @@ export class MusicResponseHandler {
 		return container;
 	};
 
+	private radioBody = (station: RadioStation, locale: string, requester?: ISongsUser | null): string => {
+		const name = Formatter.truncateText(station.name, 60);
+		const heading = station.homepage ? `**[${name}](${station.homepage})**` : `**${name}**`;
+
+		const details: [string, string][] = [[this.localizationManager.translate('responses.fields.duration', locale), `\`${this.localizationManager.translate('responses.queue.live', locale)}\``]];
+		details.push([this.localizationManager.translate('responses.radio.fields.genre', locale), `\`${station.genre}\``]);
+		if (station.country) details.push([this.localizationManager.translate('responses.radio.fields.country', locale), `\`${station.country}\``]);
+		if (station.bitrate > 0) details.push([this.localizationManager.translate('responses.radio.fields.quality', locale), `\`${station.codec} ${station.bitrate}kbps\``]);
+		if (requester) details.push([this.localizationManager.translate('responses.fields.requested_by', locale), requester.username]);
+
+		return `${heading}\n\n${this.detailLines(details)}`;
+	};
+
+	public createRadioContainer = (station: RadioStation, locale: string = 'en'): discord.ContainerBuilder => {
+		const container = new discord.ContainerBuilder()
+			.setAccentColor(PLAYER_STATE.playing.accent)
+			.addTextDisplayComponents(new discord.TextDisplayBuilder().setContent(`### 📻 ${this.localizationManager.translate('responses.radio.now_streaming', locale)}`))
+			.addSeparatorComponents(new discord.SeparatorBuilder().setDivider(true).setSpacing(discord.SeparatorSpacingSize.Small));
+
+		this.addBody(container, this.radioBody(station, locale), station.artworkUrl);
+		return container;
+	};
+
 	public getSupportButton = (locale: string = 'en'): discord.ActionRowBuilder<discord.ButtonBuilder> => {
 		return new discord.ActionRowBuilder<discord.ButtonBuilder>().addComponents(new discord.ButtonBuilder().setLabel(this.localizationManager.translate('responses.buttons.support_server', locale)).setStyle(discord.ButtonStyle.Link).setURL(this.client.config.bot.support_server.invite).setEmoji('🔧'));
 	};
 
-	public getMusicButton = (disabled: boolean = false, locale: string = 'en'): discord.ActionRowBuilder<discord.ButtonBuilder> => {
+	public getMusicButton = (disabled: boolean = false, locale: string = 'en', radio: boolean = false): discord.ActionRowBuilder<discord.ButtonBuilder> => {
 		const row = new discord.ActionRowBuilder<discord.ButtonBuilder>();
 		const buttonConfig = [
 			{ id: 'pause-music', labelKey: 'responses.buttons.pause', emoji: '⏸️' },
@@ -220,7 +253,7 @@ export class MusicResponseHandler {
 			{ id: 'skip-music', labelKey: 'responses.buttons.skip', emoji: '⏭️' },
 			{ id: 'stop-music', labelKey: 'responses.buttons.stop', emoji: '⏹️' },
 			{ id: 'loop-music', labelKey: 'responses.buttons.loop', emoji: '🔄' },
-		];
+		].filter(({ id }) => !radio || (id !== 'skip-music' && id !== 'loop-music'));
 
 		buttonConfig.forEach(({ id, labelKey, emoji }) => {
 			row.addComponents(new discord.ButtonBuilder().setCustomId(id).setLabel(this.localizationManager.translate(labelKey, locale)).setStyle(discord.ButtonStyle.Secondary).setEmoji(emoji).setDisabled(disabled));

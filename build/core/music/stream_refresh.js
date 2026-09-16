@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.refreshStream = exports.consumeStreamRefresh = exports.canRetryStuck = exports.isStreamStale = exports.clearPaused = exports.markPaused = void 0;
+const state_1 = require("./radio/state");
 const STALE_AFTER_MS = 2 * 60 * 1000;
 const STUCK_RETRY_WINDOW_MS = 60 * 1000;
 const SEEK_HEADROOM_MS = 500;
@@ -41,7 +42,7 @@ const refreshStream = async (player, client, reason) => {
     const current = await player.queue?.getCurrent();
     if (!current)
         return false;
-    if (current.isStream)
+    if (current.isStream || (0, state_1.isRadioActive)(player.guildId))
         return false;
     const duration = Number(current.duration || 0);
     const rawPosition = Number(player.position || 0);
@@ -49,7 +50,7 @@ const refreshStream = async (player, client, reason) => {
     try {
         refreshing.set(player.guildId, current.identifier || current.track);
         if (player.paused)
-            await player.pause(false); // a replaced track inherits the paused state
+            await player.pause(false);
         await player.play(current, { startTime: position });
         client.logger?.info(`[STREAM_REFRESH] Re-resolved ${current.title} at ${position}ms for guild ${player.guildId} (${reason})`);
         return true;

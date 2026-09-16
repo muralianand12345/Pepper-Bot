@@ -6,6 +6,13 @@ commands:
             song:
                 name: 'chanson'
                 description: 'Nom de la chanson/URL'
+    radio:
+        name: 'radio'
+        description: 'Diffuser une station de radio en direct'
+        options:
+            station:
+                name: 'station'
+                description: 'Nom de la station, genre ou fréquence'
     pause:
         name: 'pause'
         description: 'Met en pause la musique en cours'
@@ -406,6 +413,22 @@ responses:
         buttons:
             previous: 'Précédent'
             next: 'Suivant'
+
+
+    radio:
+        now_streaming: 'En direct'
+        default_search: 'Saisis le nom d’une station, un genre ou une fréquence'
+        not_found: 'Aucune station ne correspond à **{query}**.'
+        frequency_unsupported: 'Aucun flux en direct trouvé pour **{freq}** FM. La plupart des stations FM ne diffusent pas en ligne — essaie plutôt un nom de station ou un genre.'
+        stream_failed: 'Impossible de diffuser **{name}** pour le moment.'
+        stopped: '**{name}** arrêtée'
+        reconnecting: '📻 Flux interrompu — reconnexion à **{name}**…'
+        reconnect_failed: '📻 **{name}** est hors ligne et n’a pas pu être rétablie.'
+        autoplay_blocked: 'La lecture automatique est indisponible pendant la radio.'
+        fields:
+            genre: 'Genre'
+            country: 'Pays'
+            quality: 'Qualité'
 
     queue:
         title: "File d'attente musicale"

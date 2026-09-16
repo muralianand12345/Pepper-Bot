@@ -11,6 +11,11 @@ const lavalinkEvent = {
             if (!player?.guildId)
                 return;
             client.logger.warn(`[LAVALINK] Track ${track?.title || 'Unknown'} (${track?.uri || 'no uri'}) got stuck for ${payload?.thresholdMs ?? 'unknown'}ms on node ${player.node.options.identifier} in guild ${player.guildId}`);
+            if ((0, music_1.isRadioActive)(player.guildId)) {
+                const result = await (0, music_1.reconnectRadio)(player, client, 'track stuck');
+                await (0, music_1.notifyRadioRecovery)(client, player, result);
+                return;
+            }
             const failure = (0, music_1.recordFailure)(player.guildId);
             client.logger.warn(`[LAVALINK] Playback failure ${failure.count}/${music_1.FAILURE_LIMIT} for guild ${player.guildId}; next attempt held for ${failure.backoffMs}ms`);
             const textChannel = client.channels.cache.get(String(player.textChannelId));

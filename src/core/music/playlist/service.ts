@@ -9,7 +9,6 @@ export type PlaylistLimits = { isPremium: boolean; playlists: number; songs: num
 export type PlaylistLockReason = 'too_many_playlists' | 'too_many_songs';
 export type PlaylistLock = { reason: PlaylistLockReason | null; limits: PlaylistLimits; ownedCount: number };
 export type PlaylistPlayResult = { status: 'none' | 'not_found' | 'private' } | { status: 'empty' | 'locked'; name: string } | { status: 'ok'; playlist: PlaylistRecord };
-/** `exact` is true when the query was a direct track link (e.g. a picked autocomplete suggestion) rather than a text search. */
 export type PlaylistTrackSearch = { status: 'ok'; tracks: IPlaylistTrack[]; exact: boolean } | { status: 'no_results' | 'collection' };
 export type PlaylistAddResult = { status: 'added'; playlist: PlaylistRecord; limits: PlaylistLimits } | { status: 'duplicate'; playlist: PlaylistRecord } | { status: 'full'; playlist: PlaylistRecord; limits: PlaylistLimits } | { status: 'locked'; playlist: PlaylistRecord; lock: PlaylistLock } | { status: 'not_found' | 'not_owner' };
 
@@ -57,7 +56,6 @@ export class PlaylistService {
 		return this.getTierLimits(client, isPremium ? tier : 0);
 	};
 
-	/** Premium lookup capped by a timeout, for autocomplete where Discord only waits ~3s. Resolves null when unknown. */
 	public static getLimitsWithin = async (client: discord.Client, userId: string, timeoutMs: number = PLAYLIST_CONFIG.PREMIUM_CHECK_TIMEOUT_MS): Promise<PlaylistLimits | null> => {
 		let timer: NodeJS.Timeout | undefined;
 		const timeout = new Promise<null>((resolve) => {
@@ -72,7 +70,6 @@ export class PlaylistService {
 		}
 	};
 
-	/** Over the playlist-count limit locks every playlist the owner has; over the song limit locks just that playlist. */
 	public static getLockReason = (trackCount: number, ownedCount: number, limits: PlaylistLimits): PlaylistLockReason | null => {
 		if (ownedCount > limits.playlists) return 'too_many_playlists';
 		if (trackCount > limits.songs) return 'too_many_songs';
@@ -86,7 +83,6 @@ export class PlaylistService {
 		return { reason: this.getLockReason(playlist.tracks.length, ownedCount, limits), limits, ownedCount };
 	};
 
-	/** Resolves a `playlist` option that is either a share code (from autocomplete) or a name the user typed. */
 	public static findForUser = async (userId: string, input: string, withAudio: boolean = true): Promise<{ playlist: PlaylistRecord | null; owned: boolean }> => {
 		const code = this.normalizeCode(input);
 		const byCode = code ? await PlaylistDB.findByCode(code, withAudio) : null;
@@ -131,7 +127,6 @@ export class PlaylistService {
 
 	public static isSameTrack = (a: IPlaylistTrack, b: IPlaylistTrack): boolean => a.uri === b.uri || (Boolean(a.identifier) && a.identifier === b.identifier && a.sourceName.toLowerCase() === b.sourceName.toLowerCase());
 
-	/** Only `pepper-playlist:<code>` values are hard errors; a bare code that doesn't resolve falls through to a normal song search. */
 	public static resolvePlayable = async (client: discord.Client, value: string | null, userId: string): Promise<PlaylistPlayResult> => {
 		const raw = (value ?? '').trim();
 		const explicit = raw.toLowerCase().startsWith(PLAYLIST_CONFIG.PLAY_VALUE_PREFIX);
