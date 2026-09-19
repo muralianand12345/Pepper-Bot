@@ -46,6 +46,7 @@ __exportStar(require("./lyrics"), exports);
 __exportStar(require("./handlers"), exports);
 __exportStar(require("./now_playing"), exports);
 __exportStar(require("./activity_check"), exports);
+__exportStar(require("./empty_channel"), exports);
 __exportStar(require("./playlist"), exports);
 __exportStar(require("./radio"), exports);
 exports.MUSIC_CONFIG = {
