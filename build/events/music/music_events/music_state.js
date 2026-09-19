@@ -4,10 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
-const msg_1 = require("../../../utils/msg");
 const locales_1 = require("../../../core/locales");
 const music_1 = require("../../../core/music");
-const v2_1 = require("../../../utils/v2");
 const localeDetector = new locales_1.LocaleDetector();
 const event = {
     name: discord_js_1.default.Events.VoiceStateUpdate,
@@ -15,50 +13,32 @@ const event = {
         if (!client.config.music.enabled)
             return;
         const player = client.manager.getPlayer(newState.guild.id);
-        if (!player || player.state !== 'CONNECTED')
+        if (!player || player.state !== 'CONNECTED' || !player.voiceChannelId)
             return;
-        const currentTrack = await player.queue.getCurrent();
-        if (newState.id === client.user?.id && !newState.channelId && oldState.channelId) {
-            client.logger.info(`[VOICE_STATE] Bot was disconnected from voice channel in guild ${newState.guild.id}`);
-            player.destroy();
-            if (currentTrack)
-                await new music_1.VoiceChannelStatus(client).clear(player.voiceChannelId || '');
-            music_1.NowPlayingManager.removeInstance(player.guildId);
-            const textChannel = client.channels.cache.get(String(player.textChannelId));
-            if (textChannel?.isTextBased()) {
-                let guildLocale = 'en';
-                try {
-                    guildLocale = (await localeDetector.getGuildLanguage(newState.guild.id)) || 'en';
-                }
-                catch (error) { }
-                const responseHandler = new music_1.MusicResponseHandler(client);
-                const container = responseHandler.createPlayerStateContainer('disconnected', client.localizationManager?.translate('responses.music.disconnected', guildLocale) || '🔌 Music player disconnected');
-                await (0, music_1.sendTempMessage)(textChannel, container, 10000);
-            }
-            return;
-        }
-        if (newState.id === client.user?.id && newState.channelId && oldState.channelId && newState.channelId !== oldState.channelId) {
+        if (newState.id === client.user?.id) {
+            if (!newState.channelId || !oldState.channelId || newState.channelId === oldState.channelId)
+                return;
             client.logger.info(`[VOICE_STATE] Bot was moved to different voice channel in guild ${newState.guild.id}`);
             if (player.voiceChannelId !== newState.channelId)
                 player.voiceChannelId = newState.channelId;
+            if ((0, music_1.countListeners)(client, newState.channelId) === 0)
+                await (0, music_1.handleEmptyVoiceChannel)(player, client);
             return;
         }
-        if (!player.voiceChannelId)
+        if ((newState.member ?? oldState.member)?.user.bot)
             return;
-        const playerChannel = client.channels.cache.get(player.voiceChannelId);
-        if (!playerChannel)
+        const channelId = player.voiceChannelId;
+        const joined = newState.channelId === channelId && oldState.channelId !== channelId;
+        const left = oldState.channelId === channelId && newState.channelId !== channelId;
+        if (!joined && !left)
             return;
-        const textChannel = client.channels.cache.get(String(player.textChannelId));
-        if (!textChannel)
+        const memberCount = (0, music_1.countListeners)(client, channelId);
+        if (memberCount === null)
             return;
-        const memberCount = playerChannel.members.filter((member) => !member.user.bot).size;
-        let guildLocale = 'en';
-        try {
-            guildLocale = (await localeDetector.getGuildLanguage(newState.guild.id)) || 'en';
-        }
-        catch (error) { }
-        const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, player, client);
-        if (memberCount === 1 && player.paused) {
+        if (left && memberCount === 0)
+            return (0, music_1.handleEmptyVoiceChannel)(player, client);
+        if (joined && memberCount === 1 && player.paused) {
+            const currentTrack = await player.queue.getCurrent();
             const streamWentStale = (0, music_1.isStreamStale)(player.guildId);
             await player.pause(false);
             (0, music_1.clearPaused)(player.guildId);
@@ -66,54 +46,18 @@ const event = {
                 await (0, music_1.refreshStream)(player, client, 'resumed when a listener rejoined');
             if (currentTrack)
                 await new music_1.VoiceChannelStatus(client).setPlaying(player, currentTrack);
-            nowPlayingManager.onResume();
+            music_1.NowPlayingManager.getInstance(player.guildId, player, client).onResume();
+            const textChannel = client.channels.cache.get(String(player.textChannelId));
+            if (!textChannel)
+                return;
+            let guildLocale = 'en';
+            try {
+                guildLocale = (await localeDetector.getGuildLanguage(newState.guild.id)) || 'en';
+            }
+            catch (error) { }
             const responseHandler = new music_1.MusicResponseHandler(client);
             const container = responseHandler.createPlayerStateContainer('playing', client.localizationManager?.translate('responses.music.resumed_members_joined', guildLocale) || '▶️ Resumed playback');
             await (0, music_1.sendTempMessage)(textChannel, container);
-        }
-        if (memberCount === 0) {
-            if (!player.paused && player.playing) {
-                await player.pause(true);
-                (0, music_1.markPaused)(player.guildId);
-                if (currentTrack)
-                    await new music_1.VoiceChannelStatus(client).setPaused(player, currentTrack);
-                nowPlayingManager.onPause();
-                const responseHandler = new music_1.MusicResponseHandler(client);
-                const container = responseHandler.createPlayerStateContainer('paused', client.localizationManager?.translate('responses.music.paused_empty_channel', guildLocale) || '⏸️ Paused playback because the voice channel is empty');
-                await (0, music_1.sendTempMessage)(textChannel, container);
-            }
-            const DISCONNECT_DELAY = 300000;
-            const scheduledAt = Date.now();
-            player.cleanupScheduledAt = scheduledAt;
-            client.logger.info(`[VOICE_STATE] Everyone left channel in guild ${player.guildId}, scheduling disconnect in 5 minutes`);
-            setTimeout(async () => {
-                try {
-                    const currentPlayer = client.manager.getPlayer(player.guildId);
-                    if (!currentPlayer)
-                        return;
-                    if (currentPlayer.cleanupScheduledAt !== scheduledAt)
-                        return;
-                    const currentChannel = client.channels.cache.get(String(currentPlayer.voiceChannelId));
-                    if (!currentChannel)
-                        return;
-                    const currentMemberCount = currentChannel.members.filter((member) => !member.user.bot).size;
-                    if (currentMemberCount === 0) {
-                        client.logger.info(`[VOICE_STATE] Voice channel still empty after 5 minutes, disconnecting from guild ${player.guildId}`);
-                        const nowPlayingManager = music_1.NowPlayingManager.getInstance(player.guildId, currentPlayer, client);
-                        await nowPlayingManager.disableButtons();
-                        const responseHandler = new music_1.MusicResponseHandler(client);
-                        const disconnectContainer = responseHandler.createPlayerStateContainer('disconnected', client.localizationManager?.translate('responses.music.disconnected_inactivity', guildLocale) || '🔌 Disconnecting due to inactivity (5 minutes with no listeners)');
-                        await (0, msg_1.send)(client, textChannel.id, (0, v2_1.v2)(disconnectContainer)).catch((err) => client.logger.warn(`[VOICE_STATE] Failed to send disconnect message: ${err}`));
-                        music_1.NowPlayingManager.removeInstance(player.guildId);
-                        currentPlayer.destroy();
-                        if (currentTrack)
-                            await new music_1.VoiceChannelStatus(client).clear(currentPlayer.voiceChannelId || '');
-                    }
-                }
-                catch (error) {
-                    client.logger.error(`[VOICE_STATE] Error during auto-disconnect: ${error}`);
-                }
-            }, DISCONNECT_DELAY);
         }
     },
 };

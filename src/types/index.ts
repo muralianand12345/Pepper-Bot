@@ -35,7 +35,6 @@ declare module 'discord.js' {
 		config: IConfig;
 		manager: magmastream.Manager;
 		localizationManager?: LocalizationManager;
-		/** Radio sessions on this shard. Hung off the client so `broadcastEval` callbacks, which cannot import modules, can read them. */
 		radio: { get: (guildId: string) => RadioState | null };
 	}
 }

@@ -28,6 +28,7 @@ export * from './lyrics';
 export * from './handlers';
 export * from './now_playing';
 export * from './activity_check';
+export * from './empty_channel';
 export * from './playlist';
 export * from './radio';
 
