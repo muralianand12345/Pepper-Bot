@@ -170,6 +170,7 @@ const lavalinkEvent = {
             catch (activityError) {
                 client.logger.error(`[LAVALINK] Failed to initialize activity check manager: ${activityError}`);
             }
+            (0, music_1.onAutoplayTrackStart)(client, player);
             try {
                 await webhookLiveSongs(client, track, player);
             }

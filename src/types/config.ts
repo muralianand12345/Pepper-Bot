@@ -2,6 +2,8 @@ import discord from 'discord.js';
 import magmastream from 'magmastream';
 
 import { BotPresence } from './events';
+import { IAutoplayConfig } from './autoplay';
+import { IAIConfigInput } from './ai';
 
 export interface IConfig {
 	bot: {
@@ -53,6 +55,7 @@ export interface IConfig {
 				enabled: boolean;
 			};
 		};
+		autoplay?: Partial<Omit<IAutoplayConfig, 'seeds'>> & { seeds?: Partial<IAutoplayConfig['seeds']> };
 		lavalink: {
 			default_search: magmastream.SearchPlatform;
 			nodes: Array<{
@@ -68,4 +71,5 @@ export interface IConfig {
 			}>;
 		};
 	};
+	ai?: IAIConfigInput;
 }

@@ -62,6 +62,7 @@ export interface RadioState {
 	requesterId: string | null;
 	reconnects: number;
 	lastReconnectAt: number;
+	reconnecting: boolean;
 }
 
 export interface IRadioStationEntry {

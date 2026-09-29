@@ -5,6 +5,8 @@ const magmastream_1 = require("magmastream");
 const failure_guard_1 = require("./failure_guard");
 const stream_refresh_1 = require("./stream_refresh");
 let applied = false;
+const KEEPALIVE_INTERVAL_MS = 15_000;
+const SOCKET_OPEN = 1;
 const patchTrackStart = (client) => {
     const proto = magmastream_1.Node?.prototype;
     const original = proto?.trackStart;
@@ -50,6 +52,38 @@ const patchPlayCooldown = (client) => {
     };
     return true;
 };
+// Some node connections die silently after a few quiet minutes: REST still works, but track events stop arriving.
+const patchNodeKeepalive = (client) => {
+    const proto = magmastream_1.Node?.prototype;
+    const original = proto?.open;
+    if (typeof original !== 'function')
+        return false;
+    proto.open = function (...args) {
+        const socket = this.socket;
+        if (socket) {
+            let alive = true;
+            socket.on('pong', () => {
+                alive = true;
+            });
+            const timer = setInterval(() => {
+                if (socket.readyState !== SOCKET_OPEN)
+                    return clearInterval(timer);
+                if (!alive) {
+                    client.logger?.warn(`[PATCH] Node ${this.options.identifier} stopped answering pings; reconnecting`);
+                    clearInterval(timer);
+                    socket.terminate();
+                    return;
+                }
+                alive = false;
+                socket.ping();
+            }, KEEPALIVE_INTERVAL_MS);
+            timer.unref?.();
+            socket.once('close', () => clearInterval(timer));
+        }
+        return original.apply(this, args);
+    };
+    return true;
+};
 const applyMagmastreamPatches = (client) => {
     if (applied)
         return;
@@ -58,6 +92,7 @@ const applyMagmastreamPatches = (client) => {
         ['trackStart null-track guard', patchTrackStart(client)],
         ['trackStuck stream refresh', patchTrackStuck(client)],
         ['play failure cooldown', patchPlayCooldown(client)],
+        ['node keepalive ping', patchNodeKeepalive(client)],
     ];
     for (const [name, ok] of results) {
         if (ok)

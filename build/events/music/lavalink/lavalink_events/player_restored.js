@@ -7,6 +7,7 @@ const lavalinkEvent = {
     execute: async (player, node, client) => {
         client.logger.success(`[LAVALINK] Player for guild ${player.guildId} restored on node ${node.options.identifier}.`);
         try {
+            (0, music_1.migrateLegacyAutoplay)(client, player);
             if ((await player.queue.getCurrent()) && !music_1.ActivityCheckManager.hasInstance(player.guildId))
                 music_1.ActivityCheckManager.getInstance(player.guildId, player, client);
             if ((0, music_1.countListeners)(client, player.voiceChannelId) === 0)

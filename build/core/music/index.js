@@ -35,6 +35,7 @@ const v2_1 = require("../../utils/v2");
 const repo_1 = require("./repo");
 const playlist_1 = require("./playlist");
 const radio_1 = require("./radio");
+const autoplay_1 = require("./autoplay");
 __exportStar(require("./func"), exports);
 __exportStar(require("./patches"), exports);
 __exportStar(require("./failure_guard"), exports);
@@ -49,6 +50,7 @@ __exportStar(require("./activity_check"), exports);
 __exportStar(require("./empty_channel"), exports);
 __exportStar(require("./playlist"), exports);
 __exportStar(require("./radio"), exports);
+__exportStar(require("./autoplay"), exports);
 exports.MUSIC_CONFIG = {
     ERROR_SEARCH_TEXT: 'Unable To Fetch Results',
     DEFAULT_SEARCH_TEXT: 'Please enter a song name or url',
@@ -214,8 +216,9 @@ class Music {
                 case 'search': {
                     const track = res.tracks[0];
                     const wasIdle = !player.playing && !(await player.queue.getCurrent());
-                    await player.queue.add(track);
-                    const queueSize = await player.queue.size();
+                    const offset = await (0, autoplay_1.autoplayInsertOffset)(player);
+                    await player.queue.add(track, offset);
+                    const queueSize = offset === undefined ? await player.queue.size() : offset + 1;
                     this.client.logger.info(`[MUSIC] Queued "${track.title}" for guild ${player.guildId} (idle: ${wasIdle}, playing: ${player.playing}, state: ${player.state})`);
                     if (wasIdle)
                         await this.startPlayback(player);
@@ -232,7 +235,7 @@ class Music {
                     const limitedPlaylist = await this.getPlaylistLimit(this.interaction.user.id, res.playlist);
                     const wasTruncated = limitedPlaylist.tracks.length < originalLength;
                     const wasIdle = !player.playing && !(await player.queue.getCurrent());
-                    await player.queue.add(limitedPlaylist.tracks);
+                    await player.queue.add(limitedPlaylist.tracks, await (0, autoplay_1.autoplayInsertOffset)(player));
                     this.client.logger.info(`[MUSIC] Queued ${limitedPlaylist.tracks.length} playlist tracks for guild ${player.guildId} (idle: ${wasIdle}, playing: ${player.playing}, state: ${player.state})`);
                     if (wasIdle)
                         await this.startPlayback(player);
@@ -368,7 +371,7 @@ class Music {
                 await player.queue.clear();
                 await player.queue.clearPrevious();
                 await player.queue.setCurrent(null);
-                player.setAutoplay(false, this.interaction.user, 5);
+                await (0, autoplay_1.disableSmartAutoplay)(player);
                 await player.queue.add(res.tracks[0]);
                 await (0, radio_1.beginRadioSession)(this.client, player.guildId, station, (0, func_1.getRequester)(this.client, this.interaction.user));
                 await this.startPlayback(player);
@@ -498,7 +501,8 @@ class Music {
                     return await this.interaction.editReply((0, v2_1.v2)(container));
             }
             try {
-                if (!player.isAutoplay) {
+                await (0, autoplay_1.noteAutoplaySkip)(this.client, player);
+                if (!player.isAutoplay && !(0, autoplay_1.isSmartAutoplayEnabled)(player)) {
                     const musicValidator = new handlers_1.MusicPlayerValidator(this.client, player);
                     const [isValid, errorContainer] = await musicValidator.validateQueueSize(0, this.interaction);
                     if (!isValid && errorContainer)
@@ -567,7 +571,10 @@ class Music {
                 this.isDeferred = true;
             }
             try {
-                player.setAutoplay(enable, this.interaction.user, 5);
+                if (enable)
+                    (0, autoplay_1.enableSmartAutoplay)(this.client, player, this.interaction.user.id);
+                else
+                    await (0, autoplay_1.disableSmartAutoplay)(player);
                 const container = responseHandler.createPlayerStateContainer('autoplay', enable ? this.t('responses.music.autoplay_enabled') : this.t('responses.music.autoplay_disabled'));
                 await this.interaction.editReply((0, v2_1.v2)(container));
             }

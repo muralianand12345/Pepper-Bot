@@ -16,6 +16,7 @@ import { v2, v2Ephemeral, withRows, subtext, panel } from '../../utils/v2';
 import { PlaylistDB } from './repo';
 import { PlaylistService, PlaylistPlayResult, displayPlaylistName } from './playlist';
 import { RadioService, beginRadioSession, endRadioSession, isRadioActive } from './radio';
+import { autoplayInsertOffset, disableSmartAutoplay, enableSmartAutoplay, isSmartAutoplayEnabled, noteAutoplaySkip } from './autoplay';
 
 export * from './func';
 export * from './patches';
@@ -31,6 +32,7 @@ export * from './activity_check';
 export * from './empty_channel';
 export * from './playlist';
 export * from './radio';
+export * from './autoplay';
 
 export const MUSIC_CONFIG = {
 	ERROR_SEARCH_TEXT: 'Unable To Fetch Results',
@@ -215,8 +217,9 @@ export class Music {
 			case 'search': {
 				const track = res.tracks[0];
 				const wasIdle = !player.playing && !(await player.queue.getCurrent());
-				await player.queue.add(track);
-				const queueSize = await player.queue.size();
+				const offset = await autoplayInsertOffset(player);
+				await player.queue.add(track, offset);
+				const queueSize = offset === undefined ? await player.queue.size() : offset + 1;
 				this.client.logger.info(`[MUSIC] Queued "${track.title}" for guild ${player.guildId} (idle: ${wasIdle}, playing: ${player.playing}, state: ${player.state})`);
 				if (wasIdle) await this.startPlayback(player);
 				else this.client.logger.warn(`[MUSIC] Not starting playback for guild ${player.guildId} — player reports it is already active`);
@@ -231,7 +234,7 @@ export class Music {
 				const wasTruncated = limitedPlaylist.tracks.length < originalLength;
 
 				const wasIdle = !player.playing && !(await player.queue.getCurrent());
-				await player.queue.add(limitedPlaylist.tracks);
+				await player.queue.add(limitedPlaylist.tracks, await autoplayInsertOffset(player));
 
 				this.client.logger.info(`[MUSIC] Queued ${limitedPlaylist.tracks.length} playlist tracks for guild ${player.guildId} (idle: ${wasIdle}, playing: ${player.playing}, state: ${player.state})`);
 				if (wasIdle) await this.startPlayback(player);
@@ -380,7 +383,7 @@ export class Music {
 			await player.queue.clear();
 			await player.queue.clearPrevious();
 			await player.queue.setCurrent(null);
-			player.setAutoplay(false, this.interaction.user, 5);
+			await disableSmartAutoplay(player);
 
 			await player.queue.add(res.tracks[0]);
 			await beginRadioSession(this.client, player.guildId, station, getRequester(this.client, this.interaction.user));
@@ -519,7 +522,8 @@ export class Music {
 		}
 
 		try {
-			if (!player.isAutoplay) {
+			await noteAutoplaySkip(this.client, player);
+			if (!player.isAutoplay && !isSmartAutoplayEnabled(player)) {
 				const musicValidator = new MusicPlayerValidator(this.client, player);
 				const [isValid, errorContainer] = await musicValidator.validateQueueSize(0, this.interaction);
 				if (!isValid && errorContainer) return await this.interaction.editReply(v2(errorContainer));
@@ -592,7 +596,8 @@ export class Music {
 		}
 
 		try {
-			player.setAutoplay(enable, this.interaction.user, 5);
+			if (enable) enableSmartAutoplay(this.client, player, this.interaction.user.id);
+			else await disableSmartAutoplay(player);
 			const container = responseHandler.createPlayerStateContainer('autoplay', enable ? this.t('responses.music.autoplay_enabled') : this.t('responses.music.autoplay_disabled'));
 			await this.interaction.editReply(v2(container));
 		} catch (error) {

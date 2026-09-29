@@ -4,7 +4,7 @@
 
 **A Discord music bot with smart autoplay, live radio, custom playlists and listening analytics.**
 
-![Version](https://img.shields.io/badge/version-5.15.2-blue)
+![Version](https://img.shields.io/badge/version-5.16.0-blue)
 ![Discord.js](https://img.shields.io/badge/discord.js-v14.27-5865F2?logo=discord&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7.0-3178C6?logo=typescript&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=nodedotjs&logoColor=white)
@@ -33,7 +33,7 @@
 
 - **Lavalink audio.** Streams through [Lavalink](https://github.com/lavalink-devs/Lavalink) and uses the least-loaded node when you run several.
 - **Many sources.** Search or paste links from Spotify, SoundCloud, Bandcamp, Deezer, Apple Music and any other source your Lavalink node's plugins support.
-- **Smart autoplay.** When the queue ends, it keeps playing related tracks based on what was just played.
+- **Smart autoplay.** Queues songs that match the mood of what people requested this session, plus the occasional favorite from the listeners' history. Songs skipped early steer later picks away from them.
 - **11 audio filters.** Bass Boost, Nightcore, Vaporwave, 8D, Karaoke, and more.
 - **Interactive queue.** Page through the queue and shuffle, move, remove or clear tracks with buttons.
 - **Lyrics.** Shows the lyrics of the song that is playing.
@@ -203,8 +203,8 @@ The bot reads two files:
 | `SPOTIFY_REDIRECT_URI`                |    ✅    | OAuth callback URL, `https://<your-host>/api/v1/accounts/spotify/callback`    |
 | `FEEDBACK_WEBHOOK`                    |    ✅    | Discord webhook that receives `/feedback` submissions                         |
 | `LIVE_SONGS_WEBHOOK`                  |    ✅    | Discord webhook that receives a live feed of played songs                     |
-| `OPENAI_API_KEY`                      |    ✅    | OpenAI (or compatible) API key                                                |
-| `OPENAI_BASE_URL`                     |    ✅    | OpenAI-compatible base URL                                                    |
+| `OPENAI_API_KEY`                      |          | OpenAI (or compatible) API key. Left unset, AI features stay off              |
+| `OPENAI_BASE_URL`                     |          | OpenAI-compatible base URL. Defaults to OpenAI                                |
 | `API_PORT`                            |          | Port for the REST API. Defaults to `3000`                                     |
 | `STATS_API_KEY`                       |          | Enables the `/api/v1/stats` routes. Left unset, those routes are not mounted  |
 | `REDIS_HOST` / `REDIS_PORT`           |          | Redis connection used for player state                                        |
@@ -246,6 +246,8 @@ music:
 - **`bot.presence`**: the rotating status messages. They support the placeholders `<clientname>`, `<usersize>`, `<guildsize>`, `<channelsize>` and `<version>`.
 - **`bot.log`**: channel IDs for command-usage logs and server join/leave logs.
 - **`premium.tiers`**: per-tier limits for queued playlist size and custom playlists.
+- **`music.autoplay`**: how many songs smart autoplay adds at a time and what shapes its picks.
+- **`ai`**: the model and daily limits for AI features. With `ai.enabled: true` and `OPENAI_API_KEY` set, an AI chooses autoplay's picks; otherwise autoplay uses its own scoring.
 
 ### Bot permissions
 
@@ -290,6 +292,7 @@ src/
 ├── pepper.ts           # Creates the Discord client and Magmastream manager
 ├── commands/           # One file per slash command
 ├── core/
+│   ├── ai/             # OpenAI client, daily budget and AI features
 │   ├── api/            # REST API route handlers
 │   ├── commands/       # Autocomplete, interaction routing, premium checks
 │   ├── locales/        # Localization manager and language detection

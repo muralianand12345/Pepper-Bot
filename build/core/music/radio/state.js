@@ -4,7 +4,7 @@ exports.consumeRadioElapsed = exports.getRadioElapsed = exports.clearRadioState 
 const states = new Map();
 const setRadioState = (guildId, station, requesterId) => {
     const now = Date.now();
-    const state = { station, startedAt: now, lastFlushAt: now, requesterId, reconnects: 0, lastReconnectAt: 0 };
+    const state = { station, startedAt: now, lastFlushAt: now, requesterId, reconnects: 0, lastReconnectAt: 0, reconnecting: false };
     states.set(guildId, state);
     return state;
 };
