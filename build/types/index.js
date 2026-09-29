@@ -21,3 +21,5 @@ __exportStar(require("./events"), exports);
 __exportStar(require("./config"), exports);
 __exportStar(require("./radio"), exports);
 __exportStar(require("./locales"), exports);
+__exportStar(require("./autoplay"), exports);
+__exportStar(require("./ai"), exports);

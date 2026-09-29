@@ -88,10 +88,12 @@ const sendQueueEndMessage = async (client, channel, locale) => {
         }
     }
 };
-const handlePlayerCleanup = async (player, guildId, client) => {
-    const nowPlayingManager = music_1.NowPlayingManager.getInstance(guildId, player, client);
-    nowPlayingManager.onStop();
-    await nowPlayingManager.disableButtons();
+const handlePlayerCleanup = async (player, guildId, client, isRadio) => {
+    if (!isRadio) {
+        const nowPlayingManager = music_1.NowPlayingManager.getInstance(guildId, player, client);
+        nowPlayingManager.onStop();
+        await nowPlayingManager.disableButtons();
+    }
     const CLEANUP_DELAY = 120000;
     const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
     const scheduledAt = Date.now();
@@ -115,9 +117,15 @@ const lavalinkEvent = {
     execute: async (player, _track, _payload, client) => {
         if (!player?.textChannelId || !client?.channels)
             return client.logger.warn(`[QUEUE_END] Missing player textChannelId or client channels for guild ${player?.guildId}`);
+        const isRadio = (0, music_1.isRadioActive)(player.guildId);
         try {
-            const channel = await validateChannelAccess(client, player.textChannelId);
-            if (!channel) {
+            if (await (0, music_1.onAutoplayQueueEnd)(client, player))
+                return client.logger.debug(`[QUEUE_END] Smart autoplay kept playback going in guild ${player.guildId}`);
+            const channel = isRadio ? null : await validateChannelAccess(client, player.textChannelId);
+            if (isRadio) {
+                client.logger.debug(`[QUEUE_END] Radio active in guild ${player.guildId}, skipping queue end message`);
+            }
+            else if (!channel) {
                 client.logger.warn(`[QUEUE_END] Cannot access text channel ${player.textChannelId} for guild ${player.guildId}, skipping message`);
             }
             else {
@@ -130,7 +138,7 @@ const lavalinkEvent = {
                 }
                 await sendQueueEndMessage(client, channel, guildLocale);
             }
-            await handlePlayerCleanup(player, player.guildId, client);
+            await handlePlayerCleanup(player, player.guildId, client, isRadio);
         }
         catch (error) {
             client.logger.error(`[QUEUE_END] Error in queue end event: ${error}`);

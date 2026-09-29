@@ -4,7 +4,7 @@ const states = new Map<string, RadioState>();
 
 export const setRadioState = (guildId: string, station: RadioStation, requesterId: string | null): RadioState => {
 	const now = Date.now();
-	const state: RadioState = { station, startedAt: now, lastFlushAt: now, requesterId, reconnects: 0, lastReconnectAt: 0 };
+	const state: RadioState = { station, startedAt: now, lastFlushAt: now, requesterId, reconnects: 0, lastReconnectAt: 0, reconnecting: false };
 	states.set(guildId, state);
 	return state;
 };

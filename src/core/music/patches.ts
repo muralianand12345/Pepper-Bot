@@ -9,6 +9,10 @@ let applied = false;
 type TrackStart = (player: magmastream.Player, track: magmastream.Track | null, payload: magmastream.TrackStartEvent) => void;
 type Play = (...args: unknown[]) => Promise<unknown>;
 type TrackStuck = (player: magmastream.Player, track: magmastream.Track | null, payload: magmastream.TrackStuckEvent) => Promise<void>;
+type Open = (...args: unknown[]) => unknown;
+
+const KEEPALIVE_INTERVAL_MS = 15_000;
+const SOCKET_OPEN = 1;
 
 const patchTrackStart = (client: discord.Client): boolean => {
 	const proto = (Node as unknown as { prototype?: Record<string, unknown> })?.prototype;
@@ -60,6 +64,39 @@ const patchPlayCooldown = (client: discord.Client): boolean => {
 	return true;
 };
 
+// Some node connections die silently after a few quiet minutes: REST still works, but track events stop arriving.
+const patchNodeKeepalive = (client: discord.Client): boolean => {
+	const proto = (Node as unknown as { prototype?: Record<string, unknown> })?.prototype;
+	const original = proto?.open as Open | undefined;
+	if (typeof original !== 'function') return false;
+
+	proto!.open = function (this: magmastream.Node, ...args: unknown[]) {
+		const socket = this.socket;
+		if (socket) {
+			let alive = true;
+			socket.on('pong', () => {
+				alive = true;
+			});
+			const timer = setInterval(() => {
+				if (socket.readyState !== SOCKET_OPEN) return clearInterval(timer);
+				if (!alive) {
+					client.logger?.warn(`[PATCH] Node ${this.options.identifier} stopped answering pings; reconnecting`);
+					clearInterval(timer);
+					socket.terminate();
+					return;
+				}
+				alive = false;
+				socket.ping();
+			}, KEEPALIVE_INTERVAL_MS);
+			timer.unref?.();
+			socket.once('close', () => clearInterval(timer));
+		}
+		return original.apply(this, args);
+	} as Open;
+
+	return true;
+};
+
 export const applyMagmastreamPatches = (client: discord.Client): void => {
 	if (applied) return;
 	applied = true;
@@ -68,6 +105,7 @@ export const applyMagmastreamPatches = (client: discord.Client): void => {
 		['trackStart null-track guard', patchTrackStart(client)],
 		['trackStuck stream refresh', patchTrackStuck(client)],
 		['play failure cooldown', patchPlayCooldown(client)],
+		['node keepalive ping', patchNodeKeepalive(client)],
 	] as const;
 
 	for (const [name, ok] of results) {

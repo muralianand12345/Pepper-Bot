@@ -10,18 +10,23 @@ const handlers_1 = require("../handlers");
 const state_1 = require("./state");
 const MAX_RECONNECTS = 3;
 const BACKOFF_MS = [3_000, 8_000, 15_000];
-const inFlight = new Set();
-const isRadioReconnecting = (guildId) => inFlight.has(guildId);
+const isRadioReconnecting = (guildId) => (0, state_1.getRadioState)(guildId)?.reconnecting ?? false;
 exports.isRadioReconnecting = isRadioReconnecting;
-const consumeRadioReconnect = (guildId) => inFlight.delete(guildId);
+const consumeRadioReconnect = (guildId) => {
+    const state = (0, state_1.getRadioState)(guildId);
+    if (!state?.reconnecting)
+        return false;
+    state.reconnecting = false;
+    return true;
+};
 exports.consumeRadioReconnect = consumeRadioReconnect;
 const reconnectRadio = async (player, client, reason) => {
     const guildId = player.guildId;
     const state = (0, state_1.getRadioState)(guildId);
     if (!state)
         return 'not_radio';
-    if (inFlight.has(guildId))
-        return 'reconnecting';
+    if (state.reconnecting)
+        return 'in_progress';
     const attempt = (0, state_1.markRadioReconnect)(guildId);
     if (attempt > MAX_RECONNECTS) {
         client.logger?.warn(`[RADIO] Giving up on "${state.station.name}" in guild ${guildId} after ${MAX_RECONNECTS} reconnects (${reason})`);
@@ -29,18 +34,18 @@ const reconnectRadio = async (player, client, reason) => {
         await (0, session_1.endRadioSession)(guildId);
         return 'exhausted';
     }
-    inFlight.add(guildId);
+    state.reconnecting = true;
     await radio_1.RadioDB.recordReconnect(guildId, state.station.id);
     client.logger?.warn(`[RADIO] Reconnecting to "${state.station.name}" in guild ${guildId}, attempt ${attempt}/${MAX_RECONNECTS} (${reason})`);
     try {
         await new Promise((resolve) => setTimeout(resolve, BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)]));
-        if (!(0, state_1.getRadioState)(guildId)) {
-            inFlight.delete(guildId);
+        if ((0, state_1.getRadioState)(guildId) !== state)
             return 'not_radio';
-        }
         const res = await client.manager.search(state.station.url, state.requesterId ?? client.user?.id ?? undefined);
         if (magmastream_1.TrackUtils.isErrorOrEmptySearchResult(res) || !res.tracks.length)
             throw new Error(`loadType: ${res.loadType}`);
+        if ((0, state_1.getRadioState)(guildId) !== state)
+            return 'not_radio';
         await player.queue.clear();
         await player.queue.setCurrent(null);
         await player.queue.add(res.tracks[0]);
@@ -50,7 +55,9 @@ const reconnectRadio = async (player, client, reason) => {
         return 'reconnecting';
     }
     catch (error) {
-        inFlight.delete(guildId);
+        state.reconnecting = false;
+        if ((0, state_1.getRadioState)(guildId) !== state)
+            return 'not_radio';
         client.logger?.error(`[RADIO] Reconnect attempt ${attempt} failed for "${state.station.name}" in guild ${guildId}: ${error}`);
         await radio_1.RadioDB.recordFailure(guildId, state.station.id);
         return (0, exports.reconnectRadio)(player, client, `${reason} (retry ${attempt})`);
@@ -59,7 +66,7 @@ const reconnectRadio = async (player, client, reason) => {
 exports.reconnectRadio = reconnectRadio;
 const localeDetector = new locales_1.LocaleDetector();
 const notifyRadioRecovery = async (client, player, result, stationName) => {
-    if (result === 'not_radio')
+    if (result === 'not_radio' || result === 'in_progress')
         return;
     const channel = client.channels.cache.get(String(player.textChannelId));
     if (!channel?.isTextBased())

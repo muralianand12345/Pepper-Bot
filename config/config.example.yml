@@ -58,6 +58,17 @@ music:
         default_search_ttl: 600000 # Default TTL for search results in ms (10 minutes)
         default_url_ttl: 1800000 # Default TTL for URL results in ms (30 minutes)
         cleanup_interval: 300000 # Interval for cleaning up cache in ms (5 minutes)
+    # Smart autoplay (/autoplay) - every setting is optional, these are the defaults
+    autoplay:
+        batch_size: 5 # Songs added each time the queue runs low
+        favorites_per_batch: 1 # Of those, familiar songs from the listeners' history
+        refill_below: 2 # Add a batch when fewer than this many songs are queued
+        history_days: 90 # Only favorites played within this many days count
+        early_skip_seconds: 30 # Skipping an autoplay pick before this steers away from it
+        seeds: # How many songs of each kind shape the picks
+            session: 5 # Songs people requested this session (strongest)
+            listeners: 2 # Top songs of people in the voice channel
+            server: 1 # This server's top songs, only if they fit the mood
     # Lavalink audio node configuration
     lavalink:
         default_search:
@@ -93,3 +104,17 @@ music:
               sessionTimeoutSeconds: 30000
               apiRequestTimeoutMs: 10000
               isBackup: true
+
+# AI features - needs OPENAI_API_KEY (and optionally OPENAI_BASE_URL) in .env
+ai:
+    enabled: true # Off unless set to true
+    model: gpt-5.4-mini # gpt-5.4-nano also works well for autoplay and costs less
+    reasoning_effort: low # none, minimal, low, medium or high. Set to null for models without reasoning (gpt-4.1, gpt-4o)
+    temperature: null # Only for models that accept it
+    max_output_tokens: 2000
+    timeout_ms: 15000 # Slower answers are dropped and the bot uses its own picks
+    daily_limit: 5000 # Requests per day across all servers (resets at midnight UTC)
+    autoplay:
+        enabled: true # Let the AI choose smart autoplay's picks
+        candidates: 25 # How many ranked songs the AI chooses from
+        daily_limit_per_guild: 150 # Requests per server per day

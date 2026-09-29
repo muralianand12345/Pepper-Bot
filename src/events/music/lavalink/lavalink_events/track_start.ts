@@ -6,7 +6,7 @@ import Formatter from '../../../../utils/format';
 import { LavalinkEvent } from '../../../../types';
 import { ConfigManager } from '../../../../utils/config';
 import { LocaleDetector } from '../../../../core/locales';
-import { wait, MusicDB, NowPlayingManager, ActivityCheckManager, getRequester, isBotRequester, VoiceChannelStatus, MusicResponseHandler, clearFailures, consumeStreamRefresh, isRadioActive, getRadioStation, consumeRadioReconnect } from '../../../../core/music';
+import { wait, MusicDB, NowPlayingManager, ActivityCheckManager, getRequester, isBotRequester, VoiceChannelStatus, MusicResponseHandler, clearFailures, consumeStreamRefresh, isRadioActive, getRadioStation, consumeRadioReconnect, onAutoplayTrackStart } from '../../../../core/music';
 import { v2, v2Webhook, panel, fields } from '../../../../utils/v2';
 
 const YTREGEX = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
@@ -176,6 +176,8 @@ const lavalinkEvent: LavalinkEvent = {
 			} catch (activityError) {
 				client.logger.error(`[LAVALINK] Failed to initialize activity check manager: ${activityError}`);
 			}
+
+			onAutoplayTrackStart(client, player);
 
 			try {
 				await webhookLiveSongs(client, track, player);

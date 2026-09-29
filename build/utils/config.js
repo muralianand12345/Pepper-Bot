@@ -28,8 +28,8 @@ const EnvSchema = zod_1.z.object({
     SPOTIFY_REDIRECT_URI: zod_1.z.string(),
     FEEDBACK_WEBHOOK: zod_1.z.string(),
     LIVE_SONGS_WEBHOOK: zod_1.z.string(),
-    OPENAI_API_KEY: zod_1.z.string(),
-    OPENAI_BASE_URL: zod_1.z.string(),
+    OPENAI_API_KEY: zod_1.z.string().optional(),
+    OPENAI_BASE_URL: zod_1.z.string().optional(),
     REDIS_HOST: zod_1.z.string().optional(),
     REDIS_PORT: zod_1.z
         .union([zod_1.z.number(), zod_1.z.string()])
@@ -78,10 +78,12 @@ class ConfigManager {
             return this.config.LIVE_SONGS_WEBHOOK;
         };
         this.getOpenAiApiKey = () => {
-            return this.config.OPENAI_API_KEY;
+            const key = this.config.OPENAI_API_KEY?.trim();
+            return key ? key : undefined;
         };
         this.getOpenAiBaseUrl = () => {
-            return this.config.OPENAI_BASE_URL;
+            const url = this.config.OPENAI_BASE_URL?.trim();
+            return url ? url : undefined;
         };
         this.getRedisConfig = () => {
             if (this.config.REDIS_HOST && this.config.REDIS_PORT) {

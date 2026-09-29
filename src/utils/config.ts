@@ -24,8 +24,8 @@ const EnvSchema = z.object({
 	SPOTIFY_REDIRECT_URI: z.string(),
 	FEEDBACK_WEBHOOK: z.string(),
 	LIVE_SONGS_WEBHOOK: z.string(),
-	OPENAI_API_KEY: z.string(),
-	OPENAI_BASE_URL: z.string(),
+	OPENAI_API_KEY: z.string().optional(),
+	OPENAI_BASE_URL: z.string().optional(),
 	REDIS_HOST: z.string().optional(),
 	REDIS_PORT: z
 		.union([z.number(), z.string()])
@@ -129,12 +129,14 @@ export class ConfigManager {
 		return this.config.LIVE_SONGS_WEBHOOK;
 	};
 
-	public getOpenAiApiKey = (): string => {
-		return this.config.OPENAI_API_KEY;
+	public getOpenAiApiKey = (): string | undefined => {
+		const key = this.config.OPENAI_API_KEY?.trim();
+		return key ? key : undefined;
 	};
 
-	public getOpenAiBaseUrl = (): string => {
-		return this.config.OPENAI_BASE_URL;
+	public getOpenAiBaseUrl = (): string | undefined => {
+		const url = this.config.OPENAI_BASE_URL?.trim();
+		return url ? url : undefined;
 	};
 
 	public getRedisConfig = (): magmastream.StateStorageOptions['redisConfig'] | undefined => {

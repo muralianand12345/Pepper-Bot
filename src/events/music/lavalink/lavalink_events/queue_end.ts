@@ -4,7 +4,7 @@ import magmastream, { ManagerEventTypes } from 'magmastream';
 import { send } from '../../../../utils/msg';
 import { LavalinkEvent } from '../../../../types';
 import { LocaleDetector } from '../../../../core/locales';
-import { wait, NowPlayingManager, MusicResponseHandler, VoiceChannelStatus } from '../../../../core/music';
+import { wait, NowPlayingManager, MusicResponseHandler, VoiceChannelStatus, isRadioActive, onAutoplayQueueEnd } from '../../../../core/music';
 import { v2 } from '../../../../utils/v2';
 
 const localeDetector = new LocaleDetector();
@@ -91,10 +91,12 @@ const sendQueueEndMessage = async (client: discord.Client, channel: discord.Text
 	}
 };
 
-const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, client: discord.Client): Promise<void> => {
-	const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, client);
-	nowPlayingManager.onStop();
-	await nowPlayingManager.disableButtons();
+const handlePlayerCleanup = async (player: magmastream.Player, guildId: string, client: discord.Client, isRadio: boolean): Promise<void> => {
+	if (!isRadio) {
+		const nowPlayingManager = NowPlayingManager.getInstance(guildId, player, client);
+		nowPlayingManager.onStop();
+		await nowPlayingManager.disableButtons();
+	}
 
 	const CLEANUP_DELAY = 120000;
 	const CLEANUP_DELAY_MINS = CLEANUP_DELAY / 60000;
@@ -123,9 +125,15 @@ const lavalinkEvent: LavalinkEvent = {
 	execute: async (player: magmastream.Player, _track: magmastream.Track, _payload: magmastream.TrackEndEvent, client: discord.Client): Promise<void> => {
 		if (!player?.textChannelId || !client?.channels) return client.logger.warn(`[QUEUE_END] Missing player textChannelId or client channels for guild ${player?.guildId}`);
 
+		const isRadio = isRadioActive(player.guildId);
+
 		try {
-			const channel = await validateChannelAccess(client, player.textChannelId);
-			if (!channel) {
+			if (await onAutoplayQueueEnd(client, player)) return client.logger.debug(`[QUEUE_END] Smart autoplay kept playback going in guild ${player.guildId}`);
+
+			const channel = isRadio ? null : await validateChannelAccess(client, player.textChannelId);
+			if (isRadio) {
+				client.logger.debug(`[QUEUE_END] Radio active in guild ${player.guildId}, skipping queue end message`);
+			} else if (!channel) {
 				client.logger.warn(`[QUEUE_END] Cannot access text channel ${player.textChannelId} for guild ${player.guildId}, skipping message`);
 			} else {
 				let guildLocale = 'en';
@@ -138,7 +146,7 @@ const lavalinkEvent: LavalinkEvent = {
 				await sendQueueEndMessage(client, channel, guildLocale);
 			}
 
-			await handlePlayerCleanup(player, player.guildId, client);
+			await handlePlayerCleanup(player, player.guildId, client, isRadio);
 		} catch (error) {
 			client.logger.error(`[QUEUE_END] Error in queue end event: ${error}`);
 		}
