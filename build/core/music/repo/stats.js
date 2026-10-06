@@ -199,10 +199,10 @@ StatsDB.toServerInsight = (raw) => ({
     lastPlayedAt: raw.lastPlayedAt ?? null,
     live: false,
 });
-StatsDB.getServerInsights = async (limit = 10) => {
-    return _a.withCache(`servers:${limit}`, async () => {
+StatsDB.getServerInsights = async (limit = 10, guildIds) => {
+    return _a.withCache(guildIds ? `servers:${limit}` : `servers:${limit}:unfiltered`, async () => {
         try {
-            const result = await music_guild_1.default.aggregate(_a.serverInsightStages(limit)).allowDiskUse(true);
+            const result = await music_guild_1.default.aggregate([...(guildIds ? [{ $match: { guildId: { $in: guildIds } } }] : []), ..._a.serverInsightStages(limit)]).allowDiskUse(true);
             return (result || []).map(_a.toServerInsight);
         }
         catch (err) {

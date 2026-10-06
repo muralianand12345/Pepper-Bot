@@ -204,10 +204,10 @@ export class StatsDB {
 		live: false,
 	});
 
-	public static getServerInsights = async (limit: number = 10): Promise<StatsServerInsight[]> => {
-		return this.withCache(`servers:${limit}`, async () => {
+	public static getServerInsights = async (limit: number = 10, guildIds?: string[]): Promise<StatsServerInsight[]> => {
+		return this.withCache(guildIds ? `servers:${limit}` : `servers:${limit}:unfiltered`, async () => {
 			try {
-				const result = await music_guild.aggregate(this.serverInsightStages(limit)).allowDiskUse(true);
+				const result = await music_guild.aggregate([...(guildIds ? [{ $match: { guildId: { $in: guildIds } } }] : []), ...this.serverInsightStages(limit)]).allowDiskUse(true);
 				return (result || []).map(this.toServerInsight);
 			} catch (err) {
 				client.logger.error(`[STATS] Error in getServerInsights: ${err}`);

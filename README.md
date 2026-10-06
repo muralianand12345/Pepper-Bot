@@ -4,7 +4,7 @@
 
 **A Discord music bot with smart autoplay, live radio, custom playlists and listening analytics.**
 
-![Version](https://img.shields.io/badge/version-5.16.1-blue)
+![Version](https://img.shields.io/badge/version-5.16.2-blue)
 ![Discord.js](https://img.shields.io/badge/discord.js-v14.27-5865F2?logo=discord&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7.0-3178C6?logo=typescript&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=nodedotjs&logoColor=white)

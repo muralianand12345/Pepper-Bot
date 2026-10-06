@@ -162,6 +162,17 @@ export default class StatsAPIHandler {
 		}
 	};
 
+	private currentGuildIds = async (): Promise<string[] | undefined> => {
+		try {
+			const readIds = (c: discord.Client) => [...c.guilds.cache.keys()];
+			const results = this.client.shard ? ((await this.client.shard.broadcastEval(readIds)) as string[][]) : [readIds(this.client)];
+			return results.flat();
+		} catch (error) {
+			this.client.logger.warn(`[STATS_API] Failed to resolve current guilds: ${error}`);
+			return undefined;
+		}
+	};
+
 	private enrichServers = async (servers: StatsServerInsight[]): Promise<StatsServerInsight[]> => {
 		const [meta, live] = await Promise.all([this.fetchGuildMeta(servers.map((server) => server.guildId)), this.liveGuildIds()]);
 		return servers.map((server) => {
@@ -326,7 +337,7 @@ export default class StatsAPIHandler {
 		try {
 			const limit = this.parseLimit(req.query.limit, DEFAULT_LIMIT);
 			const cached = StatsDB.isCached(`servers:${limit}`);
-			const servers = await StatsDB.getServerInsights(limit);
+			const servers = await StatsDB.getServerInsights(limit, await this.currentGuildIds());
 			this.send(res, { limit, servers: await this.enrichServers(servers) }, cached);
 		} catch (error) {
 			this.fail(res, error, 'servers');
