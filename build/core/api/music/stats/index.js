@@ -140,6 +140,17 @@ class StatsAPIHandler {
                 return new Set();
             }
         };
+        this.currentGuildIds = async () => {
+            try {
+                const readIds = (c) => [...c.guilds.cache.keys()];
+                const results = this.client.shard ? (await this.client.shard.broadcastEval(readIds)) : [readIds(this.client)];
+                return results.flat();
+            }
+            catch (error) {
+                this.client.logger.warn(`[STATS_API] Failed to resolve current guilds: ${error}`);
+                return undefined;
+            }
+        };
         this.enrichServers = async (servers) => {
             const [meta, live] = await Promise.all([this.fetchGuildMeta(servers.map((server) => server.guildId)), this.liveGuildIds()]);
             return servers.map((server) => {
@@ -297,7 +308,7 @@ class StatsAPIHandler {
             try {
                 const limit = this.parseLimit(req.query.limit, DEFAULT_LIMIT);
                 const cached = repo_1.StatsDB.isCached(`servers:${limit}`);
-                const servers = await repo_1.StatsDB.getServerInsights(limit);
+                const servers = await repo_1.StatsDB.getServerInsights(limit, await this.currentGuildIds());
                 this.send(res, { limit, servers: await this.enrichServers(servers) }, cached);
             }
             catch (error) {
