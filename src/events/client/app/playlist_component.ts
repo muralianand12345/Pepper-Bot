@@ -2,6 +2,7 @@ import discord from 'discord.js';
 
 import { BotEvent } from '../../../types';
 import { LocaleDetector } from '../../../core/locales';
+import { getUserBan } from '../../../core/commands/ban';
 import { v2Ephemeral, v2Text } from '../../../utils/v2';
 import { isPlaylistComponent, PlaylistComponentHandler } from '../../../core/music';
 
@@ -11,6 +12,7 @@ const event: BotEvent = {
 	name: discord.Events.InteractionCreate,
 	execute: async (interaction: discord.Interaction, client: discord.Client): Promise<void> => {
 		if (!isPlaylistComponent(interaction)) return;
+		if (await getUserBan(client, interaction.user.id)) return;
 
 		try {
 			await new PlaylistComponentHandler(client, interaction).handle();

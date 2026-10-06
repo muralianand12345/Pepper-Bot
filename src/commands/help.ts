@@ -31,7 +31,7 @@ const helpCommand: Command = {
 
 		if (specificCommand) {
 			const command = client.commands.get(specificCommand);
-			if (!command) {
+			if (!command || command.owner) {
 				const container = responseHandler.createErrorContainer(t('responses.help.command_not_found', { command: specificCommand }), locale);
 				return await interaction.reply(v2Ephemeral(container));
 			}
@@ -57,7 +57,7 @@ const helpCommand: Command = {
 			return await interaction.reply(v2(commandContainer));
 		}
 
-		const commands = Array.from(client.commands.values());
+		const commands = Array.from(client.commands.values()).filter((command) => !command.owner);
 		const categorizedCommands = categorizeCommandsByCategory(commands);
 
 		const container = panel(0x5865f2, {

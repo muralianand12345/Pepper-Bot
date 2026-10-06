@@ -3,6 +3,7 @@ import discord from 'discord.js';
 import { BotEvent } from '../../../types';
 import { Music, NowPlayingManager, ActivityCheckManager } from '../../../core/music';
 import { LocaleDetector } from '../../../core/locales';
+import { getUserBan } from '../../../core/commands/ban';
 import { v2Ephemeral, v2Text } from '../../../utils/v2';
 
 const MUSIC_BUTTON_IDS = ['pause-music', 'resume-music', 'skip-music', 'stop-music', 'loop-music', 'activity-check-continue'];
@@ -94,6 +95,7 @@ const event: BotEvent = {
 	name: discord.Events.InteractionCreate,
 	execute: async (interaction: discord.Interaction, client: discord.Client): Promise<void> => {
 		if (!validateButtonInteraction(interaction)) return;
+		if (await getUserBan(client, interaction.user.id)) return;
 		if (!client.config.music.enabled) {
 			try {
 				const t = await localeDetector.getTranslator(interaction);

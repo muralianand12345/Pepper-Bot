@@ -6,6 +6,7 @@ import { Command } from '../../types';
 import { isPrimaryShard } from '../../utils/shard';
 import { ConfigManager } from '../../utils/config';
 
+export * from './ban';
 export * from './premium';
 export * from './interaction';
 export * from './autocomplete';
@@ -14,7 +15,7 @@ const configManager = ConfigManager.getInstance();
 
 export class CommandManager {
 	private client: discord.Client;
-	private commands: (discord.SlashCommandBuilder | discord.SlashCommandSubcommandsOnlyBuilder | discord.SlashCommandOptionsOnlyBuilder)[] = [];
+	private commands: Command[] = [];
 
 	constructor(client: discord.Client) {
 		this.client = client;
@@ -36,15 +37,21 @@ export class CommandManager {
 		if (!isPrimaryShard(this.client)) return this.client.logger.debug(`[COMMAND] Skipping global command registration on shard ${this.client.shard?.ids[0]} (primary shard only).`);
 
 		const rest = new discord.REST({ version: '10' }).setToken(configManager.getToken() ?? '');
-		await rest.put(discord.Routes.applicationCommands(this.client.user?.id ?? ''), { body: this.commands.map((command) => command.toJSON()) });
+		const applicationId = this.client.user?.id ?? '';
+		await rest.put(discord.Routes.applicationCommands(applicationId), { body: this.commands.filter((command) => !command.owner).map((command) => command.data.toJSON()) });
 		this.client.logger.success('[COMMAND] Successfully registered application commands.');
+
+		const supportGuildId = this.client.config.bot.support_server.id;
+		if (!supportGuildId) return this.client.logger.warn('[COMMAND] No support server configured, skipping owner command registration.');
+		await rest.put(discord.Routes.applicationGuildCommands(applicationId, supportGuildId), { body: this.commands.filter((command) => command.owner).map((command) => command.data.toJSON()) });
+		this.client.logger.success('[COMMAND] Successfully registered owner commands in the support server.');
 	};
 
 	load = async (directory: string): Promise<void> => {
 		const loadCommands = (await this.loadCommands(directory, (file) => file.endsWith('.js') || file.endsWith('.ts'))) as Command[];
 		loadCommands.forEach((command) => {
 			this.client.commands.set(command.data.name, command);
-			this.commands.push(command.data);
+			this.commands.push(command);
 		});
 
 		this.client.logger.info(`[COMMAND] Loaded ${this.client.commands.size} commands.`);

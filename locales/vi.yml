@@ -294,6 +294,7 @@ responses:
         member_not_found: 'Không thể xác minh quyền của bạn. Vui lòng thử lại.'
         volume_error: 'Đã xảy ra lỗi khi đặt âm lượng'
         premium_required: '⭐ Lệnh này yêu cầu **Premium**. Tham gia máy chủ hỗ trợ của chúng tôi để được truy cập!'
+        user_banned: '🚫 Bạn đã bị cấm sử dụng Pepper. Lý do: {reason}'
 
     language:
         user_set: 'Ngôn ngữ của bạn đã được đặt thành **{language}**'

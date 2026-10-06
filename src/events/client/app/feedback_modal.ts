@@ -2,6 +2,7 @@ import discord from 'discord.js';
 
 import { BotEvent } from '../../../types';
 import { ConfigManager } from '../../../utils/config';
+import { getUserBan } from '../../../core/commands/ban';
 import { v2Ephemeral, v2Text, v2Webhook, panel, fields } from '../../../utils/v2';
 
 const configManager = ConfigManager.getInstance();
@@ -9,6 +10,7 @@ const configManager = ConfigManager.getInstance();
 const event: BotEvent = {
 	name: discord.Events.InteractionCreate,
 	execute: async (interaction: discord.Interaction, client: discord.Client): Promise<void> => {
+		if ((interaction.isButton() || interaction.isModalSubmit()) && interaction.customId.startsWith('feedback_') && (await getUserBan(client, interaction.user.id))) return;
 		if (interaction.isButton() && interaction.customId.startsWith('feedback_request_')) {
 			try {
 				const guildId = interaction.customId.replace('feedback_request_', '');

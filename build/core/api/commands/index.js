@@ -122,7 +122,7 @@ class CommandsAPIHandler {
         };
         this.buildPayload = (locale) => {
             const discordLocale = locale === this.localization.getDefaultLocale() ? null : this.localization.mapToDiscordLocale(locale);
-            const commands = [...this.client.commands.values()].sort((a, b) => {
+            const commands = [...this.client.commands.values()].filter((command) => !command.owner).sort((a, b) => {
                 const rank = CATEGORY_ORDER.indexOf(a.category || types_1.CommandCategory.OTHER) - CATEGORY_ORDER.indexOf(b.category || types_1.CommandCategory.OTHER);
                 return rank !== 0 ? rank : a.data.name.localeCompare(b.data.name);
             });

@@ -9,6 +9,15 @@ export interface IMusicGuild extends mongoose.Document {
 	songs: Array<ISongs>;
 }
 
+export interface IUserBan extends mongoose.Document {
+	userId: string;
+	reason: string;
+	bannedBy: string | null;
+	expiresAt: Date | null;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
 export interface IMusicUser extends mongoose.Document {
 	userId: string;
 	language?: string | null;

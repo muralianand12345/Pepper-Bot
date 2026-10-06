@@ -3,6 +3,7 @@ import discord from 'discord.js';
 import { MusicDB } from '../../../core/music';
 import Formatter from '../../../utils/format';
 import { LocaleDetector } from '../../../core/locales';
+import { getUserBan } from '../../../core/commands/ban';
 import { MusicResponseHandler } from '../../../core/music';
 import { BotEvent, ISongs, ChartAnalytics } from '../../../types';
 import { createChartButtons, createChartContainer } from '../../../commands/chart';
@@ -169,6 +170,7 @@ const event: BotEvent = {
 	name: discord.Events.InteractionCreate,
 	execute: async (interaction: discord.Interaction, client: discord.Client): Promise<void> => {
 		if (!validateChartButtonInteraction(interaction)) return;
+		if (await getUserBan(client, interaction.user.id)) return;
 		await handleChartButtonAction(interaction, client);
 	},
 };

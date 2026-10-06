@@ -205,7 +205,7 @@ class AutoComplete {
         this.helpAutocomplete = async () => {
             const focused = this.interaction.options.getFocused(true);
             if (focused.name === 'command') {
-                const commands = Array.from(this.client.commands.values());
+                const commands = Array.from(this.client.commands.values()).filter((cmd) => !cmd.owner);
                 const query = focused.value.toLowerCase();
                 const filtered = commands
                     .filter((cmd) => cmd.data.name.toLowerCase().includes(query))
