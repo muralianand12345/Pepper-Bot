@@ -7,6 +7,7 @@ const discord_js_1 = __importDefault(require("discord.js"));
 const music_1 = require("../../../core/music");
 const format_1 = __importDefault(require("../../../utils/format"));
 const locales_1 = require("../../../core/locales");
+const ban_1 = require("../../../core/commands/ban");
 const music_2 = require("../../../core/music");
 const chart_1 = require("../../../commands/chart");
 const v2_1 = require("../../../utils/v2");
@@ -157,6 +158,8 @@ const event = {
     name: discord_js_1.default.Events.InteractionCreate,
     execute: async (interaction, client) => {
         if (!validateChartButtonInteraction(interaction))
+            return;
+        if (await (0, ban_1.getUserBan)(client, interaction.user.id))
             return;
         await handleChartButtonAction(interaction, client);
     },

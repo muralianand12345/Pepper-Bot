@@ -306,6 +306,7 @@ responses:
         member_not_found: 'No se pudieron verificar tus permisos. Por favor, inténtalo de nuevo.'
         volume_error: 'Ocurrió un error al establecer el volumen'
         premium_required: '⭐ Este comando requiere **Premium**. ¡Únete a nuestro servidor de soporte para obtener acceso!'
+        user_banned: '🚫 Tienes prohibido usar Pepper. Motivo: {reason}'
 
     language:
         user_set: 'Tu idioma se ha establecido a **{language}**'

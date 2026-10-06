@@ -7,6 +7,7 @@ exports.CommandInteractionHandler = void 0;
 const ms_1 = __importDefault(require("ms"));
 const discord_js_1 = __importDefault(require("discord.js"));
 const locales_1 = require("../locales");
+const ban_1 = require("./ban");
 const premium_1 = require("./premium");
 const music_1 = require("../music");
 const music_guild_1 = __importDefault(require("../../events/database/schema/music_guild"));
@@ -15,6 +16,8 @@ class CommandInteractionHandler {
     constructor(client, interaction) {
         this.handle = async () => {
             try {
+                if (await this.handleBan())
+                    return;
                 if (this.interaction.isModalSubmit())
                     return await this.handleModalSubmit();
                 if (this.interaction.isAutocomplete()) {
@@ -238,6 +241,18 @@ class CommandInteractionHandler {
                     }
                 }
             }
+        };
+        this.handleBan = async () => {
+            const ban = await (0, ban_1.getUserBan)(this.client, this.interaction.user.id);
+            if (!ban)
+                return false;
+            if (this.interaction.isAutocomplete()) {
+                await this.interaction.respond([]).catch(() => { });
+            }
+            else {
+                await this.sendErrorReply('responses.errors.user_banned', { reason: ban.reason });
+            }
+            return true;
         };
         this.handleOwner = async (command) => {
             if (command.owner && !this.client.config.bot.owners.includes(this.interaction.user.id)) {

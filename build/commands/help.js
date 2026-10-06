@@ -31,7 +31,7 @@ const helpCommand = {
         const specificCommand = interaction.options.getString('command');
         if (specificCommand) {
             const command = client.commands.get(specificCommand);
-            if (!command) {
+            if (!command || command.owner) {
                 const container = responseHandler.createErrorContainer(t('responses.help.command_not_found', { command: specificCommand }), locale);
                 return await interaction.reply((0, v2_1.v2Ephemeral)(container));
             }
@@ -52,7 +52,7 @@ const helpCommand = {
             });
             return await interaction.reply((0, v2_1.v2)(commandContainer));
         }
-        const commands = Array.from(client.commands.values());
+        const commands = Array.from(client.commands.values()).filter((command) => !command.owner);
         const categorizedCommands = categorizeCommandsByCategory(commands);
         const container = (0, v2_1.panel)(0x5865f2, {
             title: t('responses.help.title'),

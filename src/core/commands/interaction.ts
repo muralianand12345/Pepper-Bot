@@ -3,6 +3,7 @@ import discord from 'discord.js';
 
 import { Command } from '../../types';
 import { LocaleDetector } from '../locales';
+import { getUserBan } from './ban';
 import { checkUserPremium } from './premium';
 import { MusicResponseHandler } from '../music';
 import music_guild from '../../events/database/schema/music_guild';
@@ -22,6 +23,7 @@ export class CommandInteractionHandler {
 
 	public handle = async (): Promise<void> => {
 		try {
+			if (await this.handleBan()) return;
 			if (this.interaction.isModalSubmit()) return await this.handleModalSubmit();
 
 			if (this.interaction.isAutocomplete()) {
@@ -241,6 +243,18 @@ export class CommandInteractionHandler {
 				}
 			}
 		}
+	};
+
+	private handleBan = async (): Promise<boolean> => {
+		const ban = await getUserBan(this.client, this.interaction.user.id);
+		if (!ban) return false;
+
+		if (this.interaction.isAutocomplete()) {
+			await this.interaction.respond([]).catch(() => {});
+		} else {
+			await this.sendErrorReply('responses.errors.user_banned', { reason: ban.reason });
+		}
+		return true;
 	};
 
 	private handleOwner = async (command: Command): Promise<boolean> => {

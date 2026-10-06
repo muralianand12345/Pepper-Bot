@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = __importDefault(require("discord.js"));
 const locales_1 = require("../../../core/locales");
+const ban_1 = require("../../../core/commands/ban");
 const v2_1 = require("../../../utils/v2");
 const music_1 = require("../../../core/music");
 const localeDetector = new locales_1.LocaleDetector();
@@ -12,6 +13,8 @@ const event = {
     name: discord_js_1.default.Events.InteractionCreate,
     execute: async (interaction, client) => {
         if (!(0, music_1.isPlaylistComponent)(interaction))
+            return;
+        if (await (0, ban_1.getUserBan)(client, interaction.user.id))
             return;
         try {
             await new music_1.PlaylistComponentHandler(client, interaction).handle();

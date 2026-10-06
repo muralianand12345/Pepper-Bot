@@ -45,6 +45,7 @@ const promises_1 = __importDefault(require("fs/promises"));
 const discord_js_1 = __importDefault(require("discord.js"));
 const shard_1 = require("../../utils/shard");
 const config_1 = require("../../utils/config");
+__exportStar(require("./ban"), exports);
 __exportStar(require("./premium"), exports);
 __exportStar(require("./interaction"), exports);
 __exportStar(require("./autocomplete"), exports);
@@ -64,14 +65,20 @@ class CommandManager {
             if (!(0, shard_1.isPrimaryShard)(this.client))
                 return this.client.logger.debug(`[COMMAND] Skipping global command registration on shard ${this.client.shard?.ids[0]} (primary shard only).`);
             const rest = new discord_js_1.default.REST({ version: '10' }).setToken(configManager.getToken() ?? '');
-            await rest.put(discord_js_1.default.Routes.applicationCommands(this.client.user?.id ?? ''), { body: this.commands.map((command) => command.toJSON()) });
+            const applicationId = this.client.user?.id ?? '';
+            await rest.put(discord_js_1.default.Routes.applicationCommands(applicationId), { body: this.commands.filter((command) => !command.owner).map((command) => command.data.toJSON()) });
             this.client.logger.success('[COMMAND] Successfully registered application commands.');
+            const supportGuildId = this.client.config.bot.support_server.id;
+            if (!supportGuildId)
+                return this.client.logger.warn('[COMMAND] No support server configured, skipping owner command registration.');
+            await rest.put(discord_js_1.default.Routes.applicationGuildCommands(applicationId, supportGuildId), { body: this.commands.filter((command) => command.owner).map((command) => command.data.toJSON()) });
+            this.client.logger.success('[COMMAND] Successfully registered owner commands in the support server.');
         };
         this.load = async (directory) => {
             const loadCommands = (await this.loadCommands(directory, (file) => file.endsWith('.js') || file.endsWith('.ts')));
             loadCommands.forEach((command) => {
                 this.client.commands.set(command.data.name, command);
-                this.commands.push(command.data);
+                this.commands.push(command);
             });
             this.client.logger.info(`[COMMAND] Loaded ${this.client.commands.size} commands.`);
             await this.register();
